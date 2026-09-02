@@ -9,18 +9,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0e14;
-    --bg-elevated: #131822;
-    --fg: #e8eef5;
-    --muted: #6b7785;
-    --accent: #00ffa3;
-    --accent-warm: #ff6b35;
-    --accent-pink: #ff3d8b;
-    --accent-purple: #a855f7;
-    --danger: #ff3860;
-    --gold: #ffd700;
-    --border: rgba(255,255,255,0.08);
-    --card: rgba(20, 30, 42, 0.7);
+    --bg: #f8fafc; /* Light grayish blue */
+    --bg-elevated: #ffffff; /* Pure white for cards */
+    --fg: #0f172a; /* Dark slate for text */
+    --muted: #64748b; /* Medium slate for muted text */
+    --accent: #16a34a; /* Green 600 */
+    --accent-warm: #ea580c; /* Orange 600 */
+    --accent-pink: #db2777; /* Pink 600 */
+    --accent-purple: #9333ea; /* Purple 600 */
+    --danger: #dc2626; /* Red 600 */
+    --gold: #ca8a04; /* Yellow 600 */
+    --border: rgba(15, 23, 42, 0.1); /* Dark transparent border */
+    --card: #ffffff;
   }
   
   * { box-sizing: border-box; }
@@ -37,7 +37,7 @@
   .bg-ambient { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
   .bg-blob {
     position: absolute; border-radius: 50%;
-    filter: blur(120px); opacity: 0.4;
+    filter: blur(120px); opacity: 0.15;
   }
   .blob-1 {
     width: 600px; height: 600px;
@@ -56,7 +56,7 @@
     background: radial-gradient(circle, var(--accent-purple), transparent 70%);
     top: 40%; left: 50%;
     animation: drift3 35s ease-in-out infinite alternate;
-    opacity: 0.25;
+    opacity: 0.1;
   }
   
   @keyframes drift1 { 0% { transform: translate(0,0); } 100% { transform: translate(200px, 100px); } }
@@ -66,8 +66,8 @@
   .grid-overlay {
     position: fixed; inset: 0; z-index: -1;
     background-image: 
-      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
     background-size: 50px 50px;
     pointer-events: none;
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
@@ -78,7 +78,7 @@
   .header {
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(12px);
-    background: rgba(10,14,20,0.85);
+    background: rgba(248, 250, 252, 0.8);
     position: sticky; top: 0; z-index: 50;
   }
   
@@ -88,7 +88,7 @@
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     position: relative; overflow: hidden;
-    box-shadow: 0 0 20px rgba(0, 255, 163, 0.3);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
   }
   .logo-mark::after {
     content: ''; position: absolute; inset: 2px;
@@ -106,14 +106,14 @@
   .stat-pill {
     display: flex; flex-direction: column;
     padding: 6px 12px;
-    background: rgba(255,255,255,0.04);
+    background: rgba(15, 23, 42, 0.03);
     border: 1px solid var(--border);
     border-radius: 10px;
     min-width: 68px;
     transition: all 0.3s;
   }
   .stat-pill.flash {
-    background: rgba(0, 255, 163, 0.15);
+    background: rgba(22, 163, 74, 0.1);
     border-color: var(--accent);
     transform: scale(1.05);
   }
@@ -131,7 +131,7 @@
   /* Combo meter */
   .combo-bar {
     height: 4px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(15, 23, 42, 0.05);
     border-radius: 2px;
     overflow: hidden;
     position: relative;
@@ -141,7 +141,7 @@
     background: linear-gradient(90deg, var(--accent), var(--accent-warm), var(--accent-pink));
     border-radius: 2px;
     transition: width 0.4s cubic-bezier(.2,.7,.3,1);
-    box-shadow: 0 0 12px rgba(0, 255, 163, 0.6);
+    box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
     width: 0%;
   }
   .combo-bar.active .combo-fill::after {
@@ -149,7 +149,7 @@
     position: absolute;
     top: 0; right: 0; bottom: 0;
     width: 20px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6));
     animation: shimmer 1s infinite;
   }
   @keyframes shimmer {
@@ -159,15 +159,15 @@
   
   /* App card */
   .app-card {
-    background: var(--card);
+    background: var(--bg-elevated);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px 16px;
     cursor: grab;
     transition: all 0.2s ease, opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease, border 0.4s ease;
-    backdrop-filter: blur(10px);
     position: relative; 
     user-select: none;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
   }
   .app-card::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0;
@@ -176,17 +176,17 @@
     border-radius: 12px 0 0 12px;
   }
   .app-card:hover {
-    border-color: rgba(0, 255, 163, 0.4);
+    border-color: rgba(22, 163, 74, 0.3);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 255, 163, 0.15);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   }
   .app-card:hover::before { opacity: 1; }
   .app-card:active { cursor: grabbing; }
   .app-card.dragging { opacity: 0.4; transform: rotate(2deg) scale(0.98); }
   .app-card.selected {
     border-color: var(--accent);
-    background: rgba(0, 255, 163, 0.1);
-    box-shadow: 0 0 0 2px rgba(0, 255, 163, 0.4), 0 8px 24px rgba(0, 255, 163, 0.2);
+    background: rgba(22, 163, 74, 0.05);
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2), 0 8px 24px rgba(15, 23, 42, 0.08);
   }
   .app-card.selected::before { opacity: 1; background: var(--accent); }
   .app-card.matched {
@@ -195,7 +195,7 @@
   .app-card.wrong {
     animation: shake 0.5s ease;
     border-color: var(--danger);
-    background: rgba(255, 56, 96, 0.1);
+    background: rgba(220, 38, 38, 0.05);
   }
   
   @keyframes matchOut {
@@ -215,7 +215,7 @@
   .app-icon {
     width: 34px; height: 34px;
     border-radius: 8px;
-    background: linear-gradient(135deg, rgba(0,255,163,0.18), rgba(255,107,53,0.18));
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.1), rgba(234, 88, 12, 0.1));
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 13px;
@@ -228,7 +228,7 @@
   .cat-icon {
     width: 34px; height: 34px;
     border-radius: 8px;
-    background: rgba(255, 107, 53, 0.12);
+    background: rgba(234, 88, 12, 0.1);
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
     font-size: 16px;
@@ -238,41 +238,42 @@
   
   /* Dropzone */
   .dropzone {
-    background: rgba(255,255,255,0.025);
-    border: 1.5px dashed rgba(255,255,255,0.12);
+    background: rgba(15, 23, 42, 0.02);
+    border: 1.5px dashed rgba(15, 23, 42, 0.15);
     border-radius: 14px;
     padding: 13px;
     transition: all 0.25s ease;
     min-height: 105px;
     position: relative;
+    box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.03);
   }
   .dropzone.drag-over {
     border-color: var(--accent);
-    background: rgba(0, 255, 163, 0.08);
-    box-shadow: 0 0 30px rgba(0, 255, 163, 0.15) inset;
+    background: rgba(22, 163, 74, 0.05);
+    box-shadow: 0 0 20px rgba(22, 163, 74, 0.1) inset;
     transform: scale(1.02);
   }
   .dropzone.complete {
     border-color: var(--accent);
     border-style: solid;
-    background: rgba(0, 255, 163, 0.05);
-    box-shadow: 0 0 20px rgba(0, 255, 163, 0.1);
+    background: rgba(22, 163, 74, 0.04);
+    box-shadow: 0 0 15px rgba(22, 163, 74, 0.08);
   }
   .dropzone.complete .cat-icon {
-    background: rgba(0, 255, 163, 0.2);
+    background: rgba(22, 163, 74, 0.15);
     color: var(--accent);
     border-color: var(--accent);
     animation: bounce 0.5s ease;
   }
   .dropzone.hint-glow {
     border-color: var(--gold);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 20px rgba(202, 138, 4, 0.3);
     animation: hintPulse 1.5s ease;
   }
   
   @keyframes hintPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
-    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); }
+    0%, 100% { box-shadow: 0 0 20px rgba(202, 138, 4, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(202, 138, 4, 0.5); }
   }
   
   @keyframes bounce {
@@ -289,21 +290,21 @@
   .dropzone-count {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px; color: var(--muted);
-    background: rgba(255,255,255,0.06);
+    background: rgba(15, 23, 42, 0.05);
     padding: 3px 8px; border-radius: 999px;
     white-space: nowrap;
     transition: all 0.3s;
   }
   .dropzone.complete .dropzone-count {
-    background: rgba(0, 255, 163, 0.2);
+    background: rgba(22, 163, 74, 0.15);
     color: var(--accent);
   }
   
   .matched-app {
     display: flex; align-items: center; gap: 6px;
     padding: 5px 8px;
-    background: rgba(0, 255, 163, 0.1);
-    border: 1px solid rgba(0, 255, 163, 0.25);
+    background: rgba(22, 163, 74, 0.08);
+    border: 1px solid rgba(22, 163, 74, 0.2);
     border-radius: 6px;
     margin-bottom: 4px;
     font-size: 11px;
@@ -319,7 +320,7 @@
   .check-icon {
     width: 14px; height: 14px; border-radius: 50%;
     background: var(--accent);
-    color: var(--bg);
+    color: #ffffff;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
@@ -338,26 +339,26 @@
   }
   .btn-primary {
     background: var(--accent);
-    color: var(--bg);
+    color: #ffffff;
   }
   .btn-primary:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(0, 255, 163, 0.4);
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.3);
   }
   .btn-ghost {
-    background: rgba(255,255,255,0.05);
+    background: rgba(15, 23, 42, 0.04);
     color: var(--fg);
     border-color: var(--border);
   }
-  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .btn-ghost:hover { background: rgba(15, 23, 42, 0.08); }
   .btn-hint {
     background: linear-gradient(135deg, var(--gold), var(--accent-warm));
-    color: var(--bg);
+    color: #ffffff;
     position: relative;
   }
   .btn-hint:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(234, 88, 12, 0.3);
   }
   .btn-hint:disabled {
     opacity: 0.4;
@@ -366,8 +367,8 @@
     box-shadow: none;
   }
   .btn-hint .hint-badge {
-    background: rgba(0,0,0,0.25);
-    color: var(--bg);
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
     font-weight: 700;
     padding: 1px 7px;
     border-radius: 999px;
@@ -395,6 +396,7 @@
     max-width: 320px;
     pointer-events: auto;
     display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
   }
   .toast.success { border-left: 3px solid var(--accent); }
   .toast.error { border-left: 3px solid var(--danger); }
@@ -409,7 +411,7 @@
   /* Modal */
   .modal-backdrop {
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(8px);
     z-index: 200;
     display: flex; align-items: center; justify-content: center;
@@ -430,11 +432,12 @@
     animation: pop-in 0.4s cubic-bezier(.2,.7,.3,1.4);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.1);
   }
   .modal::before {
     content: ''; position: absolute;
     top: -50%; left: -50%; right: -50%; bottom: -50%;
-    background: radial-gradient(circle, rgba(0,255,163,0.1), transparent 60%);
+    background: radial-gradient(circle, rgba(22, 163, 74, 0.05), transparent 60%);
     pointer-events: none;
     animation: rotate 20s linear infinite;
   }
@@ -443,14 +446,14 @@
   
   .progress-track {
     height: 3px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(15, 23, 42, 0.05);
     overflow: hidden;
   }
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent), var(--accent-warm), var(--accent-pink));
     transition: width 0.5s ease;
-    box-shadow: 0 0 12px rgba(0, 255, 163, 0.6);
+    box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
     background-size: 200% 100%;
     animation: gradientShift 3s linear infinite;
   }
@@ -464,7 +467,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-weight: 900;
     font-size: 24px;
-    text-shadow: 0 0 12px currentColor;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     animation: scoreFloat 1.2s cubic-bezier(.2,.7,.3,1) forwards;
     white-space: nowrap;
   }
@@ -533,6 +536,8 @@
     transform: translateY(10px);
     transition: all 0.3s;
     pointer-events: none;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    color: var(--fg);
   }
   .mascot-bubble.show {
     opacity: 1;
@@ -555,14 +560,14 @@
     top: 90px; left: 50%;
     transform: translateX(-50%);
     z-index: 110;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 107, 53, 0.15));
+    background: linear-gradient(135deg, rgba(202, 138, 4, 0.1), rgba(234, 88, 12, 0.1));
     border: 1px solid var(--gold);
     border-radius: 14px;
     padding: 14px 22px;
     backdrop-filter: blur(20px);
     display: flex; align-items: center; gap: 14px;
     animation: achSlide 0.5s cubic-bezier(.2,.7,.3,1.4);
-    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 10px 40px rgba(202, 138, 4, 0.2);
   }
   @keyframes achSlide {
     0% { transform: translate(-50%, -100px); opacity: 0; }
@@ -618,7 +623,7 @@
   }
   .flame.active {
     opacity: 1;
-    box-shadow: 0 0 6px var(--accent-warm);
+    box-shadow: 0 0 6px rgba(234, 88, 12, 0.4);
     animation: flameFlicker 0.5s infinite alternate;
   }
   @keyframes flameFlicker {
@@ -629,8 +634,8 @@
   /* Scrollbar */
   #appsList::-webkit-scrollbar { width: 6px; }
   #appsList::-webkit-scrollbar-track { background: transparent; }
-  #appsList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-  #appsList::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  #appsList::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.15); border-radius: 3px; }
+  #appsList::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.25); }
   
   @media (max-width: 768px) {
     .hero-title { font-size: 32px !important; }
@@ -658,19 +663,19 @@
     <svg viewBox="0 0 100 100" width="100%" height="100%">
       <defs>
         <linearGradient id="mascotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#00ffa3"/>
-          <stop offset="100%" stop-color="#ff6b35"/>
+          <stop offset="0%" stop-color="#16a34a"/>
+          <stop offset="100%" stop-color="#ea580c"/>
         </linearGradient>
       </defs>
       <rect x="20" y="25" width="60" height="60" rx="14" fill="url(#mascotGrad)"/>
-      <rect x="20" y="25" width="60" height="60" rx="14" fill="rgba(0,0,0,0.1)"/>
-      <circle id="mascotEyeL" cx="38" cy="50" r="6" fill="#0a0e14"/>
-      <circle id="mascotEyeR" cx="62" cy="50" r="6" fill="#0a0e14"/>
+      <rect x="20" y="25" width="60" height="60" rx="14" fill="rgba(255,255,255,0.1)"/>
+      <circle id="mascotEyeL" cx="38" cy="50" r="6" fill="#1e293b"/>
+      <circle id="mascotEyeR" cx="62" cy="50" r="6" fill="#1e293b"/>
       <circle cx="40" cy="48" r="2" fill="white"/>
       <circle cx="64" cy="48" r="2" fill="white"/>
-      <path id="mascotMouth" d="M 38 68 Q 50 76 62 68" stroke="#0a0e14" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path id="mascotMouth" d="M 38 68 Q 50 76 62 68" stroke="#1e293b" stroke-width="3" stroke-linecap="round" fill="none"/>
       <line x1="50" y1="25" x2="50" y2="15" stroke="url(#mascotGrad)" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="50" cy="13" r="4" fill="#00ffa3"/>
+      <circle cx="50" cy="13" r="4" fill="#16a34a"/>
     </svg>
   </div>
   
@@ -737,9 +742,9 @@
         </div>
         
         <div class="flex flex-wrap gap-2 text-xs">
-          <span class="px-3 py-1.5 rounded-full bg-[rgba(0,255,163,0.08)] border border-[rgba(0,255,163,0.25)] mono" style="color: var(--accent)">+100 / match</span>
-          <span class="px-3 py-1.5 rounded-full bg-[rgba(255,107,53,0.08)] border border-[rgba(255,107,53,0.25)] mono" style="color: var(--accent-warm)">x2 combo</span>
-          <span class="px-3 py-1.5 rounded-full bg-[rgba(255,61,139,0.08)] border border-[rgba(255,61,139,0.25)] mono" style="color: var(--accent-pink)">-25 / salah</span>
+          <span class="px-3 py-1.5 rounded-full bg-[rgba(22,163,74,0.1)] border border-[rgba(22,163,74,0.2)] mono" style="color: var(--accent)">+100 / match</span>
+          <span class="px-3 py-1.5 rounded-full bg-[rgba(234,88,12,0.1)] border border-[rgba(234,88,12,0.2)] mono" style="color: var(--accent-warm)">x2 combo</span>
+          <span class="px-3 py-1.5 rounded-full bg-[rgba(219,39,119,0.1)] border border-[rgba(219,39,119,0.2)] mono" style="color: var(--accent-pink)">-25 / salah</span>
         </div>
       </div>
     </section>
@@ -749,7 +754,7 @@
       <div class="lg:col-span-2">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
           <h2 class="font-bold text-base sm:text-lg flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full" style="background: var(--accent-warm); box-shadow: 0 0 12px var(--accent-warm)"></span>
+            <span class="w-2 h-2 rounded-full" style="background: var(--accent-warm); box-shadow: 0 0 8px var(--accent-warm)"></span>
             Daftar Aplikasi
           </h2>
           <span class="text-xs text-[var(--muted)] mono" id="appCount">0 tersisa</span>
@@ -760,7 +765,7 @@
       <div class="lg:col-span-3">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
           <h2 class="font-bold text-base sm:text-lg flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full" style="background: var(--accent); box-shadow: 0 0 12px var(--accent)"></span>
+            <span class="w-2 h-2 rounded-full" style="background: var(--accent); box-shadow: 0 0 8px var(--accent)"></span>
             Kategori
           </h2>
           <span class="text-xs text-[var(--muted)] mono">jatuhkan aplikasi di sini</span>
@@ -782,26 +787,26 @@
   <div id="startModal" class="modal-backdrop">
     <div class="modal">
       <div class="mb-5">
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm)); box-shadow: 0 10px 40px rgba(0, 255, 163, 0.4);">
-          <i class="fa-solid fa-play text-3xl" style="color: #0a0e14"></i>
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm)); box-shadow: 0 10px 40px rgba(22, 163, 74, 0.2);">
+          <i class="fa-solid fa-play text-3xl" style="color: #ffffff"></i>
         </div>
         <h2 class="text-2xl sm:text-3xl font-black mb-2">Selamat Datang!</h2>
         <p class="text-[var(--muted)] text-sm">Pilih mode permainan yang kamu suka:</p>
       </div>
       
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-left">
-        <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] hover:border-[var(--accent)] transition-all" data-mode="casual" onclick="startGame('casual')">
+        <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(15,23,42,0.02)] hover:border-[var(--accent)] transition-all" data-mode="casual" onclick="startGame('casual')">
           <div class="text-2xl mb-2"><i class="fa-solid fa-seedling" style="color: var(--accent)"></i></div>
           <div class="font-bold text-sm mb-1" style="color: var(--accent)">Santai</div>
           <div class="text-[11px] text-[var(--muted)] leading-relaxed">Tanpa batas waktu. Cocok untuk belajar & bersantai.</div>
         </button>
-        <button class="mode-btn p-4 rounded-xl border-2 border-[var(--accent-warm)] bg-[rgba(255,107,53,0.08)] transition-all relative" data-mode="arcade" onclick="startGame('arcade')">
-          <div class="absolute -top-2 -right-2 px-2 py-0.5 text-[9px] mono font-bold rounded-full" style="background: var(--accent-warm); color: var(--bg)">POPULER</div>
+        <button class="mode-btn p-4 rounded-xl border-2 border-[var(--accent-warm)] bg-[rgba(234,88,12,0.05)] transition-all relative" data-mode="arcade" onclick="startGame('arcade')">
+          <div class="absolute -top-2 -right-2 px-2 py-0.5 text-[9px] mono font-bold rounded-full" style="background: var(--accent-warm); color: #ffffff">POPULER</div>
           <div class="text-2xl mb-2"><i class="fa-solid fa-bolt" style="color: var(--accent-warm)"></i></div>
           <div class="font-bold text-sm mb-1" style="color: var(--accent-warm)">Arcade</div>
           <div class="text-[11px] text-[var(--muted)] leading-relaxed">2 menit + 3 hint. Bonus combo & skor tinggi!</div>
         </button>
-        <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] hover:border-[var(--accent-pink)] transition-all" data-mode="expert" onclick="startGame('expert')">
+        <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(15,23,42,0.02)] hover:border-[var(--accent-pink)] transition-all" data-mode="expert" onclick="startGame('expert')">
           <div class="text-2xl mb-2"><i class="fa-solid fa-fire" style="color: var(--accent-pink)"></i></div>
           <div class="font-bold text-sm mb-1" style="color: var(--accent-pink)">Ahli</div>
           <div class="text-[11px] text-[var(--muted)] leading-relaxed">90 detik, tanpa hint. Untuk yang sudah jago!</div>
@@ -817,7 +822,7 @@
     <div class="modal">
       <div class="mb-6">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" id="completeIcon" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm));">
-          <i class="fa-solid fa-check text-3xl" style="color: #0a0e14"></i>
+          <i class="fa-solid fa-check text-3xl" style="color: #ffffff"></i>
         </div>
         <h2 class="text-2xl sm:text-3xl font-black mb-2" id="completeTitle">Permainan Selesai!</h2>
         <p class="text-[var(--muted)] text-sm" id="completeSubtitle">Kerja bagus! Berikut hasilnya:</p>
@@ -1086,7 +1091,6 @@
       card.dataset.appName = app.name;
       card.dataset.appCat = app.cat;
       
-      // PERBAIKAN: Menghapus ikon Font Awesome, kembali menggunakan inisial teks
       const initials = getInitials(app.name);
       
       card.innerHTML = `
@@ -1135,7 +1139,6 @@
       
       const expectedCount = appsData.filter(a => a.cat === cat.id).length;
       
-      // Menggunakan Font Awesome Icon untuk kategori (tetap dipertahankan)
       dz.innerHTML = `
         <div class="dropzone-header">
           <div class="flex items-center gap-2 min-w-0">
@@ -1207,7 +1210,7 @@
       matched.className = 'matched-app';
       matched.innerHTML = `
         <div class="check-icon">
-          <i class="fa-solid fa-check" style="font-size: 8px; color: var(--bg)"></i>
+          <i class="fa-solid fa-check" style="font-size: 8px; color: #ffffff"></i>
         </div>
         <span class="truncate">${appData.name}</span>
       `;
@@ -1308,7 +1311,7 @@
     
     if (dz && card) {
       dz.classList.add('hint-glow');
-      card.style.boxShadow = '0 0 0 2px var(--gold), 0 0 20px rgba(255, 215, 0, 0.5)';
+      card.style.boxShadow = '0 0 0 2px var(--gold), 0 0 20px rgba(202, 138, 4, 0.3)';
       card.style.borderColor = 'var(--gold)';
       
       setTimeout(() => {
@@ -1390,8 +1393,8 @@
     const count = type === 'rainbow' ? 25 : 15;
     
     const colors = type === 'rainbow' 
-      ? ['#00ffa3', '#ff6b35', '#ff3d8b', '#a855f7', '#ffd700']
-      : ['#00ffa3', '#ff6b35'];
+      ? ['#16a34a', '#ea580c', '#db2777', '#9333ea', '#ca8a04']
+      : ['#16a34a', '#ea580c'];
     
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
@@ -1438,7 +1441,7 @@
     container.innerHTML = '';
     state.achievements.forEach(ach => {
       const el = document.createElement('div');
-      el.className = `p-3 rounded-xl border ${ach.unlocked ? 'border-[var(--gold)] bg-[rgba(255,215,0,0.08)]' : 'border-[var(--border)] bg-[rgba(255,255,255,0.02)] opacity-50'}`;
+      el.className = `p-3 rounded-xl border ${ach.unlocked ? 'border-[var(--gold)] bg-[rgba(202,138,4,0.05)]' : 'border-[var(--border)] bg-[rgba(15,23,42,0.02)] opacity-50'}`;
       el.innerHTML = `
         <div class="text-2xl mb-1 ${ach.unlocked ? '' : 'text-[var(--muted)]'}">
           <i class="${ach.icon}" style="color: ${ach.unlocked ? 'var(--gold)' : 'var(--muted)'}"></i>
@@ -1469,7 +1472,7 @@
     toast.className = 'achievement-toast';
     toast.innerHTML = `
       <div class="ach-icon">
-        <i class="${ach.icon} text-xl" style="color: #0a0e14"></i>
+        <i class="${ach.icon} text-xl" style="color: #ffffff"></i>
       </div>
       <div class="text-left">
         <div class="text-[10px] mono uppercase tracking-wider" style="color: var(--gold)">Achievement Unlocked</div>
@@ -1579,7 +1582,7 @@
       achContainer.innerHTML = `
         <div class="text-[10px] mono uppercase tracking-wider text-[var(--muted)] mb-2">Achievement Diraih (${unlocked.length}/${state.achievements.length})</div>
         <div class="flex flex-wrap gap-2 justify-center">
-          ${unlocked.map(a => `<div class="px-3 py-1.5 rounded-full bg-[rgba(255,215,0,0.1)] border border-[var(--gold)] text-xs flex items-center gap-1.5"><i class="${a.icon}" style="color: var(--gold)"></i><span>${a.name}</span></div>`).join('')}
+          ${unlocked.map(a => `<div class="px-3 py-1.5 rounded-full bg-[rgba(202,138,4,0.1)] border border-[var(--gold)] text-xs flex items-center gap-1.5"><i class="${a.icon}" style="color: var(--gold)"></i><span>${a.name}</span></div>`).join('')}
         </div>
       `;
     } else {
@@ -1600,7 +1603,7 @@
   }
   
   function spawnConfetti() {
-    const colors = ['#00ffa3', '#ff6b35', '#ff3d8b', '#a855f7', '#ffd700'];
+    const colors = ['#16a34a', '#ea580c', '#db2777', '#9333ea', '#ca8a04'];
     const c = document.createElement('div');
     c.className = 'confetti';
     c.style.background = colors[Math.floor(Math.random() * colors.length)];
