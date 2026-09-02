@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AppMatch Arcade — Game Mencocokkan Aplikasi</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -161,13 +162,12 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 14px 16px; /* Padding diperbesar */
+    padding: 14px 16px;
     cursor: grab;
     transition: all 0.2s ease, opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease, border 0.4s ease;
     backdrop-filter: blur(10px);
     position: relative; 
     user-select: none;
-    /* overflow: hidden; dihapus agar teks tidak terpotong */
   }
   .app-card::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0;
@@ -215,13 +215,25 @@
   .app-icon {
     width: 34px; height: 34px;
     border-radius: 8px;
-    background: linear-gradient(135deg, rgba(0,255,163,0.2), rgba(255,107,53,0.2));
+    background: linear-gradient(135deg, rgba(0,255,163,0.18), rgba(255,107,53,0.18));
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 13px;
     color: var(--accent);
     flex-shrink: 0;
     font-family: 'JetBrains Mono', monospace;
+    transition: all 0.3s;
+  }
+  
+  .cat-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: rgba(255, 107, 53, 0.12);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.3s;
   }
   
   /* Dropzone */
@@ -249,6 +261,7 @@
   .dropzone.complete .cat-icon {
     background: rgba(0, 255, 163, 0.2);
     color: var(--accent);
+    border-color: var(--accent);
     animation: bounce 0.5s ease;
   }
   .dropzone.hint-glow {
@@ -442,19 +455,6 @@
     animation: gradientShift 3s linear infinite;
   }
   @keyframes gradientShift { from { background-position: 0% 0; } to { background-position: 200% 0; } }
-  
-  .cat-icon {
-    width: 26px; height: 26px;
-    background: rgba(255, 107, 53, 0.12);
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent-warm);
-    flex-shrink: 0;
-    font-weight: 700;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    transition: all 0.3s;
-  }
   
   /* Score popup */
   .score-popup {
@@ -662,17 +662,13 @@
           <stop offset="100%" stop-color="#ff6b35"/>
         </linearGradient>
       </defs>
-      <!-- Body -->
       <rect x="20" y="25" width="60" height="60" rx="14" fill="url(#mascotGrad)"/>
       <rect x="20" y="25" width="60" height="60" rx="14" fill="rgba(0,0,0,0.1)"/>
-      <!-- Eyes -->
       <circle id="mascotEyeL" cx="38" cy="50" r="6" fill="#0a0e14"/>
       <circle id="mascotEyeR" cx="62" cy="50" r="6" fill="#0a0e14"/>
       <circle cx="40" cy="48" r="2" fill="white"/>
       <circle cx="64" cy="48" r="2" fill="white"/>
-      <!-- Mouth -->
       <path id="mascotMouth" d="M 38 68 Q 50 76 62 68" stroke="#0a0e14" stroke-width="3" stroke-linecap="round" fill="none"/>
-      <!-- Antenna -->
       <line x1="50" y1="25" x2="50" y2="15" stroke="url(#mascotGrad)" stroke-width="3" stroke-linecap="round"/>
       <circle cx="50" cy="13" r="4" fill="#00ffa3"/>
     </svg>
@@ -706,16 +702,15 @@
             <span class="value mono" id="timerVal">02:00</span>
           </div>
           <button class="btn btn-hint" id="hintBtn" onclick="useHint()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21h6m-3-3v3M12 3a6 6 0 0 0-4 10.5c.5.5 1 1 1 2v.5h6v-.5c0-1 .5-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+            <i class="fa-solid fa-lightbulb"></i>
             Hint <span class="hint-badge" id="hintCount">3</span>
           </button>
           <button class="btn btn-ghost" onclick="restartGame()" title="Mulai lagi">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg>
+            <i class="fa-solid fa-arrow-rotate-left"></i>
           </button>
         </div>
       </div>
       
-      <!-- Combo bar -->
       <div class="combo-bar" id="comboBar">
         <div class="combo-fill" id="comboFill"></div>
       </div>
@@ -776,7 +771,7 @@
     
     <section class="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-[var(--border)]">
       <h3 class="font-bold mb-4 flex items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>
+        <i class="fa-solid fa-trophy" style="color: var(--gold)"></i>
         Achievement
       </h3>
       <div id="achList" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
@@ -788,7 +783,7 @@
     <div class="modal">
       <div class="mb-5">
         <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm)); box-shadow: 0 10px 40px rgba(0, 255, 163, 0.4);">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0a0e14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          <i class="fa-solid fa-play text-3xl" style="color: #0a0e14"></i>
         </div>
         <h2 class="text-2xl sm:text-3xl font-black mb-2">Selamat Datang!</h2>
         <p class="text-[var(--muted)] text-sm">Pilih mode permainan yang kamu suka:</p>
@@ -796,18 +791,18 @@
       
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-left">
         <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] hover:border-[var(--accent)] transition-all" data-mode="casual" onclick="startGame('casual')">
-          <div class="text-2xl mb-2">🌱</div>
+          <div class="text-2xl mb-2"><i class="fa-solid fa-seedling" style="color: var(--accent)"></i></div>
           <div class="font-bold text-sm mb-1" style="color: var(--accent)">Santai</div>
           <div class="text-[11px] text-[var(--muted)] leading-relaxed">Tanpa batas waktu. Cocok untuk belajar & bersantai.</div>
         </button>
         <button class="mode-btn p-4 rounded-xl border-2 border-[var(--accent-warm)] bg-[rgba(255,107,53,0.08)] transition-all relative" data-mode="arcade" onclick="startGame('arcade')">
           <div class="absolute -top-2 -right-2 px-2 py-0.5 text-[9px] mono font-bold rounded-full" style="background: var(--accent-warm); color: var(--bg)">POPULER</div>
-          <div class="text-2xl mb-2">⚡</div>
+          <div class="text-2xl mb-2"><i class="fa-solid fa-bolt" style="color: var(--accent-warm)"></i></div>
           <div class="font-bold text-sm mb-1" style="color: var(--accent-warm)">Arcade</div>
           <div class="text-[11px] text-[var(--muted)] leading-relaxed">2 menit + 3 hint. Bonus combo & skor tinggi!</div>
         </button>
         <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] hover:border-[var(--accent-pink)] transition-all" data-mode="expert" onclick="startGame('expert')">
-          <div class="text-2xl mb-2">🔥</div>
+          <div class="text-2xl mb-2"><i class="fa-solid fa-fire" style="color: var(--accent-pink)"></i></div>
           <div class="font-bold text-sm mb-1" style="color: var(--accent-pink)">Ahli</div>
           <div class="text-[11px] text-[var(--muted)] leading-relaxed">90 detik, tanpa hint. Untuk yang sudah jago!</div>
         </button>
@@ -822,7 +817,7 @@
     <div class="modal">
       <div class="mb-6">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" id="completeIcon" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm));">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0a0e14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <i class="fa-solid fa-check text-3xl" style="color: #0a0e14"></i>
         </div>
         <h2 class="text-2xl sm:text-3xl font-black mb-2" id="completeTitle">Permainan Selesai!</h2>
         <p class="text-[var(--muted)] text-sm" id="completeSubtitle">Kerja bagus! Berikut hasilnya:</p>
@@ -858,65 +853,76 @@
 <script>
   // ==================== DATA ====================
   const categoriesData = [
-    { id: 'word', name: 'Perkantoran Word Processing', short: 'Word Processing', desc: 'Pengolah kata', icon: 'W' },
-    { id: 'spreadsheet', name: 'Perkantoran Spreadsheet', short: 'Spreadsheet', desc: 'Lembar kerja data', icon: 'S' },
-    { id: 'presentation', name: 'Perkantoran Presentasi', short: 'Presentasi', desc: 'Slide presentasi', icon: 'P' },
-    { id: 'photo', name: 'Foto Editor', short: 'Foto Editor', desc: 'Edit & manipulasi foto', icon: 'F' },
-    { id: 'vector', name: 'Vector Editor', short: 'Vector Editor', desc: 'Grafis vektor', icon: 'V' },
-    { id: 'video', name: 'Video Editing', short: 'Video Editing', desc: 'Sunting video', icon: 'V' },
-    { id: '3d', name: '3D Modeling', short: '3D Modeling', desc: 'Pemodelan 3D', icon: '3' },
-    { id: 'browser', name: 'Web Browser', short: 'Web Browser', desc: 'Peramban internet', icon: 'B' },
-    { id: 'music', name: 'Music Player', short: 'Music Player', desc: 'Pemutar musik', icon: 'M' },
-    { id: 'vidplayer', name: 'Video Player', short: 'Video Player', desc: 'Pemutar video', icon: 'V' },
-    { id: 'code', name: 'Code Editor', short: 'Code Editor', desc: 'Editor kode program', icon: 'C' }
+    { id: 'word', name: 'Perkantoran Word Processing', short: 'Word Processing', desc: 'Pengolah kata', icon: 'fa-solid fa-file-lines' },
+    { id: 'spreadsheet', name: 'Perkantoran Spreadsheet', short: 'Spreadsheet', desc: 'Lembar kerja data', icon: 'fa-solid fa-table-cells' },
+    { id: 'presentation', name: 'Perkantoran Presentasi', short: 'Presentasi', desc: 'Slide presentasi', icon: 'fa-solid fa-chalkboard-user' },
+    { id: 'photo', name: 'Foto Editor', short: 'Foto Editor', desc: 'Edit & manipulasi foto', icon: 'fa-solid fa-camera-retro' },
+    { id: 'vector', name: 'Vector Editor', short: 'Vector Editor', desc: 'Grafis vektor', icon: 'fa-solid fa-bezier-curve' },
+    { id: 'video', name: 'Video Editing', short: 'Video Editing', desc: 'Sunting video', icon: 'fa-solid fa-film' },
+    { id: '3d', name: '3D Modeling', short: '3D Modeling', desc: 'Pemodelan 3D', icon: 'fa-solid fa-cube' },
+    { id: 'browser', name: 'Web Browser', short: 'Web Browser', desc: 'Peramban internet', icon: 'fa-solid fa-window-restore' },
+    { id: 'music', name: 'Music Player', short: 'Music Player', desc: 'Pemutar musik', icon: 'fa-solid fa-music' },
+    { id: 'vidplayer', name: 'Video Player', short: 'Video Player', desc: 'Pemutar video', icon: 'fa-solid fa-clapperboard' },
+    { id: 'code', name: 'Code Editor', short: 'Code Editor', desc: 'Editor kode program', icon: 'fa-solid fa-code' }
   ];
   
   const appsData = [
-    { name: 'Microsoft Word', cat: 'word', short: 'Wo' },
-    { name: 'Google Docs', cat: 'word', short: 'Gd' },
-    { name: 'LibreOffice Writer', cat: 'word', short: 'Lw' },
-    { name: 'Microsoft Excel', cat: 'spreadsheet', short: 'Xl' },
-    { name: 'Google Sheets', cat: 'spreadsheet', short: 'Gs' },
-    { name: 'Apple Numbers', cat: 'spreadsheet', short: 'Nu' },
-    { name: 'Microsoft PowerPoint', cat: 'presentation', short: 'Pp' },
-    { name: 'Google Slides', cat: 'presentation', short: 'Gs' },
-    { name: 'Apple Keynote', cat: 'presentation', short: 'Kn' },
-    { name: 'Adobe Photoshop', cat: 'photo', short: 'Ps' },
-    { name: 'GIMP', cat: 'photo', short: 'Gi' },
-    { name: 'Affinity Photo', cat: 'photo', short: 'Ap' },
-    { name: 'Adobe Illustrator', cat: 'vector', short: 'Ai' },
-    { name: 'CorelDRAW', cat: 'vector', short: 'Cd' },
-    { name: 'Inkscape', cat: 'vector', short: 'In' },
-    { name: 'Adobe Premiere Pro', cat: 'video', short: 'Pr' },
-    { name: 'DaVinci Resolve', cat: 'video', short: 'Dv' },
-    { name: 'Final Cut Pro', cat: 'video', short: 'Fc' },
-    { name: 'Blender', cat: '3d', short: 'Bl' },
-    { name: 'Autodesk Maya', cat: '3d', short: 'My' },
-    { name: 'Cinema 4D', cat: '3d', short: 'C4' },
-    { name: 'Google Chrome', cat: 'browser', short: 'Cr' },
-    { name: 'Mozilla Firefox', cat: 'browser', short: 'Ff' },
-    { name: 'Safari', cat: 'browser', short: 'Sa' },
-    { name: 'Spotify', cat: 'music', short: 'Sp' },
-    { name: 'Apple Music', cat: 'music', short: 'Am' },
-    { name: 'foobar2000', cat: 'music', short: 'Fb' },
-    { name: 'VLC Media Player', cat: 'vidplayer', short: 'Vl' },
-    { name: 'MPC-HC', cat: 'vidplayer', short: 'Mp' },
-    { name: 'PotPlayer', cat: 'vidplayer', short: 'Pp' },
-    { name: 'Visual Studio Code', cat: 'code', short: 'Vs' },
-    { name: 'Sublime Text', cat: 'code', short: 'Su' },
-    { name: 'Vim', cat: 'code', short: 'Vi' }
+    // Word
+    { name: 'Microsoft Word', cat: 'word' },
+    { name: 'Google Docs', cat: 'word' },
+    { name: 'LibreOffice Writer', cat: 'word' },
+    // Spreadsheet
+    { name: 'Microsoft Excel', cat: 'spreadsheet' },
+    { name: 'Google Sheets', cat: 'spreadsheet' },
+    { name: 'Apple Numbers', cat: 'spreadsheet' },
+    // Presentation
+    { name: 'Microsoft PowerPoint', cat: 'presentation' },
+    { name: 'Google Slides', cat: 'presentation' },
+    { name: 'Apple Keynote', cat: 'presentation' },
+    // Photo
+    { name: 'Adobe Photoshop', cat: 'photo' },
+    { name: 'GIMP', cat: 'photo' },
+    { name: 'Affinity Photo', cat: 'photo' },
+    // Vector
+    { name: 'Adobe Illustrator', cat: 'vector' },
+    { name: 'CorelDRAW', cat: 'vector' },
+    { name: 'Inkscape', cat: 'vector' },
+    // Video Editing
+    { name: 'Adobe Premiere Pro', cat: 'video' },
+    { name: 'DaVinci Resolve', cat: 'video' },
+    { name: 'Final Cut Pro', cat: 'video' },
+    // 3D Modeling
+    { name: 'Blender', cat: '3d' },
+    { name: 'Autodesk Maya', cat: '3d' },
+    { name: 'Cinema 4D', cat: '3d' },
+    // Browser
+    { name: 'Google Chrome', cat: 'browser' },
+    { name: 'Mozilla Firefox', cat: 'browser' },
+    { name: 'Safari', cat: 'browser' },
+    // Music Player
+    { name: 'Spotify', cat: 'music' },
+    { name: 'Apple Music', cat: 'music' },
+    { name: 'foobar2000', cat: 'music' },
+    // Video Player
+    { name: 'VLC Media Player', cat: 'vidplayer' },
+    { name: 'MPC-HC', cat: 'vidplayer' },
+    { name: 'PotPlayer', cat: 'vidplayer' },
+    // Code
+    { name: 'Visual Studio Code', cat: 'code' },
+    { name: 'Sublime Text', cat: 'code' },
+    { name: 'Vim', cat: 'code' }
   ];
   
   // Achievement definitions
   const achievements = [
-    { id: 'first_match', name: 'Langkah Pertama', desc: 'Cocokkan aplikasi pertama', icon: '🎯', unlocked: false },
-    { id: 'combo5', name: 'Combo x5', desc: 'Raih 5x combo berturut-turut', icon: '🔥', unlocked: false },
-    { id: 'combo10', name: 'On Fire', desc: 'Raih 10x combo berturut-turut', icon: '⚡', unlocked: false },
-    { id: 'flawless', name: 'Sempurna', desc: 'Selesaikan tanpa kesalahan', icon: '💎', unlocked: false },
-    { id: 'speedrun', name: 'Speedrun', desc: 'Selesaikan di bawah 60 detik', icon: '⏱️', unlocked: false },
-    { id: 'no_hint', name: 'Mandiri', desc: 'Selesaikan tanpa pakai hint', icon: '🧠', unlocked: false },
-    { id: 'all_match', name: 'Master', desc: 'Cocokkan semua aplikasi', icon: '👑', unlocked: false },
-    { id: 'big_score', name: 'Skor Tinggi', desc: 'Raih 3000+ skor', icon: '🏆', unlocked: false }
+    { id: 'first_match', name: 'Langkah Pertama', desc: 'Cocokkan aplikasi pertama', icon: 'fa-solid fa-bullseye', unlocked: false },
+    { id: 'combo5', name: 'Combo x5', desc: 'Raih 5x combo berturut-turut', icon: 'fa-solid fa-fire', unlocked: false },
+    { id: 'combo10', name: 'On Fire', desc: 'Raih 10x combo berturut-turut', icon: 'fa-solid fa-bolt', unlocked: false },
+    { id: 'flawless', name: 'Sempurna', desc: 'Selesaikan tanpa kesalahan', icon: 'fa-solid fa-gem', unlocked: false },
+    { id: 'speedrun', name: 'Speedrun', desc: 'Selesaikan di bawah 60 detik', icon: 'fa-solid fa-stopwatch', unlocked: false },
+    { id: 'no_hint', name: 'Mandiri', desc: 'Selesaikan tanpa pakai hint', icon: 'fa-solid fa-brain', unlocked: false },
+    { id: 'all_match', name: 'Master', desc: 'Cocokkan semua aplikasi', icon: 'fa-solid fa-crown', unlocked: false },
+    { id: 'big_score', name: 'Skor Tinggi', desc: 'Raih 3000+ skor', icon: 'fa-solid fa-trophy', unlocked: false }
   ];
   
   // ==================== STATE ====================
@@ -1054,6 +1060,10 @@
     mascotSay('Ayo mulai! Seret aplikasi ke kategorinya!', 'happy');
   }
   
+  function getInitials(name) {
+    return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+  
   function renderApps() {
     const container = document.getElementById('appsList');
     container.innerHTML = '';
@@ -1076,15 +1086,19 @@
       card.dataset.appName = app.name;
       card.dataset.appCat = app.cat;
       
-      // PERBAIKAN: Layout diubah menggunakan items-start dan break-words
+      // PERBAIKAN: Menghapus ikon Font Awesome, kembali menggunakan inisial teks
+      const initials = getInitials(app.name);
+      
       card.innerHTML = `
         <div class="flex items-start gap-3">
-          <div class="app-icon mt-0.5">${app.short}</div>
+          <div class="app-icon mt-0.5">
+            ${initials}
+          </div>
           <div class="flex-1 min-w-0">
             <div class="font-semibold text-sm leading-snug break-words">${app.name}</div>
             <div class="text-[10px] text-[var(--muted)] mono mt-1">app_${String(idx).padStart(2,'0')}</div>
           </div>
-          <svg class="mt-1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="flex-shrink:0"><path d="M8 6h8M8 12h8M8 18h8"/></svg>
+          <i class="fa-solid fa-grip-vertical mt-1 text-[var(--muted)] opacity-50"></i>
         </div>
       `;
       
@@ -1121,10 +1135,13 @@
       
       const expectedCount = appsData.filter(a => a.cat === cat.id).length;
       
+      // Menggunakan Font Awesome Icon untuk kategori (tetap dipertahankan)
       dz.innerHTML = `
         <div class="dropzone-header">
           <div class="flex items-center gap-2 min-w-0">
-            <div class="cat-icon">${cat.icon}</div>
+            <div class="cat-icon">
+              <i class="${cat.icon}" style="color: var(--accent-warm)"></i>
+            </div>
             <div class="min-w-0">
               <div class="dropzone-title">${cat.short}</div>
               <div class="text-[10px] text-[var(--muted)] truncate">${cat.desc}</div>
@@ -1190,7 +1207,7 @@
       matched.className = 'matched-app';
       matched.innerHTML = `
         <div class="check-icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <i class="fa-solid fa-check" style="font-size: 8px; color: var(--bg)"></i>
         </div>
         <span class="truncate">${appData.name}</span>
       `;
@@ -1350,10 +1367,10 @@
     t.className = `toast ${type}`;
     
     let icon = '';
-    if (type === 'success') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>';
-    else if (type === 'error') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
-    else if (type === 'combo') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent-pink)" stroke="var(--accent-pink)" stroke-width="1.5"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>';
-    else if (type === 'achievement') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>';
+    if (type === 'success') icon = '<i class="fa-solid fa-circle-check" style="color: var(--accent)"></i>';
+    else if (type === 'error') icon = '<i class="fa-solid fa-circle-xmark" style="color: var(--danger)"></i>';
+    else if (type === 'combo') icon = '<i class="fa-solid fa-bolt" style="color: var(--accent-pink)"></i>';
+    else if (type === 'achievement') icon = '<i class="fa-solid fa-star" style="color: var(--gold)"></i>';
     
     t.innerHTML = `${icon}<span>${msg}</span>`;
     container.appendChild(t);
@@ -1423,7 +1440,9 @@
       const el = document.createElement('div');
       el.className = `p-3 rounded-xl border ${ach.unlocked ? 'border-[var(--gold)] bg-[rgba(255,215,0,0.08)]' : 'border-[var(--border)] bg-[rgba(255,255,255,0.02)] opacity-50'}`;
       el.innerHTML = `
-        <div class="text-2xl mb-1">${ach.unlocked ? ach.icon : '🔒'}</div>
+        <div class="text-2xl mb-1 ${ach.unlocked ? '' : 'text-[var(--muted)]'}">
+          <i class="${ach.icon}" style="color: ${ach.unlocked ? 'var(--gold)' : 'var(--muted)'}"></i>
+        </div>
         <div class="font-bold text-xs ${ach.unlocked ? '' : 'text-[var(--muted)]'}">${ach.name}</div>
         <div class="text-[10px] text-[var(--muted)] mt-0.5">${ach.desc}</div>
       `;
@@ -1438,7 +1457,7 @@
       showAchievementToast(ach);
       playAchievementSound();
       renderAchievements();
-      mascotSay(`Achievement: ${ach.name}! ${ach.icon}`, 'celebrate');
+      mascotSay(`Achievement: ${ach.name}!`, 'celebrate');
     }
   }
   
@@ -1450,7 +1469,7 @@
     toast.className = 'achievement-toast';
     toast.innerHTML = `
       <div class="ach-icon">
-        <span style="font-size: 22px">${ach.icon}</span>
+        <i class="${ach.icon} text-xl" style="color: #0a0e14"></i>
       </div>
       <div class="text-left">
         <div class="text-[10px] mono uppercase tracking-wider" style="color: var(--gold)">Achievement Unlocked</div>
@@ -1560,7 +1579,7 @@
       achContainer.innerHTML = `
         <div class="text-[10px] mono uppercase tracking-wider text-[var(--muted)] mb-2">Achievement Diraih (${unlocked.length}/${state.achievements.length})</div>
         <div class="flex flex-wrap gap-2 justify-center">
-          ${unlocked.map(a => `<div class="px-3 py-1.5 rounded-full bg-[rgba(255,215,0,0.1)] border border-[var(--gold)] text-xs flex items-center gap-1.5"><span>${a.icon}</span><span>${a.name}</span></div>`).join('')}
+          ${unlocked.map(a => `<div class="px-3 py-1.5 rounded-full bg-[rgba(255,215,0,0.1)] border border-[var(--gold)] text-xs flex items-center gap-1.5"><i class="${a.icon}" style="color: var(--gold)"></i><span>${a.name}</span></div>`).join('')}
         </div>
       `;
     } else {
