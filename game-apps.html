@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppMatch Arcade — Game Mencocokkan Aplikasi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e14;
+    --bg-elevated: #131822;
+    --fg: #e8eef5;
+    --muted: #6b7785;
+    --accent: #00ffa3;
+    --accent-warm: #ff6b35;
+    --accent-pink: #ff3d8b;
+    --accent-purple: #a855f7;
+    --danger: #ff3860;
+    --gold: #ffd700;
+    --border: rgba(255,255,255,0.08);
+    --card: rgba(20, 30, 42, 0.7);
+  }
+  
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  .bg-ambient { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+  .bg-blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4;
+  }
+  .blob-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, var(--accent), transparent 70%);
+    top: -200px; left: -100px;
+    animation: drift1 25s ease-in-out infinite alternate;
+  }
+  .blob-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--accent-warm), transparent 70%);
+    bottom: -150px; right: -100px;
+    animation: drift2 30s ease-in-out infinite alternate;
+  }
+  .blob-3 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, var(--accent-purple), transparent 70%);
+    top: 40%; left: 50%;
+    animation: drift3 35s ease-in-out infinite alternate;
+    opacity: 0.25;
+  }
+  
+  @keyframes drift1 { 0% { transform: translate(0,0); } 100% { transform: translate(200px, 100px); } }
+  @keyframes drift2 { 0% { transform: translate(0,0); } 100% { transform: translate(-150px, -100px); } }
+  @keyframes drift3 { 0% { transform: translate(-50%,-50%); } 100% { transform: translate(-30%, -70%); } }
+  
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+  }
+  
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  
+  .header {
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    background: rgba(10,14,20,0.85);
+    position: sticky; top: 0; z-index: 50;
+  }
+  
+  .logo-mark {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 255, 163, 0.3);
+  }
+  .logo-mark::after {
+    content: ''; position: absolute; inset: 2px;
+    background: var(--bg); border-radius: 10px;
+  }
+  .logo-mark span {
+    position: relative; z-index: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 900; font-size: 22px;
+  }
+  
+  .stat-pill {
+    display: flex; flex-direction: column;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    min-width: 68px;
+    transition: all 0.3s;
+  }
+  .stat-pill.flash {
+    background: rgba(0, 255, 163, 0.15);
+    border-color: var(--accent);
+    transform: scale(1.05);
+  }
+  .stat-pill .label {
+    font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-pill .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 16px;
+    line-height: 1.1;
+  }
+  
+  /* Combo meter */
+  .combo-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .combo-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-warm), var(--accent-pink));
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(.2,.7,.3,1);
+    box-shadow: 0 0 12px rgba(0, 255, 163, 0.6);
+    width: 0%;
+  }
+  .combo-bar.active .combo-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+    animation: shimmer 1s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-20px); }
+    100% { transform: translateX(0); }
+  }
+  
+  /* App card */
+  .app-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px; /* Padding diperbesar */
+    cursor: grab;
+    transition: all 0.2s ease, opacity 0.4s ease, transform 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease, border 0.4s ease;
+    backdrop-filter: blur(10px);
+    position: relative; 
+    user-select: none;
+    /* overflow: hidden; dihapus agar teks tidak terpotong */
+  }
+  .app-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--accent-warm); opacity: 0;
+    transition: opacity 0.2s;
+    border-radius: 12px 0 0 12px;
+  }
+  .app-card:hover {
+    border-color: rgba(0, 255, 163, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 255, 163, 0.15);
+  }
+  .app-card:hover::before { opacity: 1; }
+  .app-card:active { cursor: grabbing; }
+  .app-card.dragging { opacity: 0.4; transform: rotate(2deg) scale(0.98); }
+  .app-card.selected {
+    border-color: var(--accent);
+    background: rgba(0, 255, 163, 0.1);
+    box-shadow: 0 0 0 2px rgba(0, 255, 163, 0.4), 0 8px 24px rgba(0, 255, 163, 0.2);
+  }
+  .app-card.selected::before { opacity: 1; background: var(--accent); }
+  .app-card.matched {
+    animation: matchOut 0.5s ease forwards;
+  }
+  .app-card.wrong {
+    animation: shake 0.5s ease;
+    border-color: var(--danger);
+    background: rgba(255, 56, 96, 0.1);
+  }
+  
+  @keyframes matchOut {
+    0% { transform: scale(1); opacity: 1; max-height: 100px; margin-bottom: 8px; }
+    50% { transform: scale(1.1); opacity: 1; max-height: 100px; margin-bottom: 8px; }
+    100% { transform: scale(0.8) translateX(50px); opacity: 0; max-height: 0; padding: 0; margin: 0; border: 0; }
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px) rotate(-2deg); }
+    40% { transform: translateX(8px) rotate(2deg); }
+    60% { transform: translateX(-6px) rotate(-1deg); }
+    80% { transform: translateX(6px) rotate(1deg); }
+  }
+  
+  .app-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(0,255,163,0.2), rgba(255,107,53,0.2));
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    color: var(--accent);
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  /* Dropzone */
+  .dropzone {
+    background: rgba(255,255,255,0.025);
+    border: 1.5px dashed rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 13px;
+    transition: all 0.25s ease;
+    min-height: 105px;
+    position: relative;
+  }
+  .dropzone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0, 255, 163, 0.08);
+    box-shadow: 0 0 30px rgba(0, 255, 163, 0.15) inset;
+    transform: scale(1.02);
+  }
+  .dropzone.complete {
+    border-color: var(--accent);
+    border-style: solid;
+    background: rgba(0, 255, 163, 0.05);
+    box-shadow: 0 0 20px rgba(0, 255, 163, 0.1);
+  }
+  .dropzone.complete .cat-icon {
+    background: rgba(0, 255, 163, 0.2);
+    color: var(--accent);
+    animation: bounce 0.5s ease;
+  }
+  .dropzone.hint-glow {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    animation: hintPulse 1.5s ease;
+  }
+  
+  @keyframes hintPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.7); }
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2) rotate(10deg); }
+  }
+  
+  .dropzone-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; gap: 8px;
+  }
+  .dropzone-title { font-size: 12px; font-weight: 600; color: var(--fg); line-height: 1.2; }
+  
+  .dropzone-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted);
+    background: rgba(255,255,255,0.06);
+    padding: 3px 8px; border-radius: 999px;
+    white-space: nowrap;
+    transition: all 0.3s;
+  }
+  .dropzone.complete .dropzone-count {
+    background: rgba(0, 255, 163, 0.2);
+    color: var(--accent);
+  }
+  
+  .matched-app {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 8px;
+    background: rgba(0, 255, 163, 0.1);
+    border: 1px solid rgba(0, 255, 163, 0.25);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    animation: pop-in 0.4s cubic-bezier(.2,.7,.3,1.4);
+  }
+  
+  @keyframes pop-in {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .check-icon {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 255, 163, 0.4);
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.05);
+    color: var(--fg);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+  .btn-hint {
+    background: linear-gradient(135deg, var(--gold), var(--accent-warm));
+    color: var(--bg);
+    position: relative;
+  }
+  .btn-hint:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+  }
+  .btn-hint:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-hint .hint-badge {
+    background: rgba(0,0,0,0.25);
+    color: var(--bg);
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  /* Toast */
+  .toast-container {
+    position: fixed; top: 80px; right: 20px;
+    z-index: 100;
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    font-size: 13px;
+    backdrop-filter: blur(20px);
+    animation: slide-in 0.3s ease;
+    min-width: 220px;
+    max-width: 320px;
+    pointer-events: auto;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.success { border-left: 3px solid var(--accent); }
+  .toast.error { border-left: 3px solid var(--danger); }
+  .toast.combo { border-left: 3px solid var(--accent-pink); }
+  .toast.achievement { border-left: 3px solid var(--gold); }
+  
+  @keyframes slide-in {
+    0% { transform: translateX(120%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: fade-in 0.3s ease;
+  }
+  .modal-backdrop.hidden { display: none; }
+  
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  
+  .modal {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    max-width: 540px; width: 100%;
+    text-align: center;
+    animation: pop-in 0.4s cubic-bezier(.2,.7,.3,1.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .modal::before {
+    content: ''; position: absolute;
+    top: -50%; left: -50%; right: -50%; bottom: -50%;
+    background: radial-gradient(circle, rgba(0,255,163,0.1), transparent 60%);
+    pointer-events: none;
+    animation: rotate 20s linear infinite;
+  }
+  @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .modal > * { position: relative; z-index: 1; }
+  
+  .progress-track {
+    height: 3px;
+    background: rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-warm), var(--accent-pink));
+    transition: width 0.5s ease;
+    box-shadow: 0 0 12px rgba(0, 255, 163, 0.6);
+    background-size: 200% 100%;
+    animation: gradientShift 3s linear infinite;
+  }
+  @keyframes gradientShift { from { background-position: 0% 0; } to { background-position: 200% 0; } }
+  
+  .cat-icon {
+    width: 26px; height: 26px;
+    background: rgba(255, 107, 53, 0.12);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent-warm);
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.3s;
+  }
+  
+  /* Score popup */
+  .score-popup {
+    position: fixed;
+    pointer-events: none;
+    z-index: 95;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 900;
+    font-size: 24px;
+    text-shadow: 0 0 12px currentColor;
+    animation: scoreFloat 1.2s cubic-bezier(.2,.7,.3,1) forwards;
+    white-space: nowrap;
+  }
+  @keyframes scoreFloat {
+    0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+    20% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(1); opacity: 0; }
+  }
+  
+  /* Particle */
+  .particle {
+    position: fixed; pointer-events: none;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    z-index: 90;
+  }
+  
+  /* Confetti */
+  .confetti {
+    position: fixed; pointer-events: none;
+    width: 10px; height: 14px;
+    z-index: 150;
+    top: -20px;
+  }
+  
+  /* Mascot */
+  .mascot {
+    position: fixed;
+    bottom: 20px; right: 20px;
+    width: 80px; height: 80px;
+    z-index: 60;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .mascot:hover { transform: translateY(-4px) scale(1.05); }
+  .mascot.happy { animation: mascotHappy 0.6s ease; }
+  .mascot.sad { animation: mascotSad 0.6s ease; }
+  .mascot.celebrate { animation: mascotCelebrate 1s ease; }
+  
+  @keyframes mascotHappy {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    25% { transform: translateY(-15px) rotate(-5deg); }
+    75% { transform: translateY(-15px) rotate(5deg); }
+  }
+  @keyframes mascotSad {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(5px) rotate(0); }
+  }
+  @keyframes mascotCelebrate {
+    0%, 100% { transform: translateY(0) rotate(0) scale(1); }
+    25% { transform: translateY(-20px) rotate(-10deg) scale(1.15); }
+    50% { transform: translateY(-25px) rotate(0) scale(1.2); }
+    75% { transform: translateY(-20px) rotate(10deg) scale(1.15); }
+  }
+  
+  .mascot-bubble {
+    position: absolute;
+    bottom: 90px; right: 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .mascot-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .mascot-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px; right: 25px;
+    width: 12px; height: 12px;
+    background: var(--bg-elevated);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transform: rotate(45deg);
+  }
+  
+  /* Achievement */
+  .achievement-toast {
+    position: fixed;
+    top: 90px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 110;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 107, 53, 0.15));
+    border: 1px solid var(--gold);
+    border-radius: 14px;
+    padding: 14px 22px;
+    backdrop-filter: blur(20px);
+    display: flex; align-items: center; gap: 14px;
+    animation: achSlide 0.5s cubic-bezier(.2,.7,.3,1.4);
+    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+  }
+  @keyframes achSlide {
+    0% { transform: translate(-50%, -100px); opacity: 0; }
+    100% { transform: translate(-50%, 0); opacity: 1; }
+  }
+  .achievement-toast.hide {
+    animation: achHide 0.4s ease forwards;
+  }
+  @keyframes achHide {
+    to { transform: translate(-50%, -100px); opacity: 0; }
+  }
+  
+  .ach-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--gold), var(--accent-warm));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  
+  /* Timer states */
+  .timer-warning { color: var(--accent-warm) !important; animation: pulse 1s infinite; }
+  .timer-danger { color: var(--danger) !important; animation: pulse 0.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  
+  /* Hero */
+  .hero-title {
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+  }
+  .accent-text {
+    background: linear-gradient(135deg, var(--accent), var(--accent-warm), var(--accent-pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% 100%;
+    animation: gradientShift 4s linear infinite;
+  }
+  
+  /* Streak indicator */
+  .streak-flames {
+    display: inline-flex;
+    gap: 2px;
+    margin-left: 4px;
+  }
+  .flame {
+    width: 4px; height: 12px;
+    background: var(--accent-warm);
+    border-radius: 2px;
+    opacity: 0.2;
+    transition: all 0.3s;
+  }
+  .flame.active {
+    opacity: 1;
+    box-shadow: 0 0 6px var(--accent-warm);
+    animation: flameFlicker 0.5s infinite alternate;
+  }
+  @keyframes flameFlicker {
+    from { transform: scaleY(1); }
+    to { transform: scaleY(1.2); }
+  }
+  
+  /* Scrollbar */
+  #appsList::-webkit-scrollbar { width: 6px; }
+  #appsList::-webkit-scrollbar-track { background: transparent; }
+  #appsList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  #appsList::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  
+  @media (max-width: 768px) {
+    .hero-title { font-size: 32px !important; }
+    .modal { padding: 24px; }
+    .toast-container { top: 70px; right: 10px; left: 10px; }
+    .toast { min-width: 0; max-width: none; }
+    .mascot { width: 60px; height: 60px; bottom: 15px; right: 15px; }
+    .mascot-bubble { bottom: 70px; font-size: 11px; padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg-ambient">
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+  </div>
+  <div class="grid-overlay"></div>
+  
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <!-- Mascot -->
+  <div class="mascot" id="mascot" onclick="mascotTalk()">
+    <div class="mascot-bubble" id="mascotBubble">Ayo mulai!</div>
+    <svg viewBox="0 0 100 100" width="100%" height="100%">
+      <defs>
+        <linearGradient id="mascotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00ffa3"/>
+          <stop offset="100%" stop-color="#ff6b35"/>
+        </linearGradient>
+      </defs>
+      <!-- Body -->
+      <rect x="20" y="25" width="60" height="60" rx="14" fill="url(#mascotGrad)"/>
+      <rect x="20" y="25" width="60" height="60" rx="14" fill="rgba(0,0,0,0.1)"/>
+      <!-- Eyes -->
+      <circle id="mascotEyeL" cx="38" cy="50" r="6" fill="#0a0e14"/>
+      <circle id="mascotEyeR" cx="62" cy="50" r="6" fill="#0a0e14"/>
+      <circle cx="40" cy="48" r="2" fill="white"/>
+      <circle cx="64" cy="48" r="2" fill="white"/>
+      <!-- Mouth -->
+      <path id="mascotMouth" d="M 38 68 Q 50 76 62 68" stroke="#0a0e14" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <!-- Antenna -->
+      <line x1="50" y1="25" x2="50" y2="15" stroke="url(#mascotGrad)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="50" cy="13" r="4" fill="#00ffa3"/>
+    </svg>
+  </div>
+  
+  <header class="header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+      <div class="flex items-center justify-between gap-3 mb-2">
+        <div class="flex items-center gap-3">
+          <div class="logo-mark"><span>A</span></div>
+          <div>
+            <div class="font-black text-base sm:text-lg leading-none">AppMatch <span style="color: var(--accent-warm)">Arcade</span></div>
+            <div class="text-[10px] text-[var(--muted)] mono mt-0.5">categorize • combo • win</div>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+          <div class="stat-pill" id="scorePill">
+            <span class="label">Skor</span>
+            <span class="value" id="scoreVal" style="color: var(--accent)">0</span>
+          </div>
+          <div class="stat-pill">
+            <span class="label">Combo</span>
+            <span class="value flex items-center" style="color: var(--accent-warm)">
+              <span id="comboVal">x1</span>
+              <span class="streak-flames" id="streakFlames"></span>
+            </span>
+          </div>
+          <div class="stat-pill">
+            <span class="label">Waktu</span>
+            <span class="value mono" id="timerVal">02:00</span>
+          </div>
+          <button class="btn btn-hint" id="hintBtn" onclick="useHint()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21h6m-3-3v3M12 3a6 6 0 0 0-4 10.5c.5.5 1 1 1 2v.5h6v-.5c0-1 .5-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+            Hint <span class="hint-badge" id="hintCount">3</span>
+          </button>
+          <button class="btn btn-ghost" onclick="restartGame()" title="Mulai lagi">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Combo bar -->
+      <div class="combo-bar" id="comboBar">
+        <div class="combo-fill" id="comboFill"></div>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressBar" style="width: 0%"></div></div>
+  </header>
+  
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    
+    <section class="mb-6 sm:mb-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
+        <div>
+          <div class="mono text-xs mb-3 tracking-widest flex items-center gap-2" style="color: var(--accent)">
+            <span class="w-1.5 h-1.5 rounded-full inline-block" style="background: var(--accent); box-shadow: 0 0 8px var(--accent)"></span>
+            ARCADE MODE • 11 KATEGORI • 33 APLIKASI
+          </div>
+          <h1 class="hero-title text-3xl sm:text-5xl md:text-6xl">
+            Cocokkan & Raih<br>
+            <span class="accent-text">Combo Maksimal!</span>
+          </h1>
+          <p class="text-[var(--muted)] mt-3 max-w-xl text-sm sm:text-base">
+            Seret aplikasi ke kategori yang tepat. pencocokan berturut-turut memberi bonus combo. Salah = combo reset! Selesaikan sebelum waktu habis.
+          </p>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 text-xs">
+          <span class="px-3 py-1.5 rounded-full bg-[rgba(0,255,163,0.08)] border border-[rgba(0,255,163,0.25)] mono" style="color: var(--accent)">+100 / match</span>
+          <span class="px-3 py-1.5 rounded-full bg-[rgba(255,107,53,0.08)] border border-[rgba(255,107,53,0.25)] mono" style="color: var(--accent-warm)">x2 combo</span>
+          <span class="px-3 py-1.5 rounded-full bg-[rgba(255,61,139,0.08)] border border-[rgba(255,61,139,0.25)] mono" style="color: var(--accent-pink)">-25 / salah</span>
+        </div>
+      </div>
+    </section>
+    
+    <section class="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-6">
+      
+      <div class="lg:col-span-2">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 class="font-bold text-base sm:text-lg flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" style="background: var(--accent-warm); box-shadow: 0 0 12px var(--accent-warm)"></span>
+            Daftar Aplikasi
+          </h2>
+          <span class="text-xs text-[var(--muted)] mono" id="appCount">0 tersisa</span>
+        </div>
+        <div id="appsList" class="flex flex-col gap-2 max-h-[68vh] overflow-y-auto pr-1"></div>
+      </div>
+      
+      <div class="lg:col-span-3">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 class="font-bold text-base sm:text-lg flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" style="background: var(--accent); box-shadow: 0 0 12px var(--accent)"></span>
+            Kategori
+          </h2>
+          <span class="text-xs text-[var(--muted)] mono">jatuhkan aplikasi di sini</span>
+        </div>
+        <div id="categoriesList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3"></div>
+      </div>
+    </section>
+    
+    <section class="mt-10 sm:mt-12 pt-6 sm:pt-8 border-t border-[var(--border)]">
+      <h3 class="font-bold mb-4 flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>
+        Achievement
+      </h3>
+      <div id="achList" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+    </section>
+  </main>
+  
+  <!-- Start Modal -->
+  <div id="startModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="mb-5">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm)); box-shadow: 0 10px 40px rgba(0, 255, 163, 0.4);">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0a0e14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black mb-2">Selamat Datang!</h2>
+        <p class="text-[var(--muted)] text-sm">Pilih mode permainan yang kamu suka:</p>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 text-left">
+        <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] hover:border-[var(--accent)] transition-all" data-mode="casual" onclick="startGame('casual')">
+          <div class="text-2xl mb-2">🌱</div>
+          <div class="font-bold text-sm mb-1" style="color: var(--accent)">Santai</div>
+          <div class="text-[11px] text-[var(--muted)] leading-relaxed">Tanpa batas waktu. Cocok untuk belajar & bersantai.</div>
+        </button>
+        <button class="mode-btn p-4 rounded-xl border-2 border-[var(--accent-warm)] bg-[rgba(255,107,53,0.08)] transition-all relative" data-mode="arcade" onclick="startGame('arcade')">
+          <div class="absolute -top-2 -right-2 px-2 py-0.5 text-[9px] mono font-bold rounded-full" style="background: var(--accent-warm); color: var(--bg)">POPULER</div>
+          <div class="text-2xl mb-2">⚡</div>
+          <div class="font-bold text-sm mb-1" style="color: var(--accent-warm)">Arcade</div>
+          <div class="text-[11px] text-[var(--muted)] leading-relaxed">2 menit + 3 hint. Bonus combo & skor tinggi!</div>
+        </button>
+        <button class="mode-btn p-4 rounded-xl border border-[var(--border)] bg-[rgba(255,255,255,0.02)] hover:border-[var(--accent-pink)] transition-all" data-mode="expert" onclick="startGame('expert')">
+          <div class="text-2xl mb-2">🔥</div>
+          <div class="font-bold text-sm mb-1" style="color: var(--accent-pink)">Ahli</div>
+          <div class="text-[11px] text-[var(--muted)] leading-relaxed">90 detik, tanpa hint. Untuk yang sudah jago!</div>
+        </button>
+      </div>
+      
+      <div class="text-[11px] text-[var(--muted)] mono">tip: kamu bisa seret kartu ATAU klik aplikasi lalu klik kategori</div>
+    </div>
+  </div>
+  
+  <!-- Complete Modal -->
+  <div id="completeModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" id="completeIcon" style="background: linear-gradient(135deg, var(--accent), var(--accent-warm));">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0a0e14" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black mb-2" id="completeTitle">Permainan Selesai!</h2>
+        <p class="text-[var(--muted)] text-sm" id="completeSubtitle">Kerja bagus! Berikut hasilnya:</p>
+      </div>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div class="stat-pill" style="align-items: flex-start;">
+          <span class="label">Skor</span>
+          <span class="value text-lg sm:text-xl" id="finalScore" style="color: var(--accent)">0</span>
+        </div>
+        <div class="stat-pill" style="align-items: flex-start;">
+          <span class="label">Waktu</span>
+          <span class="value text-lg sm:text-xl mono" id="finalTime">0s</span>
+        </div>
+        <div class="stat-pill" style="align-items: flex-start;">
+          <span class="label">Akurasi</span>
+          <span class="value text-lg sm:text-xl mono" id="finalAccuracy">0%</span>
+        </div>
+        <div class="stat-pill" style="align-items: flex-start;">
+          <span class="label">Combo</span>
+          <span class="value text-lg sm:text-xl mono" id="finalCombo" style="color: var(--accent-warm)">0</span>
+        </div>
+      </div>
+      
+      <div id="finalAchievements" class="mb-5"></div>
+      
+      <div class="flex gap-3 justify-center">
+        <button class="btn btn-primary" onclick="restartGame()">Main Lagi</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ==================== DATA ====================
+  const categoriesData = [
+    { id: 'word', name: 'Perkantoran Word Processing', short: 'Word Processing', desc: 'Pengolah kata', icon: 'W' },
+    { id: 'spreadsheet', name: 'Perkantoran Spreadsheet', short: 'Spreadsheet', desc: 'Lembar kerja data', icon: 'S' },
+    { id: 'presentation', name: 'Perkantoran Presentasi', short: 'Presentasi', desc: 'Slide presentasi', icon: 'P' },
+    { id: 'photo', name: 'Foto Editor', short: 'Foto Editor', desc: 'Edit & manipulasi foto', icon: 'F' },
+    { id: 'vector', name: 'Vector Editor', short: 'Vector Editor', desc: 'Grafis vektor', icon: 'V' },
+    { id: 'video', name: 'Video Editing', short: 'Video Editing', desc: 'Sunting video', icon: 'V' },
+    { id: '3d', name: '3D Modeling', short: '3D Modeling', desc: 'Pemodelan 3D', icon: '3' },
+    { id: 'browser', name: 'Web Browser', short: 'Web Browser', desc: 'Peramban internet', icon: 'B' },
+    { id: 'music', name: 'Music Player', short: 'Music Player', desc: 'Pemutar musik', icon: 'M' },
+    { id: 'vidplayer', name: 'Video Player', short: 'Video Player', desc: 'Pemutar video', icon: 'V' },
+    { id: 'code', name: 'Code Editor', short: 'Code Editor', desc: 'Editor kode program', icon: 'C' }
+  ];
+  
+  const appsData = [
+    { name: 'Microsoft Word', cat: 'word', short: 'Wo' },
+    { name: 'Google Docs', cat: 'word', short: 'Gd' },
+    { name: 'LibreOffice Writer', cat: 'word', short: 'Lw' },
+    { name: 'Microsoft Excel', cat: 'spreadsheet', short: 'Xl' },
+    { name: 'Google Sheets', cat: 'spreadsheet', short: 'Gs' },
+    { name: 'Apple Numbers', cat: 'spreadsheet', short: 'Nu' },
+    { name: 'Microsoft PowerPoint', cat: 'presentation', short: 'Pp' },
+    { name: 'Google Slides', cat: 'presentation', short: 'Gs' },
+    { name: 'Apple Keynote', cat: 'presentation', short: 'Kn' },
+    { name: 'Adobe Photoshop', cat: 'photo', short: 'Ps' },
+    { name: 'GIMP', cat: 'photo', short: 'Gi' },
+    { name: 'Affinity Photo', cat: 'photo', short: 'Ap' },
+    { name: 'Adobe Illustrator', cat: 'vector', short: 'Ai' },
+    { name: 'CorelDRAW', cat: 'vector', short: 'Cd' },
+    { name: 'Inkscape', cat: 'vector', short: 'In' },
+    { name: 'Adobe Premiere Pro', cat: 'video', short: 'Pr' },
+    { name: 'DaVinci Resolve', cat: 'video', short: 'Dv' },
+    { name: 'Final Cut Pro', cat: 'video', short: 'Fc' },
+    { name: 'Blender', cat: '3d', short: 'Bl' },
+    { name: 'Autodesk Maya', cat: '3d', short: 'My' },
+    { name: 'Cinema 4D', cat: '3d', short: 'C4' },
+    { name: 'Google Chrome', cat: 'browser', short: 'Cr' },
+    { name: 'Mozilla Firefox', cat: 'browser', short: 'Ff' },
+    { name: 'Safari', cat: 'browser', short: 'Sa' },
+    { name: 'Spotify', cat: 'music', short: 'Sp' },
+    { name: 'Apple Music', cat: 'music', short: 'Am' },
+    { name: 'foobar2000', cat: 'music', short: 'Fb' },
+    { name: 'VLC Media Player', cat: 'vidplayer', short: 'Vl' },
+    { name: 'MPC-HC', cat: 'vidplayer', short: 'Mp' },
+    { name: 'PotPlayer', cat: 'vidplayer', short: 'Pp' },
+    { name: 'Visual Studio Code', cat: 'code', short: 'Vs' },
+    { name: 'Sublime Text', cat: 'code', short: 'Su' },
+    { name: 'Vim', cat: 'code', short: 'Vi' }
+  ];
+  
+  // Achievement definitions
+  const achievements = [
+    { id: 'first_match', name: 'Langkah Pertama', desc: 'Cocokkan aplikasi pertama', icon: '🎯', unlocked: false },
+    { id: 'combo5', name: 'Combo x5', desc: 'Raih 5x combo berturut-turut', icon: '🔥', unlocked: false },
+    { id: 'combo10', name: 'On Fire', desc: 'Raih 10x combo berturut-turut', icon: '⚡', unlocked: false },
+    { id: 'flawless', name: 'Sempurna', desc: 'Selesaikan tanpa kesalahan', icon: '💎', unlocked: false },
+    { id: 'speedrun', name: 'Speedrun', desc: 'Selesaikan di bawah 60 detik', icon: '⏱️', unlocked: false },
+    { id: 'no_hint', name: 'Mandiri', desc: 'Selesaikan tanpa pakai hint', icon: '🧠', unlocked: false },
+    { id: 'all_match', name: 'Master', desc: 'Cocokkan semua aplikasi', icon: '👑', unlocked: false },
+    { id: 'big_score', name: 'Skor Tinggi', desc: 'Raih 3000+ skor', icon: '🏆', unlocked: false }
+  ];
+  
+  // ==================== STATE ====================
+  let state = {
+    mode: 'arcade',
+    score: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    combo: 0,
+    maxCombo: 0,
+    hintsLeft: 3,
+    hintsUsed: 0,
+    startTime: null,
+    timerInterval: null,
+    elapsed: 0,
+    timeLimit: 120,
+    remainingApps: [],
+    totalApps: 0,
+    selectedApp: null,
+    achievements: JSON.parse(JSON.stringify(achievements)),
+    soundOn: true
+  };
+  
+  // ==================== AUDIO (Web Audio API) ====================
+  let audioCtx = null;
+  function getAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+    return audioCtx;
+  }
+  
+  function playTone(freq, duration, type = 'sine', volume = 0.15) {
+    if (!state.soundOn) return;
+    const ctx = getAudio();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  
+  function playMatchSound(combo) {
+    const baseFreq = 440 + Math.min(combo, 10) * 50;
+    playTone(baseFreq, 0.1, 'triangle', 0.12);
+    setTimeout(() => playTone(baseFreq * 1.5, 0.15, 'triangle', 0.1), 80);
+    setTimeout(() => playTone(baseFreq * 2, 0.2, 'triangle', 0.08), 160);
+  }
+  
+  function playWrongSound() {
+    playTone(220, 0.15, 'sawtooth', 0.1);
+    setTimeout(() => playTone(180, 0.2, 'sawtooth', 0.08), 100);
+  }
+  
+  function playAchievementSound() {
+    [523, 659, 784, 1047].forEach((f, i) => {
+      setTimeout(() => playTone(f, 0.2, 'triangle', 0.12), i * 80);
+    });
+  }
+  
+  function playCompleteSound() {
+    [523, 659, 784, 1047, 1319].forEach((f, i) => {
+      setTimeout(() => playTone(f, 0.3, 'triangle', 0.15), i * 100);
+    });
+  }
+  
+  function playTickSound() {
+    playTone(800, 0.05, 'square', 0.05);
+  }
+  
+  // ==================== GAME LOGIC ====================
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  
+  function startGame(mode) {
+    state.mode = mode;
+    document.getElementById('startModal').classList.add('hidden');
+    
+    if (mode === 'casual') {
+      state.timeLimit = 0;
+      state.hintsLeft = 999;
+    } else if (mode === 'arcade') {
+      state.timeLimit = 120;
+      state.hintsLeft = 3;
+    } else if (mode === 'expert') {
+      state.timeLimit = 90;
+      state.hintsLeft = 0;
+    }
+    
+    initGame();
+    const ctx = getAudio();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+  }
+  
+  function initGame() {
+    state.score = 0;
+    state.correctCount = 0;
+    state.wrongCount = 0;
+    state.combo = 0;
+    state.maxCombo = 0;
+    state.hintsUsed = 0;
+    state.elapsed = 0;
+    state.startTime = Date.now();
+    state.remainingApps = shuffleArray(appsData);
+    state.totalApps = appsData.length;
+    state.selectedApp = null;
+    state.achievements = JSON.parse(JSON.stringify(achievements));
+    
+    if (state.mode === 'casual') state.hintsLeft = 999;
+    else if (state.mode === 'arcade') state.hintsLeft = 3;
+    else state.hintsLeft = 0;
+    
+    document.getElementById('timerVal').classList.remove('timer-warning', 'timer-danger');
+    renderApps();
+    renderCategories();
+    renderAchievements();
+    updateStats();
+    updateHintBtn();
+    startTimer();
+    mascotSay('Ayo mulai! Seret aplikasi ke kategorinya!', 'happy');
+  }
+  
+  function renderApps() {
+    const container = document.getElementById('appsList');
+    container.innerHTML = '';
+    
+    if (state.remainingApps.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8 text-[var(--muted)] text-sm">
+          <div class="text-3xl mb-2">✨</div>
+          Semua aplikasi sudah cocok!
+        </div>
+      `;
+      document.getElementById('appCount').textContent = '0 tersisa';
+      return;
+    }
+    
+    state.remainingApps.forEach((app, idx) => {
+      const card = document.createElement('div');
+      card.className = 'app-card';
+      card.draggable = true;
+      card.dataset.appName = app.name;
+      card.dataset.appCat = app.cat;
+      
+      // PERBAIKAN: Layout diubah menggunakan items-start dan break-words
+      card.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="app-icon mt-0.5">${app.short}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm leading-snug break-words">${app.name}</div>
+            <div class="text-[10px] text-[var(--muted)] mono mt-1">app_${String(idx).padStart(2,'0')}</div>
+          </div>
+          <svg class="mt-1" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" style="flex-shrink:0"><path d="M8 6h8M8 12h8M8 18h8"/></svg>
+        </div>
+      `;
+      
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', JSON.stringify({ name: app.name, cat: app.cat }));
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.app-card.selected').forEach(c => {
+          if (c !== card) c.classList.remove('selected');
+        });
+        card.classList.toggle('selected');
+        state.selectedApp = card.classList.contains('selected') ? app : null;
+        if (state.selectedApp) mascotSay('Sekarang klik kategori yang benar!', 'happy');
+      });
+      
+      container.appendChild(card);
+    });
+    
+    document.getElementById('appCount').textContent = `${state.remainingApps.length} tersisa`;
+  }
+  
+  function renderCategories() {
+    const container = document.getElementById('categoriesList');
+    container.innerHTML = '';
+    
+    categoriesData.forEach(cat => {
+      const dz = document.createElement('div');
+      dz.className = 'dropzone';
+      dz.dataset.catId = cat.id;
+      
+      const expectedCount = appsData.filter(a => a.cat === cat.id).length;
+      
+      dz.innerHTML = `
+        <div class="dropzone-header">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="cat-icon">${cat.icon}</div>
+            <div class="min-w-0">
+              <div class="dropzone-title">${cat.short}</div>
+              <div class="text-[10px] text-[var(--muted)] truncate">${cat.desc}</div>
+            </div>
+          </div>
+          <div class="dropzone-count"><span class="matched">0</span>/${expectedCount}</div>
+        </div>
+        <div class="matched-list"></div>
+      `;
+      
+      dz.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dz.classList.add('drag-over');
+      });
+      dz.addEventListener('dragleave', (e) => {
+        if (!dz.contains(e.relatedTarget)) dz.classList.remove('drag-over');
+      });
+      dz.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dz.classList.remove('drag-over');
+        try {
+          const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+          handleMatch(data, cat.id, dz);
+        } catch (err) { console.error(err); }
+      });
+      
+      dz.addEventListener('click', () => {
+        if (state.selectedApp) {
+          handleMatch(state.selectedApp, cat.id, dz);
+          document.querySelectorAll('.app-card.selected').forEach(c => c.classList.remove('selected'));
+          state.selectedApp = null;
+        }
+      });
+      
+      container.appendChild(dz);
+    });
+  }
+  
+  function handleMatch(appData, catId, dz) {
+    if (!state.remainingApps.find(a => a.name === appData.name)) return;
+    
+    const isCorrect = appData.cat === catId;
+    const card = document.querySelector(`[data-app-name="${appData.name}"]`);
+    
+    if (isCorrect) {
+      state.combo++;
+      state.maxCombo = Math.max(state.maxCombo, state.combo);
+      
+      const multiplier = Math.min(5, 1 + Math.floor(state.combo / 3));
+      const points = 100 * multiplier;
+      state.score += points;
+      state.correctCount++;
+      
+      if (card) {
+        card.classList.add('matched');
+        setTimeout(() => card.remove(), 500);
+      }
+      
+      state.remainingApps = state.remainingApps.filter(a => a.name !== appData.name);
+      
+      const matchedList = dz.querySelector('.matched-list');
+      const matched = document.createElement('div');
+      matched.className = 'matched-app';
+      matched.innerHTML = `
+        <div class="check-icon">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <span class="truncate">${appData.name}</span>
+      `;
+      matchedList.appendChild(matched);
+      
+      const countEl = dz.querySelector('.matched');
+      const currentCount = parseInt(countEl.textContent);
+      countEl.textContent = currentCount + 1;
+      
+      const expectedCount = appsData.filter(a => a.cat === catId).length;
+      if (currentCount + 1 === expectedCount) {
+        dz.classList.add('complete');
+        showToast(`Kategori "${categoriesData.find(c=>c.id===catId).short}" lengkap!`, 'success');
+      }
+      
+      playMatchSound(state.combo);
+      spawnParticles(dz, state.combo >= 5 ? 'rainbow' : 'green');
+      spawnScorePopup(dz, `+${points}`, state.combo >= 3 ? 'var(--accent-pink)' : 'var(--accent)');
+      
+      if (state.combo === 3) showToast(`Combo x2! Pencocokan beruntun!`, 'combo');
+      if (state.combo === 5) { showToast(`Combo x3! Luar biasa!`, 'combo'); mascotSay('Luar biasa! Lanjutkan! 🔥', 'celebrate'); }
+      if (state.combo === 8) showToast(`Combo x4! Kamu on fire!`, 'combo');
+      if (state.combo === 10) { showToast(`Combo x5! LEGENDARY!`, 'combo'); mascotSay('LEGENDARY! Kamu jago sekali! ⚡', 'celebrate'); }
+      
+      document.getElementById('scorePill').classList.add('flash');
+      setTimeout(() => document.getElementById('scorePill').classList.remove('flash'), 400);
+      
+      checkAchievements();
+      updateStats();
+      renderApps();
+      
+      if (state.remainingApps.length === 0) {
+        setTimeout(showComplete, 700);
+      }
+    } else {
+      state.combo = 0;
+      state.score = Math.max(0, state.score - 25);
+      state.wrongCount++;
+      
+      if (card) {
+        card.classList.add('wrong');
+        setTimeout(() => card.classList.remove('wrong'), 500);
+      }
+      
+      const catName = categoriesData.find(c => c.id === catId).short;
+      showToast(`Salah! "${appData.name}" bukan ${catName}. -25 poin`, 'error');
+      playWrongSound();
+      spawnScorePopup(dz, `-25`, 'var(--danger)');
+      mascotSay('Yah, salah. Coba lagi!', 'sad');
+      updateStats();
+    }
+  }
+  
+  function updateStats() {
+    document.getElementById('scoreVal').textContent = state.score;
+    document.getElementById('comboVal').textContent = `x${Math.min(5, 1 + Math.floor(state.combo / 3))}`;
+    document.getElementById('progressVal') && (document.getElementById('progressVal').textContent = `${state.correctCount}/${state.totalApps}`);
+    
+    const comboFillEl = document.getElementById('comboFill');
+    const comboBarEl = document.getElementById('comboBar');
+    const pct = Math.min(100, (state.combo / 12) * 100);
+    comboFillEl.style.width = `${pct}%`;
+    if (state.combo >= 3) comboBarEl.classList.add('active'); else comboBarEl.classList.remove('active');
+    
+    const flamesEl = document.getElementById('streakFlames');
+    flamesEl.innerHTML = '';
+    const flameCount = 5;
+    const activeFlames = Math.min(flameCount, Math.floor(state.combo / 2));
+    for (let i = 0; i < flameCount; i++) {
+      const f = document.createElement('span');
+      f.className = 'flame' + (i < activeFlames ? ' active' : '');
+      flamesEl.appendChild(f);
+    }
+    
+    const progressPct = (state.correctCount / state.totalApps) * 100;
+    document.getElementById('progressBar').style.width = `${progressPct}%`;
+  }
+  
+  function updateHintBtn() {
+    const btn = document.getElementById('hintBtn');
+    const count = document.getElementById('hintCount');
+    if (state.mode === 'casual') {
+      count.textContent = '∞';
+      btn.disabled = false;
+    } else {
+      count.textContent = state.hintsLeft;
+      btn.disabled = state.hintsLeft <= 0;
+    }
+  }
+  
+  function useHint() {
+    if (state.hintsLeft <= 0 && state.mode !== 'casual') return;
+    if (state.remainingApps.length === 0) return;
+    
+    const randomApp = state.remainingApps[Math.floor(Math.random() * state.remainingApps.length)];
+    const dz = document.querySelector(`[data-cat-id="${randomApp.cat}"]`);
+    const card = document.querySelector(`[data-app-name="${randomApp.name}"]`);
+    
+    if (dz && card) {
+      dz.classList.add('hint-glow');
+      card.style.boxShadow = '0 0 0 2px var(--gold), 0 0 20px rgba(255, 215, 0, 0.5)';
+      card.style.borderColor = 'var(--gold)';
+      
+      setTimeout(() => {
+        dz.classList.remove('hint-glow');
+        card.style.boxShadow = '';
+        card.style.borderColor = '';
+      }, 2500);
+      
+      showToast(`Hint: "${randomApp.name}" → "${categoriesData.find(c=>c.id===randomApp.cat).short}"`, 'achievement');
+      playTone(880, 0.15, 'triangle', 0.1);
+      setTimeout(() => playTone(1100, 0.2, 'triangle', 0.1), 100);
+      
+      if (state.mode !== 'casual') {
+        state.hintsLeft--;
+        state.hintsUsed++;
+        updateHintBtn();
+      }
+    }
+  }
+  
+  function startTimer() {
+    if (state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+      state.elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+      const timerEl = document.getElementById('timerVal');
+      
+      if (state.timeLimit > 0) {
+        const remaining = Math.max(0, state.timeLimit - state.elapsed);
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        
+        timerEl.classList.remove('timer-warning', 'timer-danger');
+        if (remaining <= 10) {
+          timerEl.classList.add('timer-danger');
+          if (remaining > 0 && remaining <= 5) playTickSound();
+        } else if (remaining <= 30) {
+          timerEl.classList.add('timer-warning');
+        }
+        
+        if (remaining === 0) {
+          clearInterval(state.timerInterval);
+          showComplete(true);
+        }
+      } else {
+        const m = Math.floor(state.elapsed / 60);
+        const s = state.elapsed % 60;
+        timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      }
+    }, 250);
+  }
+  
+  function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    
+    let icon = '';
+    if (type === 'success') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>';
+    else if (type === 'error') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    else if (type === 'combo') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--accent-pink)" stroke="var(--accent-pink)" stroke-width="1.5"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>';
+    else if (type === 'achievement') icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>';
+    
+    t.innerHTML = `${icon}<span>${msg}</span>`;
+    container.appendChild(t);
+    
+    setTimeout(() => {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(120%)';
+      t.style.transition = 'all 0.3s';
+      setTimeout(() => t.remove(), 300);
+    }, 2400);
+  }
+  
+  function spawnParticles(target, type = 'green') {
+    const rect = target.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const count = type === 'rainbow' ? 25 : 15;
+    
+    const colors = type === 'rainbow' 
+      ? ['#00ffa3', '#ff6b35', '#ff3d8b', '#a855f7', '#ffd700']
+      : ['#00ffa3', '#ff6b35'];
+    
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const hue = colors[Math.floor(Math.random() * colors.length)];
+      p.style.background = hue;
+      p.style.boxShadow = `0 0 10px ${hue}`;
+      p.style.left = `${cx}px`;
+      p.style.top = `${cy}px`;
+      const size = 4 + Math.random() * 6;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+      document.body.appendChild(p);
+      
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+      const dist = 60 + Math.random() * 80;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      
+      p.animate([
+        { transform: 'translate(0,0) scale(1)', opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+      ], { duration: 800 + Math.random() * 400, easing: 'cubic-bezier(.2,.7,.3,1)' });
+      
+      setTimeout(() => p.remove(), 1200);
+    }
+  }
+  
+  function spawnScorePopup(target, text, color) {
+    const rect = target.getBoundingClientRect();
+    const popup = document.createElement('div');
+    popup.className = 'score-popup';
+    popup.style.left = `${rect.left + rect.width / 2}px`;
+    popup.style.top = `${rect.top + 30}px`;
+    popup.style.color = color;
+    popup.textContent = text;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 1200);
+  }
+  
+  // ==================== ACHIEVEMENTS ====================
+  function renderAchievements() {
+    const container = document.getElementById('achList');
+    container.innerHTML = '';
+    state.achievements.forEach(ach => {
+      const el = document.createElement('div');
+      el.className = `p-3 rounded-xl border ${ach.unlocked ? 'border-[var(--gold)] bg-[rgba(255,215,0,0.08)]' : 'border-[var(--border)] bg-[rgba(255,255,255,0.02)] opacity-50'}`;
+      el.innerHTML = `
+        <div class="text-2xl mb-1">${ach.unlocked ? ach.icon : '🔒'}</div>
+        <div class="font-bold text-xs ${ach.unlocked ? '' : 'text-[var(--muted)]'}">${ach.name}</div>
+        <div class="text-[10px] text-[var(--muted)] mt-0.5">${ach.desc}</div>
+      `;
+      container.appendChild(el);
+    });
+  }
+  
+  function unlockAchievement(id) {
+    const ach = state.achievements.find(a => a.id === id);
+    if (ach && !ach.unlocked) {
+      ach.unlocked = true;
+      showAchievementToast(ach);
+      playAchievementSound();
+      renderAchievements();
+      mascotSay(`Achievement: ${ach.name}! ${ach.icon}`, 'celebrate');
+    }
+  }
+  
+  function showAchievementToast(ach) {
+    const existing = document.querySelector('.achievement-toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'achievement-toast';
+    toast.innerHTML = `
+      <div class="ach-icon">
+        <span style="font-size: 22px">${ach.icon}</span>
+      </div>
+      <div class="text-left">
+        <div class="text-[10px] mono uppercase tracking-wider" style="color: var(--gold)">Achievement Unlocked</div>
+        <div class="font-bold text-sm">${ach.name}</div>
+        <div class="text-[11px] text-[var(--muted)]">${ach.desc}</div>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('hide'), 3000);
+    setTimeout(() => toast.remove(), 3500);
+  }
+  
+  function checkAchievements() {
+    if (state.correctCount === 1) unlockAchievement('first_match');
+    if (state.combo === 5) unlockAchievement('combo5');
+    if (state.combo === 10) unlockAchievement('combo10');
+    if (state.score >= 3000) unlockAchievement('big_score');
+    if (state.correctCount === state.totalApps) unlockAchievement('all_match');
+  }
+  
+  // ==================== MASCOT ====================
+  const mascotMessages = {
+    start: ['Ayo mulai! Seret aplikasi ke kategorinya!', 'Kamu pasti bisa!'],
+    happy: ['Mantap! Lanjutkan!', 'Keren! Skor naik!', 'Hebat! Combo bertambah!'],
+    sad: ['Yah, salah. Coba lagi!', 'Jangan menyerah!', 'Hampir benar!'],
+    celebrate: ['Luar biasa!', 'Kamu jago sekali!', 'Combo tinggi! 🔥'],
+    idle: ['Lagi apa?', 'Seret kartunya!', 'Pakai hint jika bingung!']
+  };
+  
+  function mascotSay(msg, mood = 'happy') {
+    const bubble = document.getElementById('mascotBubble');
+    const mascot = document.getElementById('mascot');
+    bubble.textContent = msg;
+    bubble.classList.add('show');
+    
+    mascot.classList.remove('happy', 'sad', 'celebrate');
+    mascot.classList.add(mood);
+    
+    clearTimeout(window._mascotTimeout);
+    window._mascotTimeout = setTimeout(() => {
+      bubble.classList.remove('show');
+      mascot.classList.remove('happy', 'sad', 'celebrate');
+    }, 3000);
+  }
+  
+  function mascotTalk() {
+    const moods = ['happy', 'celebrate'];
+    const msgs = mascotMessages.idle;
+    mascotSay(msgs[Math.floor(Math.random() * msgs.length)], moods[Math.floor(Math.random() * moods.length)]);
+  }
+  
+  // ==================== COMPLETE ====================
+  function showComplete(timeout = false) {
+    clearInterval(state.timerInterval);
+    
+    const accuracy = state.correctCount + state.wrongCount > 0 
+      ? Math.round((state.correctCount / (state.correctCount + state.wrongCount)) * 100)
+      : 100;
+    
+    let timeBonus = 0;
+    if (!timeout && state.timeLimit > 0) {
+      const remaining = state.timeLimit - state.elapsed;
+      timeBonus = Math.max(0, remaining * 5);
+      state.score += timeBonus;
+    }
+    
+    if (!timeout) {
+      if (state.wrongCount === 0) unlockAchievement('flawless');
+      if (state.elapsed < 60) unlockAchievement('speedrun');
+      if (state.hintsUsed === 0) unlockAchievement('no_hint');
+      if (state.correctCount === state.totalApps) unlockAchievement('all_match');
+    }
+    
+    document.getElementById('finalScore').textContent = state.score;
+    document.getElementById('finalTime').textContent = `${state.elapsed}s`;
+    document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+    document.getElementById('finalCombo').textContent = state.maxCombo;
+    
+    let title, subtitle;
+    if (timeout) {
+      title = 'Waktu Habis!';
+      subtitle = `Kamu berhasil mencocokkan ${state.correctCount} dari ${state.totalApps} aplikasi.`;
+      document.getElementById('completeIcon').style.background = 'linear-gradient(135deg, var(--danger), var(--accent-warm))';
+    } else if (accuracy === 100 && state.elapsed < 60) {
+      title = 'LEGENDARY! 🏆';
+      subtitle = 'Sempurna dan cepat! Kamu adalah master aplikasi!';
+    } else if (accuracy === 100) {
+      title = 'Sempurna! 💎';
+      subtitle = 'Tanpa kesalahan sama sekali. Kerja luar biasa!';
+    } else if (accuracy >= 80) {
+      title = 'Hebat! 🎉';
+      subtitle = 'Pengetahuan aplikasi kamu sangat baik!';
+    } else if (accuracy >= 60) {
+      title = 'Cukup Baik! 👍';
+      subtitle = 'Tetap berlatih untuk hasil lebih baik.';
+    } else {
+      title = 'Tetap Semangat! 💪';
+      subtitle = 'Coba lagi untuk meningkatkan skor.';
+    }
+    
+    document.getElementById('completeTitle').textContent = title;
+    document.getElementById('completeSubtitle').textContent = subtitle;
+    
+    const achContainer = document.getElementById('finalAchievements');
+    const unlocked = state.achievements.filter(a => a.unlocked);
+    if (unlocked.length > 0) {
+      achContainer.innerHTML = `
+        <div class="text-[10px] mono uppercase tracking-wider text-[var(--muted)] mb-2">Achievement Diraih (${unlocked.length}/${state.achievements.length})</div>
+        <div class="flex flex-wrap gap-2 justify-center">
+          ${unlocked.map(a => `<div class="px-3 py-1.5 rounded-full bg-[rgba(255,215,0,0.1)] border border-[var(--gold)] text-xs flex items-center gap-1.5"><span>${a.icon}</span><span>${a.name}</span></div>`).join('')}
+        </div>
+      `;
+    } else {
+      achContainer.innerHTML = '';
+    }
+    
+    document.getElementById('completeModal').classList.remove('hidden');
+    
+    if (!timeout) {
+      playCompleteSound();
+      mascotSay('Selamat! Kamu berhasil! 🎉', 'celebrate');
+      for (let i = 0; i < 60; i++) {
+        setTimeout(() => spawnConfetti(), i * 30);
+      }
+    } else {
+      mascotSay('Waktu habis! Coba lagi ya!', 'sad');
+    }
+  }
+  
+  function spawnConfetti() {
+    const colors = ['#00ffa3', '#ff6b35', '#ff3d8b', '#a855f7', '#ffd700'];
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.left = `${Math.random() * 100}%`;
+    c.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(c);
+    
+    const duration = 2000 + Math.random() * 2000;
+    const drift = (Math.random() - 0.5) * 300;
+    
+    c.animate([
+      { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+      { transform: `translate(${drift}px, ${window.innerHeight + 50}px) rotate(${720 + Math.random() * 360}deg)`, opacity: 0 }
+    ], { duration, easing: 'cubic-bezier(.1,.5,.3,1)' });
+    
+    setTimeout(() => c.remove(), duration);
+  }
+  
+  function restartGame() {
+    document.getElementById('completeModal').classList.add('hidden');
+    document.getElementById('startModal').classList.remove('hidden');
+  }
+  
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'h' || e.key === 'H') useHint();
+    if (e.key === 'r' || e.key === 'R') restartGame();
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.app-card.selected').forEach(c => c.classList.remove('selected'));
+      state.selectedApp = null;
+    }
+  });
+  
+  // Init achievement list on load
+  renderAchievements();
+</script>
+</body>
+</html>
