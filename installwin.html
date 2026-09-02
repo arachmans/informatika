@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi Instalasi Windows 11 — AXIOM VirtualPC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#08090b;color:#c7cdd6;font-family:'IBM Plex Mono',Consolas,monospace;overflow:hidden;-webkit-user-select:none;user-select:none}
+#stage{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:14px}
+
+/* ===== MONITOR ===== */
+#monitor{display:flex;flex-direction:column;background:#141519;border:1px solid #26282e;border-radius:14px;padding:13px 13px 0;box-shadow:0 30px 90px rgba(0,0,0,.6),inset 0 1px 0 #2c2f36;width:min(1440px,94vw,calc((100vh - 180px)*1.7))}
+#screenwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden}
+#screen{position:absolute;inset:0;background:#000;overflow:hidden}
+#screen::before{content:"";position:absolute;inset:0;box-shadow:inset 0 0 110px rgba(0,0,0,.32);pointer-events:none;z-index:200}
+#screen.t-bios::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px);pointer-events:none;z-index:201}
+#screen.offflash{animation:sfade .34s ease forwards}
+@keyframes sfade{to{opacity:0}}
+
+/* font/konteks layar */
+.t-ui{font-family:'Noto Sans','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+.t-bios{font-family:'IBM Plex Mono',Consolas,monospace;color:#e8f1f8;background:#1E5D9C}
+.t-bios.dark{background:#050607}
+.t-black{background:#000;font-family:'Noto Sans','Segoe UI',sans-serif}
+.t-desktop{background:#000}
+
+/* ===== BEZEL ===== */
+#bezel{height:62px;display:flex;align-items:center;gap:16px;padding:0 10px;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+#brand{line-height:1.6;color:#79808d;white-space:nowrap}
+#brand b{color:#e8ecf3;font-weight:600}
+#ctrl{display:flex;align-items:center;gap:12px}
+.hbtn{width:36px;height:36px;border-radius:50%;background:#1d2026;border:1px solid #31353d;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#9aa3b2;flex:0 0 auto}
+.hbtn:hover{border-color:#4ee07f;color:#cfe9d9}
+.hbtn svg{width:17px;height:17px}
+#btnPower.idle{animation:pw 2.6s ease-in-out infinite}
+@keyframes pw{0%,100%{box-shadow:0 0 0 0 rgba(78,224,127,0)}50%{box-shadow:0 0 0 6px rgba(78,224,127,.18);border-color:#4ee07f;color:#4ee07f}}
+#port{position:relative;width:46px;height:16px;background:#0b0c0e;border:1px solid #2c3037;border-radius:3px;flex:0 0 auto}
+#port::before{content:"";position:absolute;left:8px;top:4px;width:28px;height:7px;background:#000;box-shadow:inset 0 0 3px #000}
+#port.need{border-color:#4ee07f;animation:portglow 1.6s ease-in-out infinite}
+@keyframes portglow{0%,100%{box-shadow:0 0 4px rgba(78,224,127,.25)}50%{box-shadow:0 0 16px rgba(78,224,127,.75)}}
+#usbStub{position:absolute;left:-2px;top:2px;cursor:pointer}
+#usbStub:hover{filter:brightness(1.25)}
+.led{width:8px;height:8px;border-radius:50%;background:#25272c;flex:0 0 auto}
+.led.on{background:#4ee07f;box-shadow:0 0 9px rgba(78,224,127,.65)}
+.led.disk{background:#2c1518}
+.led.disk.busy{animation:dflick .45s infinite}
+@keyframes dflick{0%,100%{background:#32191c}40%{background:#ff5d5d;box-shadow:0 0 10px rgba(255,90,90,.7)}}
+#btnReset{background:none;border:1px dashed #3a3f47;color:#79808d;font:inherit;padding:5px 10px;border-radius:4px;cursor:pointer;white-space:nowrap}
+#btnReset:hover{color:#ff9d9d;border-color:#7a4a4a}
+#hint{flex:1;min-width:0;color:#9fc9a8;font-size:10.5px;line-height:1.55;text-transform:none;letter-spacing:.02em}
+
+/* ===== RAK MEDIA & FLASHDISK ===== */
+#shelf{width:min(1440px,94vw,calc((100vh - 180px)*1.7));display:flex;justify-content:space-between;align-items:center;padding:4px 6px 0;gap:16px}
+#shelfLabel{font-size:9.5px;color:#565e69;text-transform:uppercase;letter-spacing:.14em;line-height:1.8}
+#shelfLabel span{color:#454b54;text-transform:none;letter-spacing:.02em;font-size:9.5px}
+#usbSlot{width:94px;height:36px;position:relative;flex:0 0 auto}
+#usb{position:absolute;left:0;top:0;cursor:grab;touch-action:none}
+#usb:hover{filter:brightness(1.2)}
+#usb.fixed{position:fixed;z-index:999;cursor:grabbing}
+#usb.anim{transition:left .42s cubic-bezier(.4,.1,.3,1),top .42s cubic-bezier(.4,.1,.3,1)}
+#usb.hidden{display:none}
+
+/* ===== LOGO WINDOWS & SPINNER ===== */
+.wlogo{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr)}
+.wlogo i{background:var(--sq,#0067C0);border-radius:11%}
+.dots{position:relative;flex:0 0 auto}
+.dots i{position:absolute;inset:0;animation:dotspin 1.9s cubic-bezier(.45,.05,.55,.95) infinite}
+.dots i:nth-child(2){animation-delay:.13s}.dots i:nth-child(3){animation-delay:.26s}
+.dots i:nth-child(4){animation-delay:.39s}.dots i:nth-child(5){animation-delay:.52s}
+.dots i:nth-child(6){animation-delay:.65s}
+.dots i::after{content:"";position:absolute;top:0;left:50%;width:14%;height:14%;min-width:5px;min-height:5px;margin-left:-3%;border-radius:50%;background:var(--dot,#fff)}
+@keyframes dotspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* ===== POST / NO BOOT ===== */
+.postlog{position:absolute;top:22px;left:26px;font-size:13px;line-height:2;color:#d6e4f0}
+.postlog .pl1{margin-bottom:6px;color:#fff}
+.postcenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.plogo{font-size:54px;font-weight:600;letter-spacing:.34em;color:#eef5fb;text-indent:.34em}
+.psub{font-size:12px;letter-spacing:.28em;color:#a9c3d9;text-indent:.28em}
+.postkey{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:13px;color:#cfdcee}
+.postkey b{color:#fff}
+.noboot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:16px;line-height:2.1;color:#e8f1f8}
+.caret{animation:blink 1.1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.bootmenu{position:absolute;left:44px;top:64px;min-width:390px;background:#000;border:1px solid #7fa8cc;padding:10px}
+.bootmenu h5{background:#1E5D9C;color:#fff;font-size:13px;font-weight:600;padding:6px 12px;margin-bottom:8px}
+.bmi{padding:8px 14px;font-size:13.5px;color:#e8f1f8;cursor:pointer}
+.bmi:hover{background:#1E5D9C}
+
+/* ===== BIOS ===== */
+.bios{position:absolute;inset:0;display:flex;flex-direction:column;font-size:13.5px}
+.bios-title{text-align:center;padding:9px 0 8px;font-weight:600;border-bottom:2px solid #eef4fa;letter-spacing:.02em}
+.bios-tabs{display:flex;gap:2px;padding:7px 12px 0}
+.btab{padding:5px 18px;cursor:pointer}
+.btab:hover{background:rgba(255,255,255,.13)}
+.btab.on{background:#eef4fa;color:#123c63;font-weight:600}
+.bios-body{flex:1;margin:0 12px 8px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.28);padding:8px 10px;overflow-y:auto}
+.brow{display:flex;justify-content:space-between;gap:20px;padding:7px 10px;cursor:pointer}
+.brow .k{color:#cfe1f1}
+.brow .v{color:#fff;white-space:nowrap}
+.brow.on{background:#eef4fa}
+.brow.on .k,.brow.on .v{color:#123c63;font-weight:600}
+.brow.on .k::before{content:"> "}
+.brow.act>.v::after{content:" \25B8"}
+.brow.hot{animation:bpulse 1.5s ease-in-out infinite}
+@keyframes bpulse{0%,100%{background:rgba(255,255,255,.06)}50%{background:rgba(255,255,255,.25)}}
+.bios-keys{padding:7px 12px;background:#eef4fa;color:#123c63;font-size:11.5px}
+.bios-keys span{font-weight:600;margin-left:12px}
+.bios-keys span:first-child{margin-left:0}
+.bpop{position:absolute;inset:0;background:rgba(2,12,26,.5);display:flex;align-items:center;justify-content:center;z-index:6}
+.bpopbox{background:#1E5D9C;border:1px solid #eef4fa;min-width:380px;max-width:82%;box-shadow:0 12px 44px rgba(0,0,0,.5)}
+.bpopbox h5{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.45);font-size:13.5px;color:#fff;font-weight:600}
+.bpopbox .brow{padding:6px 14px}
+.bpopbox .brow.cur{background:rgba(255,255,255,.18)}
+.bpopbox .brow.cur .k{color:#ffe9a8;font-weight:600}
+.bpopfoot{padding:8px 14px;font-size:11px;color:#cfe1f1;border-top:1px solid rgba(255,255,255,.25)}
+.bconfirm{padding:16px 16px 4px;color:#fff}
+.bbtns{display:flex;gap:10px;padding:12px 16px 16px}
+.bpbtn{padding:6px 28px;background:#eef4fa;color:#123c63;font-weight:600;cursor:pointer}
+.bpbtn:hover{background:#fff}
+
+/* ===== BOOT WINDOWS ===== */
+.bootwrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:38px;background:#000}
+.bootlabel{font-size:16px;font-weight:300;color:#fff}
+.gettingready{position:absolute;inset:0;display:flex;flex-direction:column;gap:26px;align-items:center;justify-content:center;color:#fff;font-weight:300;font-size:17px}
+.restartingwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#eee;font-size:15px;font-weight:300}
+.srrep{position:absolute;inset:0;display:flex;flex-direction:column;gap:22px;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:300;text-align:center;padding:20px}
+.srrep .mut{font-size:12.5px;color:#b9c3cf;font-family:'IBM Plex Mono',monospace}
+
+/* ===== WINDOWS SETUP ===== */
+.t-setup .setup{position:absolute;inset:0;background:linear-gradient(180deg,#35A1E0 0%,#1E7FCC 55%,#156AB4 100%);display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:22px 12px 28px;color:#1b1b1b}
+.setup-logo{margin:0 0 14px}
+.setup-card{width:560px;max-width:96%;background:#fff;border-radius:8px;box-shadow:0 18px 60px rgba(0,40,80,.4);padding:26px 30px;position:relative}
+.setup-card.wide{width:760px}
+.stitle{font-size:20px;font-weight:600;margin-bottom:16px}
+.sbody{font-size:14px}
+.slabel{display:block;font-size:13px;color:#333;margin:13px 0 6px}
+.sfoot{display:flex;justify-content:space-between;align-items:center;margin-top:22px;min-height:36px}
+.wbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:110px;height:33px;background:#0067C0;color:#fff;border:1px solid #0067C0;border-radius:4px;padding:0 22px;font-size:14px;font-family:inherit;cursor:pointer}
+.wbtn:hover{background:#0B74CF}
+.wbtn:active{background:#005BA1}
+.wbtn:disabled{background:#ECECEC;border-color:#ECECEC;color:#9a9a9a;cursor:default}
+.wbtn.sec{background:#fff;color:#1b1b1b;border:1px solid #8a8a8a}
+.wbtn.sec:hover{background:#F4F4F4}
+.wbtn.big{font-size:16px;height:40px;padding:0 46px}
+.wlink{color:#0067C0;text-decoration:none;cursor:pointer;font-size:13px}
+.wlink:hover{text-decoration:underline;color:#005a9e}
+.winput{width:100%;height:36px;border:1px solid #8a8a8a;border-radius:4px;padding:0 12px;font-size:14px;font-family:inherit;background:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}
+.winput:focus{border-color:#0067C0;outline:2px solid rgba(0,103,192,.22)}
+.winput.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.06em}
+select.winput{appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="%23606060" stroke-width="1.5"/></svg>') no-repeat right 12px center;cursor:pointer}
+.sdesc{font-size:13.5px;color:#444;line-height:1.5;margin-bottom:14px}
+.serr{color:#C42B1C;font-size:12.5px;min-height:17px;margin:6px 0}
+.installnow{display:flex;flex-direction:column;align-items:center;gap:20px;padding:10px 0 4px}
+.starting{display:flex;flex-direction:column;align-items:center;gap:16px;padding:26px 0;color:#444;font-size:14px}
+.edrow{border:1px solid #d0d0d0;border-radius:5px;padding:11px 16px;margin-bottom:8px;cursor:pointer}
+.edrow:hover{background:#F2F7FB}
+.edrow.sel{background:#CFE6F8;border-color:#3399E0}
+.edrow b{display:block;font-size:14px}
+.edrow span{font-size:12.5px;color:#666}
+.eula{height:150px;overflow-y:auto;border:1px solid #d5d5d5;background:#FAFAFA;padding:12px 14px;font-size:12px;line-height:1.65;color:#444;white-space:pre-wrap}
+.scheck{display:flex;gap:9px;align-items:center;font-size:13.5px;margin-top:12px;cursor:pointer}
+.scheck input{width:16px;height:16px;accent-color:#0067C0}
+.insrow{border:1px solid #d0d0d0;border-radius:5px;padding:15px 18px;margin-bottom:10px;cursor:pointer}
+.insrow:hover{background:#F2F7FB}
+.insrow b{display:block;font-size:14.5px;margin-bottom:4px}
+.insrow span{font-size:12.5px;color:#666}
+.disktable{border:1px solid #c9c9c9;height:200px;overflow-y:auto;background:#fff}
+.drow{display:grid;grid-template-columns:1fr 105px 105px 120px;align-items:center;height:40px;border-bottom:1px solid #e9e9e9}
+.drow>span{padding:0 12px;font-size:13px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.drow.head{position:sticky;top:0;height:34px;background:#F3F3F3;z-index:1}
+.drow.head>span{font-weight:600;color:#444;font-size:12.5px}
+.drow.sel{background:#CFE6F8}
+.drow.sel>span:first-child{font-weight:600}
+.dtoolbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.dtool{border:1px solid #adadad;background:#E1E1E1;border-radius:3px;padding:6px 15px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.dtool:hover{background:#CDE6FF;border-color:#0078D4;color:#004a80}
+.dtool.dis{opacity:.45;cursor:default;pointer-events:none}
+.sizebox{border:1px solid #c9c9c9;padding:14px;margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sizebox .slabel{margin:0}
+.plist{margin-top:4px}
+.pitem{display:flex;justify-content:space-between;padding:11px 2px;font-size:14px;border-bottom:1px solid #F0F0F0;color:#3c3c3c}
+.pitem.act{color:#000;font-weight:600}
+.pitem .st{color:#0067C0;font-weight:600}
+.pnote{margin-top:18px;font-size:12.5px;color:#606060;line-height:1.6}
+.cmodal{position:absolute;inset:0;background:rgba(0,0,0,.34);display:flex;align-items:center;justify-content:center;z-index:5;border-radius:8px}
+.cmodal .cbox{background:#fff;padding:22px 24px;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.4);max-width:430px;font-size:13.5px;line-height:1.55}
+.cbbtns{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.winre{position:absolute;inset:0;background:#13538E;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px}
+.wrtitle{color:#fff;font-size:26px;font-weight:300;margin-bottom:18px}
+.wrrow{width:440px;max-width:94%;background:rgba(255,255,255,.94);border-radius:6px;padding:16px 20px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.wrrow:hover{background:#fff;transform:translateY(-1px)}
+.wrrow b{display:block;font-size:15px;color:#1b1b1b}
+.wrrow span{font-size:12.5px;color:#5c6b7a}
+
+/* ===== OOBE ===== */
+.t-oobe{background:#EEF5FC}
+.oobe{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.oobe-card{width:560px;max-width:96%;color:#1b1b1b}
+.oobe-card h1{font-size:30px;font-weight:600;margin-bottom:12px;color:#222}
+.oobe-card .sub{font-size:14.5px;color:#4a4a4a;line-height:1.55;margin-bottom:24px}
+.oobe-foot{display:flex;justify-content:space-between;align-items:center;margin-top:24px;min-height:38px}
+.bnext{height:36px;min-width:120px;background:#0067C0;color:#fff;border:none;border-radius:4px;font-size:13.5px;padding:0 26px;cursor:pointer;font-family:inherit}
+.bnext:hover{background:#0B74CF}
+.oblist{border:1px solid #CFDAE6;border-radius:6px;max-height:242px;overflow-y:auto;background:#fff}
+.obitem{padding:10px 14px;font-size:13.5px;cursor:pointer;border-bottom:1px solid #F0F4F8}
+.obitem:hover{background:#F3F8FD}
+.obitem.sel{background:#CFE6F7;font-weight:600}
+.wifirow{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:13.5px;cursor:pointer;border-bottom:1px solid #F0F4F8}
+.wifirow:hover{background:#F3F8FD}
+.wifirow svg{flex:0 0 auto}
+.netstat{padding:10px 14px;font-size:13px}
+.sqrow{display:flex;gap:10px;margin-bottom:10px}
+.sqrow select{flex:0 0 44%}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #E3EBF3;gap:20px}
+.prow .pn{font-size:13.5px;font-weight:600}
+.prow .pd{font-size:11.5px;color:#6a7787;margin-top:3px;max-width:360px}
+.tog{position:relative;width:40px;height:20px;border-radius:10px;background:#767676;cursor:pointer;transition:background .15s;flex:0 0 auto;border:none}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
+.tog.on{background:#0067C0}
+.tog.on::after{left:23px}
+.final{position:absolute;inset:0;background:#EEF5FC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px}
+.ftext{font-size:18px;font-weight:300;color:#3a4a5a}
+.welc{position:absolute;inset:0;background:#0067C0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;color:#fff}
+.wt{font-size:34px;font-weight:300}
+
+/* ===== DESKTOP ===== */
+.desk{position:absolute;inset:0;font-size:13px}
+.wall{position:absolute;inset:0;overflow:hidden}
+.wall svg{position:absolute;inset:0;width:100%;height:100%}
+.wall.solidbg{background:#1B6FC2}
+.icons{position:absolute;inset:0 0 52px 0}
+.dicon{position:absolute;width:80px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:4px;border:1px solid transparent}
+.dicon .ic{width:44px;height:44px}
+.dicon .ic svg{width:100%;height:100%}
+.dicon .lb{font-size:11.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.55);text-align:center;word-break:break-word}
+.dicon.sel{background:rgba(0,103,192,.35);border-color:rgba(255,255,255,.3)}
+.icons.big .dicon .ic{width:56px;height:56px}
+.icons.small .dicon .ic{width:32px;height:32px}
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:52px;background:rgba(243,243,243,.82);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);border-top:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;z-index:60}
+.tcenter{display:flex;gap:4px;align-items:center}
+.tk{width:40px;height:40px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;border:none;background:transparent;padding:0}
+.tk svg{width:22px;height:22px}
+.tk:hover{background:rgba(0,0,0,.06)}
+.tk:active{background:rgba(0,0,0,.1)}
+.tk.open::after{content:"";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:6px;height:3px;border-radius:2px;background:#8a8a8a}
+.tksearch{width:168px;height:36px;border-radius:18px;background:#fff;border:1px solid #E0E0E0;box-shadow:0 1px 3px rgba(0,0,0,.1);display:flex;align-items:center;gap:9px;padding:0 14px;font-size:12.5px;color:#616161;cursor:pointer;margin:0 2px}
+.tksearch:hover{border-color:#c8c8c8}
+.tksearch svg{width:15px;height:15px}
+.tray{position:absolute;right:8px;display:flex;align-items:center;gap:2px;height:100%}
+.trbtn{height:40px;padding:0 8px;display:flex;align-items:center;gap:9px;border-radius:5px;cursor:pointer}
+.trbtn:hover{background:rgba(0,0,0,.06)}
+.clock{text-align:right;line-height:1.4;font-size:11.5px;color:#1b1b1b}
+.start{position:absolute;bottom:62px;left:50%;transform:translateX(-50%) translateY(14px);width:580px;max-width:calc(100% - 24px);background:rgba(249,249,249,.92);backdrop-filter:blur(30px) saturate(1.4);-webkit-backdrop-filter:blur(30px) saturate(1.4);border:1px solid rgba(0,0,0,.09);border-radius:12px;box-shadow:0 28px 80px rgba(0,0,0,.4);padding:22px 26px 0;z-index:70;opacity:0;pointer-events:none;transition:transform .18s ease,opacity .18s ease}
+.start.open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.start .search{height:36px;border-radius:18px;background:#fff;border:1px solid #E2E2E2;display:flex;align-items:center;gap:10px;padding:0 14px;margin-bottom:16px}
+.start .search svg{width:15px;height:15px}
+.sinput{border:none;outline:none;flex:1;font-size:12.5px;font-family:inherit;background:none}
+.start h6{font-size:12px;font-weight:600;color:#1b1b1b;margin:0 0 8px}
+.pinned{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:16px}
+.papp{display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 2px;border-radius:6px;cursor:pointer}
+.papp:hover{background:rgba(0,0,0,.05)}
+.papp .pic{width:32px;height:32px}
+.papp .pic svg{width:100%;height:100%}
+.papp .n{font-size:10.5px;color:#1b1b1b;text-align:center}
+.reco{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:14px}
+.rapp{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:6px;cursor:pointer}
+.rapp:hover{background:rgba(0,0,0,.05)}
+.rapp svg{width:26px;height:26px;flex:0 0 auto}
+.rapp b{display:block;font-size:12px}
+.rapp span{font-size:10.5px;color:#6a7787}
+.startfoot{display:flex;justify-content:space-between;align-items:center;margin:0 -26px;padding:10px 26px;background:rgba(238,238,238,.95);border-top:1px solid rgba(0,0,0,.06);border-radius:0 0 12px 12px;position:relative}
+.user{display:flex;gap:10px;align-items:center;font-size:12.5px;font-weight:600;color:#1b1b1b;padding:6px 10px;border-radius:5px;cursor:pointer}
+.user:hover{background:rgba(0,0,0,.05)}
+.avatar{border-radius:50%;background:#7A8FA6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;flex:0 0 auto}
+.pwrbtn{width:36px;height:36px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pwrbtn:hover{background:rgba(0,0,0,.06)}
+.pmenu{position:absolute;bottom:52px;right:14px;background:#F6F6F6;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:6px;min-width:150px;display:none;z-index:80}
+.pmenu.open{display:block}
+.pmi{padding:9px 14px;border-radius:5px;cursor:pointer;font-size:12.5px}
+.pmi:hover{background:rgba(0,0,0,.06)}
+.wpanel{position:absolute;left:12px;bottom:62px;width:330px;background:rgba(249,249,249,.94);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(0,0,0,.08);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.35);padding:16px;z-index:65;opacity:0;pointer-events:none;transform:translateY(14px);transition:.2s}
+.wpanel.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+.wcard{background:#fff;border:1px solid #ebebeb;border-radius:8px;padding:14px;margin-bottom:10px;font-size:12.5px;color:#444;line-height:1.6}
+.wcard .wt{font-size:15px;font-weight:600;color:#1b1b1b}
+.wcard .ww{font-size:30px;font-weight:300;color:#1b1b1b}
+.qpanel{position:absolute;right:12px;bottom:62px;width:300px;background:rgba(249,249,249,.94);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(0,0,0,.08);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.35);padding:16px;z-index:65;opacity:0;pointer-events:none;transform:translateY(14px);transition:.2s}
+.qpanel.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+.qrow{display:flex;gap:10px;margin-bottom:12px}
+.qbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:52px;background:#E9E9E9;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:11.5px;color:#1b1b1b}
+.qbtn.on{background:#0067C0;color:#fff;border-color:#0067C0}
+.qvol{display:flex;align-items:center;gap:12px;margin:6px 0 12px}
+.qvol input{flex:1;accent-color:#0067C0}
+.qfoot{font-size:11.5px;color:#666;border-top:1px solid #eaeaea;padding-top:10px}
+.winlayer{position:absolute;inset:0 0 52px 0;pointer-events:none;z-index:40}
+.win{position:absolute;pointer-events:auto;background:#fff;border-radius:8px;box-shadow:0 24px 70px rgba(0,0,0,.38);border:1px solid #dfe3e8;display:flex;flex-direction:column;overflow:hidden;min-width:300px}
+.win.max{left:8px!important;top:8px!important;width:calc(100% - 16px)!important;height:calc(100% - 16px)!important}
+.winbar{height:40px;display:flex;align-items:center;gap:10px;padding:0 6px 0 12px;background:#F3F3F3;border-bottom:1px solid #E5E5E5}
+.winbar .t{font-size:12.5px;color:#3c3c3c;flex:1;display:flex;gap:9px;align-items:center;overflow:hidden;white-space:nowrap}
+.winbar .t svg{width:17px;height:17px;flex:0 0 auto}
+.winctl{display:flex}
+.wc{width:42px;height:32px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#3c3c3c;border-radius:4px}
+.wc:hover{background:#E5E5E5}
+.wc.close:hover{background:#C42B1C;color:#fff}
+.winbody{padding:14px;overflow:auto;flex:1;color:#1b1b1b}
+.winbody .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#6a7787;height:220px}
+.winbody .empty .big{width:64px;height:64px}
+.winbody .empty .big svg{width:100%;height:100%;opacity:.6}
+.mut{color:#8a97a3;font-size:12px}
+.exp{display:flex;height:100%;min-height:300px}
+.expside{width:160px;border-right:1px solid #eee;padding:10px;flex:0 0 auto}
+.es{padding:8px 10px;border-radius:5px;cursor:pointer;font-size:12.5px;display:flex;gap:8px;align-items:center}
+.es:hover{background:#F0F4F8}
+.es.on{background:#E5F0FA;font-weight:600}
+.expm{flex:1;padding:14px}
+.expm h4{font-size:15px;margin-bottom:12px}
+.drive{display:flex;gap:12px;align-items:center;padding:9px 8px;border-radius:5px;cursor:default}
+.drive:hover{background:#F0F4F8}
+.drive svg{width:34px;height:34px;flex:0 0 auto}
+.dn{font-size:12.5px;margin-bottom:5px}
+.dbart{height:5px;background:#E8E8E8;border-radius:3px;overflow:hidden}
+.dbart i{display:block;height:100%;background:#0067C0}
+.df{font-size:11px;color:#8a97a3;white-space:nowrap;margin-left:8px}
+.cmd{background:#0C0C0C;color:#CCC;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.5;padding:12px;height:100%;min-height:260px;display:flex;flex-direction:column}
+.cmd .out{white-space:pre-wrap;flex:1;overflow-y:auto}
+.cmdline{display:flex}
+.cmdline .ps{color:#CCC;white-space:nowrap}
+.cmdline input{flex:1;background:none;border:none;outline:none;color:#CCC;font:inherit}
+.np{width:100%;flex:1;min-height:230px;border:none;outline:none;resize:none;font-family:'Noto Sans',sans-serif;font-size:13px;padding:12px;background:#fff}
+.npbar{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 0;border-top:1px solid #eee;font-size:11.5px;color:#6a7787}
+.setwrap{display:flex;height:100%;min-height:340px}
+.eside{width:190px;border-right:1px solid #eee;padding:10px;flex:0 0 auto}
+.si{padding:9px 10px;border-radius:5px;cursor:pointer;font-size:12.5px;margin-bottom:2px}
+.si:hover{background:#F0F4F8}
+.si.on{background:#E5F0FA;font-weight:600}
+.setp{flex:1;padding:0 4px;overflow-y:auto}
+.setp h3{font-size:16px;margin:4px 0 14px}
+.srow{display:flex;justify-content:space-between;gap:20px;padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:12.5px}
+.srow span:first-child{color:#6a7787}
+.srow span:last-child{font-weight:600;text-align:right}
+.stat{background:#F3F7FB;border-radius:6px;padding:12px 14px;font-size:13px;margin-bottom:10px}
+.wpick{display:flex;gap:12px;align-items:center;border:1px solid #e0e6ec;border-radius:6px;padding:10px;margin-bottom:10px;cursor:pointer;font-size:12.5px}
+.wpick:hover{border-color:#0067C0}
+.wprev{width:110px;height:62px;border-radius:5px;overflow:hidden;position:relative;flex:0 0 auto;border:1px solid #dfe3e8}
+.wprev svg{position:absolute;inset:0;width:100%;height:100%}
+.wprev.solid{background:#1B6FC2}
+.edge{display:flex;flex-direction:column;height:100%;min-height:330px}
+.edgetop{display:flex;gap:8px;padding:0 0 12px}
+.edgetop input{flex:1;height:34px;border-radius:17px;border:1px solid #dfe3e8;padding:0 16px;font-size:12.5px;outline:none;font-family:inherit}
+.edgetop input:focus{border-color:#0067C0}
+.ego{width:34px;height:34px;border-radius:17px;background:#F3F3F3;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.edgepage{flex:1;border-top:1px solid #eee;padding-top:36px;display:flex;flex-direction:column;align-items:center}
+.enewt{margin:18px 0 8px}
+.esub{color:#6a7787;font-size:12.5px;margin-bottom:24px}
+.etiles{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.et{width:88px;height:70px;background:#F3F7FB;border:1px solid #e4eaf0;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#4a5866;cursor:pointer}
+.et:hover{border-color:#0067C0}
+.eoffline{text-align:center;padding-top:20px;max-width:420px;margin:0 auto}
+.eoffline .eox{width:54px;height:54px;border:2px solid #8a97a3;border-radius:50%;margin:0 auto 16px;position:relative}
+.eoffline .eox::before,.eoffline .eox::after{content:"";position:absolute;left:11px;top:24px;width:30px;height:2px;background:#8a97a3;transform:rotate(45deg)}
+.eoffline .eox::after{transform:rotate(-45deg)}
+.eoffline h3{font-weight:600;font-size:17px;margin-bottom:6px}
+.eoffline p{color:#0067C0;font-size:12px;word-break:break-all}
+.eoffline>div:nth-child(4){font-size:12.5px;color:#6a7787;margin-top:6px}
+.calh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cm{font-size:15px;font-weight:600}
+.cnav{width:34px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:#4a5866}
+.cnav:hover{background:#F0F4F8}
+.calgrid{display:grid;grid-template-columns:repeat(7,44px);gap:2px;text-align:center}
+.calgrid>div:first-child{font-weight:600;color:#6a7787}
+.calgrid>div:nth-child(-n+7){font-size:11px;color:#6a7787;padding:5px 0}
+.cd{height:38px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:12.5px}
+.cd:hover{background:#F0F4F8}
+.cd.today{background:#0067C0;color:#fff;font-weight:600}
+.mailw{display:flex;height:100%;min-height:300px}
+.mailL{width:230px;border-right:1px solid #eee;overflow-y:auto}
+.mrow{padding:11px 12px;border-bottom:1px solid #f4f6f8;cursor:pointer}
+.mrow:hover,.mrow.on{background:#E5F0FA}
+.mrow b{font-size:12.5px;display:block}
+.mrow span{font-size:11px;color:#8a97a3}
+.mailR{flex:1;padding:16px}
+.mailR h5{font-size:14px;margin-bottom:10px}
+.mailR p{font-size:12.5px;line-height:1.7;color:#444}
+.scard{display:flex;align-items:center;gap:12px;padding:11px;border:1px solid #e4eaf0;border-radius:6px;margin-bottom:8px}
+.sic{width:40px;height:40px;border-radius:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px;flex:0 0 auto}
+.sn{flex:1;font-size:13px}
+.sget{padding:6px 18px;background:#0067C0;color:#fff;border-radius:4px;font-size:11.5px;cursor:pointer}
+.sget:hover{background:#0B74CF}
+.toasts{position:absolute;right:16px;bottom:64px;display:flex;flex-direction:column;gap:10px;z-index:90}
+.toast{width:330px;max-width:calc(100% - 32px);background:rgba(249,249,249,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.3);padding:13px 16px;animation:tin .3s ease;font-family:'Noto Sans',sans-serif}
+.toast b{display:block;font-size:12.5px;margin-bottom:3px}
+.toast p{font-size:11.5px;color:#666;line-height:1.5}
+@keyframes tin{from{transform:translateX(30px);opacity:0}}
+.cmenu{position:absolute;min-width:225px;background:#F7F7F7;border:1px solid #E4E4E4;border-radius:8px;box-shadow:0 16px 50px rgba(0,0,0,.3);padding:5px;z-index:80;font-family:'Noto Sans',sans-serif;font-size:12.5px;color:#1b1b1b}
+.cmi{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:5px;cursor:pointer;position:relative}
+.cmi:hover{background:rgba(0,103,192,.13)}
+.cmi.dis{color:#9a9a9a;cursor:default}
+.cmi.dis:hover{background:none}
+.csep{height:1px;background:#E2E2E2;margin:5px 8px}
+.csub>.sub{display:none;position:absolute;left:98%;top:-6px;background:#F7F7F7;border:1px solid #E4E4E4;border-radius:8px;box-shadow:0 16px 50px rgba(0,0,0,.3);padding:5px;min-width:190px}
+.csub:hover>.sub{display:block}
+.lock,.login{position:absolute;inset:0;z-index:110}
+.lockbg{position:absolute;inset:0;filter:blur(26px) brightness(.72);transform:scale(1.1)}
+.lockbg svg{position:absolute;inset:0;width:100%;height:100%}
+.lockbg.dim{filter:blur(30px) brightness(.5)}
+.lockt{position:absolute;top:26%;left:0;right:0;text-align:center;font-size:86px;font-weight:600;color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.4)}
+.lockd{position:absolute;top:calc(26% + 104px);left:0;right:0;text-align:center;font-size:26px;font-weight:600;color:rgba(255,255,255,.94)}
+.lockhint{position:absolute;bottom:6%;left:0;right:0;text-align:center;font-size:12.5px;color:rgba(255,255,255,.75)}
+.lgbox{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.avatar.lg{width:100px;height:100px;font-size:44px;background:#5F7185}
+.lgname{font-size:26px;color:#fff;font-weight:600;margin-bottom:8px}
+.lgrow{display:flex;gap:10px;align-items:center}
+.lgrow .winput{width:250px;height:38px;border:none;background:rgba(255,255,255,.92);text-align:center}
+.lggo{width:38px;height:38px;border-radius:50%;border:none;background:#0067C0;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lggo:hover{background:#0B74CF}
+.lgbox .serr{color:#ffd7d0}
+.t-desktop.firstboot .taskbar{animation:tbup .55s ease}
+@keyframes tbup{from{transform:translateY(100%)}}
+.t-desktop.firstboot #icons{animation:fadein 1.1s ease}
+@keyframes fadein{from{opacity:0}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="monitor">
+    <div id="screenwrap"><div id="screen"></div></div>
+    <div id="bezel">
+      <div id="brand"><b>AXIOM</b> VirtualPC · VPC-11</div>
+      <div id="ctrl">
+        <button class="hbtn" id="btnRestart" title="Restart paksa (Ctrl+Alt+Del)"></button>
+        <button class="hbtn" id="btnPower" title="Power (tombol P)"></button>
+        <div id="port" title="Port USB">
+          <div id="usbStub" hidden title="Klik untuk mencabut flashdisk">
+            <svg width="44" height="18" viewBox="0 0 44 18"><rect x="12" y="1" width="30" height="15" rx="4" fill="#22252b" stroke="#3a3f47"/><rect x="1" y="4" width="12" height="10" fill="#b9c1cb"/><rect x="3" y="6" width="4" height="6" fill="#7a828c"/><rect x="8" y="6" width="4" height="6" fill="#7a828c"/><rect x="16" y="4" width="5" height="5" rx="1" fill="#39c5ff"><animate attributeName="opacity" values="1;.25;1" dur="1.4s" repeatCount="indefinite"/></rect><text x="24" y="13" font-size="6.5" fill="#8a92a0" font-family="IBM Plex Mono, monospace">VOYAGER</text></svg>
+          </div>
+        </div>
+        <div class="led" id="ledPwr" title="Power"></div>
+        <div class="led disk" id="ledDisk" title="Aktivitas disk"></div>
+      </div>
+      <button id="btnReset" title="Ulangi simulasi dari awal">Reset Sim</button>
+      <div id="hint">—</div>
+    </div>
+  </div>
+  <div id="shelf">
+    <div id="shelfLabel">Media instalasi · Windows 11 24H2 (x64)<br><span>Seret flashdisk ke port USB (menyala hijau) di bezel monitor — atau cukup KLIK sekali untuk memasangnya.</span></div>
+    <div id="usbSlot">
+      <div id="usb" title="Flashdisk installer Windows 11 — klik sekali atau seret ke port USB">
+        <svg width="94" height="36" viewBox="0 0 94 36"><rect x="2" y="2" width="60" height="32" rx="7" fill="#22252b" stroke="#3a3f47" stroke-width="1.5"/><rect x="64" y="9" width="28" height="18" rx="2" fill="#b9c1cb"/><rect x="67" y="12" width="5" height="12" fill="#7a828c"/><rect x="76" y="12" width="5" height="12" fill="#7a828c"/><rect x="9" y="9" width="7" height="7" rx="1.5" fill="#39c5ff"><animate attributeName="opacity" values="1;.3;1" dur="1.4s" repeatCount="indefinite"/></rect><rect x="9" y="21" width="42" height="8" rx="2" fill="#31353d"/><text x="12" y="27.5" font-size="6.5" fill="#9aa3b2" font-family="IBM Plex Mono, monospace">WIN11 · 64GB</text><path d="M22 9l4 4M26 9l-4 4" stroke="#5c646f" stroke-width="1.4"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= UTIL & STATE ================= */
+const $=(s,c)=>(c||document).querySelector(s);
+const $$=(s,c)=>Array.from((c||document).querySelectorAll(s));
+const screenEl=$('#screen');
+const pad2=n=>String(n).padStart(2,'0');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let timers=[];
+const after=(ms,fn)=>{const t=setTimeout(fn,ms);timers.push(['t',t]);return t;};
+const every=(ms,fn)=>{const t=setInterval(fn,ms);timers.push(['i',t]);return t;};
+const clearTimers=()=>{timers.forEach(x=>x[0]==='t'?clearTimeout(x[1]):clearInterval(x[1]));timers=[];};
+const wait=ms=>new Promise(r=>after(ms,r));
+
+const S={phase:'off',plugged:false,installed:false,boot1:'ssd',gen:0,
+        user:{name:'',password:''},instDate:null,
+        devName:'DESKTOP-'+Math.random().toString(36).slice(2,9).toUpperCase()};
+let VOL=1;
+let DF={files:{},folders:[]};
+let openApps=new Set();
+let zTop=30;
+
+function setScreen(html,cls){screenEl.className=cls||'';screenEl.innerHTML=html;}
+function newPhase(p){S.gen++;clearTimers();S.phase=p;
+  $('#ledPwr').classList.toggle('on',p!=='off');
+  $('#btnPower').classList.toggle('idle',p==='off');
+  syncPort();}
+function hint(t){$('#hint').textContent=t;}
+function syncPort(){const p=$('#port');if(p)p.classList.toggle('need',!S.plugged&&!S.installed);}
+
+/* ================= AUDIO ================= */
+let AC=null;
+function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f,d,type,vol,delay){const ac=audio();if(!ac)return;
+  type=type||'sine';vol=(vol==null?.14:vol)*VOL;const t=ac.currentTime+(delay||0);
+  const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.012);
+  g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.06);}
+const beep=()=>tone(1046.5,.085,'square',.1);
+const saveBeep=()=>{tone(1046.5,.07,'square',.09);tone(1318.5,.1,'square',.09,.11);};
+const errBeep=()=>tone(180,.3,'sawtooth',.1);
+const plugSnd=()=>{tone(150,.05,'triangle',.22);tone(2200,.03,'square',.05,.015);};
+const unplugSnd=()=>tone(220,.06,'triangle',.14);
+const chime=()=>[[523.25,0],[659.25,.14],[783.99,.28],[1046.5,.42]].forEach(x=>tone(x[0],1.1,'sine',.085,x[1]));
+
+/* ================= IKON ================= */
+function wlogo(size,color){const g=Math.round(size*.12);
+  return `<div class="wlogo" style="width:${size}px;height:${size}px;gap:${g}px;--sq:${color||'#0067C0'}"><i></i><i></i><i></i><i></i></div>`;}
+function dots(size,color){return `<div class="dots" style="width:${size}px;height:${size}px;--dot:${color||'#fff'}">${'<i></i>'.repeat(6)}</div>`;}
+function bootScreen(label){return `<div class="bootwrap">${wlogo(84,'#41A5F0')}${dots(46,'#fff')}${label?`<div class="bootlabel">${label}</div>`:''}</div>`;}
+function avatarHTML(sz){return `<div class="avatar" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.42)}px">${(S.user.name||'U')[0].toUpperCase()}</div>`;}
+
+const ICON={
+ power:`<svg viewBox="0 0 16 16" fill="none" width="17" height="17"><path d="M8 1.8v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4.5 4.2a5.3 5.3 0 1 0 7 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+ restart:`<svg viewBox="0 0 16 16" fill="none" width="17" height="17"><path d="M13.2 8a5.2 5.2 0 1 1-1.9-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M13.6 1.6v3.2h-3.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ magnify:`<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="6.8" cy="6.8" r="4.6" stroke="#5c6b7a" stroke-width="1.6"/><path d="M10.4 10.4l3.6 3.6" stroke="#5c6b7a" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+ wifi:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.6 6Q8 -.6 14.4 6" stroke="#3c3c3c" stroke-width="1.7" fill="none" stroke-linecap="round"/><path d="M3.9 8.7Q8 4.6 12.1 8.7" stroke="#3c3c3c" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="8" cy="12" r="1.7" fill="#3c3c3c"/></svg>`,
+ vol:`<svg width="16" height="16" viewBox="0 0 16 16"><path d="M2.2 6.4h2.6L8.8 3v10L4.8 9.6H2.2z" fill="#3c3c3c"/><path d="M10.6 5.4c1 .6 1.7 1.5 1.7 2.6s-.7 2-1.7 2.6" stroke="#3c3c3c" fill="none" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+ batt:`<svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="4.5" width="12.5" height="7" rx="1.5" fill="none" stroke="#3c3c3c"/><rect x="2.4" y="6" width="8.4" height="4" rx=".7" fill="#3c3c3c"/><rect x="14" y="6.4" width="1.4" height="3.2" rx=".5" fill="#3c3c3c"/></svg>`,
+ bt:`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1.5v13M8 8l4.2-3.4M8 8l4.2 3.4M8 1.5L5 4.4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ chev:`<svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 6.5L6 1.5l5 5" stroke="#3c3c3c" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+ go:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 4l4 4-4 4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ wmin:`<svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor" stroke-width="1"/></svg>`,
+ wmax:`<svg width="10" height="10" viewBox="0 0 10 10"><rect x=".7" y=".7" width="8.6" height="8.6" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>`,
+ wclose:`<svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor" stroke-width="1.1"/></svg>`,
+ lock:`<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3.4" y="7" width="9.2" height="7" rx="1.6" fill="#5c6b7a"/><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7" stroke="#5c6b7a" stroke-width="1.6"/></svg>`,
+ signal:lv=>{let p='';for(let i=0;i<3;i++){p+=`<rect x="${1.5+i*4.6}" y="${9.5-i*3.2}" width="3.2" height="${3.5+i*3.2}" rx=".8" fill="${i<lv?'#3c3c3c':'#c3cdd7'}"/>`;}
+   return `<svg width="20" height="20" viewBox="0 0 16 16">${p}</svg>`;}
+};
+const AI={
+ explorer:`<svg viewBox="0 0 48 48"><path d="M6 12c0-1.7 1.3-3 3-3h10l5 5h15c1.7 0 3 1.3 3 3v18c0 1.7-1.3 3-3 3H9c-1.7 0-3-1.3-3-3V12z" fill="#FFC642"/><path d="M6 18h36v15c0 1.7-1.3 3-3 3H9c-1.7 0-3-1.3-3-3V18z" fill="#FFD970"/></svg>`,
+ edge:`<svg viewBox="0 0 48 48"><defs><linearGradient id="eg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0F92E8"/><stop offset="1" stop-color="#12B7A5"/></linearGradient></defs><circle cx="24" cy="24" r="21" fill="url(#eg)"/><path d="M13 27c1.5 6.5 7 9 12 8 5-1 8-4.5 8.5-9H27c-.4 3-3 5-6 5-4 0-6.5-2-7-6h16.7c.2-8-5-13-11.7-13-6.8 0-12.5 5-12.5 12.5 0 .8.1 1.7.3 2.5z" fill="#fff" opacity=".92"/></svg>`,
+ terminal:`<svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="4" fill="#1B1F26"/><path d="M13 18l7 6-7 6" stroke="#9EE6FF" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="24" y="29" width="11" height="3" rx="1.5" fill="#9EE6FF"/></svg>`,
+ notepad:`<svg viewBox="0 0 48 48"><rect x="9" y="6" width="30" height="36" rx="3" fill="#fff" stroke="#C9D3DC" stroke-width="1.5"/><rect x="9" y="6" width="30" height="8" rx="3" fill="#2B6FC2"/><rect x="14" y="20" width="20" height="2.5" rx="1.2" fill="#8AA0B5"/><rect x="14" y="27" width="20" height="2.5" rx="1.2" fill="#8AA0B5"/><rect x="14" y="34" width="12" height="2.5" rx="1.2" fill="#8AA0B5"/></svg>`,
+ settings:`<svg viewBox="0 0 48 48"><g fill="#5B6570"><rect x="21" y="6" width="6" height="36" rx="3"/><rect x="21" y="6" width="6" height="36" rx="3" transform="rotate(45 24 24)"/><rect x="21" y="6" width="6" height="36" rx="3" transform="rotate(90 24 24)"/><rect x="21" y="6" width="6" height="36" rx="3" transform="rotate(135 24 24)"/><circle cx="24" cy="24" r="13"/></g><circle cx="24" cy="24" r="6" fill="#F3F3F3"/></svg>`,
+ mail:`<svg viewBox="0 0 48 48"><rect x="6" y="12" width="36" height="26" rx="3" fill="#fff" stroke="#B9C4CE" stroke-width="1.5"/><path d="M8 14l16 12 16-12" fill="none" stroke="#2B6FC2" stroke-width="2.5"/></svg>`,
+ calendar:d=>`<svg viewBox="0 0 48 48"><rect x="7" y="9" width="34" height="32" rx="4" fill="#fff" stroke="#C9D3DC" stroke-width="1.5"/><rect x="7" y="9" width="34" height="9" rx="4" fill="#2B6FC2"/><text x="24" y="37" font-size="16" text-anchor="middle" fill="#444" font-family="Noto Sans, sans-serif">${d}</text></svg>`,
+ store:`<svg viewBox="0 0 48 48"><path d="M17 18h14l3.2 21.4c.2 1.5-1 2.6-2.4 2.6H16.2c-1.4 0-2.6-1.1-2.4-2.6L17 18z" fill="#1F6FBF"/><path d="M19.5 18c0-6 2.2-9 4.5-9s4.5 3 4.5 9" fill="none" stroke="#1F6FBF" stroke-width="3"/><rect x="20" y="26" width="8" height="8" rx="1" fill="#fff"/></svg>`,
+ photos:`<svg viewBox="0 0 48 48"><rect x="7" y="9" width="34" height="30" rx="4" fill="#EAF3FB" stroke="#C9D3DC" stroke-width="1.5"/><circle cx="17" cy="18" r="4" fill="#F5C542"/><path d="M10 34l10-11 7 7 5-5 6 9z" fill="#4C9E5F"/></svg>`,
+ pc:`<svg viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="26" rx="3" fill="#3D77B5"/><rect x="10" y="12" width="28" height="18" rx="1.5" fill="#BFD9F2"/><rect x="20" y="34" width="8" height="5" fill="#345C8C"/><rect x="14" y="39" width="20" height="4" rx="2" fill="#345C8C"/></svg>`,
+ recycle:`<svg viewBox="0 0 48 48"><path d="M13 15h22l-2.6 25.2c-.2 1.6-1.5 2.8-3.1 2.8H18.7c-1.6 0-2.9-1.2-3.1-2.8L13 15z" fill="#9FB6C6" opacity=".6" stroke="#5E7488" stroke-width="1.5"/><rect x="11" y="9" width="26" height="5" rx="2.5" fill="#5E7488"/><path d="M19 20l1 18M24 20v18M29 20l-1 18" stroke="#5E7488" stroke-width="1.6" opacity=".6"/></svg>`,
+ folder:`<svg viewBox="0 0 48 48"><path d="M6 12c0-1.7 1.3-3 3-3h10l5 5h15c1.7 0 3 1.3 3 3v18c0 1.7-1.3 3-3 3H9c-1.7 0-3-1.3-3-3V12z" fill="#FFC642"/><path d="M6 18h36v15c0 1.7-1.3 3-3 3H9c-1.7 0-3-1.3-3-3V18z" fill="#FFD970"/></svg>`,
+ txt:`<svg viewBox="0 0 48 48"><path d="M12 6h16l8 8v28H12z" fill="#fff" stroke="#B9C4CE" stroke-width="1.5"/><path d="M28 6v8h8" fill="none" stroke="#B9C4CE" stroke-width="1.5"/><path d="M17 22h14M17 28h14M17 34h9" stroke="#7C93A8" stroke-width="2"/></svg>`,
+ drive:`<svg viewBox="0 0 48 48"><rect x="6" y="16" width="36" height="16" rx="3" fill="#C9D4DE"/><circle cx="37" cy="24" r="3" fill="#5E7488"/><rect x="10" y="21" width="18" height="6" rx="3" fill="#8FA3B3"/></svg>`,
+ usbd:`<svg viewBox="0 0 48 48"><rect x="17" y="4" width="14" height="30" rx="4" fill="#3A3F47"/><rect x="21" y="34" width="6" height="8" fill="#B9C1CB"/><rect x="21" y="38" width="6" height="4" fill="#7a828c"/><rect x="21" y="10" width="6" height="6" rx="1" fill="#39c5ff"/></svg>`,
+ taskview:`<svg viewBox="0 0 48 48"><rect x="6" y="10" width="26" height="20" rx="3" fill="#2B6FC2"/><rect x="17" y="19" width="26" height="20" rx="3" fill="#7AA8E0"/></svg>`,
+ widgets:`<svg viewBox="0 0 48 48"><rect x="7" y="7" width="15" height="15" rx="4" fill="#2B6FC2"/><rect x="27" y="7" width="15" height="15" rx="4" fill="#5FA6E8"/><rect x="7" y="27" width="15" height="15" rx="4" fill="#12A5B0"/><rect x="27" y="27" width="15" height="15" rx="4" fill="#E8A33D"/></svg>`
+};
+
+/* Wallpaper "Bloom" (reproduksi bebas) */
+const WALL=`<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+<defs>
+<linearGradient id="wb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9DD1F3"/><stop offset=".45" stop-color="#6FB0E7"/><stop offset="1" stop-color="#3F88CF"/></linearGradient>
+<linearGradient id="wpa" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4C93DE"/><stop offset="1" stop-color="#CFE9FB"/></linearGradient>
+<linearGradient id="wpb" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8C77D6"/><stop offset="1" stop-color="#BFD9F5"/></linearGradient>
+<linearGradient id="wpc" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#3E7FC9"/><stop offset="1" stop-color="#9CC9EF"/></linearGradient>
+<filter id="wf" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="16"/></filter>
+<filter id="wf2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="48"/></filter>
+</defs>
+<rect width="1920" height="1080" fill="url(#wb)"/>
+<ellipse cx="960" cy="560" rx="780" ry="500" fill="#F2F9FF" opacity=".28" filter="url(#wf2)"/>
+<g filter="url(#wf)">
+<path d="M960 540 C 730 330, 830 70, 1180 150 C 1050 380, 995 470, 960 540 Z" fill="url(#wpa)" opacity=".85"/>
+<path d="M960 540 C 730 330, 830 70, 1180 150 C 1050 380, 995 470, 960 540 Z" fill="url(#wpb)" opacity=".55" transform="rotate(72 960 540)"/>
+<path d="M960 540 C 730 330, 830 70, 1180 150 C 1050 380, 995 470, 960 540 Z" fill="url(#wpc)" opacity=".6" transform="rotate(150 960 540)"/>
+<path d="M960 540 C 730 330, 830 70, 1180 150 C 1050 380, 995 470, 960 540 Z" fill="url(#wpa)" opacity=".5" transform="rotate(215 960 540)"/>
+<path d="M960 540 C 730 330, 830 70, 1180 150 C 1050 380, 995 470, 960 540 Z" fill="url(#wpb)" opacity=".45" transform="rotate(285 960 540)"/>
+<path d="M960 540 C 850 470, 870 330, 1010 330 C 955 430, 955 500, 960 540 Z" fill="#EAF5FE" opacity=".85"/>
+<path d="M960 540 C 850 470, 870 330, 1010 330 C 955 430, 955 500, 960 540 Z" fill="#D5E9FB" opacity=".7" transform="rotate(140 960 540)"/>
+</g>
+<circle cx="960" cy="540" r="70" fill="#F6FBFF" opacity=".9" filter="url(#wf)"/>
+</svg>`;
+
+/* ================= SIKLUS POWER / POST ================= */
+function powerOn(){if(S.phase!=='off')return;audio();newPhase('post');runPost();}
+function shutdownPC(){if(S.phase==='off')return;audio();screenEl.classList.add('offflash');
+  after(420,()=>{newPhase('off');screenEl.classList.remove('offflash');setScreen('','t-black');
+    hint('PC dimatikan. Tekan tombol Power di bezel (atau tombol P) untuk menyalakannya lagi.');});}
+function screenOffFlash(cb){screenEl.classList.add('offflash');
+  after(330,()=>{screenEl.classList.remove('offflash');setScreen('','t-black');cb();});}
+function restartPC(){if(S.phase==='off')return;audio();screenOffFlash(()=>{newPhase('post');runPost();});}
+
+function postLines(){const L=['','Initializing USB Controllers ... Done','Detecting SATA Port 0 ... VM-SSD-512GB'];
+  if(S.plugged)L.push('Detecting USB ... Voyager USB 3.0 64GB');
+  L.push('Memory Testing ... 16384 MB OK');return L;}
+function addPostLine(t){const b=$('#postlines');if(b)b.insertAdjacentHTML('beforeend',`<div>${t}</div>`);}
+
+function runPost(){
+  newPhase('post');
+  setScreen(`<div class="postlog"><div class="pl1">AXIOM VPC-11 UEFI BIOS R3.02.AXM &nbsp; 12/25/2025</div><div id="postlines"></div></div>
+    <div class="postcenter"><div class="plogo">AXIOM</div><div class="psub">VIRTUAL PERFORMANCE CENTER</div></div>
+    <div class="postkey">Press <b>DEL</b> to enter SETUP&nbsp;&nbsp;&middot;&nbsp;&nbsp;Press <b>F8</b> for BOOT MENU</div>`,'t-bios dark');
+  beep();
+  if(S.boot1==='usb'&&S.plugged)
+    hint('Boot priority #1 = USB \u2713 \u2014 PC otomatis masuk installer Windows 11 setelah POST. (F8 = pilih manual, DEL = BIOS.)');
+  else if(S.plugged)
+    hint('USB terdeteksi. Tekan DEL (BIOS) atau F8 (Boot Menu) untuk boot dari flashdisk.');
+  else
+    hint('PC ini belum punya OS. Seret / KLIK flashdisk installer di rak bawah (port USB di bezel menyala hijau), lalu tekan DEL atau F8.');
+  const g=S.gen,lines=postLines();let i=0;
+  const reveal=()=>{if(S.gen!==g)return;
+    if(i<lines.length){addPostLine(lines[i]);i++;after(430,reveal);}};
+  after(400,reveal);
+  after(6300,()=>{if(S.gen===g)attemptBoot();});
+}
+function attemptBoot(){
+  if(S.boot1==='usb'&&S.plugged)return bootToSetup();
+  return S.installed?bootToWindows():noBoot();
+}
+function noBoot(){
+  newPhase('noboot');
+  setScreen(`<div class="noboot">Reboot and Select proper Boot device<br>or Insert Boot Media in selected Boot device and press any key<span class="caret">_</span></div>`,'t-bios dark');
+  errBeep();
+  hint('Tidak ada media boot yang valid. Pasang flashdisk installer (klik/seret ke port USB), lalu klik layar ini atau tekan tombol Restart di bezel.');
+}
+async function bootToSetup(){
+  newPhase('usbboot');const g=S.gen;
+  setScreen(`<div class="postlog" style="left:36px;top:44%"><div>Verifying DMI Pool Data ...</div></div>`,'t-bios dark');
+  await wait(1400);if(g!==S.gen)return;
+  setScreen(bootScreen(),'t-black');
+  await wait(3400);if(g!==S.gen)return;
+  startSetupLang();
+}
+async function bootToWindows(){
+  newPhase('winboot');const g=S.gen;
+  setScreen(bootScreen(),'t-black');
+  await wait(4200);if(g!==S.gen)return;
+  lockScreen();
+}
+
+/* ================= BIOS ================= */
+const BTABS=['Main','Advanced','Chipset','Security','Boot','Save & Exit'];
+const TOGVALS={num:['On','Off'],fast:['Disabled','Enabled'],sb:['Enabled','Disabled']};
+let B={tab:4,idx:0,bs:{}};
+let popIdx=0,biosClock=0;
+const bootLabel=d=>d==='usb'?'UEFI: Voyager USB 3.0 64GB':'VM-SSD 512GB';
+
+function enterBios(){
+  newPhase('bios');
+  B={tab:4,idx:0,bs:{boot1:S.boot1,num:'On',fast:'Disabled',sb:'Enabled'}};
+  renderBios();
+}
+function biosItems(){
+  const now=new Date();
+  const t=pad2(now.getHours())+':'+pad2(now.getMinutes())+':'+pad2(now.getSeconds());
+  const d=pad2(now.getMonth()+1)+'/'+pad2(now.getDate())+'/'+now.getFullYear();
+  switch(BTABS[B.tab]){
+    case 'Main':return[
+      {k:'System Time',v:t},{k:'System Date',v:d},
+      {k:'BIOS Version',v:'R3.02.AXM'},{k:'Build Date',v:'11/07/2025'},
+      {k:'Processor',v:'AXM VX-8 Eight-Core 3.60 GHz'},{k:'Total Memory',v:'16384 MB DDR5-4800'}];
+    case 'Advanced':return[
+      {k:'CPU Configuration',act:'pop',pop:{t:'CPU Configuration',l:['Processor Type : AXM VX-8','Core Count : 8','Max Speed : 3600 MHz','L3 Cache : 24 MB','Hyper-Threading : Enabled']}},
+      {k:'SATA Configuration',act:'pop',pop:{t:'SATA Configuration',l:['SATA Mode : AHCI','Port 0 : VM-SSD-512GB (511.9 GB)','Port 1 : Empty','Port 2 : Empty']}},
+      {k:'USB Configuration',act:'pop',pop:{t:'USB Configuration',l:['USB Module Version : 3.20','Legacy USB Support : Enabled','Port 1 : Voyager USB 3.0 64GB '+(S.plugged?'(Plugged)':'(Empty)')]}}];
+    case 'Chipset':return[
+      {k:'North Bridge',act:'pop',pop:{t:'North Bridge',l:['Memory Frequency : 4800 MHz','Memory Mode : Dual Channel','Max TDP : 15 W']}},
+      {k:'South Bridge',act:'pop',pop:{t:'South Bridge',l:['PCIe x16 Slot 1 : VGA Adapter','PCIe x4 Slot 2 : Empty','M.2 Socket 1 : VM-SSD-512GB']}}];
+    case 'Security':return[
+      {k:'Secure Boot',v:B.bs.sb,act:'toggle',key:'sb'},
+      {k:'Secure Boot Mode',v:'Standard'},
+      {k:'Chassis Intrusion',act:'pop',pop:{t:'Chassis Intrusion',l:['Status : Clear','Intrusion Detection : Disabled']}}];
+    case 'Boot':return[
+      {k:'Boot Option #1',v:bootLabel(B.bs.boot1),act:'bootsel'},
+      {k:'Boot Option #2',v:S.plugged?bootLabel(B.bs.boot1==='usb'?'ssd':'usb'):'Disabled'},
+      {k:'Boot Up NumLock State',v:B.bs.num,act:'toggle',key:'num'},
+      {k:'Fast Boot',v:B.bs.fast,act:'toggle',key:'fast'}];
+    case 'Save & Exit':return[
+      {k:'Save Changes and Reset',act:'save'},
+      {k:'Discard Changes and Exit',act:'discard'},
+      {k:'Restore Defaults',act:'defaults'}];
+  }
+  return [];
+}
+function updateBootHint(){
+  if(!S.plugged)
+    hint('Flashdisk BELUM terpasang \u2014 seret atau KLIK flashdisk di rak bawah (port USB di bezel menyala hijau). Daftar boot diperbarui otomatis, tidak perlu keluar dari BIOS.');
+  else if(B.bs.boot1==='usb')
+    hint('Boot Option #1 = USB \u2713 \u2014 tekan F10 (atau tab "Save & Exit" \u2192 "Save Changes and Reset"), lalu pilih Yes.');
+  else
+    hint('Klik baris "Boot Option #1" yang berdenyut (cukup SEKALI klik) \u2192 pilih "UEFI: Voyager USB 3.0 64GB" \u2192 tekan F10 \u2192 Yes.');
+}
+function renderBios(){
+  const items=biosItems();
+  const bootTab=(BTABS[B.tab]==='Boot');
+  const hot=bootTab&&S.plugged&&B.bs.boot1!=='usb';
+  setScreen(`<div class="bios">
+    <div class="bios-title">AXIOM Setup Utility&nbsp;&nbsp;&mdash;&nbsp;&nbsp;Copyright (C) 2025 AXIOM Corp. All Rights Reserved</div>
+    <div class="bios-tabs">${BTABS.map((t,i)=>`<div class="btab ${i===B.tab?'on':''}" data-i="${i}">${t}</div>`).join('')}</div>
+    <div class="bios-body"><div id="bitems">
+    ${items.map((it,i)=>`<div class="brow ${it.act?'act':''} ${it.act==='bootsel'&&hot?'hot':''} ${i===B.idx?'on':''}" data-i="${i}"><span class="k">${it.k}</span><span class="v">[${it.v}]</span></div>`).join('')}
+    </div></div>
+    <div class="bios-keys"><span>&larr;&rarr;</span> Select Screen <span>&uarr;&darr;</span> Select Item <span>Enter</span> Select <span>Esc</span> Exit <span>F10</span> Save &nbsp;&middot;&nbsp; dengan mouse cukup SEKALI klik</div>
+  </div>`,'t-bios');
+  $$('.btab',screenEl).forEach(t=>t.addEventListener('click',e=>{e.stopPropagation();B.tab=+t.dataset.i;B.idx=0;renderBios();}));
+  /* SEKALI klik = pilih + jalankan */
+  $$('.brow',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    B.idx=+r.dataset.i;markSel();biosActivate();}));
+  if(bootTab)updateBootHint();
+  if(BTABS[B.tab]==='Main'){
+    if(biosClock)clearInterval(biosClock);
+    biosClock=every(1000,()=>{const n=new Date();const el=$('#bitems .brow[data-i="0"] .v');
+      if(el)el.textContent='['+pad2(n.getHours())+':'+pad2(n.getMinutes())+':'+pad2(n.getSeconds())+']';});
+  }
+}
+function markSel(){$$('.brow',screenEl).forEach(r=>r.classList.toggle('on',+r.dataset.i===B.idx));}
+function biosTabNav(d){B.tab=(B.tab+d+6)%6;B.idx=0;renderBios();}
+function biosNav(d){const n=biosItems().length;if(!n)return;B.idx=(B.idx+d+n)%n;markSel();}
+function biosActivate(){
+  const it=biosItems()[B.idx];if(!it)return;
+  if(it.act==='toggle'){B.bs[it.key]=TOGVALS[it.key][(TOGVALS[it.key].indexOf(B.bs[it.key])+1)%2];
+    tone(1300,.04,'square',.07);renderBios();}
+  else if(it.act==='bootsel')biosBootPopup();
+  else if(it.act==='pop')biosInfoPop(it.pop);
+  else if(it.act==='save')biosConfirm(true);
+  else if(it.act==='discard')biosConfirm(false);
+  else if(it.act==='defaults'){B.bs={boot1:'ssd',num:'On',fast:'Disabled',sb:'Enabled'};tone(1000,.05,'square',.08);renderBios();}
+}
+function biosPop(title,inner,bind){
+  screenEl.insertAdjacentHTML('beforeend',`<div class="bpop" id="bpop"><div class="bpopbox"><h5>${title}</h5>${inner}<div class="bpopfoot">Enter untuk memilih &middot; Esc untuk batal</div></div></div>`);
+  if(bind)bind();
+}
+function closeBiosPop(){const p=$('#bpop');if(p)p.remove();}
+function biosInfoPop(pop){
+  biosPop(pop.t,pop.l.map(l=>`<div class="brow" style="cursor:default"><span class="k">${l.split(' : ')[0]}</span><span class="v">${l.split(' : ')[1]||''}</span></div>`).join(''));
+}
+function biosBootPopup(){
+  const opts=[{d:'ssd',l:'VM-SSD 512GB'}];
+  if(S.plugged)opts.push({d:'usb',l:'UEFI: Voyager USB 3.0 64GB'});
+  popIdx=opts.findIndex(o=>o.d===B.bs.boot1);
+  if(S.plugged)popIdx=opts.findIndex(o=>o.d==='usb'); /* otomatis sorot USB */
+  if(popIdx<0)popIdx=0;
+  let inner=opts.map((o,i)=>`<div class="brow bopt ${i===popIdx?'cur':''}" data-d="${o.d}"><span class="k">${o.l}</span><span class="v">[${o.d===B.bs.boot1?'Current':'Select'}]</span></div>`).join('');
+  if(!S.plugged)
+    inner+=`<div class="brow" style="cursor:default"><span class="k" style="color:#ffe9a8">USB device not found \u2014 pasang flashdisk installer (klik/seret ke port USB di bezel). Daftar ini diperbarui otomatis.</span><span class="v"></span></div>`;
+  biosPop('Select boot device for Boot Option #1',inner,
+    ()=>{$$('.bopt',screenEl).forEach(r=>r.addEventListener('click',()=>{
+      B.bs.boot1=r.dataset.d;closeBiosPop();tone(1300,.04,'square',.07);renderBios();}));});
+}
+function biosConfirm(save){
+  biosPop('Setup Confirmation',
+    `<div class="bconfirm">${save?'Save configuration changes and exit now?':'Discard changes and exit setup?'}</div>
+     <div class="bbtns"><div class="bpbtn" id="byes">Yes</div><div class="bpbtn" id="bno">No</div></div>`,
+    ()=>{ $('#byes').addEventListener('click',()=>{
+        closeBiosPop();
+        if(save){S.boot1=B.bs.boot1;saveBeep();screenOffFlash(()=>runPost());}
+        else screenOffFlash(()=>runPost());
+      });
+      $('#bno').addEventListener('click',closeBiosPop); });
+}
+function biosKeys(e){
+  if($('#bpop')){
+    if(e.key==='Escape'){closeBiosPop();return;}
+    const opts=$$('.bopt',screenEl),yes=$('#byes');
+    if(e.key==='Enter'){
+      if(yes)yes.click();
+      else if(opts.length&&opts[popIdx])opts[popIdx].click();
+      else closeBiosPop();
+      return;
+    }
+    if((e.key==='ArrowDown'||e.key==='ArrowUp')&&opts.length){
+      e.preventDefault();
+      popIdx=(popIdx+(e.key==='ArrowDown'?1:-1)+opts.length)%opts.length;
+      opts.forEach((o,i)=>o.classList.toggle('cur',i===popIdx));
+    }
+    return;
+  }
+  switch(e.key){
+    case 'ArrowLeft':e.preventDefault();biosTabNav(-1);break;
+    case 'ArrowRight':e.preventDefault();biosTabNav(1);break;
+    case 'ArrowUp':e.preventDefault();biosNav(-1);break;
+    case 'ArrowDown':e.preventDefault();biosNav(1);break;
+    case 'Enter':biosActivate();break;
+    case 'Escape':biosConfirm(false);break;
+    case 'F10':e.preventDefault();biosConfirm(true);break;
+  }
+}
+function bootMenu(){
+  newPhase('bootmenu');
+  const items=[{d:'ssd',l:'VM-SSD 512GB'}];
+  if(S.plugged)items.push({d:'usb',l:'UEFI: Voyager USB 3.0 64GB'});
+  setScreen(`<div class="bootmenu"><h5>Boot Menu &mdash; pilih perangkat boot</h5>${items.map(i=>`<div class="bmi" data-d="${i.d}">${i.l}</div>`).join('')}</div>`,'t-bios dark');
+  $$('.bmi',screenEl).forEach(m=>m.addEventListener('click',()=>{
+    tone(1300,.04,'square',.07);
+    if(m.dataset.d==='usb')bootToSetup();else S.installed?bootToWindows():noBoot();}));
+  hint(S.plugged?'Pilih "UEFI: Voyager USB 3.0 64GB" untuk mem-boot installer Windows 11. (Esc = restart POST)'
+                :'Flashdisk belum terpasang — pasang dulu (klik/seret), menu ini diperbarui otomatis. (Esc = restart POST)');
+}
+
+/* ================= WINDOWS SETUP ================= */
+function showSetup(title,body,foot,wide){
+  setScreen(`<div class="setup">
+    <div class="setup-logo">${wlogo(58,'#FFFFFF')}</div>
+    <div class="setup-card ${wide?'wide':''}">
+      ${title?`<div class="stitle">${title}</div>`:''}
+      <div class="sbody">${body}</div>
+      ${foot?`<div class="sfoot">${foot}</div>`:''}
+    </div></div>`,'t-ui t-setup');
+}
+function cardConfirm(text,onOk,okLabel,noCancel){
+  const card=$('.setup-card',screenEl);if(!card)return;
+  card.insertAdjacentHTML('beforeend',`<div class="cmodal"><div class="cbox"><div>${text}</div>
+    <div class="cbbtns"><button class="wbtn" id="cok">${okLabel||'OK'}</button>${noCancel?'':'<button class="wbtn sec" id="ccancel">Cancel</button>'}</div></div></div>`);
+  $('#cok').addEventListener('click',()=>{const m=$('.cmodal',screenEl);if(m)m.remove();if(onOk)onOk();});
+  const cc=$('#ccancel');if(cc)cc.addEventListener('click',()=>{const m=$('.cmodal',screenEl);if(m)m.remove();});
+}
+
+function startSetupLang(){
+  newPhase('setup');
+  showSetup('Windows Setup',`
+    <label class="slabel">Language to install</label>
+    <select class="winput"><option>English (United States)</option></select>
+    <label class="slabel">Time and currency format</label>
+    <select class="winput"><option>English (United States)</option></select>
+    <label class="slabel">Keyboard or input method</label>
+    <select class="winput"><option>US</option></select>`,
+    `<a class="wlink" id="repair">Repair your computer</a><button class="wbtn" id="next">Next</button>`);
+  $('#next').addEventListener('click',setupInstallNow);
+  $('#repair').addEventListener('click',repairScreen);
+  hint('Klik Next untuk melanjutkan (media installer ini berbahasa Inggris).');
+}
+function repairScreen(){
+  setScreen(`<div class="winre"><div class="wrtitle">Choose an option</div>
+    <div class="wrrow" id="wrCont"><b>Continue</b><span>Exit and continue to Windows 11 Setup</span></div>
+    <div class="wrrow" id="wrTrouble"><b>Troubleshoot</b><span>Reset your PC or see advanced options</span></div>
+    <div class="wrrow" id="wrOff"><b>Turn off your PC</b><span></span></div>
+  </div>`,'t-ui t-setup');
+  hint('Layar WinRE. Klik "Continue" untuk kembali ke Setup (atau coba Startup Repair).');
+  $('#wrCont').addEventListener('click',startSetupLang);
+  $('#wrOff').addEventListener('click',shutdownPC);
+  $('#wrTrouble').addEventListener('click',()=>{
+    $('.winre').innerHTML=`<div class="wrtitle">Troubleshoot</div>
+      <div class="wrrow" id="wrSR"><b>Startup Repair</b><span>Fix problems that keep Windows from loading</span></div>
+      <div class="wrrow" id="wrBack"><b>Go back to Choose an option</b><span></span></div>`;
+    $('#wrBack').addEventListener('click',repairScreen);
+    $('#wrSR').addEventListener('click',()=>{
+      setScreen(`<div class="srrep">${dots(38,'#fff')}<div>Diagnosing your PC&hellip;</div></div>`,'t-black');
+      after(4200,()=>{
+        setScreen(`<div class="srrep"><div>Startup Repair couldn't repair your PC</div>
+          <div class="mut">Log file: C:\\Windows\\System32\\Logfiles\\Srt\\SrtTrail.txt</div>
+          <div class="dtool" id="srBack" style="margin-top:14px">Advanced options</div></div>`,'t-black');
+        $('#srBack').addEventListener('click',repairScreen);});
+    });
+  });
+}
+function setupInstallNow(){
+  showSetup('',`<div class="installnow"><div>${wlogo(52,'#0067C0')}</div>
+    <button class="wbtn big" id="inow">Install now</button></div>`);
+  $('#inow').addEventListener('click',()=>{
+    showSetup('',`<div class="starting">${dots(40,'#5c6b7a')}<div>Setup is starting&hellip;</div></div>`);
+    after(2200,goActivate);});
+  hint('Klik "Install now" untuk memulai instalasi.');
+}
+function goActivate(){
+  showSetup('Activate Windows',`
+    <p class="sdesc">Enter the product key that came with your Windows license. If you don't have one, you can continue without it.</p>
+    <div class="serr" id="keyerr"></div>
+    <input class="winput mono" id="pkey" maxlength="29" placeholder="XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off">`,
+    `<a class="wlink" id="nokey">I don't have a product key</a><button class="wbtn" id="next">Next</button>`);
+  const inp=$('#pkey');
+  inp.addEventListener('input',()=>{ /* format otomatis XXXXX-XXXXX-... */
+    let v=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,25);
+    const p=[];for(let i=0;i<v.length;i+=5)p.push(v.slice(i,i+5));inp.value=p.join('-');});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')$('#next').click();});
+  $('#nokey').addEventListener('click',goEdition);
+  $('#next').addEventListener('click',()=>{
+    if(inp.value.replace(/-/g,'').length===25)goLicense();
+    else{errBeep();$('#keyerr').textContent='The product key entered appears to be invalid. Please try again.';}});
+  hint("Tidak punya product key? Klik \"I don't have a product key\" di kiri bawah.");
+}
+function goEdition(){
+  const E=[['Windows 11 Home','For home use, with basic features.'],
+    ['Windows 11 Education','For schools and universities.'],
+    ['Windows 11 Pro','BitLocker, Remote Desktop, Group Policy, Hyper-V.'],
+    ['Windows 11 Pro for Workstations','For high-end hardware and server-grade workloads.']];
+  showSetup('Select the operating system you want to install',`
+    ${E.map((e,i)=>`<div class="edrow" data-i="${i}"><b>${e[0]}</b><span>${e[1]}</span></div>`).join('')}`,
+    `<span></span><button class="wbtn" id="next" disabled>Next</button>`);
+  $$('.edrow',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    $$('.edrow',screenEl).forEach(x=>x.classList.remove('sel'));
+    r.classList.add('sel');$('#next').disabled=false;}));
+  $('#next').addEventListener('click',goLicense);
+  hint('Pilih "Windows 11 Pro", lalu klik Next.');
+}
+function goLicense(){
+  showSetup('Applicable notices and license terms',`
+    <div class="eula">MICROSOFT SOFTWARE LICENSE TERMS \u2014 WINDOWS OPERATING SYSTEM
+
+This agreement describes your rights and the conditions upon which you may use the Windows software. You should review the entire agreement, including any supplemental license terms that accompany the software.
+
+INSTALLATION AND USE RIGHTS. You may install and use one copy of the software on one device. The device may permit the software to run in a virtual machine environment.
+
+UPDATES. The software may periodically check for system and app updates, and download and install them for you. You may obtain updates only from Microsoft or authorized sources.
+
+PRIVACY. Windows offers you privacy controls described in the product documentation. You can adjust those controls at any time, both during setup and afterward.
+
+By accepting this agreement or using the software, you agree to all of these terms and consent to the transmission of certain information during activation and during your use of the software.</div>
+    <label class="scheck"><input type="checkbox" id="acc"> I accept the license terms</label>`,
+    `<span></span><button class="wbtn" id="next" disabled>Next</button>`);
+  $('#acc').addEventListener('change',()=>$('#next').disabled=!$('#acc').checked);
+  $('#next').addEventListener('click',goType);
+  hint('Centang "I accept the license terms" lalu klik Next.');
+}
+function goType(){
+  showSetup('Which type of installation do you want?',`
+    <div class="insrow" id="upg"><b>Upgrade: Install Windows while keeping files, settings, and applications</b><span>Files, settings, and applications are kept in place.</span></div>
+    <div class="insrow" id="cus"><b>Custom: Install Windows only (advanced)</b><span>Options are shown to install a clean copy of Windows.</span></div>
+    <div class="serr" id="typerr"></div>`,null);
+  $('#cus').addEventListener('click',goDisk);
+  $('#upg').addEventListener('click',()=>{errBeep();
+    $('#typerr').textContent="Setup couldn't find a previous Windows installation to upgrade.";});
+  hint('Pilih "Custom: Install Windows only (advanced)".');
+}
+
+/* --- Partisi disk --- */
+let DK={mode:'unalloc',sel:0};
+function diskRows(){
+  if(DK.mode==='unalloc')return[{n:'Drive 0 Unallocated Space',t:'63.9 GB',f:'63.9 GB',ty:''}];
+  return[
+    {n:'Drive 0 Partition 1: System Reserved',t:'260 MB',f:'217 MB',ty:'System Reserved'},
+    {n:'Drive 0 Partition 2',t:'16.0 MB',f:'16.0 MB',ty:'MSR (Reserved)'},
+    {n:'Drive 0 Partition 3: Primary',t:'62.9 GB',f:'62.9 GB',ty:'Primary'},
+    {n:'Drive 0 Partition 4: Recovery',t:'620 MB',f:'548 MB',ty:'Recovery'}];
+}
+function goDisk(){DK={mode:'unalloc',sel:0};renderDisk();}
+function renderDisk(){
+  const rows=diskRows();
+  showSetup('Where do you want to install Windows?',`
+    <div class="disktable"><div class="drow head"><span>Name</span><span>Total Size</span><span>Free Space</span><span>Type</span></div>
+    ${rows.map((r,i)=>`<div class="drow ${i===DK.sel?'sel':''}" data-i="${i}"><span>${r.n}</span><span>${r.t}</span><span>${r.f}</span><span>${r.ty||'&nbsp;'}</span></div>`).join('')}
+    </div>
+    <div class="dtoolbar">
+      <div class="dtool" id="tRefresh">Refresh</div>
+      <div class="dtool" id="tLoad">Load driver</div>
+      <div class="dtool ${DK.mode==='unalloc'?'dis':''}" id="tDelete">Delete</div>
+      <div class="dtool ${DK.mode==='unalloc'?'dis':''}" id="tFormat">Format</div>
+      <div class="dtool ${DK.mode==='part'?'dis':''}" id="tNew">New</div>
+    </div>
+    <div id="sizedlg" class="sizebox" hidden>
+      <label class="slabel" style="margin:0">Size (MB)</label>
+      <input class="winput" id="sz" style="width:140px" value="65428">
+      <div class="dtool" id="szApply">Apply</div><div class="dtool" id="szCancel">Cancel</div>
+    </div>`,
+    `<span></span><button class="wbtn" id="next">Next</button>`,'wide');
+  hint('Pilih "Drive 0 Unallocated Space" → klik New → Apply → OK → pilih "Partition 3: Primary" → Next.');
+  $$('.drow:not(.head)',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    DK.sel=+r.dataset.i;
+    $$('.drow:not(.head)',screenEl).forEach(x=>x.classList.toggle('sel',x===r));}));
+  $('#tNew').addEventListener('click',()=>{if(DK.mode==='unalloc')$('#sizedlg').hidden=false;});
+  $('#szCancel').addEventListener('click',()=>$('#sizedlg').hidden=true);
+  $('#szApply').addEventListener('click',()=>{$('#sizedlg').hidden=true;
+    cardConfirm('Windows will create additional partitions for system files. These partitions are required by Windows and may be hidden.',()=>{
+      DK.mode='part';DK.sel=2;renderDisk();},'OK',true);});
+  $('#tDelete').addEventListener('click',()=>{if(DK.mode==='part'){
+    cardConfirm('The selected partition might contain system files needed by Windows. Delete it?',()=>{
+      DK.mode='unalloc';DK.sel=0;renderDisk();});}});
+  $('#tFormat').addEventListener('click',()=>{if(DK.mode==='part'){
+    cardConfirm('Format will erase any data on this partition. Continue?',null,'OK',true);}});
+  $('#tRefresh').addEventListener('click',renderDisk);
+  $('#tLoad').addEventListener('click',()=>cardConfirm('No signed device drivers were found. Make sure the installation media contains the proper drivers, then click OK.',null,'OK',true));
+  $('#next').addEventListener('click',()=>{
+    if(DK.mode==='unalloc'){
+      cardConfirm('Windows might create additional partitions for system files. Setup will continue automatically.',()=>goInstall(),'OK',true);}
+    else if(diskRows()[DK.sel].ty==='Primary')goInstall();
+    else{errBeep();cardConfirm('Windows cannot be installed to this partition. Select the "Primary" partition (Partition 3), then click Next.',null,'OK',true);}});
+}
+
+/* --- Progress instalasi --- */
+const PROG_ITEMS=['Copying Windows files','Getting files ready for installation','Installing features','Installing updates','Finishing up'];
+function progressScreen(){
+  showSetup('Installing Windows',`
+    <div class="plist">${PROG_ITEMS.map((l,i)=>`<div class="pitem" data-i="${i}"><span>${l}</span><span class="st"></span></div>`).join('')}</div>
+    <div class="pnote">Your PC will restart several times. This might take a while.</div>`,'wide');
+}
+function ramp(sec,to,cb,irr){
+  const g=S.gen;return new Promise(res=>{let v=0;
+    const step=()=>{if(g!==S.gen){res();return;}
+      const inc=irr?(Math.random()<.14?0:1+Math.random()*to/(sec*3.2)):to/(sec*4);
+      v=Math.min(to,v+inc);cb(Math.floor(v));
+      if(v>=to)res();else after(250,step);};
+    step();});
+}
+async function restart1(g){
+  setScreen(`<div class="restartingwrap">Restarting&hellip;</div>`,'t-black');
+  await wait(1900);if(g!==S.gen)return;
+  setScreen(bootScreen(),'t-black');await wait(4200);if(g!==S.gen)return;
+  setScreen(`<div class="gettingready">${dots(40,'#fff')}<div>Getting ready</div></div>`,'t-black');
+  await wait(3800);if(g!==S.gen)return;
+}
+async function restart2(g){
+  setScreen(`<div class="restartingwrap">Restarting&hellip;</div>`,'t-black');
+  await wait(1900);if(g!==S.gen)return;
+  setScreen(bootScreen('Getting devices ready 0%'),'t-black');
+  await ramp(7,100,v=>{const el=$('.bootlabel',screenEl);if(el)el.textContent='Getting devices ready '+v+'%';});
+  if(g!==S.gen)return;
+  await wait(500);if(g!==S.gen)return;
+  setScreen(`<div class="gettingready">${dots(40,'#fff')}<div>Getting ready</div></div>`,'t-black');
+  await wait(3600);if(g!==S.gen)return;
+  setScreen(bootScreen(),'t-black');await wait(2600);if(g!==S.gen)return;
+}
+async function goInstall(){
+  progressScreen();
+  hint('Duduk manis — Windows sedang disalin ke disk. PC akan restart otomatis beberapa kali.');
+  $('#ledDisk').classList.add('busy');
+  const g=S.gen;
+  const setSt=(i,t)=>{const n=$(`.pitem[data-i="${i}"] .st`,screenEl);if(n)n.textContent=t;};
+  const act=i=>$$('.pitem',screenEl).forEach(p=>p.classList.toggle('act',+p.dataset.i===i));
+  act(0);await ramp(6,100,v=>setSt(0,v+'%'));if(g!==S.gen)return;setSt(0,'Done');
+  act(1);await ramp(26,100,v=>setSt(1,v+'%'),true);if(g!==S.gen)return;setSt(1,'Done');
+  $('#ledDisk').classList.remove('busy');
+  await restart1(g);if(g!==S.gen)return;
+  progressScreen();setSt(0,'Done');setSt(1,'Done');
+  act(2);await ramp(7,100,v=>setSt(2,v+'%'));if(g!==S.gen)return;setSt(2,'Done');
+  act(3);$('#ledDisk').classList.add('busy');
+  await ramp(11,100,v=>setSt(3,v+'%'),true);if(g!==S.gen)return;setSt(3,'Done');
+  act(4);await ramp(5,100,v=>setSt(4,v+'%'));if(g!==S.gen)return;setSt(4,'Done');
+  $('#ledDisk').classList.remove('busy');
+  await restart2(g);if(g!==S.gen)return;
+  oobeRegion();
+}
+
+/* ================= OOBE ================= */
+function oobeShow(title,sub,inner,foot){
+  setScreen(`<div class="oobe"><div class="oobe-card">
+    <h1>${title}</h1>${sub?`<div class="sub">${sub}</div>`:''}
+    ${inner||''}<div class="oobe-foot">${foot||''}</div>
+  </div></div>`,'t-ui t-oobe');
+}
+function oobeRegion(){
+  newPhase('oobe');
+  const C=['Indonesia','United States','United Kingdom','Australia','Canada','India','Japan','Malaysia','New Zealand','Philippines','Singapore','Thailand','Vietnam','Germany','France','Netherlands','Spain','Italy','Brazil','Mexico'];
+  oobeShow(`Let's start with region. Is this right?`,'Make sure this is the right region — it cannot be changed later.',
+    `<div class="oblist">${C.map(c=>`<div class="obitem ${c==='Indonesia'?'sel':''}" data-c="${c}">${c}</div>`).join('')}</div>`,
+    `<span></span><button class="bnext" id="ok">Yes</button>`);
+  $$('.obitem',screenEl).forEach(o=>o.addEventListener('click',()=>{
+    $$('.obitem',screenEl).forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel');}));
+  $('#ok').addEventListener('click',oobeKeyboard);
+  hint('Pilih negara (default sudah Indonesia) lalu klik Yes.');
+}
+function oobeKeyboard(){
+  const K=['US','United Kingdom','Indonesian','Australian','Canadian French','Japanese','Korean'];
+  oobeShow('Is this the right keyboard layout?','You can add a second keyboard layout later.',
+    `<div class="oblist">${K.map((k,i)=>`<div class="obitem ${i===0?'sel':''}" data-i="${i}">${k}</div>`).join('')}</div>`,
+    `<a class="wlink" id="skip">Skip for now</a><button class="bnext" id="ok">Next</button>`);
+  $$('.obitem',screenEl).forEach(o=>o.addEventListener('click',()=>{
+    $$('.obitem',screenEl).forEach(x=>x.classList.remove('sel'));o.classList.add('sel');}));
+  $('#ok').addEventListener('click',oobeNetwork);
+  $('#skip').addEventListener('click',oobeNetwork);
+  hint('Layout "US" sudah sesuai — klik Next (atau Skip for now).');
+}
+function oobeNetwork(){
+  const W=[['HomeNet',3],['KopiKanangan_5G',2],['INDOHOME-4A71',2],['MiFi-Andi',1]];
+  oobeShow(`Let's connect you to a network`,'You need an internet connection to keep exploring. Choose a network to connect.',
+    `<div class="oblist">
+      ${W.map(w=>`<div class="wifirow" data-ssid="${w[0]}">${ICON.signal(w[1])}<span style="flex:1">${w[0]}</span>${ICON.lock}</div>`).join('')}
+      <div id="netstat" class="netstat"></div>
+      <div id="pwdbox" hidden style="padding:8px 14px 14px">
+        <input class="winput" id="wpass" type="password" placeholder="Enter the network security key">
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="bnext" id="wconn">Connect</button>
+          <div class="dtool" id="wcancel">Cancel</div></div>
+      </div></div>`,
+    `<a class="wlink" id="noint" style="visibility:hidden">I don't have internet</a><span></span>`);
+  after(5500,()=>{const n=$('#noint');if(n)n.style.visibility='visible';});
+  let trying=false;
+  $$('.wifirow',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    if(trying)return;trying=true;$('#pwdbox').hidden=false;$('#netstat').textContent='';}));
+  $('#wcancel').addEventListener('click',()=>{$('#pwdbox').hidden=true;trying=false;});
+  const tryConn=()=>{
+    $('#netstat').textContent='Checking network requirements\u2026';
+    after(2600,()=>{if(!$('#netstat'))return;
+      $('#netstat').innerHTML='<span class="serr" style="margin:0">Connect was unsuccessful — no working network driver on this device.</span>';
+      errBeep();trying=false;});};
+  $('#wconn').addEventListener('click',tryConn);
+  $('#wpass').addEventListener('keydown',e=>{if(e.key==='Enter')tryConn();});
+  $('#noint').addEventListener('click',oobeLimited);
+  hint('Tunggu ±5 detik sampai link "I don\u2019t have internet" muncul di kiri bawah, lalu klik. (Mencoba WiFi juga boleh.)');
+}
+function oobeLimited(){
+  oobeShow('Connect now to save time later','Connecting lets you download updates and sign in to your Microsoft account. You can always connect later.',
+    `<div class="stat">You\u2019ll need a Microsoft account to connect, but this PC has no working network driver.</div>`,
+    `<a class="wlink" id="cont">Continue with limited setup</a><button class="bnext" id="retry">Retry</button>`);
+  $('#cont').addEventListener('click',oobeAccount);
+  $('#retry').addEventListener('click',oobeNetwork);
+  hint("Klik \"Continue with limited setup\" untuk membuat akun lokal tanpa Microsoft account.");
+}
+function oobeAccount(){
+  oobeShow("Who's going to use this device?",'Use a name you can easily identify — you\u2019ll use it to sign in.',
+    `<div class="serr" id="aerr"></div><input class="winput" id="uname" placeholder="Username" maxlength="20" autocomplete="off">`,
+    `<span></span><button class="bnext" id="ok">Next</button>`);
+  after(60,()=>$('#uname').focus());
+  $('#uname').addEventListener('keydown',e=>{if(e.key==='Enter')$('#ok').click();});
+  $('#ok').addEventListener('click',()=>{
+    const n=$('#uname').value.trim();
+    if(!n){errBeep();$('#aerr').textContent='Please enter a name.';return;}
+    S.user.name=n;oobePassword();});
+  hint("Masukkan nama pengguna (mis. \"Ardi\") lalu Next.");
+}
+function oobePassword(){
+  oobeShow('Create a super memorable password','Make sure to pick something you can remember. Leave it blank to sign in without a password.',
+    `<input class="winput" id="p1" type="password" placeholder="Password">
+     <input class="winput" id="p2" type="password" placeholder="Confirm password" style="margin-top:10px">
+     <div class="serr" id="perr"></div>`,
+    `<span></span><button class="bnext" id="ok">Next</button>`);
+  $('#ok').addEventListener('click',()=>{
+    const a=$('#p1').value,b=$('#p2').value;
+    if(a!==b){errBeep();$('#perr').textContent="The passwords you entered don't match. Try again.";return;}
+    S.user.password=a;
+    a?oobeSQ():oobePrivacy();});
+  hint('Isi password dua kali — atau kosongkan keduanya untuk langsung lanjut.');
+}
+function oobeSQ(){
+  const Qs=['What was your childhood nickname?',"What's the name of your first pet?",'What city were you born in?','What was your first car?',"What's your mother's maiden name?"];
+  oobeShow('Add security questions','If you forget your password, you can recover your local account with these.',
+    `<div id="sqwrap">${[0,1,2].map(()=>`<div class="sqrow"><select class="winput">${Qs.map(q=>`<option>${q}</option>`).join('')}</select><input class="winput sqin" placeholder="Answer"></div>`).join('')}</div>`,
+    `<span></span><button class="bnext" id="ok">Next</button>`);
+  $('#ok').addEventListener('click',()=>{
+    const ok=$$('.sqin',screenEl).every(i=>i.value.trim());
+    if(!ok){errBeep();$$('.sqin',screenEl).forEach(i=>i.style.borderColor=i.value.trim()?'':'#C42B1C');return;}
+    oobePrivacy();});
+  hint('Isi jawaban untuk 3 pertanyaan keamanan (bebas), lalu Next.');
+}
+function oobePrivacy(){
+  const P=[
+    ['Location','Let apps use your precise location, including location history.'],
+    ['Find my device','Track your device if you lose it.'],
+    ['Diagnostic data','Send usage data to help improve Windows.'],
+    ['Inking & typing','Send what you write and type to improve recognition.'],
+    ['Tailored experiences','Let Windows personalize tips, ads, and content.']];
+  oobeShow('Choose privacy settings for your device','Microsoft puts you in control of your privacy. Review these settings before finishing setup.',
+    P.map((p,i)=>`<div class="prow"><div><div class="pn">${p[0]}</div><div class="pd">${p[1]}</div></div><div class="tog ${i>=2?'on':''}" data-i="${i}"></div></div>`).join(''),
+    `<span></span><button class="bnext" id="ok">Accept</button>`);
+  $$('.tog',screenEl).forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
+  $('#ok').addEventListener('click',oobeFinal);
+  hint('Atur toggle privasi sesuai selera, lalu klik Accept.');
+}
+async function oobeFinal(){
+  newPhase('final');const g=S.gen;
+  S.installed=true;S.instDate=new Date();
+  setScreen(`<div class="final">${wlogo(64,'#0067C0')}${dots(44,'#5c6b7a')}<div class="ftext" id="ftext">Getting ready\u2026</div></div>`,'t-ui t-oobe');
+  hint('Tinggal sedikit lagi — Windows sedang menyelesaikan persiapan\u2026');
+  const msgs=['Getting ready\u2026','This might take a few minutes\u2026','Almost ready\u2026','Hi '+S.user.name+'! Getting everything set up for you\u2026'];
+  for(const m of msgs){const el=$('#ftext');if(el)el.textContent=m;
+    await wait(3200);if(g!==S.gen)return;}
+  setScreen(`<div class="welc">${dots(44,'#fff')}<div class="wt">Welcome, ${esc(S.user.name)}</div></div>`,'t-black');
+  await wait(2600);if(g!==S.gen)return;
+  showDesktop(true);
+}
+
+/* ================= DESKTOP ================= */
+const STARTFILES={
+ 'welcome.txt':'Terima kasih telah mencoba simulasi ini!\n\nPC-mu sekarang menjalankan Windows 11 Pro.\n\nCoba buka Start menu, klik kanan desktop, atau ketik "help" di Terminal.\n',
+ 'getting-started.txt':'Getting started with Windows 11:\n\n- Start menu : klik logo Windows di taskbar\n- Widgets & Task view : tombol di sebelahnya\n- Klik ikon jaringan di tray untuk quick settings (slider volume mengatur volume suara simulasi!)\n- Start > Power : Sleep / Restart / Shut down\n- Terminal : ketik "help" untuk daftar perintah\n'};
+
+function deskHTML(){
+  return `<div class="desk">
+    <div class="wall" id="wall">${WALL}</div>
+    <div class="icons" id="icons"></div>
+    <div class="winlayer" id="winlayer"></div>
+    <div class="wpanel" id="wg">
+      <div class="wcard"><div class="wt">Jakarta</div><div class="ww">31&deg;C</div><div>Partly cloudy &middot; feels like 36&deg;</div></div>
+      <div class="wcard"><div class="wt" id="wgclock">&mdash;</div><div>Waktu lokal &middot; ${esc(S.user.name||'')}</div></div>
+      <div class="wcard"><b>Berita teknologi</b>
+        <div class="wnew" style="margin-top:6px">&ldquo;Windows 11 24H2 kini tersedia untuk semua pengguna&rdquo;</div>
+        <div class="wnew">&ldquo;Simulasi instalasi OS di browser makin populer di kalangan siswa TKJ&rdquo;</div></div>
+    </div>
+    <div class="qpanel" id="qs">
+      <div class="qrow"><div class="qbtn on" id="qwifi">${ICON.wifi}<span>Wi-Fi</span></div>
+      <div class="qbtn" id="qbt">${ICON.bt}<span>Bluetooth</span></div></div>
+      <div class="qvol">${ICON.vol}<input type="range" id="qslider" min="0" max="100" value="50"></div>
+      <div class="qfoot">Battery 88% &middot; about 4 hr 12 min (estimated)</div>
+    </div>
+    ${startHTML()}
+    <div class="taskbar">
+      <div class="tcenter">
+        <button class="tk" id="btnStart" title="Start">${wlogo(22,'#0067C0')}</button>
+        <div class="tksearch" id="btnSearch" title="Search">${ICON.magnify}<span>Search</span></div>
+        <button class="tk" id="btnTV" title="Task view">${AI.taskview}</button>
+        <button class="tk" id="btnWG" title="Widgets">${AI.widgets}</button>
+        <button class="tk" data-app="explorer" title="File Explorer">${AI.explorer}</button>
+        <button class="tk" data-app="edge" title="Microsoft Edge">${AI.edge}</button>
+        <button class="tk" data-app="terminal" title="Terminal">${AI.terminal}</button>
+      </div>
+      <div class="tray">
+        <div class="trbtn" id="trNet" title="Network">${ICON.chev}${ICON.wifi}${ICON.vol}</div>
+        <div class="trbtn" id="trBat" title="Battery">${ICON.batt}</div>
+        <div class="trbtn clock" id="trClock" title="Calendar"><div><div id="tbTime"></div><div id="tbDate"></div></div></div>
+      </div>
+    </div>
+    <div class="toasts" id="toasts"></div>
+  </div>`;
+}
+function startHTML(){
+  const apps=[['edge','Edge',AI.edge],['mail','Mail',AI.mail],['calendar','Calendar',AI.calendar(new Date().getDate())],
+    ['store','Store',AI.store],['photos','Photos',AI.photos],['settings','Settings',AI.settings],
+    ['notepad','Notepad',AI.notepad],['terminal','Terminal',AI.terminal]];
+  return `<div class="start" id="start">
+    <div class="search">${ICON.magnify}<input class="sinput" id="sinput" placeholder="Type here to search"></div>
+    <h6>Pinned</h6>
+    <div class="pinned">${apps.map(a=>`<div class="papp" data-app="${a[0]}"><div class="pic">${a[2]}</div><div class="n">${a[1]}</div></div>`).join('')}</div>
+    <h6>Recommended</h6>
+    <div class="reco">
+      <div class="rapp" data-file="welcome.txt">${AI.txt}<div><b>Welcome to Windows 11.txt</b><span>Recently added</span></div></div>
+      <div class="rapp" data-file="getting-started.txt">${AI.txt}<div><b>Getting started.txt</b><span>Recently added</span></div></div>
+    </div>
+    <div class="startfoot">
+      <div class="user">${avatarHTML(28)}<span>${esc(S.user.name||'User')}</span></div>
+      <div class="pwrbtn" id="pwr" title="Power">${ICON.power}</div>
+      <div class="pmenu" id="pmenu">
+        <div class="pmi" data-a="sleep">Sleep</div>
+        <div class="pmi" data-a="restart">Restart</div>
+        <div class="pmi" data-a="shutdown">Shut down</div>
+      </div>
+    </div>
+  </div>`;
+}
+function showDesktop(first){
+  newPhase('desktop');
+  DF={files:Object.assign({},STARTFILES),folders:[]};openApps=new Set();
+  setScreen(deskHTML(),'t-ui t-desktop');
+  initDesktop(first);
+}
+function deskModel(){
+  return[{id:'recycle',label:'Recycle Bin',icon:AI.recycle,open:()=>openApp('recycle')},
+    {id:'pc',label:'This PC',icon:AI.pc,open:()=>openApp('explorer')},
+    ...DF.folders.map((f,i)=>({id:'f'+i,label:f,icon:AI.folder,open:()=>openFolder(f)})),
+    ...Object.keys(DF.files).map(k=>({id:'t'+k,label:k,icon:AI.txt,open:()=>openNotepad(k,DF.files[k])}))];
+}
+function renderIcons(){
+  const m=deskModel();
+  $('#icons').innerHTML=m.map((it,i)=>`<div class="dicon" data-id="${it.id}" style="left:${18+Math.floor(i/6)*94}px;top:${14+(i%6)*92}px"><div class="ic">${it.icon}</div><div class="lb">${esc(it.label)}</div></div>`).join('');
+  $$('.dicon').forEach(d=>{
+    d.addEventListener('click',e=>{e.stopPropagation();
+      $$('.dicon').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');});
+    d.addEventListener('dblclick',()=>{const it=deskModel().find(m=>m.id===d.dataset.id);if(it)it.open();});
+    d.addEventListener('contextmenu',e=>iconContext(e,d.dataset.id));});
+}
+function initDesktop(first){
+  renderIcons();
+  const fmtT=new Intl.DateTimeFormat('id-ID',{hour:'2-digit',minute:'2-digit'});
+  const fmtD=new Intl.DateTimeFormat('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const tick=()=>{const n=new Date();
+    if($('#tbTime'))$('#tbTime').textContent=fmtT.format(n);
+    if($('#tbDate'))$('#tbDate').textContent=fmtD.format(n);
+    if($('#wgclock'))$('#wgclock').textContent=fmtT.format(n);};
+  tick();every(1000,tick);
+  $('#btnStart').addEventListener('click',e=>{e.stopPropagation();toggleStart();});
+  $('#btnSearch').addEventListener('click',e=>{e.stopPropagation();toggleStart(true);});
+  $('#btnTV').addEventListener('click',e=>{e.stopPropagation();cycleWindows();});
+  $('#btnWG').addEventListener('click',e=>{e.stopPropagation();togglePanel('wg');});
+  $$('.tk[data-app]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openApp(b.dataset.app);}));
+  $('#trNet').addEventListener('click',e=>{e.stopPropagation();togglePanel('qs');});
+  $('#trBat').addEventListener('click',e=>{e.stopPropagation();toast('Battery','88% remaining — about 4 hours 12 minutes left.');});
+  $('#trClock').addEventListener('click',e=>{e.stopPropagation();openApp('calendar');});
+  $('#sinput').addEventListener('input',()=>{const q=$('#sinput').value.toLowerCase();
+    $$('.papp').forEach(p=>p.style.display=p.textContent.toLowerCase().includes(q)?'':'none');});
+  $$('.papp').forEach(p=>p.addEventListener('click',()=>{openApp(p.dataset.app);closeStart();}));
+  $$('.rapp').forEach(p=>p.addEventListener('click',()=>{openNotepad(p.dataset.file,DF.files[p.dataset.file]||'');closeStart();}));
+  $('#pwr').addEventListener('click',e=>{e.stopPropagation();$('#pmenu').classList.toggle('open');});
+  $$('.pmi').forEach(m=>m.addEventListener('click',()=>{const a=m.dataset.a;closeStart();
+    if(a==='sleep')lockScreen();if(a==='restart')restartPC();if(a==='shutdown')shutdownPC();}));
+  $('#qslider').addEventListener('input',e=>{VOL=e.target.value/50;});
+  $('#qwifi').addEventListener('click',()=>{$('#qwifi').classList.toggle('on');
+    $('#trNet').style.opacity=$('#qwifi').classList.contains('on')?'':'0.4';});
+  $('#qbt').addEventListener('click',()=>$('#qbt').classList.toggle('on'));
+  if(first){
+    screenEl.classList.add('firstboot');after(900,()=>screenEl.classList.remove('firstboot'));
+    chime();
+    after(1600,()=>toast('Welcome to Windows 11','Selamat, instalasi selesai! Jelajahi Start menu, klik kanan desktop, atau buka This PC.'));
+  }
+  hint('Instalasi selesai! Coba: Start menu, klik kanan desktop, This PC, Terminal, Notepad. Tombol Power di bezel untuk mematikan PC.');
+}
+function deskGlobalClick(e){
+  if(!e.target.closest('.start')&&!e.target.closest('#btnStart')&&!e.target.closest('#btnSearch'))closeStart();
+  if(!e.target.closest('.wpanel')&&!e.target.closest('#btnWG')){const w=$('#wg');if(w)w.classList.remove('open');}
+  if(!e.target.closest('.qpanel')&&!e.target.closest('#trNet')){const q=$('#qs');if(q)q.classList.remove('open');}
+  if(!e.target.closest('.startfoot')){const pm=$('#pmenu');if(pm)pm.classList.remove('open');}
+  if(!e.target.closest('.cmenu'))hideCtx();
+  if(!e.target.closest('.dicon'))$$('.dicon').forEach(d=>d.classList.remove('sel'));
+}
+function toggleStart(focus){const s=$('#start');if(!s)return;
+  s.classList.toggle('open');
+  if(s.classList.contains('open')&&focus)after(60,()=>$('#sinput').focus());}
+function closeStart(){const s=$('#start');if(s)s.classList.remove('open');}
+function togglePanel(id){const p=$('#'+id);if(!p)return;p.classList.toggle('open');}
+function cycleWindows(){
+  const ws=$$('.win');
+  if(!ws.length){toast('Task view','Tidak ada jendela terbuka.');return;}
+  bringFront(ws[0]);ws[0].style.display='flex';
+}
+function toast(title,body){
+  const c=$('#toasts');if(!c)return;
+  c.insertAdjacentHTML('beforeend',`<div class="toast"><b>${title}</b><p>${body}</p></div>`);
+  const t=c.lastElementChild;after(5200,()=>t.remove());
+}
+
+/* --- context menu desktop --- */
+function hideCtx(){const c=$('#ctx');if(c)c.remove();}
+function showCtx(items,x,y,handler){
+  hideCtx();
+  const c=document.createElement('div');c.id='ctx';c.className='cmenu';
+  c.innerHTML=items.map(it=>it==='-'?'<div class="csep"></div>':
+    it.sub?`<div class="cmi csub">${it.t}<span style="margin-left:auto">&rsaquo;</span><div class="sub">${it.sub.map(s=>`<div class="cmi" data-a="${s.a}">${s.t}</div>`).join('')}</div></div>`
+    :`<div class="cmi ${it.dis?'dis':''}" data-a="${it.a||''}">${it.t}</div>`).join('');
+  $('.desk').appendChild(c);
+  const r=screenEl.getBoundingClientRect();
+  c.style.left=Math.min(x,r.width-250)+'px';
+  c.style.top=Math.min(y,r.height-c.offsetHeight-70)+'px';
+  $$('.cmi[data-a]',c).forEach(m=>{if(m.classList.contains('dis'))return;
+    m.addEventListener('click',ev=>{ev.stopPropagation();handler(m.dataset.a);hideCtx();});});
+  c.addEventListener('click',e=>e.stopPropagation());
+  c.addEventListener('contextmenu',e=>e.preventDefault());
+}
+function deskContext(e){
+  const ic=$('#icons');
+  showCtx([
+    {t:'View',sub:[{t:'Large icons',a:'viewL'},{t:'Medium icons',a:'viewM'},{t:'Small icons',a:'viewS'}]},
+    {t:'Sort by',sub:[{t:'Name',a:'sortN'}]},
+    {t:'Refresh',a:'refresh'},'-',
+    {t:'Paste',dis:1},'-',
+    {t:'Open in Terminal',a:'terminal'},
+    {t:'New',sub:[{t:'Folder',a:'newfolder'},{t:'Text Document',a:'newtxt'}]},'-',
+    {t:'Display settings',a:'display'},
+    {t:'Personalize',a:'personalize'}],
+    e.clientX-screenEl.getBoundingClientRect().left,
+    e.clientY-screenEl.getBoundingClientRect().top,
+    a=>{
+      if(a==='refresh')renderIcons();
+      else if(a==='viewL'){ic.className='icons big';}
+      else if(a==='viewM'){ic.className='icons';}
+      else if(a==='viewS'){ic.className='icons small';}
+      else if(a==='sortN'){DF.folders.sort();DF.files=Object.keys(DF.files).sort().reduce((o,k)=>(o[k]=DF.files[k],o),{});renderIcons();}
+      else if(a==='terminal')openApp('terminal');
+      else if(a==='newfolder'){let n='New folder',i=2;while(DF.folders.includes(n))n='New folder ('+(i++)+')';DF.folders.push(n);renderIcons();}
+      else if(a==='newtxt'){let n='New Text Document.txt',i=2;while(DF.files[n]!=null)n='New Text Document ('+(i++)+').txt';DF.files[n]='';renderIcons();}
+      else if(a==='display')openApp('settings');
+      else if(a==='personalize')openApp('settings');
+    });
+}
+function iconContext(e,id){
+  e.preventDefault();e.stopPropagation();
+  const userItem=id.startsWith('f')||id.startsWith('t');
+  showCtx([
+    {t:'Open',a:'open'},'-',
+    {t:'Delete',a:'del',dis:!userItem}],
+    e.clientX-screenEl.getBoundingClientRect().left,
+    e.clientY-screenEl.getBoundingClientRect().top,
+    a=>{
+      if(a==='open'){const it=deskModel().find(m=>m.id===id);if(it)it.open();}
+      if(a==='del'){
+        if(id.startsWith('f')){DF.folders.splice(+id.slice(1),1);renderIcons();}
+        else if(id.startsWith('t')){delete DF.files[id.slice(1)];renderIcons();}}
+    });
+}
+
+/* --- window manager --- */
+function openWin(id,title,icon,bodyHTML,opts){
+  const sid='win-'+String(id).replace(/[^a-zA-Z0-9_-]/g,'_');
+  let existing=document.getElementById(sid);
+  if(existing){existing.style.display='flex';bringFront(existing);return existing;}
+  const layer=$('#winlayer');if(!layer)return;
+  const r=screenEl.getBoundingClientRect();
+  const ww=Math.min((opts&&opts.w)||640,r.width-24);
+  const wh=Math.min((opts&&opts.h)||440,r.height-130);
+  const n=layer.children.length;
+  const w=document.createElement('div');
+  w.className='win';w.id=sid;
+  w.style.width=ww+'px';w.style.height=wh+'px';
+  w.style.left=Math.max(8,Math.min(50+n*26,r.width-ww-8))+'px';
+  w.style.top=Math.max(8,Math.min(30+n*22,r.height-wh-58))+'px';
+  w.style.zIndex=++zTop;
+  w.innerHTML=`<div class="winbar"><div class="t">${icon}<span>${title}</span></div>
+    <div class="winctl"><button class="wc" data-a="min" title="Minimize">${ICON.wmin}</button>
+    <button class="wc" data-a="max" title="Maximize">${ICON.wmax}</button>
+    <button class="wc close" data-a="close" title="Close">${ICON.wclose}</button></div></div>
+    <div class="winbody">${bodyHTML}</div>`;
+  layer.appendChild(w);
+  w.addEventListener('pointerdown',()=>bringFront(w));
+  $$('.wc',w).forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();
+    if(b.dataset.a==='close'){w.remove();openApps.delete(id);updTaskbarInd();}
+    if(b.dataset.a==='min')w.style.display='none';
+    if(b.dataset.a==='max')w.classList.toggle('max');}));
+  const bar=$('.winbar',w);
+  bar.addEventListener('pointerdown',ev=>{
+    if(ev.target.closest('.wc')||w.classList.contains('max'))return;
+    const sx=ev.clientX-w.offsetLeft,sy=ev.clientY-w.offsetTop;
+    const move=e2=>{w.style.left=Math.max(-ww+140,Math.min(e2.clientX-sx,r.width-60))+'px';
+      w.style.top=Math.max(0,Math.min(e2.clientY-sy,r.height-60))+'px';};
+    const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);};
+    window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);});
+  openApps.add(id);updTaskbarInd();
+  return w;
+}
+function bringFront(w){w.style.zIndex=++zTop;}
+function updTaskbarInd(){$$('.tk[data-app]').forEach(b=>b.classList.toggle('open',openApps.has(b.dataset.app)));}
+
+/* --- aplikasi --- */
+function openApp(id){
+  switch(id){
+    case 'explorer':openExplorer();break;
+    case 'edge':openEdge();break;
+    case 'terminal':openCmd();break;
+    case 'notepad':openNotepad('Untitled.txt','');break;
+    case 'settings':openSettings();break;
+    case 'mail':openMail();break;
+    case 'calendar':openCalendar(0);break;
+    case 'store':openStore();break;
+    case 'photos':openWin('photos','Photos',AI.photos,
+      `<div class="empty"><div class="big">${AI.photos}</div><p>Nothing to see here yet.</p><p class="mut">Import photos from a device or connect to the cloud — this PC is offline.</p></div>`,{w:640,h:420});break;
+    case 'recycle':openWin('recycle','Recycle Bin',AI.recycle,
+      `<div class="empty"><div class="big">${AI.recycle}</div><p>This folder is empty.</p></div>`,{w:620,h:400});break;
+  }
+}
+function openExplorer(){
+  const usb=S.plugged;
+  const w=openWin('explorer','This PC',AI.explorer,`
+    <div class="exp"><div class="expside">
+      <div class="es on" data-d="all">This PC</div>
+      <div class="es" data-d="c">Local Disk (C:)</div>
+      ${usb?'<div class="es" data-d="e">Voyager (E:)</div>':''}
+    </div><div class="expm"><h4>This PC &mdash; Devices and drives</h4>
+      <div class="drive" data-d="c">${AI.drive}<div style="flex:1"><div class="dn">Local Disk (C:) &mdash; Windows</div><div class="dbart"><i style="width:26%"></i></div></div><div class="df">47.1 GB free of 63.9 GB</div></div>
+      ${usb?`<div class="drive" data-d="e">${AI.usbd}<div style="flex:1"><div class="dn">Voyager (E:)</div><div class="dbart"><i style="width:9%"></i></div></div><div class="df">56.8 GB free of 62.4 GB</div></div>`:''}
+    </div></div>`,{w:760,h:460});
+  $$('.es',w).forEach(s=>s.addEventListener('click',()=>{
+    $$('.es',w).forEach(x=>x.classList.remove('on'));s.classList.add('on');
+    $$('.drive',w).forEach(d=>d.style.display=(s.dataset.d==='all'||d.dataset.d===s.dataset.d)?'':'none');}));
+}
+function openFolder(name){
+  openWin('fld-'+name,name,AI.folder,
+    `<div class="empty"><div class="big">${AI.folder}</div><p>This folder is empty.</p></div>`,{w:600,h:380});
+}
+function openNotepad(name,content){
+  const w=openWin('np-'+name,esc(name)+' \u2014 Notepad',AI.notepad,
+    `<div style="display:flex;flex-direction:column;height:100%"><textarea class="np" id="npbody"></textarea>
+     <div class="npbar"><span id="npstat">Ln 1, Col 1</span><div class="dtool" id="npsave">Save</div></div></div>`,{w:560,h:420});
+  const ta=$('#npbody',w);ta.value=content;
+  ta.addEventListener('input',()=>{const ls=ta.value.split('\n');
+    const st=$('#npstat',w);if(st)st.textContent='Ln '+ls.length+', Col '+(ls[ls.length-1].length+1);});
+  $('#npsave',w).addEventListener('click',()=>{
+    DF.files[name]=ta.value;renderIcons();
+    toast('Notepad',esc(name)+' disimpan ke Desktop.');});
+  return w;
+}
+function openCmd(){
+  const w=openWin('terminal','Command Prompt',AI.terminal,
+    `<div class="cmd"><div class="out" id="cmdout">Microsoft Windows [Version 10.0.26100.2454]\n(c) Microsoft Corporation. All rights reserved.\n\n</div>
+     <div class="cmdline"><span class="ps" id="cmdps">C:\\Users\\${S.user.name}&gt;&nbsp;</span><input id="cmdin" autocomplete="off"></div></div>`,{w:660,h:420});
+  const out=$('#cmdout',w),inp=$('#cmdin',w),ps=$('#cmdps',w);
+  const print=t=>{out.textContent+=t+'\n';out.scrollTop=out.scrollHeight;};
+  inp.addEventListener('keydown',e=>{
+    if(e.key!=='Enter')return;
+    const c=inp.value;inp.value='';
+    print((ps.textContent.replace(/\u00a0/g,' '))+c);
+    const parts=c.trim().split(/\s+/),cmd=(parts.shift()||'').toLowerCase(),arg=parts.join(' ');
+    switch(cmd){
+      case '':break;
+      case 'help':print('Commands: HELP DIR CD CLS VER DATE TIME ECHO WHOAMI SYSTEMINFO EXIT');break;
+      case 'dir':{print(' Volume in drive C is Windows\n Directory of C:\\Users\\'+S.user.name+'\n');
+        print('02/14/2026  10:24 AM    <DIR>          .');
+        DF.folders.forEach(f=>print('02/14/2026  10:24 AM    <DIR>          '+f));
+        Object.keys(DF.files).forEach(f=>print('02/14/2026  10:24 AM        '+String(DF.files[f].length).padStart(8)+' '+f));
+        print('               '+(DF.folders.length+Object.keys(DF.files).length)+' File(s)');break;}
+      case 'cd':print('C:\\Users\\'+S.user.name);break;
+      case 'cls':out.textContent='';break;
+      case 'ver':print('\nMicrosoft Windows [Version 10.0.26100.2454]');break;
+      case 'echo':print(arg||'ECHO is on.');break;
+      case 'date':print('The current date is: '+new Date().toLocaleDateString('en-US'));break;
+      case 'time':print('The current time is: '+new Date().toLocaleTimeString('en-US'));break;
+      case 'whoami':print(S.devName.toLowerCase()+'\\'+S.user.name.toLowerCase());break;
+      case 'systeminfo':print(['Host Name:            '+S.devName,
+        'OS Name:              Microsoft Windows 11 Pro',
+        'OS Version:           10.0.26100 N/A Build 26100',
+        'System Manufacturer:  AXIOM Corp.',
+        'System Model:         VPC-11',
+        'Processor:            AXM VX-8 Eight-Core 3.60GHz',
+        'Total Physical Memory: 16,384 MB'].join('\n'));break;
+      case 'exit':w.remove();openApps.delete('terminal');updTaskbarInd();break;
+      default:print("'"+cmd+"' is not recognized as an internal or external command,\noperable program or batch file.");
+    }
+  });
+  after(80,()=>inp.focus());
+  return w;
+}
+const SETTINGS_TABS=[['system','System'],['network','Network &amp; internet'],['personalize','Personalization'],['update','Windows Update']];
+function settingsBody(page){
+  const side=SETTINGS_TABS.map(t=>`<div class="si ${t[0]===page?'on':''}" data-p="${t[0]}">${t[1]}</div>`).join('');
+  const wrap=inner=>`<div class="setwrap"><div class="eside">${side}</div><div class="setp">${inner}</div></div>`;
+  const row=(a,b)=>`<div class="srow"><span>${a}</span><span>${b}</span></div>`;
+  if(page==='network')return wrap(`<h3>Network &amp; internet</h3>
+    <div class="stat"><b>Status:</b> Not connected</div>
+    <p class="mut">No ethernet cable detected and no working Wi-Fi driver is installed on this device.</p>`);
+  if(page==='personalize')return wrap(`<h3>Personalization &mdash; Background</h3>
+    <div class="wpick" data-w="bloom"><div class="wprev">${WALL}</div><span>Windows Bloom (current)</span></div>
+    <div class="wpick" data-w="solid"><div class="wprev solid"></div><span>Solid color</span></div>
+    <p class="mut">Klik untuk mengganti wallpaper desktop.</p>`);
+  if(page==='update')return wrap(`<h3>Windows Update</h3>
+    <div class="stat"><b>You're up to date.</b> Last checked: today.</div>
+    <p class="mut">Updates are unavailable while the device is offline.</p>`);
+  return wrap(`<h3>System &mdash; About</h3>
+    ${row('Device name',S.devName)}
+    ${row('Processor','AXM VX-8 Eight-Core 3.60 GHz')}
+    ${row('Installed RAM','16.0 GB')}
+    ${row('System type','64-bit operating system, x64-based processor')}
+    <h3 style="margin-top:18px">Windows specifications</h3>
+    ${row('Edition','Windows 11 Pro')}
+    ${row('Version','24H2')}
+    ${row('Installed on',S.instDate?S.instDate.toLocaleDateString('en-US'):'-')}
+    ${row('OS build','26100.2454')}`);
+}
+function bindSettings(w){
+  $$('.wpick',w).forEach(p=>p.addEventListener('click',()=>{
+    const wall=$('#wall');if(!wall)return;
+    if(p.dataset.w==='solid'){wall.innerHTML='';wall.classList.add('solidbg');}
+    else{wall.innerHTML=WALL;wall.classList.remove('solidbg');}}));
+}
+function openSettings(){
+  const w=openWin('settings','Settings',AI.settings,settingsBody('system'),{w:780,h:520});
+  const bind=()=>{
+    $$('.si',w).forEach(s=>s.addEventListener('click',()=>{
+      $$('.si',w).forEach(x=>x.classList.remove('on'));
+      s.classList.add('on');
+      const b=$('.winbody',w);if(b)b.innerHTML=settingsBody(s.dataset.p);
+      bind();bindSettings(w);}));
+  };
+  bind();bindSettings(w);
+}
+function openEdge(){
+  const w=openWin('edge','New tab',AI.edge,`
+    <div class="edge"><div class="edgetop"><input id="eurl" placeholder="Search or enter web address" autocomplete="off"><div class="ego" id="ego">${ICON.magnify}</div></div>
+    <div class="edgepage" id="epage">
+      <div class="enewt">${wlogo(60,'#0067C0')}</div>
+      <div class="esub">Search the web</div>
+      <div class="etiles"><div class="et">MSN</div><div class="et">Store</div><div class="et">Docs</div><div class="et">Weather</div></div>
+    </div></div>`,{w:820,h:520});
+  const fail=(u)=>{const pg=$('#epage',w);if(!pg)return;
+    pg.innerHTML=`<div class="eoffline"><div class="eox"></div><h3>Hmmm&hellip; can't reach this page</h3>
+      <p>${esc(u||'newtab')}</p><div>Check your internet connection — this PC hasn't been connected to any network yet.</div></div>`;};
+  const go=()=>fail($('#eurl',w).value||'newtab');
+  $('#eurl',w).addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+  $('#ego',w).addEventListener('click',go);
+  $$('.et',w).forEach(t=>t.addEventListener('click',()=>fail(t.textContent)));
+  return w;
+}
+function openMail(){
+  const M=[['Microsoft Rewards','Earn points just by searching the web\u2026 (but you\u2019re offline)'],
+    ['Windows Tips','5 keyboard shortcuts you should know — Win+E opens File Explorer, Win+D shows the desktop.'],
+    ['Security','Your Microsoft account was created successfully. Local account fallback is active.']];
+  const w=openWin('mail','Mail',AI.mail,`
+    <div class="mailw"><div class="mailL">${M.map((m,i)=>`<div class="mrow ${i===0?'on':''}" data-i="${i}"><b>${m[0]}</b><span>${m[1].slice(0,38)}\u2026</span></div>`).join('')}</div>
+    <div class="mailR"><h5>${M[0][0]}</h5><p>${M[0][1]}</p></div></div>`,{w:720,h:440});
+  $$('.mrow',w).forEach(r=>r.addEventListener('click',()=>{
+    $$('.mrow',w).forEach(x=>x.classList.remove('on'));r.classList.add('on');
+    const mr=$('.mailR',w);if(mr)mr.innerHTML=`<h5>${M[+r.dataset.i][0]}</h5><p>${M[+r.dataset.i][1]}</p>`;}));
+}
+function calendarBody(off){
+  const base=new Date();base.setDate(1);base.setMonth(base.getMonth()+off);
+  const y=base.getFullYear(),m=base.getMonth();
+  const first=new Date(y,m,1),days=new Date(y,m+1,0).getDate();
+  const name=base.toLocaleString('en-US',{month:'long',year:'numeric'});
+  let cells='';for(let i=0;i<first.getDay();i++)cells+='<div></div>';
+  const t=new Date();
+  for(let d=1;d<=days;d++)
+    cells+=`<div class="cd ${d===t.getDate()&&m===t.getMonth()&&y===t.getFullYear()?'today':''}">${d}</div>`;
+  return `<div class="cal"><div class="calh"><div class="cnav" data-off="${off-1}">&lsaquo;</div><div class="cm">${name}</div><div class="cnav" data-off="${off+1}">&rsaquo;</div></div>
+    <div class="calgrid"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>${cells}</div></div>`;
+}
+function openCalendar(off){
+  const w=openWin('calendar','Calendar',AI.calendar(new Date().getDate()),`<div id="calbody">${calendarBody(off)}</div>`,{w:520,h:460});
+  const bind=()=>{$$('.cnav',w).forEach(n=>n.addEventListener('click',()=>{
+    const nb=$('#calbody',w);if(nb)nb.innerHTML=calendarBody(+n.dataset.off);bind();}));};
+  bind();
+}
+function openStore(){
+  const cols=['#0F92E8','#12A5B0','#E8A33D','#8C77D6'];
+  const A=['Calculator','Paint','Solitaire Collection','Media Player'];
+  const w=openWin('store','Microsoft Store',AI.store,`
+    <h4 style="margin-bottom:12px">Apps &mdash; for you</h4>
+    ${A.map((a,i)=>`<div class="scard"><div class="sic" style="background:${cols[i]}">${a[0]}</div><div class="sn">${a}</div><span class="mut">Free</span><div class="sget" data-a="${a}">Get</div></div>`).join('')}`,
+    {w:640,h:460});
+  $$('.sget',w).forEach(g=>g.addEventListener('click',()=>{
+    g.textContent='Installing\u2026';
+    after(1800,()=>{g.textContent='Owned';
+      toast('Microsoft Store',esc(g.dataset.a)+' berhasil diinstal.');});}));
+}
+
+/* --- lock / login --- */
+function lockScreen(){
+  newPhase('lock');
+  setScreen(`<div class="lock"><div class="lockbg">${WALL}</div>
+    <div class="lockt" id="lkTime"></div><div class="lockd" id="lkDate"></div>
+    <div class="lockhint">Klik layar atau tekan sembarang tombol untuk masuk</div></div>`,'t-ui t-desktop');
+  const tick=()=>{const n=new Date();
+    if($('#lkTime'))$('#lkTime').textContent=new Intl.DateTimeFormat('id-ID',{hour:'2-digit',minute:'2-digit'}).format(n);
+    if($('#lkDate'))$('#lkDate').textContent=n.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});};
+  tick();every(1000,tick);
+  $('.lock',screenEl).addEventListener('click',loginScreen);
+  hint('PC terkunci — klik layar untuk melanjutkan ke login.');
+}
+function loginScreen(){
+  newPhase('login');
+  const pw=S.user.password;
+  setScreen(`<div class="login"><div class="lockbg dim">${WALL}</div>
+    <div class="lgbox">
+      <div class="avatar lg">${(S.user.name||'U')[0].toUpperCase()}</div>
+      <div class="lgname">${esc(S.user.name||'User')}</div>
+      ${pw?`<div class="lgrow"><input type="password" id="lgpw" class="winput" placeholder="Password"><button class="lggo" id="lggo">${ICON.go}</button></div><div class="serr" id="lgerr"></div>`
+        :`<button class="bnext" id="lggo2">Sign in</button>`}
+    </div></div>`,'t-ui t-desktop');
+  const go=()=>showDesktop(false);
+  if(pw){
+    const tryPw=()=>{if($('#lgpw').value===S.user.password)go();
+      else{errBeep();$('#lgerr').textContent='The password is incorrect. Try again.';$('#lgpw').value='';}};
+    $('#lggo').addEventListener('click',tryPw);
+    $('#lgpw').addEventListener('keydown',e=>{if(e.key==='Enter')tryPw();});
+    after(80,()=>$('#lgpw').focus());
+  }else $('#lggo2').addEventListener('click',go);
+  hint('Masukkan password untuk masuk (kolomnya kosongkan saja jika tadi tidak mengisi password).');
+}
+
+/* ================= FLASHDISK (drag / klik / hot-plug) ================= */
+(function(){
+  const usb=$('#usb'),slot=$('#usbSlot'),port=$('#port');
+  let drag=null;
+  usb.addEventListener('pointerdown',e=>{
+    if(S.plugged)return;
+    e.preventDefault();audio();
+    const r=usb.getBoundingClientRect();
+    document.body.appendChild(usb);
+    usb.classList.add('fixed');
+    usb.style.left=r.left+'px';usb.style.top=r.top+'px';
+    drag={dx:e.clientX-r.left,dy:e.clientY-r.top,moved:0,x0:e.clientX,y0:e.clientY};
+    usb.setPointerCapture(e.pointerId);
+  });
+  usb.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    if(Math.abs(e.clientX-drag.x0)+Math.abs(e.clientY-drag.y0)>6)drag.moved=1;
+    usb.style.left=(e.clientX-drag.dx)+'px';
+    usb.style.top=(e.clientY-drag.dy)+'px';
+  });
+  usb.addEventListener('pointerup',()=>{
+    if(!drag)return;
+    const wasClick=!drag.moved;drag=null;
+    if(wasClick){plug();return;} /* klik singkat = langsung terpasang */
+    const pr=port.getBoundingClientRect();
+    const cx=pr.left+pr.width/2,cy=pr.top+pr.height/2;
+    const ux=parseFloat(usb.style.left),uy=parseFloat(usb.style.top);
+    if(Math.hypot(cx-(ux+47),cy-(uy+18))<110)flyTo(cx-47,cy-9);
+    else flyBack();
+  });
+  function flyTo(x,y){
+    usb.classList.add('anim');
+    usb.style.left=x+'px';usb.style.top=y+'px';
+    after(430,()=>{usb.classList.remove('anim');plug();});
+  }
+  function flyBack(){
+    const r=slot.getBoundingClientRect();
+    usb.classList.add('anim');
+    usb.style.left=r.left+'px';usb.style.top=r.top+'px';
+    after(430,()=>{usb.classList.remove('anim');restore();});
+  }
+  function restore(){
+    usb.classList.remove('fixed');usb.style.left='';usb.style.top='';
+    slot.appendChild(usb);
+  }
+  function plug(){
+    if(S.plugged)return;
+    S.plugged=true;restore();
+    usb.classList.add('hidden');
+    $('#usbStub').hidden=false;plugSnd();
+    syncPort();
+    /* hot-plug: layar yang terbuka ikut diperbarui */
+    if(S.phase==='bios'){renderBios();tone(1500,.06,'square',.08);}
+    else if(S.phase==='bootmenu')bootMenu();
+    else if(S.phase==='post'){
+      addPostLine('Detecting USB ... Voyager USB 3.0 64GB');
+      hint(S.boot1==='usb'?'Boot priority #1 = USB \u2713 \u2014 PC otomatis masuk installer setelah POST selesai.'
+        :'USB terdeteksi. Tekan DEL (BIOS) atau F8 (Boot Menu) untuk boot dari flashdisk.');}
+    else if(S.phase==='noboot'){
+      hint('USB terpasang — PC akan restart otomatis. Setelah itu tekan F8 (Boot Menu) atau DEL (BIOS).');
+      after(1500,()=>{if(S.phase==='noboot')restartPC();});}
+  }
+  function unplug(){
+    if(!S.plugged)return;
+    S.plugged=false;
+    $('#usbStub').hidden=true;
+    usb.classList.remove('hidden');unplugSnd();
+    syncPort();
+    if(S.phase==='bios'){if(B.bs.boot1==='usb')B.bs.boot1='ssd';renderBios();}
+    else if(S.phase==='bootmenu')bootMenu();
+    else hint('Flashdisk dicabut. Pasang kembali (klik/seret) kapan saja.');
+  }
+  $('#usbStub').addEventListener('click',e=>{e.stopPropagation();unplug();});
+})();
+
+/* ================= KEYBOARD GLOBAL ================= */
+window.addEventListener('keydown',e=>{
+  const tag=(e.target&&e.target.tagName)||'';
+  const inInput=(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT');
+  if(e.ctrlKey&&e.altKey&&e.key==='Delete'){e.preventDefault();restartPC();return;}
+  if(S.phase==='desktop'||S.phase==='login')return;
+  if(S.phase==='lock'){if(!inInput){e.preventDefault();loginScreen();}return;}
+  if(['F1','F2','F8','F10','F12'].includes(e.key)&&!inInput)e.preventDefault();
+  switch(S.phase){
+    case 'off':if(e.key==='p'||e.key==='P')powerOn();break;
+    case 'post':
+      if(e.key==='Delete'||e.key==='F2')enterBios();
+      else if(e.key==='F8')bootMenu();
+      break;
+    case 'bios':if(!inInput)biosKeys(e);break;
+    case 'bootmenu':if(e.key==='Escape')runPost();break;
+    case 'noboot':
+      if(!['Control','Alt','Shift','Meta','Dead'].includes(e.key))restartPC();
+      break;
+  }
+});
+
+/* klik & klik-kanan pada "monitor" (sekali pasang, aman untuk semua fase) */
+screenEl.onclick=e=>{
+  if(S.phase==='noboot'){restartPC();return;}
+  if(S.phase!=='desktop')return;
+  deskGlobalClick(e);
+};
+screenEl.oncontextmenu=e=>{
+  e.preventDefault();
+  if(S.phase!=='desktop')return;
+  if(e.target.closest('.win')||e.target.closest('.taskbar')||e.target.closest('.start')||e.target.closest('.cmenu')||e.target.closest('.wpanel')||e.target.closest('.qpanel'))return;
+  deskContext(e);
+};
+
+/* ================= BEZEL & INIT ================= */
+ $('#btnPower').innerHTML=ICON.power;
+ $('#btnRestart').innerHTML=ICON.restart;
+ $('#btnPower').addEventListener('click',()=>{audio();S.phase==='off'?powerOn():shutdownPC();});
+ $('#btnRestart').addEventListener('click',()=>restartPC());
+ $('#btnReset').addEventListener('click',()=>location.reload());
+
+(function init(){
+  setScreen('','t-black');
+  syncPort();
+  hint('Selamat datang di AXIOM VirtualPC. Tekan tombol Power di bezel (atau tombol P) untuk menyalakan PC — dan pasang flashdisk installer kapan saja: cukup KLIK sekali atau seret ke port USB yang menyala hijau.');
+})();
+</script>
+</body>
+</html>
