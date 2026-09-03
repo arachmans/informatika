@@ -177,12 +177,14 @@ select.winput{appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg 
 .drow.head>span{font-weight:600;color:#444;font-size:12.5px}
 .drow.sel{background:#CFE6F8}
 .drow.sel>span:first-child{font-weight:600}
+.drow.scanning{color:#8a8a8a;font-style:italic}
 .dtoolbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .dtool{border:1px solid #adadad;background:#E1E1E1;border-radius:3px;padding:6px 15px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .dtool:hover{background:#CDE6FF;border-color:#0078D4;color:#004a80}
 .dtool.dis{opacity:.45;cursor:default;pointer-events:none}
 .sizebox{border:1px solid #c9c9c9;padding:14px;margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .sizebox .slabel{margin:0}
+#szerr{color:#C42B1C;font-size:12px}
 .plist{margin-top:4px}
 .pitem{display:flex;justify-content:space-between;padding:11px 2px;font-size:14px;border-bottom:1px solid #F0F0F0;color:#3c3c3c}
 .pitem.act{color:#000;font-weight:600}
@@ -198,36 +200,51 @@ select.winput{appearance:none;background:#fff url('data:image/svg+xml;utf8,<svg 
 .wrrow b{display:block;font-size:15px;color:#1b1b1b}
 .wrrow span{font-size:12.5px;color:#5c6b7a}
 
-/* ===== OOBE ===== */
-.t-oobe{background:#EEF5FC}
-.oobe{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.oobe-card{width:560px;max-width:96%;color:#1b1b1b}
-.oobe-card h1{font-size:30px;font-weight:600;margin-bottom:12px;color:#222}
-.oobe-card .sub{font-size:14.5px;color:#4a4a4a;line-height:1.55;margin-bottom:24px}
-.oobe-foot{display:flex;justify-content:space-between;align-items:center;margin-top:24px;min-height:38px}
+/* ===== OOBE (gaya Windows 11 asli) ===== */
 .bnext{height:36px;min-width:120px;background:#0067C0;color:#fff;border:none;border-radius:4px;font-size:13.5px;padding:0 26px;cursor:pointer;font-family:inherit}
 .bnext:hover{background:#0B74CF}
-.oblist{border:1px solid #CFDAE6;border-radius:6px;max-height:242px;overflow-y:auto;background:#fff}
-.obitem{padding:10px 14px;font-size:13.5px;cursor:pointer;border-bottom:1px solid #F0F4F8}
-.obitem:hover{background:#F3F8FD}
-.obitem.sel{background:#CFE6F7;font-weight:600}
-.wifirow{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:13.5px;cursor:pointer;border-bottom:1px solid #F0F4F8}
-.wifirow:hover{background:#F3F8FD}
-.wifirow svg{flex:0 0 auto}
-.netstat{padding:10px 14px;font-size:13px}
-.sqrow{display:flex;gap:10px;margin-bottom:10px}
-.sqrow select{flex:0 0 44%}
-.prow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #E3EBF3;gap:20px}
-.prow .pn{font-size:13.5px;font-weight:600}
-.prow .pd{font-size:11.5px;color:#6a7787;margin-top:3px;max-width:360px}
-.tog{position:relative;width:40px;height:20px;border-radius:10px;background:#767676;cursor:pointer;transition:background .15s;flex:0 0 auto;border:none}
-.tog::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
-.tog.on{background:#0067C0}
-.tog.on::after{left:23px}
-.final{position:absolute;inset:0;background:#EEF5FC;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px}
-.ftext{font-size:18px;font-weight:300;color:#3a4a5a}
-.welc{position:absolute;inset:0;background:#0067C0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;color:#fff}
-.wt{font-size:34px;font-weight:300}
+.bnext:disabled{background:#ADB3B8;cursor:default}
+.bnext:disabled:hover{background:#ADB3B8}
+.oobe2{position:absolute;inset:0;font-family:'Noto Sans','Segoe UI',sans-serif;overflow:hidden;background:#EAF2FA}
+.oobe2 .bgwall{position:absolute;inset:0;filter:blur(42px) saturate(1.25) brightness(1.03);transform:scale(1.18)}
+.oobe2 .bgwall svg{position:absolute;inset:0;width:100%;height:100%}
+.oobe2 .bgtint{position:absolute;inset:0;background:linear-gradient(100deg,rgba(234,242,250,.78) 0%,rgba(234,242,250,.42) 50%,rgba(214,233,248,.10) 100%)}
+.oobe-back{position:absolute;top:22px;left:26px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.68);border:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:6;box-shadow:0 1px 5px rgba(0,0,0,.12)}
+.oobe-back:hover{background:#fff}
+.oobe-content{position:absolute;left:10.5%;top:46%;transform:translateY(-50%);width:min(580px,64%);color:#1b1b1b;z-index:2}
+.oobe-content h1{font-size:28px;font-weight:600;margin:0 0 10px;color:#191919;letter-spacing:-.01em}
+.oobe-content .sub{font-size:13.5px;color:#5f5f5f;line-height:1.55;margin-bottom:20px;max-width:480px}
+.oobe-list{background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.12);border-radius:5px;max-height:262px;overflow-y:auto;box-shadow:0 4px 16px rgba(20,60,110,.10)}
+.obitem{padding:10px 14px;font-size:13.5px;cursor:pointer}
+.obitem:hover{background:rgba(0,103,192,.05)}
+.obitem.sel{background:#CFE6F7}
+.oobe-foot{position:absolute;left:10.5%;right:6%;bottom:40px;display:flex;justify-content:space-between;align-items:center;z-index:3}
+.wifirow2{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:13.5px;cursor:pointer;color:#262626}
+.wifirow2:hover{background:rgba(0,103,192,.06)}
+.wifirow2 .nm{flex:1}
+.wifirow2 svg{flex:0 0 auto}
+.netstat2{padding:10px 14px;font-size:12.5px;color:#5f5f5f;display:flex;gap:8px;align-items:center}
+.netstat2:empty{display:none}
+.netstat2.err{color:#C42B1C}
+.pwdexp{padding:12px 14px 14px;border-top:1px solid rgba(0,0,0,.07);background:rgba(240,247,253,.92)}
+.pwbox{position:relative}
+.pwbox .winput{padding-right:46px}
+.pweye{position:absolute;right:4px;top:4px;width:32px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:3px;background:transparent;border:none}
+.pweye:hover{background:rgba(0,0,0,.06)}
+.prow2{display:flex;align-items:center;gap:14px;padding:10px 2px;border-bottom:1px solid rgba(0,0,0,.06)}
+.prow2:last-child{border-bottom:none}
+.pn2{font-size:13.5px;font-weight:600;color:#262626}
+.pd2{font-size:11.5px;color:#6a7787;margin-top:2px;max-width:380px;line-height:1.45}
+.picon{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.picon.b{background:#DCEBFA}.picon.g{background:#DFF0E2}.picon.p{background:#EAE4F6}.picon.o{background:#FAEEDA}.picon.t{background:#DCF1F1}
+.acc-ava{width:86px;height:86px;border-radius:50%;background:linear-gradient(135deg,#6FB3EA,#0067C0);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 5px 16px rgba(0,80,150,.28)}
+.offnote{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.08);border-radius:6px;padding:12px 14px;font-size:12.5px;color:#4a5560;max-width:460px;line-height:1.55}
+.oobe-art{position:absolute;right:5%;top:50%;transform:translateY(-50%);z-index:1;opacity:.95}
+@media (max-width:940px){.oobe-art{display:none}}
+.readyblue{position:absolute;inset:0;background:linear-gradient(180deg,#3E97DE 0%,#0067C0 45%,#005BA1 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;color:#fff}
+.rbtxt{font-size:30px;font-weight:300;color:#fff;text-align:center;padding:0 24px;max-width:80%}
+.sqrow2{display:flex;gap:10px;margin-bottom:10px}
+.sqrow2 select{flex:0 0 46%}
 
 /* ===== DESKTOP ===== */
 .desk{position:absolute;inset:0;font-size:13px}
@@ -912,60 +929,226 @@ function goType(){
   hint('Pilih "Custom: Install Windows only (advanced)".');
 }
 
-/* --- Partisi disk --- */
-let DK={mode:'unalloc',sel:0};
-function diskRows(){
-  if(DK.mode==='unalloc')return[{n:'Drive 0 Unallocated Space',t:'63.9 GB',f:'63.9 GB',ty:''}];
-  return[
-    {n:'Drive 0 Partition 1: System Reserved',t:'260 MB',f:'217 MB',ty:'System Reserved'},
-    {n:'Drive 0 Partition 2',t:'16.0 MB',f:'16.0 MB',ty:'MSR (Reserved)'},
-    {n:'Drive 0 Partition 3: Primary',t:'62.9 GB',f:'62.9 GB',ty:'Primary'},
-    {n:'Drive 0 Partition 4: Recovery',t:'620 MB',f:'548 MB',ty:'Recovery'}];
+/* ================= PARTISI DISK (lengkap & realistis) ================= */
+let DK={parts:[],sel:0,busy:null};
+const fmtSize=mb=>mb>=1024?(mb/1024).toFixed(1)+' GB':Math.round(mb)+' MB';
+function mkDisk(){return {parts:[{ty:'unalloc',size:65428}],sel:0,busy:null};}
+
+function diskHint(){
+  const P=DK.parts,p=P[DK.sel];if(!p)return;
+  if(p.ty==='unalloc'){
+    if(!P.some(x=>x.ty==='sys'))
+      hint('Klik "New" untuk membuat partisi (Setup otomatis menambah System Reserved 260 MB + MSR 16 MB, dan Recovery 620 MB bila seluruh ruang dipakai). Atau klik Next langsung — Windows mempartisi sendiri.');
+    else hint('Klik "New" untuk membuat partisi tambahan di ruang kosong ini, atau pilih partisi Primary lalu Next.');
+  }else if(p.ty==='primary'){
+    hint(P.some(x=>x.ty==='sys')
+      ?'Partisi Primary siap — klik Next untuk mulai instalasi. (Coba juga Format, Extend, dan Delete.)'
+      :'Disk ini tidak punya partisi sistem (System Reserved). Klik Next untuk melihat pesan error khas Windows, atau Delete semua partisi lalu New lagi.');
+  }else if(p.ty==='sys')hint('System Reserved menyimpan file boot UEFI — Windows tidak bisa diinstal di sini.');
+  else if(p.ty==='msr')hint('MSR (Microsoft Reserved) adalah partisi cadangan GPT — tidak dipakai untuk instalasi.');
+  else hint('Partisi Recovery untuk Windows RE — tidak bisa dipakai instalasi.');
 }
-function goDisk(){DK={mode:'unalloc',sel:0};renderDisk();}
+
+function goDisk(){DK=mkDisk();renderDisk();}
 function renderDisk(){
-  const rows=diskRows();
+  const P=DK.parts;
+  let pnum=0;
+  const rows=P.map((p,i)=>{
+    let n,ty;
+    if(p.ty==='unalloc'){n='Drive 0 Unallocated Space';ty='';}
+    else{pnum++;
+      if(p.ty==='sys'){n='Drive 0 Partition '+pnum+': System Reserved';ty='System Reserved';}
+      else if(p.ty==='msr'){n='Drive 0 Partition '+pnum;ty='MSR (Reserved)';}
+      else if(p.ty==='primary'){n='Drive 0 Partition '+pnum+': Primary';ty='Primary';}
+      else{n='Drive 0 Partition '+pnum+': Recovery';ty='Recovery';}
+    }
+    const busy=(DK.busy&&!DK.busy.scan&&DK.busy.i===i);
+    return {n:n,t:fmtSize(p.size),f:busy?DK.busy.t:fmtSize(p.size),ty:ty};
+  });
+  const scanning=DK.busy&&DK.busy.scan;
+  const selP=P[DK.sel]||P[0];
+  const isReal=selP.ty!=='unalloc';
+  const idle=!DK.busy;
+  const canNew=!isReal&&idle;
+  const canDel=isReal&&idle;
+  const canExt=isReal&&idle&&P[DK.sel+1]&&P[DK.sel+1].ty==='unalloc';
+
   showSetup('Where do you want to install Windows?',`
     <div class="disktable"><div class="drow head"><span>Name</span><span>Total Size</span><span>Free Space</span><span>Type</span></div>
-    ${rows.map((r,i)=>`<div class="drow ${i===DK.sel?'sel':''}" data-i="${i}"><span>${r.n}</span><span>${r.t}</span><span>${r.f}</span><span>${r.ty||'&nbsp;'}</span></div>`).join('')}
+    ${scanning?`<div class="drow scanning"><span>Please wait while Setup scans the disk&hellip;</span><span></span><span></span><span></span></div>`
+      :rows.map((r,i)=>`<div class="drow ${i===DK.sel?'sel':''}" data-i="${i}"><span>${r.n}</span><span>${r.t}</span><span>${r.f}</span><span>${r.ty||'&nbsp;'}</span></div>`).join('')}
     </div>
     <div class="dtoolbar">
       <div class="dtool" id="tRefresh">Refresh</div>
       <div class="dtool" id="tLoad">Load driver</div>
-      <div class="dtool ${DK.mode==='unalloc'?'dis':''}" id="tDelete">Delete</div>
-      <div class="dtool ${DK.mode==='unalloc'?'dis':''}" id="tFormat">Format</div>
-      <div class="dtool ${DK.mode==='part'?'dis':''}" id="tNew">New</div>
+      <div class="dtool ${canDel?'':'dis'}" id="tDelete">Delete</div>
+      <div class="dtool ${canDel?'':'dis'}" id="tFormat">Format</div>
+      <div class="dtool ${canNew?'':'dis'}" id="tNew">New</div>
+      <div class="dtool ${canExt?'':'dis'}" id="tExtend">Extend</div>
     </div>
     <div id="sizedlg" class="sizebox" hidden>
       <label class="slabel" style="margin:0">Size (MB)</label>
-      <input class="winput" id="sz" style="width:140px" value="65428">
-      <div class="dtool" id="szApply">Apply</div><div class="dtool" id="szCancel">Cancel</div>
+      <input class="winput" id="sz" type="number" style="width:140px">
+      <span id="szerr"></span>
+      <div class="dtool" id="szApply">Apply</div>
+      <div class="dtool" id="szCancel">Cancel</div>
     </div>`,
     `<span></span><button class="wbtn" id="next">Next</button>`,'wide');
-  hint('Pilih "Drive 0 Unallocated Space" → klik New → Apply → OK → pilih "Partition 3: Primary" → Next.');
-  $$('.drow:not(.head)',screenEl).forEach(r=>r.addEventListener('click',()=>{
-    DK.sel=+r.dataset.i;
-    $$('.drow:not(.head)',screenEl).forEach(x=>x.classList.toggle('sel',x===r));}));
-  $('#tNew').addEventListener('click',()=>{if(DK.mode==='unalloc')$('#sizedlg').hidden=false;});
-  $('#szCancel').addEventListener('click',()=>$('#sizedlg').hidden=true);
-  $('#szApply').addEventListener('click',()=>{$('#sizedlg').hidden=true;
-    cardConfirm('Windows will create additional partitions for system files. These partitions are required by Windows and may be hidden.',()=>{
-      DK.mode='part';DK.sel=2;renderDisk();},'OK',true);});
-  $('#tDelete').addEventListener('click',()=>{if(DK.mode==='part'){
-    cardConfirm('The selected partition might contain system files needed by Windows. Delete it?',()=>{
-      DK.mode='unalloc';DK.sel=0;renderDisk();});}});
-  $('#tFormat').addEventListener('click',()=>{if(DK.mode==='part'){
-    cardConfirm('Format will erase any data on this partition. Continue?',null,'OK',true);}});
-  $('#tRefresh').addEventListener('click',renderDisk);
-  $('#tLoad').addEventListener('click',()=>cardConfirm('No signed device drivers were found. Make sure the installation media contains the proper drivers, then click OK.',null,'OK',true));
+
+  $$('.drow:not(.head):not(.scanning)',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    if(DK.busy)return;
+    DK.sel=+r.dataset.i;renderDisk();
+  }));
+  diskHint();
+
+  /* ---------- toolbar ---------- */
+  $('#tRefresh').addEventListener('click',()=>{
+    if(DK.busy)return;
+    DK.busy={scan:true};renderDisk();
+    $('#ledDisk').classList.add('busy');
+    after(800,()=>{$('#ledDisk').classList.remove('busy');DK.busy=null;renderDisk();});
+  });
+
+  $('#tLoad').addEventListener('click',()=>{
+    if(DK.busy)return;
+    const card=$('.setup-card',screenEl);if(!card)return;
+    card.insertAdjacentHTML('beforeend',`<div class="cmodal"><div class="cbox">
+      <div>Insert the installation media that contains the driver package, then type the path to the folder with the driver files.</div>
+      <input class="winput mono" id="drvpath" style="margin-top:12px" value="E:\\Drivers">
+      <div class="cbbtns"><button class="wbtn" id="drvok">OK</button><button class="wbtn sec" id="drvc">Cancel</button></div>
+    </div></div>`);
+    const m=$('.cmodal',screenEl);
+    $('#drvc').addEventListener('click',()=>m.remove());
+    $('#drvok').addEventListener('click',()=>{m.remove();
+      after(700,()=>cardConfirm('No signed device drivers were found. Make sure that the installation media contains the proper drivers, and then click OK.',null,'OK',true));});
+  });
+
+  $('#tDelete').addEventListener('click',()=>{
+    if(!canDel)return;
+    const i=DK.sel;
+    cardConfirm('The partition might contain system files needed by Windows. If you delete it, the space becomes unallocated and merges with adjacent free space.',()=>{deletePart(i);},'Delete');
+  });
+
+  $('#tFormat').addEventListener('click',()=>{
+    if(!canDel)return;
+    cardConfirm('Format will erase any data on this partition. To format this partition, click OK. To cancel, click Cancel.',()=>{
+      DK.busy={i:DK.sel,t:'Formatting\u2026'};renderDisk();
+      $('#ledDisk').classList.add('busy');
+      after(1400,()=>{$('#ledDisk').classList.remove('busy');DK.busy=null;renderDisk();tone(1400,.05,'square',.06);});
+    },'OK');
+  });
+
+  $('#tNew').addEventListener('click',()=>{if(canNew)sizeDlg('new');});
+  $('#tExtend').addEventListener('click',()=>{if(canExt)sizeDlg('extend');});
+
+  /* ---------- dialog ukuran (New / Extend) ---------- */
+  function sizeDlg(mode){
+    const box=$('#sizedlg');box.hidden=false;
+    const inp=$('#sz'),err=$('#szerr'),ap=$('#szApply');
+    let min,max;
+    if(mode==='new'){
+      const M=P[DK.sel].size;
+      const needSys=!P.some(x=>x.ty==='sys');
+      min=(needSys&&M>=376)?376:100;max=M;
+    }else{
+      const i=DK.sel;
+      min=P[i].size;max=P[i].size+P[i+1].size;
+    }
+    inp.value=max;inp.min=min;inp.max=max;
+    const check=()=>{
+      const v=Math.floor(+inp.value||0);
+      const ok=v>=min&&v<=max;
+      ap.classList.toggle('dis',!ok);
+      err.textContent=ok?'':(v>max?'Maximum size is '+max+' MB.':'Minimum size is '+min+' MB.');
+    };
+    check();
+    inp.oninput=check;
+    inp.onkeydown=e=>{if(e.key==='Enter'&&!ap.classList.contains('dis'))ap.click();};
+    $('#szCancel').onclick=()=>{box.hidden=true;};
+    ap.onclick=()=>{
+      if(ap.classList.contains('dis'))return;
+      const v=Math.floor(+inp.value);box.hidden=true;
+      if(mode==='new')applyNew(v);
+      else{
+        const i=DK.sel,u=P[i+1],comb=P[i].size+u.size;
+        P[i].size=v;u.size=comb-v;
+        if(u.size<=0)P.splice(i+1,1);
+        renderDisk();
+      }
+    };
+    inp.focus();if(inp.select)inp.select();
+  }
+
+  /* ---------- buat partisi (logika partisi Windows asli) ---------- */
+  function applyNew(X,silent){
+    const i=DK.sel,M=P[i].size,full=X===M;
+    const needSys=!P.some(x=>x.ty==='sys')&&M>=376;
+    const run=()=>{
+      const ins=[];
+      if(needSys){
+        ins.push({ty:'sys',size:260},{ty:'msr',size:16});
+        if(full){
+          const rem=M-276;
+          if(rem-620>=100)ins.push({ty:'primary',size:rem-620},{ty:'recovery',size:620});
+          else ins.push({ty:'primary',size:rem});
+        }else{
+          ins.push({ty:'primary',size:X-276},{ty:'unalloc',size:M-X});
+        }
+      }else{
+        ins.push({ty:'primary',size:X});
+        if(!full)ins.push({ty:'unalloc',size:M-X});
+      }
+      P.splice(i,1,...ins);
+      let sel=i;for(let k=i;k<i+ins.length;k++)if(P[k].ty==='primary'){sel=k;break;}
+      if(!silent){DK.sel=sel;renderDisk();}
+    };
+    if(needSys&&!silent)
+      cardConfirm('Windows will create additional partitions for system files. These partitions are required by Windows and may be hidden.',run,'OK',true);
+    else run();
+  }
+
+  /* ---------- hapus partisi (ruang kosong digabung otomatis) ---------- */
+  function deletePart(i){
+    const size=P[i].size;
+    P[i]={ty:'unalloc',size:size};
+    let j=i;
+    if(j>0&&P[j-1].ty==='unalloc'){P[j-1].size+=size;P.splice(j,1);j--;}
+    if(j+1<P.length&&P[j+1].ty==='unalloc'){P[j].size+=P[j+1].size;P.splice(j+1,1);}
+    DK.sel=j;renderDisk();
+  }
+
+  /* ---------- NEXT ---------- */
   $('#next').addEventListener('click',()=>{
-    if(DK.mode==='unalloc'){
-      cardConfirm('Windows might create additional partitions for system files. Setup will continue automatically.',()=>goInstall(),'OK',true);}
-    else if(diskRows()[DK.sel].ty==='Primary')goInstall();
-    else{errBeep();cardConfirm('Windows cannot be installed to this partition. Select the "Primary" partition (Partition 3), then click Next.',null,'OK',true);}});
+    if(DK.busy)return;
+    const p=P[DK.sel];if(!p)return;
+    if(p.ty==='unalloc'){
+      cardConfirm('Windows might create additional partitions for system files. Setup will continue automatically.',()=>{
+        applyNew(P[DK.sel].size,true);
+        renderDisk();
+        if(!P.some(x=>x.ty==='sys')){
+          errBeep();
+          cardConfirm('Setup was unable to create a new system partition or locate an existing system partition. See the Setup log files for more information.',null,'OK',true);
+        }else goInstall();
+      },'OK',true);
+    }
+    else if(p.ty==='primary'){
+      if(!P.some(x=>x.ty==='sys')){
+        errBeep();
+        cardConfirm('Setup was unable to create a new system partition or locate an existing system partition. See the Setup log files for more information.',null,'OK',true);
+      }else goInstall();
+    }
+    else if(p.ty==='sys'){
+      errBeep();
+      cardConfirm('Windows cannot be installed to System Reserved partition.',null,'OK',true);
+    }
+    else{
+      errBeep();
+      cardConfirm('Windows cannot be installed to this partition. Select the Primary partition, then click Next.',null,'OK',true);
+    }
+  });
 }
 
-/* --- Progress instalasi --- */
+/* ================= PROGRESS INSTALASI ================= */
 const PROG_ITEMS=['Copying Windows files','Getting files ready for installation','Installing features','Installing updates','Finishing up'];
 function progressScreen(){
   showSetup('Installing Windows',`
@@ -1019,134 +1202,232 @@ async function goInstall(){
   oobeRegion();
 }
 
-/* ================= OOBE ================= */
-function oobeShow(title,sub,inner,foot){
-  setScreen(`<div class="oobe"><div class="oobe-card">
-    <h1>${title}</h1>${sub?`<div class="sub">${sub}</div>`:''}
-    ${inner||''}<div class="oobe-foot">${foot||''}</div>
-  </div></div>`,'t-ui t-oobe');
+/* ================= OOBE (gaya Windows 11 asli + ikon) ================= */
+const OC={
+ chevL:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 2.5L4.5 8l5.5 5.5" stroke="#1b1b1b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ eye:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z" stroke="#5c6b7a" stroke-width="1.6"/><circle cx="10" cy="10" r="2.6" fill="#5c6b7a"/></svg>`,
+ eyeOff:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 10s3-5.5 8-5.5c1.8 0 3.3.7 4.5 1.6M18 10s-3 5.5-8 5.5c-1.8 0-3.3-.7-4.5-1.6" stroke="#5c6b7a" stroke-width="1.6" stroke-linecap="round"/><path d="M3.5 16.5l13-13" stroke="#C42B1C" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+ errIc:`<svg width="16" height="16" viewBox="0 0 16 16" style="flex:0 0 auto"><circle cx="8" cy="8" r="7" fill="#C42B1C"/><path d="M8 4.4v4.2M8 11.2v.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+ cloudOff:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:0 0 auto;margin-top:1px"><path d="M7 18.2a4.6 4.6 0 1 1 .9-9.1A6.1 6.1 0 0 1 19.4 11a3.6 3.6 0 0 1-1.2 7.2H7z" fill="#8A97A3"/><path d="M4 20L20 4" stroke="#C42B1C" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+ person:`<svg width="46" height="46" viewBox="0 0 48 48"><circle cx="24" cy="17.5" r="8.5" fill="#fff"/><path d="M8.5 43c1.3-9.6 7.7-13.8 15.5-13.8s14.2 4.2 15.5 13.8c-4.8 2.1-10.1 3.1-15.5 3.1s-10.7-1-15.5-3.1z" fill="#fff"/></svg>`,
+ pin:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2.2c-3.8 0-6.8 3-6.8 6.8 0 5.1 6.1 12.2 6.4 12.5.2.3.6.3.8 0 .3-.3 6.4-7.4 6.4-12.5 0-3.8-3-6.8-6.8-6.8z" fill="#0078D4"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>`,
+ mon:`<svg width="20" height="20" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12.5" rx="2" fill="#107C10"/><rect x="5.2" y="6.7" width="13.6" height="8.1" rx="1" fill="#fff" opacity=".92"/><rect x="10.2" y="18" width="3.6" height="2.6" fill="#107C10"/><rect x="7.5" y="20.6" width="9" height="1.8" rx=".9" fill="#107C10"/></svg>`,
+ pulse:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M20.8 8.7c0 4.5-8.4 11.2-8.8 11.5-.4-.3-8.8-7-8.8-11.5 0-2.8 2.2-5 4.8-5 1.7 0 3.2.9 4 2.2.8-1.3 2.3-2.2 4-2.2 2.6 0 4.8 2.2 4.8 5z" fill="#7765B8"/><path d="M6.6 8.8h2.8l1-1.9 2 4.1 1-2.2h2.8" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+ pen:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M4.2 19.8l1.1-4.1L16.6 4.4a2 2 0 0 1 2.8 0l.2.2a2 2 0 0 1 0 2.8L8.3 18.7l-4.1 1.1z" fill="#C78A1E"/><path d="M14.7 6.3l3 3" stroke="#fff" stroke-width="1.4"/></svg>`,
+ spark:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l1.8 4.9 4.9 1.8-4.9 1.8L12 16.4l-1.8-4.9-4.9-1.8 4.9-1.8L12 3z" fill="#0E8A8A"/><path d="M18.6 14.6l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" fill="#0E8A8A" opacity=".65"/></svg>`,
+ globeArt:`<svg width="270" height="270" viewBox="0 0 270 270">
+   <circle cx="135" cy="135" r="118" fill="#1B6FC2" opacity=".08"/>
+   <circle cx="135" cy="135" r="96" fill="#1B6FC2" opacity=".12"/>
+   <circle cx="135" cy="135" r="76" fill="#EAF3FB" stroke="#1B6FC2" stroke-width="5"/>
+   <ellipse cx="135" cy="135" rx="34" ry="76" fill="none" stroke="#1B6FC2" stroke-width="4" opacity=".7"/>
+   <path d="M59 135h152" stroke="#1B6FC2" stroke-width="4" opacity=".7"/>
+   <path d="M72 92q63 28 126 0M72 178q63-28 126 0" stroke="#1B6FC2" stroke-width="3.5" fill="none" opacity=".5"/>
+   <circle cx="212" cy="74" r="18" fill="#0067C0"/>
+   <path d="M184 124c3-17 12-24 28-24s25 7 28 24c-9 4-18 6-28 6s-19-2-28-6z" fill="#0067C0"/>
+   <path d="M40 210q20 14 44 10" stroke="#1B6FC2" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55"/>
+   <path d="M228 196q-18 12-38 8" stroke="#1B6FC2" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55"/>
+ </svg>`
+};
+function wifiSig(lv){
+  const on='#2b2b2b',off='#C3CDD7';
+  return `<svg class="sig" width="18" height="18" viewBox="0 0 20 20" fill="none">
+    <path d="M2.2 7.4Q10 1.2 17.8 7.4" stroke="${lv>=3?on:off}" stroke-width="1.9" stroke-linecap="round"/>
+    <path d="M4.9 10.6Q10 5.8 15.1 10.6" stroke="${lv>=2?on:off}" stroke-width="1.9" stroke-linecap="round"/>
+    <circle cx="10" cy="13.8" r="1.9" fill="${lv>=1?on:off}"/></svg>`;
 }
+
+let oobeHistory=[],oobeGen=0;
+function oobeTimer(ms,fn){const g=oobeGen;after(ms,()=>{if(g===oobeGen)fn();});}
+function oobeShell(title,sub,inner,opts){
+  opts=opts||{};oobeGen++;
+  const hasBack=oobeHistory.length>1;
+  setScreen(`<div class="oobe2">
+    <div class="bgwall">${WALL}</div>
+    <div class="bgtint"></div>
+    ${hasBack?`<div class="oobe-back" id="obk" title="Kembali">${OC.chevL}</div>`:''}
+    ${opts.art?`<div class="oobe-art">${opts.art}</div>`:''}
+    <div class="oobe-content">
+      <h1>${title}</h1>
+      ${sub?`<div class="sub">${sub}</div>`:''}
+      ${inner||''}
+    </div>
+    <div class="oobe-foot"><div>${opts.footL||''}</div><div>${opts.footR||''}</div></div>
+  </div>`,'t-ui t-oobe2');
+  if(hasBack)$('#obk').addEventListener('click',e=>{e.stopPropagation();oobeBack();});
+}
+function bindEye(btn,inp){if(!btn||!inp)return;
+  btn.addEventListener('click',e=>{e.stopPropagation();
+    const show=inp.type==='password';
+    inp.type=show?'text':'password';
+    btn.innerHTML=show?OC.eyeOff:OC.eye;});}
+
 function oobeRegion(){
   newPhase('oobe');
+  oobeHistory=['region'];
   const C=['Indonesia','United States','United Kingdom','Australia','Canada','India','Japan','Malaysia','New Zealand','Philippines','Singapore','Thailand','Vietnam','Germany','France','Netherlands','Spain','Italy','Brazil','Mexico'];
-  oobeShow(`Let's start with region. Is this right?`,'Make sure this is the right region — it cannot be changed later.',
-    `<div class="oblist">${C.map(c=>`<div class="obitem ${c==='Indonesia'?'sel':''}" data-c="${c}">${c}</div>`).join('')}</div>`,
-    `<span></span><button class="bnext" id="ok">Yes</button>`);
+  oobeShell(`Let's start with region. Is this right?`,
+    'Make sure this is the right region — it cannot be changed later.',
+    `<div class="oobe-list">${C.map(c=>`<div class="obitem ${c==='Indonesia'?'sel':''}">${c}</div>`).join('')}</div>`,
+    {footR:'<button class="bnext" id="ok">Yes</button>'});
   $$('.obitem',screenEl).forEach(o=>o.addEventListener('click',()=>{
     $$('.obitem',screenEl).forEach(x=>x.classList.remove('sel'));
     o.classList.add('sel');}));
-  $('#ok').addEventListener('click',oobeKeyboard);
-  hint('Pilih negara (default sudah Indonesia) lalu klik Yes.');
+  $('#ok').addEventListener('click',()=>oobeGo('keyboard'));
+  hint('Pilih negara (default: Indonesia) lalu klik Yes. Mulai layar kedua, tombol bulat kiri-atas berfungsi untuk kembali.');
 }
 function oobeKeyboard(){
   const K=['US','United Kingdom','Indonesian','Australian','Canadian French','Japanese','Korean'];
-  oobeShow('Is this the right keyboard layout?','You can add a second keyboard layout later.',
-    `<div class="oblist">${K.map((k,i)=>`<div class="obitem ${i===0?'sel':''}" data-i="${i}">${k}</div>`).join('')}</div>`,
-    `<a class="wlink" id="skip">Skip for now</a><button class="bnext" id="ok">Next</button>`);
+  oobeShell('Is this the right keyboard layout?','You can add a second keyboard layout later.',
+    `<div class="oobe-list">${K.map((k,i)=>`<div class="obitem ${i===0?'sel':''}">${k}</div>`).join('')}</div>`,
+    {footL:'<a class="wlink" id="skip">Skip for now</a>',footR:'<button class="bnext" id="ok">Next</button>'});
   $$('.obitem',screenEl).forEach(o=>o.addEventListener('click',()=>{
     $$('.obitem',screenEl).forEach(x=>x.classList.remove('sel'));o.classList.add('sel');}));
-  $('#ok').addEventListener('click',oobeNetwork);
-  $('#skip').addEventListener('click',oobeNetwork);
-  hint('Layout "US" sudah sesuai — klik Next (atau Skip for now).');
+  $('#ok').addEventListener('click',()=>oobeGo('network'));
+  $('#skip').addEventListener('click',()=>oobeGo('network'));
+  hint('Layout "US" sudah sesuai — klik Next (atau "Skip for now").');
 }
 function oobeNetwork(){
   const W=[['HomeNet',3],['KopiKanangan_5G',2],['INDOHOME-4A71',2],['MiFi-Andi',1]];
-  oobeShow(`Let's connect you to a network`,'You need an internet connection to keep exploring. Choose a network to connect.',
-    `<div class="oblist">
-      ${W.map(w=>`<div class="wifirow" data-ssid="${w[0]}">${ICON.signal(w[1])}<span style="flex:1">${w[0]}</span>${ICON.lock}</div>`).join('')}
-      <div id="netstat" class="netstat"></div>
-      <div id="pwdbox" hidden style="padding:8px 14px 14px">
-        <input class="winput" id="wpass" type="password" placeholder="Enter the network security key">
-        <div style="display:flex;gap:10px;margin-top:10px">
+  oobeShell(`Let's connect you to a network`,
+    'You need an internet connection to keep exploring. Choose a network to connect.',
+    `<div class="oobe-list" style="max-height:none">
+      ${W.map(w=>`<div class="wifirow2">${wifiSig(w[1])}<span class="nm">${w[0]}</span>${ICON.lock}</div>`).join('')}
+      <div id="netstat" class="netstat2"></div>
+      <div id="pwdbox" class="pwdexp" hidden>
+        <div style="font-size:12.5px;color:#5f5f5f;margin-bottom:8px">Enter the network security key</div>
+        <div class="pwbox"><input class="winput" id="wpass" type="password" placeholder="Network security key" autocomplete="off"><button class="pweye" id="weye" tabindex="-1">${OC.eye}</button></div>
+        <div style="display:flex;gap:10px;margin-top:12px">
           <button class="bnext" id="wconn">Connect</button>
-          <div class="dtool" id="wcancel">Cancel</div></div>
-      </div></div>`,
-    `<a class="wlink" id="noint" style="visibility:hidden">I don't have internet</a><span></span>`);
-  after(5500,()=>{const n=$('#noint');if(n)n.style.visibility='visible';});
-  let trying=false;
-  $$('.wifirow',screenEl).forEach(r=>r.addEventListener('click',()=>{
-    if(trying)return;trying=true;$('#pwdbox').hidden=false;$('#netstat').textContent='';}));
-  $('#wcancel').addEventListener('click',()=>{$('#pwdbox').hidden=true;trying=false;});
+          <button class="wbtn sec" id="wcancel">Cancel</button>
+        </div>
+      </div>
+    </div>`,
+    {footL:`<a class="wlink" id="noint" style="visibility:hidden">I don't have internet</a>`,
+     footR:`<button class="bnext" id="ok" disabled title="Aktif setelah terhubung ke internet">Next</button>`});
+  let trying=false,revealed=false,connSeq=0;
+  const reveal=()=>{if(revealed)return;revealed=true;
+    const n=$('#noint');if(n){n.style.visibility='visible';tone(950,.06,'sine',.06);}};
+  oobeTimer(4500,reveal);
+  bindEye($('#weye'),$('#wpass'));
+  $$('.wifirow2',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    if(trying)return;trying=true;
+    $('#pwdbox').hidden=false;$('#netstat').textContent='';
+    after(60,()=>{const w=$('#wpass');if(w)w.focus();});}));
+  $('#wcancel').addEventListener('click',()=>{connSeq++;trying=false;
+    $('#pwdbox').hidden=true;$('#netstat').textContent='';});
   const tryConn=()=>{
+    const my=++connSeq;
+    $('#netstat').className='netstat2';
     $('#netstat').textContent='Checking network requirements\u2026';
-    after(2600,()=>{if(!$('#netstat'))return;
-      $('#netstat').innerHTML='<span class="serr" style="margin:0">Connect was unsuccessful — no working network driver on this device.</span>';
-      errBeep();trying=false;});};
+    oobeTimer(2600,()=>{if(my!==connSeq||!$('#netstat'))return;
+      $('#netstat').className='netstat2 err';
+      $('#netstat').innerHTML=`${OC.errIc}<span>Connect was unsuccessful — no working network driver on this device.</span>`;
+      errBeep();trying=false;reveal();});
+  };
   $('#wconn').addEventListener('click',tryConn);
   $('#wpass').addEventListener('keydown',e=>{if(e.key==='Enter')tryConn();});
-  $('#noint').addEventListener('click',oobeLimited);
-  hint('Tunggu ±5 detik sampai link "I don\u2019t have internet" muncul di kiri bawah, lalu klik. (Mencoba WiFi juga boleh.)');
+  $('#noint').addEventListener('click',()=>oobeGo('limited'));
+  hint('Klik salah satu WiFi → Connect (akan gagal — driver jaringan belum ada). Setelah gagal atau ±5 detik, link "I don\u2019t have internet" muncul di kiri bawah — klik itu untuk lanjut.');
 }
 function oobeLimited(){
-  oobeShow('Connect now to save time later','Connecting lets you download updates and sign in to your Microsoft account. You can always connect later.',
-    `<div class="stat">You\u2019ll need a Microsoft account to connect, but this PC has no working network driver.</div>`,
-    `<a class="wlink" id="cont">Continue with limited setup</a><button class="bnext" id="retry">Retry</button>`);
-  $('#cont').addEventListener('click',oobeAccount);
-  $('#retry').addEventListener('click',oobeNetwork);
-  hint("Klik \"Continue with limited setup\" untuk membuat akun lokal tanpa Microsoft account.");
+  oobeShell('Connect now to save time later',
+    'Connecting lets you download updates, sync your files, and sign in to your Microsoft account. You can always connect later.',
+    `<div class="offnote">${OC.cloudOff}<span>This PC doesn\u2019t have a working network driver, so it can\u2019t reach the internet right now — you\u2019ll set up a local account instead.</span></div>`,
+    {footL:'<a class="wlink" id="cont">Continue with limited setup</a>',
+     footR:'<button class="bnext" id="retry">Retry</button>',
+     art:OC.globeArt});
+  $('#cont').addEventListener('click',()=>oobeGo('account'));
+  $('#retry').addEventListener('click',()=>oobeGo('network'));
+  hint('Klik "Continue with limited setup" (kiri bawah) untuk membuat akun lokal tanpa Microsoft account.');
 }
 function oobeAccount(){
-  oobeShow("Who's going to use this device?",'Use a name you can easily identify — you\u2019ll use it to sign in.',
-    `<div class="serr" id="aerr"></div><input class="winput" id="uname" placeholder="Username" maxlength="20" autocomplete="off">`,
-    `<span></span><button class="bnext" id="ok">Next</button>`);
-  after(60,()=>$('#uname').focus());
-  $('#uname').addEventListener('keydown',e=>{if(e.key==='Enter')$('#ok').click();});
+  oobeShell("Who's going to use this device?",
+    'Use a name you can easily identify — you\u2019ll use it to sign in.',
+    `<div class="acc-ava">${OC.person}</div>
+     <div class="serr" id="aerr"></div>
+     <input class="winput" id="uname" placeholder="Username" maxlength="20" autocomplete="off">`,
+    {footR:'<button class="bnext" id="ok">Next</button>'});
+  after(60,()=>{const u=$('#uname');if(u)u.focus();});
   $('#ok').addEventListener('click',()=>{
     const n=$('#uname').value.trim();
     if(!n){errBeep();$('#aerr').textContent='Please enter a name.';return;}
-    S.user.name=n;oobePassword();});
-  hint("Masukkan nama pengguna (mis. \"Ardi\") lalu Next.");
+    S.user.name=n;oobeGo('password');});
+  hint('Masukkan nama pengguna (mis. "Ardi") lalu klik Next (atau tekan Enter).');
 }
 function oobePassword(){
-  oobeShow('Create a super memorable password','Make sure to pick something you can remember. Leave it blank to sign in without a password.',
-    `<input class="winput" id="p1" type="password" placeholder="Password">
-     <input class="winput" id="p2" type="password" placeholder="Confirm password" style="margin-top:10px">
-     <div class="serr" id="perr"></div>`,
-    `<span></span><button class="bnext" id="ok">Next</button>`);
+  const pf=(id,ph)=>`<div class="pwbox" style="margin-bottom:10px"><input class="winput" id="${id}" type="password" placeholder="${ph}" autocomplete="off"><button class="pweye" data-t="${id}" tabindex="-1">${OC.eye}</button></div>`;
+  oobeShell('Create a super memorable password',
+    'Make sure to pick something you can remember. Leave it blank to sign in without a password.',
+    `${pf('p1','Password')}${pf('p2','Confirm password')}<div class="serr" id="perr"></div>`,
+    {footR:'<button class="bnext" id="ok">Next</button>'});
+  $$('.pweye',screenEl).forEach(b=>bindEye(b,$('#'+b.dataset.t)));
   $('#ok').addEventListener('click',()=>{
     const a=$('#p1').value,b=$('#p2').value;
     if(a!==b){errBeep();$('#perr').textContent="The passwords you entered don't match. Try again.";return;}
     S.user.password=a;
-    a?oobeSQ():oobePrivacy();});
-  hint('Isi password dua kali — atau kosongkan keduanya untuk langsung lanjut.');
+    a?oobeGo('sq'):oobeGo('privacy');});
+  hint('Isi password dua kali — ikon mata untuk menampilkan/menyembunyikan. Kosongkan keduanya untuk lanjut tanpa password.');
 }
 function oobeSQ(){
   const Qs=['What was your childhood nickname?',"What's the name of your first pet?",'What city were you born in?','What was your first car?',"What's your mother's maiden name?"];
-  oobeShow('Add security questions','If you forget your password, you can recover your local account with these.',
-    `<div id="sqwrap">${[0,1,2].map(()=>`<div class="sqrow"><select class="winput">${Qs.map(q=>`<option>${q}</option>`).join('')}</select><input class="winput sqin" placeholder="Answer"></div>`).join('')}</div>`,
-    `<span></span><button class="bnext" id="ok">Next</button>`);
+  oobeShell('Add security questions',
+    'If you forget your password, you can recover your local account with these answers.',
+    [0,1,2].map(()=>`<div class="sqrow2"><select class="winput">${Qs.map(q=>`<option>${q}</option>`).join('')}</select><input class="winput sqin" placeholder="Answer"></div>`).join(''),
+    {footR:'<button class="bnext" id="ok">Next</button>'});
   $('#ok').addEventListener('click',()=>{
     const ok=$$('.sqin',screenEl).every(i=>i.value.trim());
     if(!ok){errBeep();$$('.sqin',screenEl).forEach(i=>i.style.borderColor=i.value.trim()?'':'#C42B1C');return;}
-    oobePrivacy();});
-  hint('Isi jawaban untuk 3 pertanyaan keamanan (bebas), lalu Next.');
+    oobeGo('privacy');});
+  hint('Pilih pertanyaan dan isi jawabannya (bebas) untuk ketiganya, lalu Next.');
 }
 function oobePrivacy(){
   const P=[
-    ['Location','Let apps use your precise location, including location history.'],
-    ['Find my device','Track your device if you lose it.'],
-    ['Diagnostic data','Send usage data to help improve Windows.'],
-    ['Inking & typing','Send what you write and type to improve recognition.'],
-    ['Tailored experiences','Let Windows personalize tips, ads, and content.']];
-  oobeShow('Choose privacy settings for your device','Microsoft puts you in control of your privacy. Review these settings before finishing setup.',
-    P.map((p,i)=>`<div class="prow"><div><div class="pn">${p[0]}</div><div class="pd">${p[1]}</div></div><div class="tog ${i>=2?'on':''}" data-i="${i}"></div></div>`).join(''),
-    `<span></span><button class="bnext" id="ok">Accept</button>`);
-  $$('.tog',screenEl).forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
+    ['Location','Let apps use your precise location, including location history.','pin','b'],
+    ['Find my device','Track your device if you lose it. You can also locate it on a map.','mon','g'],
+    ['Diagnostic data','Send usage data to help improve Windows.','pulse','p'],
+    ['Inking & typing','Send what you write and type to improve recognition and suggestions.','pen','o'],
+    ['Tailored experiences','Let Windows personalize tips, ads, and content based on your data.','spark','t']];
+  oobeShell('Choose privacy settings for your device',
+    'You\u2019re in control. Review these settings and turn them on or off before finishing setup.',
+    P.map((p,i)=>`<div class="prow2"><div class="picon ${p[3]}">${OC[p[2]]}</div><div style="flex:1"><div class="pn2">${p[0]}</div><div class="pd2">${p[1]}</div></div><div class="tog ${i>=2?'on':''}"></div></div>`).join(''),
+    {footR:'<button class="bnext" id="ok">Accept</button>'});
+  $$('.tog',screenEl).forEach(t=>t.addEventListener('click',()=>{t.classList.toggle('on');tone(1200,.03,'square',.05);}));
   $('#ok').addEventListener('click',oobeFinal);
-  hint('Atur toggle privasi sesuai selera, lalu klik Accept.');
+  hint('Setiap pengaturan kini punya ikon sendiri. Atur toggle sesuai selera lalu klik Accept.');
 }
 async function oobeFinal(){
   newPhase('final');const g=S.gen;
   S.installed=true;S.instDate=new Date();
-  setScreen(`<div class="final">${wlogo(64,'#0067C0')}${dots(44,'#5c6b7a')}<div class="ftext" id="ftext">Getting ready\u2026</div></div>`,'t-ui t-oobe');
-  hint('Tinggal sedikit lagi — Windows sedang menyelesaikan persiapan\u2026');
-  const msgs=['Getting ready\u2026','This might take a few minutes\u2026','Almost ready\u2026','Hi '+S.user.name+'! Getting everything set up for you\u2026'];
-  for(const m of msgs){const el=$('#ftext');if(el)el.textContent=m;
-    await wait(3200);if(g!==S.gen)return;}
-  setScreen(`<div class="welc">${dots(44,'#fff')}<div class="wt">Welcome, ${esc(S.user.name)}</div></div>`,'t-black');
+  const blue=txt=>setScreen(`<div class="readyblue">${dots(44,'#fff')}<div class="rbtxt">${txt}</div></div>`,'t-ui t-oobe2');
+  blue('Hi');
+  hint('Sebentar lagi — Windows sedang menyelesaikan persiapan\u2026');
+  const msgs=[['Getting everything set up for you',2600],['This might take a few minutes',2600],['Almost ready',2200],['Hi '+esc(S.user.name)+' \u2014 getting everything ready for you',2600]];
+  for(const m of msgs){await wait(m[1]);if(g!==S.gen)return;blue(m[0]);}
+  await wait(2600);if(g!==S.gen)return;
+  setScreen(`<div class="readyblue"><div class="rbtxt" style="font-size:36px">Welcome, ${esc(S.user.name)}</div>${dots(44,'#fff')}</div>`,'t-ui t-oobe2');
   await wait(2600);if(g!==S.gen)return;
   showDesktop(true);
 }
+
+const OOBE_FN={region:oobeRegion,keyboard:oobeKeyboard,network:oobeNetwork,limited:oobeLimited,
+               account:oobeAccount,password:oobePassword,sq:oobeSQ,privacy:oobePrivacy};
+function oobeGo(n){oobeHistory.push(n);const f=OOBE_FN[n];if(f)f();}
+function oobeBack(){
+  if(oobeHistory.length>1){
+    oobeHistory.pop();
+    const f=OOBE_FN[oobeHistory[oobeHistory.length-1]];
+    if(f)f();
+  }
+}
+
+/* Enter = tombol Next/Yes di semua layar OOBE */
+screenEl.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||S.phase!=='oobe')return;
+  const t=e.target;
+  if(t&&t.tagName==='SELECT')return;
+  const b=$('#ok');
+  if(b&&!b.disabled){e.preventDefault();b.click();}
+});
 
 /* ================= DESKTOP ================= */
 const STARTFILES={
@@ -1740,537 +2021,6 @@ screenEl.oncontextmenu=e=>{
   setScreen('','t-black');
   syncPort();
   hint('Selamat datang di AXIOM VirtualPC. Tekan tombol Power di bezel (atau tombol P) untuk menyalakan PC — dan pasang flashdisk installer kapan saja: cukup KLIK sekali atau seret ke port USB yang menyala hijau.');
-})();
-</script>
-<!-- ====== PATCH: layar partisi disk — semua tombol berfungsi, perilaku realistis ====== -->
-<script>
-(function(){
-'use strict';
-if(typeof goDisk!=='function'||typeof DK==='undefined'){
-  alert('Patch ini harus ditempel DI DALAM file simulasi Windows 11 utama, tepat sebelum </body> — bukan di file baru/kosong.');
-  return;
-}
-
-const st=document.createElement('style');
-st.textContent=`
-#szerr{color:#C42B1C;font-size:12px}
-.drow.scanning{color:#8a8a8a;font-style:italic}
-`;
-document.head.appendChild(st);
-
-const fmtSize=mb=>mb>=1024?(mb/1024).toFixed(1)+' GB':Math.round(mb)+' MB';
-function mkDisk(){return {parts:[{ty:'unalloc',size:65428}],sel:0,busy:null};}
-
-function diskHint(){
-  const P=DK.parts,p=P[DK.sel];if(!p)return;
-  if(p.ty==='unalloc'){
-    if(!P.some(x=>x.ty==='sys'))
-      hint('Klik "New" untuk membuat partisi (Setup otomatis menambah System Reserved 260 MB + MSR 16 MB, dan Recovery 620 MB bila seluruh ruang dipakai). Atau klik Next langsung — Windows mempartisi sendiri.');
-    else hint('Klik "New" untuk membuat partisi tambahan di ruang kosong ini, atau pilih partisi Primary lalu Next.');
-  }else if(p.ty==='primary'){
-    hint(P.some(x=>x.ty==='sys')
-      ?'Partisi Primary siap — klik Next untuk mulai instalasi. (Coba juga Format, Extend, dan Delete.)'
-      :'Disk ini tidak punya partisi sistem (System Reserved). Klik Next untuk melihat pesan error khas Windows, atau Delete semua partisi lalu New lagi.');
-  }else if(p.ty==='sys')hint('System Reserved menyimpan file boot UEFI — Windows tidak bisa diinstal di sini.');
-  else if(p.ty==='msr')hint('MSR (Microsoft Reserved) adalah partisi cadangan GPT — tidak dipakai untuk instalasi.');
-  else hint('Partisi Recovery untuk Windows RE — tidak bisa dipakai instalasi.');
-}
-
-goDisk=function(){DK=mkDisk();renderDisk();};
-
-renderDisk=function(){
-  const P=DK.parts;
-  let pnum=0;
-  const rows=P.map((p,i)=>{
-    let n,ty;
-    if(p.ty==='unalloc'){n='Drive 0 Unallocated Space';ty='';}
-    else{pnum++;
-      if(p.ty==='sys'){n='Drive 0 Partition '+pnum+': System Reserved';ty='System Reserved';}
-      else if(p.ty==='msr'){n='Drive 0 Partition '+pnum;ty='MSR (Reserved)';}
-      else if(p.ty==='primary'){n='Drive 0 Partition '+pnum+': Primary';ty='Primary';}
-      else{n='Drive 0 Partition '+pnum+': Recovery';ty='Recovery';}
-    }
-    const busy=(DK.busy&&!DK.busy.scan&&DK.busy.i===i);
-    return {n:n,t:fmtSize(p.size),f:busy?DK.busy.t:fmtSize(p.size),ty:ty};
-  });
-  const scanning=DK.busy&&DK.busy.scan;
-  const selP=P[DK.sel]||P[0];
-  const isReal=selP.ty!=='unalloc';
-  const canNew=!isReal&&!scanning;
-  const canDel=isReal&&!scanning;
-  const canExt=isReal&&!scanning&&P[DK.sel+1]&&P[DK.sel+1].ty==='unalloc';
-
-  showSetup('Where do you want to install Windows?',`
-    <div class="disktable"><div class="drow head"><span>Name</span><span>Total Size</span><span>Free Space</span><span>Type</span></div>
-    ${scanning?`<div class="drow scanning"><span>Please wait while Setup scans the disk&hellip;</span><span></span><span></span><span></span></div>`
-      :rows.map((r,i)=>`<div class="drow ${i===DK.sel?'sel':''}" data-i="${i}"><span>${r.n}</span><span>${r.t}</span><span>${r.f}</span><span>${r.ty||'&nbsp;'}</span></div>`).join('')}
-    </div>
-    <div class="dtoolbar">
-      <div class="dtool" id="tRefresh">Refresh</div>
-      <div class="dtool" id="tLoad">Load driver</div>
-      <div class="dtool ${canDel?'':'dis'}" id="tDelete">Delete</div>
-      <div class="dtool ${canDel?'':'dis'}" id="tFormat">Format</div>
-      <div class="dtool ${canNew?'':'dis'}" id="tNew">New</div>
-      <div class="dtool ${canExt?'':'dis'}" id="tExtend">Extend</div>
-    </div>
-    <div id="sizedlg" class="sizebox" hidden>
-      <label class="slabel" style="margin:0">Size (MB)</label>
-      <input class="winput" id="sz" type="number" style="width:140px">
-      <span id="szerr"></span>
-      <div class="dtool" id="szApply">Apply</div>
-      <div class="dtool" id="szCancel">Cancel</div>
-    </div>`,
-    `<span></span><button class="wbtn" id="next">Next</button>`,'wide');
-
-  $$('.drow:not(.head):not(.scanning)',screenEl).forEach(r=>r.addEventListener('click',()=>{
-    if(DK.busy)return;
-    DK.sel=+r.dataset.i;renderDisk();
-  }));
-  diskHint();
-
-  /* ---------- toolbar ---------- */
-  $('#tRefresh').addEventListener('click',()=>{
-    if(DK.busy)return;
-    DK.busy={scan:true};renderDisk();
-    $('#ledDisk').classList.add('busy');
-    after(800,()=>{$('#ledDisk').classList.remove('busy');DK.busy=null;renderDisk();});
-  });
-
-  $('#tLoad').addEventListener('click',()=>{
-    if(DK.busy)return;
-    const card=$('.setup-card',screenEl);if(!card)return;
-    card.insertAdjacentHTML('beforeend',`<div class="cmodal"><div class="cbox">
-      <div>Insert the installation media that contains the driver package, then type the path to the folder with the driver files.</div>
-      <input class="winput mono" id="drvpath" style="margin-top:12px" value="E:\\Drivers">
-      <div class="cbbtns"><button class="wbtn" id="drvok">OK</button><button class="wbtn sec" id="drvc">Cancel</button></div>
-    </div></div>`);
-    const m=$('.cmodal',screenEl);
-    $('#drvc').addEventListener('click',()=>m.remove());
-    $('#drvok').addEventListener('click',()=>{m.remove();
-      after(700,()=>cardConfirm('No signed device drivers were found. Make sure that the installation media contains the proper drivers, and then click OK.',null,'OK',true));});
-  });
-
-  $('#tDelete').addEventListener('click',()=>{
-    if(!canDel)return;
-    const i=DK.sel;
-    cardConfirm('The partition might contain system files needed by Windows. If you delete it, the space becomes unallocated and merges with adjacent free space.',()=>{deletePart(i);},'Delete');
-  });
-
-  $('#tFormat').addEventListener('click',()=>{
-    if(!canDel)return;
-    cardConfirm('Format will erase any data on this partition. To format this partition, click OK. To cancel, click Cancel.',()=>{
-      DK.busy={i:DK.sel,t:'Formatting\u2026'};renderDisk();
-      $('#ledDisk').classList.add('busy');
-      after(1400,()=>{$('#ledDisk').classList.remove('busy');DK.busy=null;renderDisk();tone(1400,.05,'square',.06);});
-    },'OK');
-  });
-
-  $('#tNew').addEventListener('click',()=>{if(canNew)sizeDlg('new');});
-  $('#tExtend').addEventListener('click',()=>{if(canExt)sizeDlg('extend');});
-
-  /* ---------- dialog ukuran (New / Extend) ---------- */
-  function sizeDlg(mode){
-    const box=$('#sizedlg');box.hidden=false;
-    const inp=$('#sz'),err=$('#szerr'),ap=$('#szApply');
-    let min,max;
-    if(mode==='new'){
-      const M=P[DK.sel].size;
-      const needSys=!P.some(x=>x.ty==='sys');
-      min=(needSys&&M>=376)?376:100;max=M;
-    }else{
-      const i=DK.sel;
-      min=P[i].size;max=P[i].size+P[i+1].size;
-    }
-    inp.value=max;inp.min=min;inp.max=max;
-    const check=()=>{
-      const v=Math.floor(+inp.value||0);
-      const ok=v>=min&&v<=max;
-      ap.classList.toggle('dis',!ok);
-      err.textContent=ok?'':(v>max?'Maximum size is '+max+' MB.':'Minimum size is '+min+' MB.');
-    };
-    check();
-    inp.oninput=check;
-    inp.onkeydown=e=>{if(e.key==='Enter'&&!ap.classList.contains('dis'))ap.click();};
-    $('#szCancel').onclick=()=>{box.hidden=true;};
-    ap.onclick=()=>{
-      if(ap.classList.contains('dis'))return;
-      const v=Math.floor(+inp.value);box.hidden=true;
-      if(mode==='new')applyNew(v);
-      else{
-        const i=DK.sel,u=P[i+1],comb=P[i].size+u.size;
-        P[i].size=v;u.size=comb-v;
-        if(u.size<=0)P.splice(i+1,1);
-        renderDisk();
-      }
-    };
-    inp.focus();if(inp.select)inp.select();
-  }
-
-  /* ---------- buat partisi (logika partisi Windows asli) ---------- */
-  function applyNew(X,silent){
-    const i=DK.sel,M=P[i].size,full=X===M;
-    const needSys=!P.some(x=>x.ty==='sys')&&M>=376;
-    const run=()=>{
-      const ins=[];
-      if(needSys){
-        ins.push({ty:'sys',size:260},{ty:'msr',size:16});
-        if(full){
-          const rem=M-276;
-          if(rem-620>=100)ins.push({ty:'primary',size:rem-620},{ty:'recovery',size:620});
-          else ins.push({ty:'primary',size:rem});
-        }else{
-          ins.push({ty:'primary',size:X-276},{ty:'unalloc',size:M-X});
-        }
-      }else{
-        ins.push({ty:'primary',size:X});
-        if(!full)ins.push({ty:'unalloc',size:M-X});
-      }
-      P.splice(i,1,...ins);
-      let sel=i;for(let k=i;k<i+ins.length;k++)if(P[k].ty==='primary'){sel=k;break;}
-      if(!silent){DK.sel=sel;renderDisk();}
-    };
-    if(needSys&&!silent)
-      cardConfirm('Windows will create additional partitions for system files. These partitions are required by Windows and may be hidden.',run,'OK',true);
-    else run();
-  }
-
-  /* ---------- hapus partisi (ruang kosong digabung otomatis) ---------- */
-  function deletePart(i){
-    const size=P[i].size;
-    P[i]={ty:'unalloc',size:size};
-    let j=i;
-    if(j>0&&P[j-1].ty==='unalloc'){P[j-1].size+=size;P.splice(j,1);j--;}
-    if(j+1<P.length&&P[j+1].ty==='unalloc'){P[j].size+=P[j+1].size;P.splice(j+1,1);}
-    DK.sel=j;renderDisk();
-  }
-
-  /* ---------- NEXT ---------- */
-  $('#next').addEventListener('click',()=>{
-    if(DK.busy)return;
-    const p=P[DK.sel];if(!p)return;
-    if(p.ty==='unalloc'){
-      cardConfirm('Windows might create additional partitions for system files. Setup will continue automatically.',()=>{
-        applyNew(P[DK.sel].size,true);
-        if(!P.some(x=>x.ty==='sys')){
-          errBeep();
-          cardConfirm('Setup was unable to create a new system partition or locate an existing system partition. See the Setup log files for more information.',null,'OK',true);
-        }else goInstall();
-      },'OK',true);
-    }
-    else if(p.ty==='primary'){
-      if(!P.some(x=>x.ty==='sys')){
-        errBeep();
-        cardConfirm('Setup was unable to create a new system partition or locate an existing system partition. See the Setup log files for more information.',null,'OK',true);
-      }else goInstall();
-    }
-    else if(p.ty==='sys'){
-      errBeep();
-      cardConfirm('Windows cannot be installed to System Reserved partition.',null,'OK',true);
-    }
-    else{
-      errBeep();
-      cardConfirm('Windows cannot be installed to this partition. Select the Primary partition, then click Next.',null,'OK',true);
-    }
-  });
-};
-})();
-</script>
-<!-- ====== PATCH: OOBE Windows 11 — tampilan & ikon lebih persis aslinya ====== -->
-<script>
-(function(){
-'use strict';
-if(typeof oobeRegion!=='function'||typeof WALL==='undefined'){
-  alert('Patch ini harus ditempel DI DALAM file simulasi Windows 11 utama, tepat sebelum </body>.');
-  return;
-}
-
-/* ---------- CSS ---------- */
-const st=document.createElement('style');
-st.textContent=`
-.oobe2{position:absolute;inset:0;font-family:'Noto Sans','Segoe UI',sans-serif;overflow:hidden;background:#EAF2FA}
-.oobe2 .bgwall{position:absolute;inset:0;filter:blur(42px) saturate(1.25) brightness(1.03);transform:scale(1.18)}
-.oobe2 .bgwall svg{position:absolute;inset:0;width:100%;height:100%}
-.oobe2 .bgtint{position:absolute;inset:0;background:linear-gradient(100deg,rgba(234,242,250,.78) 0%,rgba(234,242,250,.42) 50%,rgba(214,233,248,.10) 100%)}
-.oobe-back{position:absolute;top:22px;left:26px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.68);border:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:6;box-shadow:0 1px 5px rgba(0,0,0,.12)}
-.oobe-back:hover{background:#fff}
-.oobe-content{position:absolute;left:10.5%;top:46%;transform:translateY(-50%);width:min(580px,62%);color:#1b1b1b;z-index:2}
-.oobe-content h1{font-size:28px;font-weight:600;margin:0 0 10px;color:#191919;letter-spacing:-.01em}
-.oobe-content .sub{font-size:13.5px;color:#5f5f5f;line-height:1.55;margin-bottom:20px;max-width:480px}
-.oobe-list{background:rgba(255,255,255,.95);border:1px solid rgba(0,0,0,.12);border-radius:5px;max-height:262px;overflow-y:auto;box-shadow:0 4px 16px rgba(20,60,110,.10)}
-.obitem{padding:10px 14px;font-size:13.5px;cursor:pointer}
-.obitem:hover{background:rgba(0,103,192,.05)}
-.obitem.sel{background:#CFE6F7}
-.oobe-foot{position:absolute;left:10.5%;right:6%;bottom:40px;display:flex;justify-content:space-between;align-items:center;z-index:3}
-.bnext:disabled{background:#ADB3B8;cursor:default}
-.bnext:disabled:hover{background:#ADB3B8}
-.wifirow2{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:13.5px;cursor:pointer;color:#262626}
-.wifirow2:hover{background:rgba(0,103,192,.06)}
-.wifirow2 .nm{flex:1}
-.wifirow2 svg{flex:0 0 auto}
-.netstat2{padding:10px 14px;font-size:12.5px;color:#5f5f5f;display:flex;gap:8px;align-items:center}
-.netstat2:empty{display:none}
-.netstat2.err{color:#C42B1C}
-.pwdexp{padding:12px 14px 14px;border-top:1px solid rgba(0,0,0,.07);background:rgba(240,247,253,.92)}
-.pwbox{position:relative}
-.pwbox .winput{padding-right:46px}
-.pweye{position:absolute;right:4px;top:4px;width:32px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:3px;background:transparent;border:none}
-.pweye:hover{background:rgba(0,0,0,.06)}
-.prow2{display:flex;align-items:center;gap:14px;padding:10px 2px;border-bottom:1px solid rgba(0,0,0,.06)}
-.prow2:last-child{border-bottom:none}
-.pn2{font-size:13.5px;font-weight:600;color:#262626}
-.pd2{font-size:11.5px;color:#6a7787;margin-top:2px;max-width:380px;line-height:1.45}
-.picon{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-.picon.b{background:#DCEBFA}.picon.g{background:#DFF0E2}.picon.p{background:#EAE4F6}.picon.o{background:#FAEEDA}.picon.t{background:#DCF1F1}
-.acc-ava{width:86px;height:86px;border-radius:50%;background:linear-gradient(135deg,#6FB3EA,#0067C0);display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 5px 16px rgba(0,80,150,.28)}
-.offnote{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.78);border:1px solid rgba(0,0,0,.08);border-radius:6px;padding:12px 14px;font-size:12.5px;color:#4a5560;max-width:460px;line-height:1.55}
-.oobe-art{position:absolute;right:5%;top:50%;transform:translateY(-50%);z-index:1;opacity:.95}
-.readyblue{position:absolute;inset:0;background:linear-gradient(180deg,#3E97DE 0%,#0067C0 45%,#005BA1 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;color:#fff}
-.rbtxt{font-size:30px;font-weight:300;color:#fff;text-align:center;padding:0 24px;max-width:80%}
-.sqrow2{display:flex;gap:10px;margin-bottom:10px}
-.sqrow2 select{flex:0 0 46%}
-`;
-document.head.appendChild(st);
-
-/* ---------- IKON ---------- */
-const OC={
- chevL:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 2.5L4.5 8l5.5 5.5" stroke="#1b1b1b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
- eye:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z" stroke="#5c6b7a" stroke-width="1.6"/><circle cx="10" cy="10" r="2.6" fill="#5c6b7a"/></svg>`,
- eyeOff:`<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 10s3-5.5 8-5.5c1.8 0 3.3.7 4.5 1.6M18 10s-3 5.5-8 5.5c-1.8 0-3.3-.7-4.5-1.6" stroke="#5c6b7a" stroke-width="1.6" stroke-linecap="round"/><path d="M3.5 16.5l13-13" stroke="#C42B1C" stroke-width="1.7" stroke-linecap="round"/></svg>`,
- errIc:`<svg width="16" height="16" viewBox="0 0 16 16" style="flex:0 0 auto"><circle cx="8" cy="8" r="7" fill="#C42B1C"/><path d="M8 4.4v4.2M8 11.2v.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`,
- cloudOff:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:0 0 auto;margin-top:1px"><path d="M7 18.2a4.6 4.6 0 1 1 .9-9.1A6.1 6.1 0 0 1 19.4 11a3.6 3.6 0 0 1-1.2 7.2H7z" fill="#8A97A3"/><path d="M4 20L20 4" stroke="#C42B1C" stroke-width="2.2" stroke-linecap="round"/></svg>`,
- person:`<svg width="46" height="46" viewBox="0 0 48 48"><circle cx="24" cy="17.5" r="8.5" fill="#fff"/><path d="M8.5 43c1.3-9.6 7.7-13.8 15.5-13.8s14.2 4.2 15.5 13.8c-4.8 2.1-10.1 3.1-15.5 3.1s-10.7-1-15.5-3.1z" fill="#fff"/></svg>`,
- pin:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2.2c-3.8 0-6.8 3-6.8 6.8 0 5.1 6.1 12.2 6.4 12.5.2.3.6.3.8 0 .3-.3 6.4-7.4 6.4-12.5 0-3.8-3-6.8-6.8-6.8z" fill="#0078D4"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>`,
- mon:`<svg width="20" height="20" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12.5" rx="2" fill="#107C10"/><rect x="5.2" y="6.7" width="13.6" height="8.1" rx="1" fill="#fff" opacity=".92"/><rect x="10.2" y="18" width="3.6" height="2.6" fill="#107C10"/><rect x="7.5" y="20.6" width="9" height="1.8" rx=".9" fill="#107C10"/></svg>`,
- pulse:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M20.8 8.7c0 4.5-8.4 11.2-8.8 11.5-.4-.3-8.8-7-8.8-11.5 0-2.8 2.2-5 4.8-5 1.7 0 3.2.9 4 2.2.8-1.3 2.3-2.2 4-2.2 2.6 0 4.8 2.2 4.8 5z" fill="#7765B8"/><path d="M6.6 8.8h2.8l1-1.9 2 4.1 1-2.2h2.8" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
- pen:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M4.2 19.8l1.1-4.1L16.6 4.4a2 2 0 0 1 2.8 0l.2.2a2 2 0 0 1 0 2.8L8.3 18.7l-4.1 1.1z" fill="#C78A1E"/><path d="M14.7 6.3l3 3" stroke="#fff" stroke-width="1.4"/></svg>`,
- spark:`<svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 3l1.8 4.9 4.9 1.8-4.9 1.8L12 16.4l-1.8-4.9-4.9-1.8 4.9-1.8L12 3z" fill="#0E8A8A"/><path d="M18.6 14.6l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" fill="#0E8A8A" opacity=".65"/></svg>`,
- globeArt:`<svg width="270" height="270" viewBox="0 0 270 270">
-   <circle cx="135" cy="135" r="118" fill="#1B6FC2" opacity=".08"/>
-   <circle cx="135" cy="135" r="96" fill="#1B6FC2" opacity=".12"/>
-   <circle cx="135" cy="135" r="76" fill="#EAF3FB" stroke="#1B6FC2" stroke-width="5"/>
-   <ellipse cx="135" cy="135" rx="34" ry="76" fill="none" stroke="#1B6FC2" stroke-width="4" opacity=".7"/>
-   <path d="M59 135h152" stroke="#1B6FC2" stroke-width="4" opacity=".7"/>
-   <path d="M72 92q63 28 126 0M72 178q63-28 126 0" stroke="#1B6FC2" stroke-width="3.5" fill="none" opacity=".5"/>
-   <circle cx="212" cy="74" r="18" fill="#0067C0"/>
-   <path d="M184 124c3-17 12-24 28-24s25 7 28 24c-9 4-18 6-28 6s-19-2-28-6z" fill="#0067C0"/>
-   <path d="M40 210q20 14 44 10" stroke="#1B6FC2" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55"/>
-   <path d="M228 196q-18 12-38 8" stroke="#1B6FC2" stroke-width="4" fill="none" stroke-linecap="round" opacity=".55"/>
- </svg>`
-};
-function wifiSig(lv){
-  const on='#2b2b2b',off='#C3CDD7';
-  return `<svg class="sig" width="18" height="18" viewBox="0 0 20 20" fill="none">
-    <path d="M2.2 7.4Q10 1.2 17.8 7.4" stroke="${lv>=3?on:off}" stroke-width="1.9" stroke-linecap="round"/>
-    <path d="M4.9 10.6Q10 5.8 15.1 10.6" stroke="${lv>=2?on:off}" stroke-width="1.9" stroke-linecap="round"/>
-    <circle cx="10" cy="13.8" r="1.9" fill="${lv>=1?on:off}"/></svg>`;
-}
-
-/* ---------- SHELL / NAVIGASI ---------- */
-let oobeHistory=[],oobeGen=0;
-function oobeTimer(ms,fn){const g=oobeGen;after(ms,()=>{if(g===oobeGen)fn();});}
-function oobeShell(title,sub,inner,opts){
-  opts=opts||{};oobeGen++;
-  const hasBack=oobeHistory.length>1;
-  setScreen(`<div class="oobe2">
-    <div class="bgwall">${WALL}</div>
-    <div class="bgtint"></div>
-    ${hasBack?`<div class="oobe-back" id="obk" title="Kembali">${OC.chevL}</div>`:''}
-    ${opts.art?`<div class="oobe-art">${opts.art}</div>`:''}
-    <div class="oobe-content">
-      <h1>${title}</h1>
-      ${sub?`<div class="sub">${sub}</div>`:''}
-      ${inner||''}
-    </div>
-    <div class="oobe-foot"><div>${opts.footL||''}</div><div>${opts.footR||''}</div></div>
-  </div>`,'t-ui t-oobe2');
-  if(hasBack)$('#obk').addEventListener('click',e=>{e.stopPropagation();oobeBack();});
-}
-function bindEye(btn,inp){if(!btn||!inp)return;
-  btn.addEventListener('click',e=>{e.stopPropagation();
-    const show=inp.type==='password';
-    inp.type=show?'text':'password';
-    btn.innerHTML=show?OC.eyeOff:OC.eye;});}
-
-/* ---------- LAYAR-LAYAR OOBE ---------- */
-oobeRegion=function(){
-  newPhase('oobe');
-  oobeHistory=['region'];
-  const C=['Indonesia','United States','United Kingdom','Australia','Canada','India','Japan','Malaysia','New Zealand','Philippines','Singapore','Thailand','Vietnam','Germany','France','Netherlands','Spain','Italy','Brazil','Mexico'];
-  oobeShell(`Let's start with region. Is this right?`,
-    'Make sure this is the right region — it cannot be changed later.',
-    `<div class="oobe-list">${C.map(c=>`<div class="obitem ${c==='Indonesia'?'sel':''}">${c}</div>`).join('')}</div>`,
-    {footR:'<button class="bnext" id="ok">Yes</button>'});
-  $$('.obitem',screenEl).forEach(o=>o.addEventListener('click',()=>{
-    $$('.obitem',screenEl).forEach(x=>x.classList.remove('sel'));
-    o.classList.add('sel');}));
-  $('#ok').addEventListener('click',()=>oobeGo('keyboard'));
-  hint('Pilih negara (default: Indonesia) lalu klik Yes. Mulai layar kedua, tombol bulat kiri-atas berfungsi untuk kembali.');
-};
-
-oobeKeyboard=function(){
-  const K=['US','United Kingdom','Indonesian','Australian','Canadian French','Japanese','Korean'];
-  oobeShell('Is this the right keyboard layout?','You can add a second keyboard layout later.',
-    `<div class="oobe-list">${K.map((k,i)=>`<div class="obitem ${i===0?'sel':''}">${k}</div>`).join('')}</div>`,
-    {footL:'<a class="wlink" id="skip">Skip for now</a>',footR:'<button class="bnext" id="ok">Next</button>'});
-  $$('.obitem',screenEl).forEach(o=>o.addEventListener('click',()=>{
-    $$('.obitem',screenEl).forEach(x=>x.classList.remove('sel'));o.classList.add('sel');}));
-  $('#ok').addEventListener('click',()=>oobeGo('network'));
-  $('#skip').addEventListener('click',()=>oobeGo('network'));
-  hint('Layout "US" sudah sesuai — klik Next (atau "Skip for now").');
-};
-
-oobeNetwork=function(){
-  const W=[['HomeNet',3],['KopiKanangan_5G',2],['INDOHOME-4A71',2],['MiFi-Andi',1]];
-  oobeShell(`Let's connect you to a network`,
-    'You need an internet connection to keep exploring. Choose a network to connect.',
-    `<div class="oobe-list" style="max-height:none">
-      ${W.map(w=>`<div class="wifirow2">${wifiSig(w[1])}<span class="nm">${w[0]}</span>${ICON.lock}</div>`).join('')}
-      <div id="netstat" class="netstat2"></div>
-      <div id="pwdbox" class="pwdexp" hidden>
-        <div style="font-size:12.5px;color:#5f5f5f;margin-bottom:8px">Enter the network security key</div>
-        <div class="pwbox"><input class="winput" id="wpass" type="password" placeholder="Network security key" autocomplete="off"><button class="pweye" id="weye" tabindex="-1">${OC.eye}</button></div>
-        <div style="display:flex;gap:10px;margin-top:12px">
-          <button class="bnext" id="wconn">Connect</button>
-          <button class="wbtn sec" id="wcancel">Cancel</button>
-        </div>
-      </div>
-    </div>`,
-    {footL:`<a class="wlink" id="noint" style="visibility:hidden">I don't have internet</a>`,
-     footR:`<button class="bnext" id="ok" disabled title="Aktif setelah terhubung ke internet">Next</button>`});
-  let trying=false,revealed=false,connSeq=0;
-  const reveal=()=>{if(revealed)return;revealed=true;
-    const n=$('#noint');if(n){n.style.visibility='visible';tone(950,.06,'sine',.06);}};
-  oobeTimer(4500,reveal);
-  bindEye($('#weye'),$('#wpass'));
-  $$('.wifirow2',screenEl).forEach(r=>r.addEventListener('click',()=>{
-    if(trying)return;trying=true;
-    $('#pwdbox').hidden=false;$('#netstat').textContent='';
-    after(60,()=>{const w=$('#wpass');if(w)w.focus();});}));
-  $('#wcancel').addEventListener('click',()=>{connSeq++;trying=false;
-    $('#pwdbox').hidden=true;$('#netstat').textContent='';});
-  const tryConn=()=>{
-    const my=++connSeq;
-    $('#netstat').className='netstat2';
-    $('#netstat').textContent='Checking network requirements\u2026';
-    oobeTimer(2600,()=>{if(my!==connSeq||!$('#netstat'))return;
-      $('#netstat').className='netstat2 err';
-      $('#netstat').innerHTML=`${OC.errIc}<span>Connect was unsuccessful — no working network driver on this device.</span>`;
-      errBeep();trying=false;reveal();});
-  };
-  $('#wconn').addEventListener('click',tryConn);
-  $('#wpass').addEventListener('keydown',e=>{if(e.key==='Enter')tryConn();});
-  $('#noint').addEventListener('click',()=>oobeGo('limited'));
-  hint('Klik salah satu WiFi → Connect (akan gagal — driver jaringan belum ada). Setelah gagal atau ±5 detik, link "I don\u2019t have internet" muncul di kiri bawah — klik itu untuk lanjut.');
-};
-
-oobeLimited=function(){
-  oobeShell('Connect now to save time later',
-    'Connecting lets you download updates, sync your files, and sign in to your Microsoft account. You can always connect later.',
-    `<div class="offnote">${OC.cloudOff}<span>This PC doesn\u2019t have a working network driver, so it can\u2019t reach the internet right now — you\u2019ll set up a local account instead.</span></div>`,
-    {footL:'<a class="wlink" id="cont">Continue with limited setup</a>',
-     footR:'<button class="bnext" id="retry">Retry</button>',
-     art:OC.globeArt});
-  $('#cont').addEventListener('click',()=>oobeGo('account'));
-  $('#retry').addEventListener('click',()=>oobeGo('network'));
-  hint('Klik "Continue with limited setup" (kiri bawah) untuk membuat akun lokal tanpa Microsoft account.');
-};
-
-oobeAccount=function(){
-  oobeShell("Who's going to use this device?",
-    'Use a name you can easily identify — you\u2019ll use it to sign in.',
-    `<div class="acc-ava">${OC.person}</div>
-     <div class="serr" id="aerr"></div>
-     <input class="winput" id="uname" placeholder="Username" maxlength="20" autocomplete="off">`,
-    {footR:'<button class="bnext" id="ok">Next</button>'});
-  after(60,()=>{const u=$('#uname');if(u)u.focus();});
-  $('#ok').addEventListener('click',()=>{
-    const n=$('#uname').value.trim();
-    if(!n){errBeep();$('#aerr').textContent='Please enter a name.';return;}
-    S.user.name=n;oobeGo('password');});
-  hint('Masukkan nama pengguna (mis. "Ardi") lalu klik Next (atau tekan Enter).');
-};
-
-oobePassword=function(){
-  const pf=(id,ph)=>`<div class="pwbox" style="margin-bottom:10px"><input class="winput" id="${id}" type="password" placeholder="${ph}" autocomplete="off"><button class="pweye" data-t="${id}" tabindex="-1">${OC.eye}</button></div>`;
-  oobeShell('Create a super memorable password',
-    'Make sure to pick something you can remember. Leave it blank to sign in without a password.',
-    `${pf('p1','Password')}${pf('p2','Confirm password')}<div class="serr" id="perr"></div>`,
-    {footR:'<button class="bnext" id="ok">Next</button>'});
-  $$('.pweye',screenEl).forEach(b=>bindEye(b,$('#'+b.dataset.t)));
-  $('#ok').addEventListener('click',()=>{
-    const a=$('#p1').value,b=$('#p2').value;
-    if(a!==b){errBeep();$('#perr').textContent="The passwords you entered don't match. Try again.";return;}
-    S.user.password=a;
-    a?oobeGo('sq'):oobeGo('privacy');});
-  hint('Isi password dua kali — ikon mata untuk menampilkan/menyembunyikan. Kosongkan keduanya untuk lanjut tanpa password.');
-};
-
-oobeSQ=function(){
-  const Qs=['What was your childhood nickname?',"What's the name of your first pet?",'What city were you born in?','What was your first car?',"What's your mother's maiden name?"];
-  oobeShell('Add security questions',
-    'If you forget your password, you can recover your local account with these answers.',
-    [0,1,2].map(()=>`<div class="sqrow2"><select class="winput">${Qs.map(q=>`<option>${q}</option>`).join('')}</select><input class="winput sqin" placeholder="Answer"></div>`).join(''),
-    {footR:'<button class="bnext" id="ok">Next</button>'});
-  $('#ok').addEventListener('click',()=>{
-    const ok=$$('.sqin',screenEl).every(i=>i.value.trim());
-    if(!ok){errBeep();$$('.sqin',screenEl).forEach(i=>i.style.borderColor=i.value.trim()?'':'#C42B1C');return;}
-    oobeGo('privacy');});
-  hint('Pilih pertanyaan dan isi jawabannya (bebas) untuk ketiganya, lalu Next.');
-};
-
-oobePrivacy=function(){
-  const P=[
-    ['Location','Let apps use your precise location, including location history.','pin','b'],
-    ['Find my device','Track your device if you lose it. You can also locate it on a map.','mon','g'],
-    ['Diagnostic data','Send usage data to help improve Windows.','pulse','p'],
-    ['Inking & typing','Send what you write and type to improve recognition and suggestions.','pen','o'],
-    ['Tailored experiences','Let Windows personalize tips, ads, and content based on your data.','spark','t']];
-  oobeShell('Choose privacy settings for your device',
-    'You\u2019re in control. Review these settings and turn them on or off before finishing setup.',
-    P.map((p,i)=>`<div class="prow2"><div class="picon ${p[3]}">${OC[p[2]]}</div><div style="flex:1"><div class="pn2">${p[0]}</div><div class="pd2">${p[1]}</div></div><div class="tog ${i>=2?'on':''}"></div></div>`).join(''),
-    {footR:'<button class="bnext" id="ok">Accept</button>'});
-  $$('.tog',screenEl).forEach(t=>t.addEventListener('click',()=>{t.classList.toggle('on');tone(1200,.03,'square',.05);}));
-  $('#ok').addEventListener('click',oobeFinal);
-  hint('Setiap pengaturan kini punya ikon sendiri. Atur toggle sesuai selera lalu klik Accept.');
-};
-
-oobeFinal=async function(){
-  newPhase('final');const g=S.gen;
-  S.installed=true;S.instDate=new Date();
-  const blue=txt=>setScreen(`<div class="readyblue">${dots(44,'#fff')}<div class="rbtxt">${txt}</div></div>`,'t-ui t-oobe2');
-  blue('Hi');
-  hint('Sebentar lagi — Windows sedang menyelesaikan persiapan\u2026');
-  const msgs=[['Getting everything set up for you',2600],['This might take a few minutes',2600],['Almost ready',2200],['Hi '+esc(S.user.name)+' \u2014 getting everything ready for you',2600]];
-  for(const m of msgs){await wait(m[1]);if(g!==S.gen)return;blue(m[0]);}
-  await wait(2600);if(g!==S.gen)return;
-  setScreen(`<div class="readyblue"><div class="rbtxt" style="font-size:36px">Welcome, ${esc(S.user.name)}</div>${dots(44,'#fff')}</div>`,'t-ui t-oobe2');
-  await wait(2600);if(g!==S.gen)return;
-  showDesktop(true);
-};
-
-/* ---------- NAVIGASI (didefinisikan setelah semua layar) ---------- */
-const OOBE_FN={region:oobeRegion,keyboard:oobeKeyboard,network:oobeNetwork,limited:oobeLimited,
-               account:oobeAccount,password:oobePassword,sq:oobeSQ,privacy:oobePrivacy};
-function oobeGo(n){oobeHistory.push(n);const f=OOBE_FN[n];if(f)f();}
-function oobeBack(){
-  if(oobeHistory.length>1){
-    oobeHistory.pop();
-    const f=OOBE_FN[oobeHistory[oobeHistory.length-1]];
-    if(f)f();
-  }
-}
-
-/* Enter = tombol Next/Yes di semua layar OOBE */
-if(!window.__oobeEnterBound){
-  window.__oobeEnterBound=true;
-  screenEl.addEventListener('keydown',e=>{
-    if(e.key!=='Enter'||S.phase!=='oobe')return;
-    const t=e.target;
-    if(t&&t.tagName==='SELECT')return;
-    const b=$('#ok');
-    if(b&&!b.disabled){e.preventDefault();b.click();}
-  });
-}
 })();
 </script>
 </body>
