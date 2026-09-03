@@ -1742,5 +1742,238 @@ screenEl.oncontextmenu=e=>{
   hint('Selamat datang di AXIOM VirtualPC. Tekan tombol Power di bezel (atau tombol P) untuk menyalakan PC — dan pasang flashdisk installer kapan saja: cukup KLIK sekali atau seret ke port USB yang menyala hijau.');
 })();
 </script>
+<!-- ====== PATCH: layar partisi disk — semua tombol berfungsi, perilaku realistis ====== -->
+<script>
+(function(){
+'use strict';
+if(typeof goDisk!=='function'||typeof DK==='undefined'){
+  alert('Patch ini harus ditempel DI DALAM file simulasi Windows 11 utama, tepat sebelum </body> — bukan di file baru/kosong.');
+  return;
+}
+
+const st=document.createElement('style');
+st.textContent=`
+#szerr{color:#C42B1C;font-size:12px}
+.drow.scanning{color:#8a8a8a;font-style:italic}
+`;
+document.head.appendChild(st);
+
+const fmtSize=mb=>mb>=1024?(mb/1024).toFixed(1)+' GB':Math.round(mb)+' MB';
+function mkDisk(){return {parts:[{ty:'unalloc',size:65428}],sel:0,busy:null};}
+
+function diskHint(){
+  const P=DK.parts,p=P[DK.sel];if(!p)return;
+  if(p.ty==='unalloc'){
+    if(!P.some(x=>x.ty==='sys'))
+      hint('Klik "New" untuk membuat partisi (Setup otomatis menambah System Reserved 260 MB + MSR 16 MB, dan Recovery 620 MB bila seluruh ruang dipakai). Atau klik Next langsung — Windows mempartisi sendiri.');
+    else hint('Klik "New" untuk membuat partisi tambahan di ruang kosong ini, atau pilih partisi Primary lalu Next.');
+  }else if(p.ty==='primary'){
+    hint(P.some(x=>x.ty==='sys')
+      ?'Partisi Primary siap — klik Next untuk mulai instalasi. (Coba juga Format, Extend, dan Delete.)'
+      :'Disk ini tidak punya partisi sistem (System Reserved). Klik Next untuk melihat pesan error khas Windows, atau Delete semua partisi lalu New lagi.');
+  }else if(p.ty==='sys')hint('System Reserved menyimpan file boot UEFI — Windows tidak bisa diinstal di sini.');
+  else if(p.ty==='msr')hint('MSR (Microsoft Reserved) adalah partisi cadangan GPT — tidak dipakai untuk instalasi.');
+  else hint('Partisi Recovery untuk Windows RE — tidak bisa dipakai instalasi.');
+}
+
+goDisk=function(){DK=mkDisk();renderDisk();};
+
+renderDisk=function(){
+  const P=DK.parts;
+  let pnum=0;
+  const rows=P.map((p,i)=>{
+    let n,ty;
+    if(p.ty==='unalloc'){n='Drive 0 Unallocated Space';ty='';}
+    else{pnum++;
+      if(p.ty==='sys'){n='Drive 0 Partition '+pnum+': System Reserved';ty='System Reserved';}
+      else if(p.ty==='msr'){n='Drive 0 Partition '+pnum;ty='MSR (Reserved)';}
+      else if(p.ty==='primary'){n='Drive 0 Partition '+pnum+': Primary';ty='Primary';}
+      else{n='Drive 0 Partition '+pnum+': Recovery';ty='Recovery';}
+    }
+    const busy=(DK.busy&&!DK.busy.scan&&DK.busy.i===i);
+    return {n:n,t:fmtSize(p.size),f:busy?DK.busy.t:fmtSize(p.size),ty:ty};
+  });
+  const scanning=DK.busy&&DK.busy.scan;
+  const selP=P[DK.sel]||P[0];
+  const isReal=selP.ty!=='unalloc';
+  const canNew=!isReal&&!scanning;
+  const canDel=isReal&&!scanning;
+  const canExt=isReal&&!scanning&&P[DK.sel+1]&&P[DK.sel+1].ty==='unalloc';
+
+  showSetup('Where do you want to install Windows?',`
+    <div class="disktable"><div class="drow head"><span>Name</span><span>Total Size</span><span>Free Space</span><span>Type</span></div>
+    ${scanning?`<div class="drow scanning"><span>Please wait while Setup scans the disk&hellip;</span><span></span><span></span><span></span></div>`
+      :rows.map((r,i)=>`<div class="drow ${i===DK.sel?'sel':''}" data-i="${i}"><span>${r.n}</span><span>${r.t}</span><span>${r.f}</span><span>${r.ty||'&nbsp;'}</span></div>`).join('')}
+    </div>
+    <div class="dtoolbar">
+      <div class="dtool" id="tRefresh">Refresh</div>
+      <div class="dtool" id="tLoad">Load driver</div>
+      <div class="dtool ${canDel?'':'dis'}" id="tDelete">Delete</div>
+      <div class="dtool ${canDel?'':'dis'}" id="tFormat">Format</div>
+      <div class="dtool ${canNew?'':'dis'}" id="tNew">New</div>
+      <div class="dtool ${canExt?'':'dis'}" id="tExtend">Extend</div>
+    </div>
+    <div id="sizedlg" class="sizebox" hidden>
+      <label class="slabel" style="margin:0">Size (MB)</label>
+      <input class="winput" id="sz" type="number" style="width:140px">
+      <span id="szerr"></span>
+      <div class="dtool" id="szApply">Apply</div>
+      <div class="dtool" id="szCancel">Cancel</div>
+    </div>`,
+    `<span></span><button class="wbtn" id="next">Next</button>`,'wide');
+
+  $$('.drow:not(.head):not(.scanning)',screenEl).forEach(r=>r.addEventListener('click',()=>{
+    if(DK.busy)return;
+    DK.sel=+r.dataset.i;renderDisk();
+  }));
+  diskHint();
+
+  /* ---------- toolbar ---------- */
+  $('#tRefresh').addEventListener('click',()=>{
+    if(DK.busy)return;
+    DK.busy={scan:true};renderDisk();
+    $('#ledDisk').classList.add('busy');
+    after(800,()=>{$('#ledDisk').classList.remove('busy');DK.busy=null;renderDisk();});
+  });
+
+  $('#tLoad').addEventListener('click',()=>{
+    if(DK.busy)return;
+    const card=$('.setup-card',screenEl);if(!card)return;
+    card.insertAdjacentHTML('beforeend',`<div class="cmodal"><div class="cbox">
+      <div>Insert the installation media that contains the driver package, then type the path to the folder with the driver files.</div>
+      <input class="winput mono" id="drvpath" style="margin-top:12px" value="E:\\Drivers">
+      <div class="cbbtns"><button class="wbtn" id="drvok">OK</button><button class="wbtn sec" id="drvc">Cancel</button></div>
+    </div></div>`);
+    const m=$('.cmodal',screenEl);
+    $('#drvc').addEventListener('click',()=>m.remove());
+    $('#drvok').addEventListener('click',()=>{m.remove();
+      after(700,()=>cardConfirm('No signed device drivers were found. Make sure that the installation media contains the proper drivers, and then click OK.',null,'OK',true));});
+  });
+
+  $('#tDelete').addEventListener('click',()=>{
+    if(!canDel)return;
+    const i=DK.sel;
+    cardConfirm('The partition might contain system files needed by Windows. If you delete it, the space becomes unallocated and merges with adjacent free space.',()=>{deletePart(i);},'Delete');
+  });
+
+  $('#tFormat').addEventListener('click',()=>{
+    if(!canDel)return;
+    cardConfirm('Format will erase any data on this partition. To format this partition, click OK. To cancel, click Cancel.',()=>{
+      DK.busy={i:DK.sel,t:'Formatting\u2026'};renderDisk();
+      $('#ledDisk').classList.add('busy');
+      after(1400,()=>{$('#ledDisk').classList.remove('busy');DK.busy=null;renderDisk();tone(1400,.05,'square',.06);});
+    },'OK');
+  });
+
+  $('#tNew').addEventListener('click',()=>{if(canNew)sizeDlg('new');});
+  $('#tExtend').addEventListener('click',()=>{if(canExt)sizeDlg('extend');});
+
+  /* ---------- dialog ukuran (New / Extend) ---------- */
+  function sizeDlg(mode){
+    const box=$('#sizedlg');box.hidden=false;
+    const inp=$('#sz'),err=$('#szerr'),ap=$('#szApply');
+    let min,max;
+    if(mode==='new'){
+      const M=P[DK.sel].size;
+      const needSys=!P.some(x=>x.ty==='sys');
+      min=(needSys&&M>=376)?376:100;max=M;
+    }else{
+      const i=DK.sel;
+      min=P[i].size;max=P[i].size+P[i+1].size;
+    }
+    inp.value=max;inp.min=min;inp.max=max;
+    const check=()=>{
+      const v=Math.floor(+inp.value||0);
+      const ok=v>=min&&v<=max;
+      ap.classList.toggle('dis',!ok);
+      err.textContent=ok?'':(v>max?'Maximum size is '+max+' MB.':'Minimum size is '+min+' MB.');
+    };
+    check();
+    inp.oninput=check;
+    inp.onkeydown=e=>{if(e.key==='Enter'&&!ap.classList.contains('dis'))ap.click();};
+    $('#szCancel').onclick=()=>{box.hidden=true;};
+    ap.onclick=()=>{
+      if(ap.classList.contains('dis'))return;
+      const v=Math.floor(+inp.value);box.hidden=true;
+      if(mode==='new')applyNew(v);
+      else{
+        const i=DK.sel,u=P[i+1],comb=P[i].size+u.size;
+        P[i].size=v;u.size=comb-v;
+        if(u.size<=0)P.splice(i+1,1);
+        renderDisk();
+      }
+    };
+    inp.focus();if(inp.select)inp.select();
+  }
+
+  /* ---------- buat partisi (logika partisi Windows asli) ---------- */
+  function applyNew(X,silent){
+    const i=DK.sel,M=P[i].size,full=X===M;
+    const needSys=!P.some(x=>x.ty==='sys')&&M>=376;
+    const run=()=>{
+      const ins=[];
+      if(needSys){
+        ins.push({ty:'sys',size:260},{ty:'msr',size:16});
+        if(full){
+          const rem=M-276;
+          if(rem-620>=100)ins.push({ty:'primary',size:rem-620},{ty:'recovery',size:620});
+          else ins.push({ty:'primary',size:rem});
+        }else{
+          ins.push({ty:'primary',size:X-276},{ty:'unalloc',size:M-X});
+        }
+      }else{
+        ins.push({ty:'primary',size:X});
+        if(!full)ins.push({ty:'unalloc',size:M-X});
+      }
+      P.splice(i,1,...ins);
+      let sel=i;for(let k=i;k<i+ins.length;k++)if(P[k].ty==='primary'){sel=k;break;}
+      if(!silent){DK.sel=sel;renderDisk();}
+    };
+    if(needSys&&!silent)
+      cardConfirm('Windows will create additional partitions for system files. These partitions are required by Windows and may be hidden.',run,'OK',true);
+    else run();
+  }
+
+  /* ---------- hapus partisi (ruang kosong digabung otomatis) ---------- */
+  function deletePart(i){
+    const size=P[i].size;
+    P[i]={ty:'unalloc',size:size};
+    let j=i;
+    if(j>0&&P[j-1].ty==='unalloc'){P[j-1].size+=size;P.splice(j,1);j--;}
+    if(j+1<P.length&&P[j+1].ty==='unalloc'){P[j].size+=P[j+1].size;P.splice(j+1,1);}
+    DK.sel=j;renderDisk();
+  }
+
+  /* ---------- NEXT ---------- */
+  $('#next').addEventListener('click',()=>{
+    if(DK.busy)return;
+    const p=P[DK.sel];if(!p)return;
+    if(p.ty==='unalloc'){
+      cardConfirm('Windows might create additional partitions for system files. Setup will continue automatically.',()=>{
+        applyNew(P[DK.sel].size,true);
+        if(!P.some(x=>x.ty==='sys')){
+          errBeep();
+          cardConfirm('Setup was unable to create a new system partition or locate an existing system partition. See the Setup log files for more information.',null,'OK',true);
+        }else goInstall();
+      },'OK',true);
+    }
+    else if(p.ty==='primary'){
+      if(!P.some(x=>x.ty==='sys')){
+        errBeep();
+        cardConfirm('Setup was unable to create a new system partition or locate an existing system partition. See the Setup log files for more information.',null,'OK',true);
+      }else goInstall();
+    }
+    else if(p.ty==='sys'){
+      errBeep();
+      cardConfirm('Windows cannot be installed to System Reserved partition.',null,'OK',true);
+    }
+    else{
+      errBeep();
+      cardConfirm('Windows cannot be installed to this partition. Select the Primary partition, then click Next.',null,'OK',true);
+    }
+  });
+};
+})();
+</script>
 </body>
 </html>
