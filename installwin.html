@@ -91,6 +91,10 @@ body{background:#08090b;color:#c7cdd6;font-family:'IBM Plex Mono',Consolas,monos
 .bootmenu h5{background:#1E5D9C;color:#fff;font-size:13px;font-weight:600;padding:6px 12px;margin-bottom:8px}
 .bmi{padding:8px 14px;font-size:13.5px;color:#e8f1f8;cursor:pointer}
 .bmi:hover{background:#1E5D9C}
+.bmi.bmsel{background:#2A72BF;color:#fff}
+.bmi.bmsel::before{content:"\25B6 "}
+.bmfoot{margin-top:8px;padding:7px 12px;border-top:1px solid #5a86ad;color:#bcd3e8;font-size:11.5px}
+.bmfoot b{color:#fff}
 
 /* ===== BIOS ===== */
 .bios{position:absolute;inset:0;display:flex;flex-direction:column;font-size:13.5px}
@@ -652,9 +656,31 @@ let B={tab:4,idx:0,bs:{}};
 let popIdx=0,biosClock=0;
 const bootLabel=d=>d==='usb'?'UEFI: Voyager USB 3.0 64GB':'VM-SSD 512GB';
 
+/* urutan prioritas boot: [ssd] atau [ssd,usb] / [usb,ssd] */
+function syncOrder(){
+  const avail=S.plugged?['ssd','usb']:['ssd'];
+  let o=(B.bs.order||[]).filter(d=>avail.includes(d));
+  avail.forEach(d=>{if(!o.includes(d))o.push(d);});
+  B.bs.order=o;B.bs.boot1=o[0];
+}
+function moveBoot(dir){ /* 'up' = F6, 'down' = F5 */
+  if(BTABS[B.tab]!=='Boot')return false;
+  const it=biosItems()[B.idx];
+  if(!it||it.act!=='bootsel')return false;
+  const o=B.bs.order,i=B.idx;
+  if(dir==='up'&&i===1&&o[1]){const t=o[0];o[0]=o[1];o[1]=t;}
+  else if(dir==='down'&&i===0&&o[1]){const t=o[0];o[0]=o[1];o[1]=t;}
+  else return false;
+  B.bs.boot1=o[0];
+  return true;
+}
+
 function enterBios(){
   newPhase('bios');
-  B={tab:4,idx:0,bs:{boot1:S.boot1,num:'On',fast:'Disabled',sb:'Enabled'}};
+  const avail=S.plugged?['ssd','usb']:['ssd'];
+  let order=[S.boot1].filter(d=>avail.includes(d));
+  avail.forEach(d=>{if(!order.includes(d))order.push(d);});
+  B={tab:4,idx:0,bs:{boot1:order[0],order:order,num:'On',fast:'Disabled',sb:'Enabled'}};
   renderBios();
 }
 function biosItems(){
@@ -677,11 +703,15 @@ function biosItems(){
       {k:'Secure Boot',v:B.bs.sb,act:'toggle',key:'sb'},
       {k:'Secure Boot Mode',v:'Standard'},
       {k:'Chassis Intrusion',act:'pop',pop:{t:'Chassis Intrusion',l:['Status : Clear','Intrusion Detection : Disabled']}}];
-    case 'Boot':return[
-      {k:'Boot Option #1',v:bootLabel(B.bs.boot1),act:'bootsel'},
-      {k:'Boot Option #2',v:S.plugged?bootLabel(B.bs.boot1==='usb'?'ssd':'usb'):'Disabled'},
-      {k:'Boot Up NumLock State',v:B.bs.num,act:'toggle',key:'num'},
-      {k:'Fast Boot',v:B.bs.fast,act:'toggle',key:'fast'}];
+    case 'Boot':{
+      syncOrder();
+      const o=B.bs.order;
+      return[
+        {k:'Boot Option #1',v:bootLabel(o[0]),act:'bootsel'},
+        {k:'Boot Option #2',v:o[1]?bootLabel(o[1]):'Disabled',act:o[1]?'bootsel':null},
+        {k:'Boot Up NumLock State',v:B.bs.num,act:'toggle',key:'num'},
+        {k:'Fast Boot',v:B.bs.fast,act:'toggle',key:'fast'}];
+    }
     case 'Save & Exit':return[
       {k:'Save Changes and Reset',act:'save'},
       {k:'Discard Changes and Exit',act:'discard'},
@@ -690,24 +720,26 @@ function biosItems(){
   return [];
 }
 function updateBootHint(){
+  syncOrder();
   if(!S.plugged)
-    hint('Flashdisk BELUM terpasang \u2014 seret atau KLIK flashdisk di rak bawah (port USB di bezel menyala hijau). Daftar boot diperbarui otomatis, tidak perlu keluar dari BIOS.');
-  else if(B.bs.boot1==='usb')
+    hint('Flashdisk BELUM terpasang \u2014 seret atau KLIK flashdisk di rak bawah (port USB di bezel menyala hijau). Daftar boot diperbarui otomatis.');
+  else if(B.bs.order[0]==='usb')
     hint('Boot Option #1 = USB \u2713 \u2014 tekan F10 (atau tab "Save & Exit" \u2192 "Save Changes and Reset"), lalu pilih Yes.');
   else
-    hint('Klik baris "Boot Option #1" yang berdenyut (cukup SEKALI klik) \u2192 pilih "UEFI: Voyager USB 3.0 64GB" \u2192 tekan F10 \u2192 Yes.');
+    hint('Naikkan prioritas USB: pilih baris "Boot Option #1" lalu tekan F6 (naik) / F5 (turun) untuk menukar posisi \u2014 Enter membuka pemilih perangkat. Lalu F10 \u2192 Yes.');
 }
 function renderBios(){
+  syncOrder();
   const items=biosItems();
   const bootTab=(BTABS[B.tab]==='Boot');
-  const hot=bootTab&&S.plugged&&B.bs.boot1!=='usb';
+  const hot=bootTab&&S.plugged&&B.bs.order[0]!=='usb';
   setScreen(`<div class="bios">
     <div class="bios-title">AXIOM Setup Utility&nbsp;&nbsp;&mdash;&nbsp;&nbsp;Copyright (C) 2025 AXIOM Corp. All Rights Reserved</div>
     <div class="bios-tabs">${BTABS.map((t,i)=>`<div class="btab ${i===B.tab?'on':''}" data-i="${i}">${t}</div>`).join('')}</div>
     <div class="bios-body"><div id="bitems">
-    ${items.map((it,i)=>`<div class="brow ${it.act?'act':''} ${it.act==='bootsel'&&hot?'hot':''} ${i===B.idx?'on':''}" data-i="${i}"><span class="k">${it.k}</span><span class="v">[${it.v}]</span></div>`).join('')}
+    ${items.map((it,i)=>`<div class="brow ${it.act?'act':''} ${bootTab&&it.k==='Boot Option #1'&&hot?'hot':''} ${i===B.idx?'on':''}" data-i="${i}"><span class="k">${it.k}</span><span class="v">[${it.v}]</span></div>`).join('')}
     </div></div>
-    <div class="bios-keys"><span>&larr;&rarr;</span> Select Screen <span>&uarr;&darr;</span> Select Item <span>Enter</span> Select <span>Esc</span> Exit <span>F10</span> Save &nbsp;&middot;&nbsp; dengan mouse cukup SEKALI klik</div>
+    <div class="bios-keys"><span>&larr;&rarr;</span> Screen <span>&uarr;&darr;</span> Item <span>Enter</span> Select <span>F5/F6</span> Move Device <span>Esc</span> Exit <span>F10</span> Save &nbsp;&middot;&nbsp; mouse: 1x klik</div>
   </div>`,'t-bios');
   $$('.btab',screenEl).forEach(t=>t.addEventListener('click',e=>{e.stopPropagation();B.tab=+t.dataset.i;B.idx=0;renderBios();}));
   /* SEKALI klik = pilih + jalankan */
@@ -731,7 +763,7 @@ function biosActivate(){
   else if(it.act==='pop')biosInfoPop(it.pop);
   else if(it.act==='save')biosConfirm(true);
   else if(it.act==='discard')biosConfirm(false);
-  else if(it.act==='defaults'){B.bs={boot1:'ssd',num:'On',fast:'Disabled',sb:'Enabled'};tone(1000,.05,'square',.08);renderBios();}
+  else if(it.act==='defaults'){B.bs={boot1:'ssd',order:['ssd'],num:'On',fast:'Disabled',sb:'Enabled'};tone(1000,.05,'square',.08);renderBios();}
 }
 function biosPop(title,inner,bind){
   screenEl.insertAdjacentHTML('beforeend',`<div class="bpop" id="bpop"><div class="bpopbox"><h5>${title}</h5>${inner}<div class="bpopfoot">Enter untuk memilih &middot; Esc untuk batal</div></div></div>`);
@@ -742,17 +774,25 @@ function biosInfoPop(pop){
   biosPop(pop.t,pop.l.map(l=>`<div class="brow" style="cursor:default"><span class="k">${l.split(' : ')[0]}</span><span class="v">${l.split(' : ')[1]||''}</span></div>`).join(''));
 }
 function biosBootPopup(){
+  syncOrder();
+  const it=biosItems()[B.idx];
+  if(!it||it.act!=='bootsel')return;
+  const i=B.idx,o=B.bs.order;
   const opts=[{d:'ssd',l:'VM-SSD 512GB'}];
   if(S.plugged)opts.push({d:'usb',l:'UEFI: Voyager USB 3.0 64GB'});
-  popIdx=opts.findIndex(o=>o.d===B.bs.boot1);
-  if(S.plugged)popIdx=opts.findIndex(o=>o.d==='usb'); /* otomatis sorot USB */
+  popIdx=opts.findIndex(x=>x.d===o[i]);
+  if(S.plugged&&o[0]!=='usb'&&i===0)popIdx=opts.findIndex(x=>x.d==='usb');
   if(popIdx<0)popIdx=0;
-  let inner=opts.map((o,i)=>`<div class="brow bopt ${i===popIdx?'cur':''}" data-d="${o.d}"><span class="k">${o.l}</span><span class="v">[${o.d===B.bs.boot1?'Current':'Select'}]</span></div>`).join('');
+  let inner=opts.map((op,n)=>`<div class="brow bopt ${n===popIdx?'cur':''}" data-d="${op.d}"><span class="k">${op.l}</span><span class="v">[${o[i]===op.d?'Current':'Select'}]</span></div>`).join('');
   if(!S.plugged)
     inner+=`<div class="brow" style="cursor:default"><span class="k" style="color:#ffe9a8">USB device not found \u2014 pasang flashdisk installer (klik/seret ke port USB di bezel). Daftar ini diperbarui otomatis.</span><span class="v"></span></div>`;
-  biosPop('Select boot device for Boot Option #1',inner,
+  biosPop('Select boot device for Boot Option #'+(i+1),inner,
     ()=>{$$('.bopt',screenEl).forEach(r=>r.addEventListener('click',()=>{
-      B.bs.boot1=r.dataset.d;closeBiosPop();tone(1300,.04,'square',.07);renderBios();}));});
+      const d=r.dataset.d,from=o.indexOf(d);
+      if(from>=0)o.splice(from,1);
+      o.splice(i,0,d);
+      B.bs.boot1=o[0];
+      closeBiosPop();tone(1300,.04,'square',.07);renderBios();}));});
 }
 function biosConfirm(save){
   biosPop('Setup Confirmation',
@@ -760,7 +800,7 @@ function biosConfirm(save){
      <div class="bbtns"><div class="bpbtn" id="byes">Yes</div><div class="bpbtn" id="bno">No</div></div>`,
     ()=>{ $('#byes').addEventListener('click',()=>{
         closeBiosPop();
-        if(save){S.boot1=B.bs.boot1;saveBeep();screenOffFlash(()=>runPost());}
+        if(save){syncOrder();S.boot1=B.bs.order[0];saveBeep();screenOffFlash(()=>runPost());}
         else screenOffFlash(()=>runPost());
       });
       $('#bno').addEventListener('click',closeBiosPop); });
@@ -789,19 +829,43 @@ function biosKeys(e){
     case 'ArrowDown':e.preventDefault();biosNav(1);break;
     case 'Enter':biosActivate();break;
     case 'Escape':biosConfirm(false);break;
+    case 'F5':case '-':
+      e.preventDefault();
+      if(moveBoot('down')){tone(1500,.05,'square',.07);renderBios();}
+      else tone(300,.07,'square',.05);
+      break;
+    case 'F6':case '+':case '=':
+      e.preventDefault();
+      if(moveBoot('up')){tone(1500,.05,'square',.07);renderBios();}
+      else tone(300,.07,'square',.05);
+      break;
     case 'F10':e.preventDefault();biosConfirm(true);break;
   }
 }
+
+/* ================= BOOT MENU (F8) — navigasi keyboard ================= */
+let BM={idx:0,items:[]};
+function bmMark(){const rows=$$('.bmi',screenEl);rows.forEach((r,i)=>r.classList.toggle('bmsel',i===BM.idx));}
+function bmBoot(d){
+  tone(1300,.04,'square',.07);
+  if(d==='usb')bootToSetup();
+  else S.installed?bootToWindows():noBoot();
+}
 function bootMenu(){
   newPhase('bootmenu');
-  const items=[{d:'ssd',l:'VM-SSD 512GB'}];
-  if(S.plugged)items.push({d:'usb',l:'UEFI: Voyager USB 3.0 64GB'});
-  setScreen(`<div class="bootmenu"><h5>Boot Menu &mdash; pilih perangkat boot</h5>${items.map(i=>`<div class="bmi" data-d="${i.d}">${i.l}</div>`).join('')}</div>`,'t-bios dark');
-  $$('.bmi',screenEl).forEach(m=>m.addEventListener('click',()=>{
-    tone(1300,.04,'square',.07);
-    if(m.dataset.d==='usb')bootToSetup();else S.installed?bootToWindows():noBoot();}));
-  hint(S.plugged?'Pilih "UEFI: Voyager USB 3.0 64GB" untuk mem-boot installer Windows 11. (Esc = restart POST)'
-                :'Flashdisk belum terpasang — pasang dulu (klik/seret), menu ini diperbarui otomatis. (Esc = restart POST)');
+  BM.items=[{d:'ssd',l:'VM-SSD 512GB'}];
+  if(S.plugged)BM.items.push({d:'usb',l:'UEFI: Voyager USB 3.0 64GB'});
+  BM.idx=(S.boot1==='usb'&&S.plugged)?BM.items.length-1:0;
+  setScreen(`<div class="bootmenu"><h5>Boot Menu &mdash; pilih perangkat boot</h5>
+    ${BM.items.map(i=>`<div class="bmi" data-d="${i.d}">${i.l}</div>`).join('')}
+    <div class="bmfoot"><b>&uarr;/&darr;</b> pilih &nbsp;&middot;&nbsp; <b>1&ndash;${BM.items.length}</b> cepat &nbsp;&middot;&nbsp; <b>Enter</b> boot &nbsp;&middot;&nbsp; <b>Esc</b> keluar</div>
+  </div>`,'t-bios dark');
+  bmMark();
+  $$('.bmi',screenEl).forEach((m,i)=>{
+    m.addEventListener('click',()=>{BM.idx=i;bmMark();bmBoot(m.dataset.d);});
+    m.addEventListener('mouseenter',()=>{BM.idx=i;bmMark();});
+  });
+  hint('Boot Menu: gunakan \u2191/\u2193 lalu Enter (atau klik / tombol 1\u20132). Esc untuk kembali ke POST.');
 }
 
 /* ================= WINDOWS SETUP ================= */
@@ -1982,7 +2046,7 @@ window.addEventListener('keydown',e=>{
   if(e.ctrlKey&&e.altKey&&e.key==='Delete'){e.preventDefault();restartPC();return;}
   if(S.phase==='desktop'||S.phase==='login')return;
   if(S.phase==='lock'){if(!inInput){e.preventDefault();loginScreen();}return;}
-  if(['F1','F2','F8','F10','F12'].includes(e.key)&&!inInput)e.preventDefault();
+  if((['F1','F2','F8','F10','F12'].includes(e.key)||((e.key==='F5'||e.key==='F6')&&S.phase==='bios'))&&!inInput)e.preventDefault();
   switch(S.phase){
     case 'off':if(e.key==='p'||e.key==='P')powerOn();break;
     case 'post':
@@ -1990,7 +2054,16 @@ window.addEventListener('keydown',e=>{
       else if(e.key==='F8')bootMenu();
       break;
     case 'bios':if(!inInput)biosKeys(e);break;
-    case 'bootmenu':if(e.key==='Escape')runPost();break;
+    case 'bootmenu':{
+      const n=BM.items.length;
+      if(e.key==='Escape'){runPost();break;}
+      if(!n)break;
+      if(e.key==='ArrowDown'){e.preventDefault();BM.idx=(BM.idx+1)%n;bmMark();tone(1100,.03,'square',.05);}
+      else if(e.key==='ArrowUp'){e.preventDefault();BM.idx=(BM.idx-1+n)%n;bmMark();tone(1100,.03,'square',.05);}
+      else if(e.key==='Enter'){e.preventDefault();bmBoot(BM.items[BM.idx].d);}
+      else if(/^[1-9]$/.test(e.key)){const i=+e.key-1;if(i<n){BM.idx=i;bmMark();bmBoot(BM.items[i].d);}}
+      break;
+    }
     case 'noboot':
       if(!['Control','Alt','Shift','Meta','Dead'].includes(e.key))restartPC();
       break;
