@@ -1,0 +1,2568 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulasi Instalasi Ubuntu 26.04 LTS</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+:root{--or:#E95420;--or2:#c7431a;--au:#772953;--txt:#f4f4f2;--dim:#b0b0ac;--mono:'Ubuntu Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#000;font-family:Ubuntu,'Segoe UI',sans-serif;color:var(--txt);overflow:hidden;-webkit-user-select:none;user-select:none}
+input,select,textarea,button{font-family:Ubuntu,'Segoe UI',sans-serif;font-size:14px}
+input,textarea,select{user-select:text;-webkit-user-select:text}
+#stage{position:fixed;inset:0}
+#stage.a11y-big{zoom:1.15}
+#stage.a11y-contrast{filter:contrast(1.25) brightness(1.05)}
+.ic{flex:none;vertical-align:-3px}
+#errbox{position:fixed;top:0;left:0;right:0;z-index:99999;background:#7a1f1f;color:#ffd9d9;font-family:var(--mono);font-size:12px;padding:8px 12px;display:none}
+@keyframes blink{50%{opacity:0}}
+@keyframes pw{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes ply{0%,100%{background:#8c8c88;transform:scale(1)}45%{background:var(--or);transform:scale(1.25)}}
+@keyframes winin{from{opacity:0;transform:scale(.96)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+@keyframes ping{0%{r:4;opacity:.6}100%{r:13;opacity:0}}
+.pwscr{position:absolute;inset:0;background:#0a0a0b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px}
+.pw-brand{position:absolute;top:34px;left:38px;display:flex;gap:14px;align-items:center;color:#d6d6d2}
+.pw-brand b{font-size:19px;font-weight:500;display:block}
+.pw-brand span{font-size:12.5px;color:#8f8f8a;display:block}
+.pw-spec{position:absolute;bottom:30px;font-family:var(--mono);font-size:12px;color:#6f6f6a}
+.pwbtn{background:none;border:1px solid #2e2e2c;color:#9a9a96;width:104px;height:104px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.25s;animation:pw 3.2s ease-in-out infinite}
+.pwbtn:hover{color:var(--or);border-color:var(--or)}
+.pw-hint{font-family:var(--mono);font-size:13px;color:#7c7c78}
+.phase-black{position:absolute;inset:0;background:#000;overflow:hidden;font-family:var(--mono);color:#cfcfcb}
+.klog{position:absolute;inset:0;overflow:hidden;padding:10px 14px;font-size:12.5px;line-height:1.32}
+.ll{white-space:pre-wrap;word-break:break-all}
+.ll.ok{color:#e8e8e4}
+.ll.ok em{color:#4cd137;font-style:normal;font-weight:700}
+.post-hint{position:absolute;bottom:36px;left:0;right:0;text-align:center;color:#efe9d0;font-size:14px}
+.post-hint b{color:#fff}
+.blink{animation:blink 1s steps(1) infinite}
+.bios{position:absolute;inset:0;background:#a9a89f;font-family:var(--mono);color:#1d1d1a;display:flex;flex-direction:column;padding:10px;font-size:14px}
+.b-head{background:#1f3a5f;color:#e8e8e2;padding:6px 12px;font-weight:700}
+.b-tabs{display:flex;gap:2px;background:#8f8e85;padding:3px 4px 0}
+.b-tab{padding:5px 18px;background:#c8c7bd;cursor:pointer;border:1px solid #7a7970;border-bottom:none}
+.b-tab.cur{background:#1f3a5f;color:#fff;font-weight:700}
+.b-main{flex:1;display:flex;background:#d8d7cd;border:1px solid #7a7970;overflow:hidden}
+.b-menu{flex:1;padding:10px 0;overflow:auto}
+.b-help{width:320px;background:#cdccc1;border-left:1px solid #7a7970;padding:14px;font-size:12.5px;color:#3c3b36;line-height:1.5}
+.b-row{display:flex;padding:5px 16px;cursor:pointer;white-space:pre}
+.b-row .bv{margin-left:auto;color:#33322d}
+.b-row.cur{background:#1f3a5f;color:#fff}
+.b-row.cur .bv{color:#fff}
+.b-foot{background:#1f3a5f;color:#cfd6e2;padding:6px 12px;font-size:12.5px}
+.b-title{padding:8px 16px;font-weight:700;background:#c2c1b7;border-bottom:1px solid #8f8e85}
+.bmenu{position:absolute;inset:0;background:#000;color:#eee;font-family:var(--mono);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:16px}
+.bmenu .bi{padding:5px 26px;cursor:pointer;width:440px}
+.bmenu .bi.cur{background:#1f3a5f;color:#fff}
+.bmenu h3{margin-bottom:18px;letter-spacing:2px}
+.noboot{position:absolute;inset:0;background:#000;color:#cfcfcf;font-family:var(--mono);display:flex;align-items:center;justify-content:center;text-align:center;font-size:17px;line-height:2;cursor:pointer}
+.grub{position:absolute;inset:0;background:#000;color:#eee;font-family:var(--mono);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px}
+.g-ver{color:#888;font-size:13px;margin-bottom:26px}
+.g-cd{color:#bbb;margin-bottom:10px;font-size:14px}
+.g-box{border:1px solid #9a9a96;min-width:560px}
+.g-it{padding:7px 26px;cursor:pointer;white-space:pre}
+.g-it.cur{background:#5e2750;color:#fff}
+.g-help{margin-top:26px;color:#9a9a96;font-size:13px;text-align:center;line-height:1.7}
+.ply{position:absolute;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:38px}
+.ply .cof{color:var(--or)}
+.ply-dots{display:flex;gap:12px}
+.ply-dots span{width:9px;height:9px;border-radius:50%;background:#8c8c88;animation:ply 1.25s infinite}
+.rbnote{position:absolute;inset:0;background:#000;color:#ddd;font-family:var(--mono);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:18px;text-align:center}
+.btn{border:none;border-radius:5px;padding:10px 24px;font-size:15px;font-weight:500;cursor:pointer}
+.btn.primary{background:var(--or);color:#fff}
+.btn.primary:hover{background:var(--or2)}
+.btn.primary:disabled{background:#5a4237;color:#c9b6ac;cursor:not-allowed}
+.btn.ghost{background:transparent;color:#e9e9e5;border:1px solid #66645f}
+.btn.ghost:hover{border-color:#9a9892}
+.inst-btns{display:flex;gap:10px}
+.inst{display:flex;flex-direction:column;height:100%;background:#262626}
+.inst-h{padding:26px 38px 4px}
+.inst-h h2{font-size:23px;font-weight:500}
+.inst-h p{font-size:13px;color:var(--dim);margin-top:4px}
+.inst-b{flex:1;overflow:auto;padding:14px 38px 10px}
+.inst-f{border-top:1px solid #383836;padding:14px 38px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inst-note{font-size:12.5px;color:var(--dim);flex:1}
+.ipt,.sel{background:#1c1c1a;border:1px solid #4a4a46;border-radius:6px;color:#eee;padding:9px 12px;outline:none;width:100%}
+.ipt:focus,.sel:focus{border-color:var(--or)}
+.lbl{display:block;font-size:12.5px;color:var(--dim);margin:14px 0 6px}
+.opt-card{border:1px solid #454542;border-radius:8px;padding:15px 18px;cursor:pointer;display:flex;gap:14px;align-items:flex-start;transition:.15s}
+.opt-card:hover{border-color:#6a6862}
+.opt-card.sel{border-color:var(--or);background:rgba(233,84,32,.09)}
+.opt-card.dis{opacity:.55}
+.opt-card .oc-ic{color:var(--or);flex:none;margin-top:2px}
+.opt-card h4{font-size:15.5px;font-weight:500}
+.opt-card p{font-size:12.5px;color:var(--dim);margin-top:3px;line-height:1.45}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px}
+.lbtn{display:flex;justify-content:space-between;align-items:center;background:#1c1c1a;border:1px solid #454542;border-radius:6px;color:#e6e6e2;padding:9px 13px;cursor:pointer;text-align:left}
+.lbtn:hover{border-color:#6a6862}
+.lbtn.sel{border-color:var(--or);background:rgba(233,84,32,.12)}
+.chk{display:flex;gap:11px;align-items:flex-start;padding:9px 2px;cursor:pointer;font-size:14px;line-height:1.4}
+.chk input{accent-color:var(--or);width:17px;height:17px;margin-top:1px;flex:none}
+.chk small{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
+.pgw{display:flex;gap:34px;align-items:stretch}
+.modal-ov{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:5}
+.modal{background:#2b2b2b;border:1px solid #484844;border-radius:10px;padding:26px 30px;width:440px;max-width:92%;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.modal h3{font-size:18px;font-weight:500;margin-bottom:8px}
+.modal p{font-size:13.5px;color:var(--dim);line-height:1.55}
+.m-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.alert{border:1px solid #8c4a35;background:rgba(233,84,32,.1);color:#f3c9b6;border-radius:8px;padding:12px 15px;font-size:13px;display:flex;gap:11px;line-height:1.45;margin-top:16px}
+.alert .ic{color:var(--or)}
+.crow{display:flex;align-items:center;gap:12px;padding:11px 6px;border-bottom:1px solid #353533;cursor:pointer;font-size:14px}
+.crow:hover{background:#2e2e2c}
+.crow span{color:var(--dim);width:150px;flex:none}
+.crow b{font-weight:400;flex:1}
+.crow .ic{color:#7c7a74}
+.bar{height:7px;background:#3a3a37;border-radius:4px;overflow:hidden;margin:10px 0}
+.bar i{display:block;height:100%;background:var(--or);width:0%}
+.strow{display:flex;gap:10px;align-items:center;padding:5px 0;color:var(--dim);font-size:13.5px}
+.strow.on{color:#fff}
+.strow.on .ic{color:var(--or)}
+.map-wrap{background:#1d1d1c;border:1px solid #3b3b38;border-radius:8px;overflow:hidden;position:relative;min-width:0}
+.map-wrap svg{display:block}
+.city{fill:#cfcfca;cursor:pointer}
+.city:hover{fill:#fff}
+.pin{fill:var(--or)}
+.pin-ring{fill:none;stroke:var(--or);opacity:.5;animation:ping 1.6s infinite}
+.slide{background:#1d1d1c;border:1px solid #3b3b38;border-radius:10px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.slide .ic{color:var(--or);width:38px;height:38px}
+.slide h4{font-size:19px;font-weight:500}
+.slide p{font-size:13.5px;color:var(--dim);line-height:1.55}
+.pct{font-size:44px;font-weight:300}
+.parts-t{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+.parts-t th{text-align:left;color:var(--dim);font-weight:400;padding:6px 8px;border-bottom:1px solid #40403d;font-size:12px}
+.parts-t td{padding:8px;border-bottom:1px solid #333330}
+.parts-t button{background:none;border:none;color:#d08a70;cursor:pointer;padding:2px}
+.parts-t button:hover{color:var(--or)}
+.dbar{display:flex;height:16px;border-radius:4px;overflow:hidden;margin:12px 0 4px;background:#3a3a37}
+.dbar i{background:var(--or);border-right:1px solid #262626}
+.desk{position:absolute;inset:0;overflow:hidden}
+.wall{position:absolute;inset:0}
+.wall svg{width:100%;height:100%}
+.topbar{position:absolute;top:0;left:0;right:0;height:32px;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:space-between;padding:0 8px;z-index:100;font-size:13px}
+.tb-b{background:none;border:none;color:#eee;cursor:pointer;padding:4px 12px;border-radius:4px;font-size:13px}
+.tb-b:hover{background:rgba(255,255,255,.12)}
+.tb-c{position:absolute;left:50%;transform:translateX(-50%)}
+.tb-r{display:flex;align-items:center;gap:7px;cursor:pointer;padding:4px 12px;border-radius:4px}
+.tb-r:hover{background:rgba(255,255,255,.12)}
+.dock{position:absolute;left:8px;top:44px;bottom:8px;width:60px;background:rgba(20,12,20,.72);border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;z-index:90}
+.dk{position:relative;width:46px;height:46px;border:none;background:none;cursor:pointer;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.dk:hover{background:rgba(255,255,255,.09)}
+.dk .dk-dot{position:absolute;left:-5px;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%;background:transparent}
+.dk.run .dk-dot{background:var(--or)}
+.dk-tip{position:absolute;left:60px;top:50%;transform:translateY(-50%);background:#1c1c1c;border:1px solid #3c3c39;color:#eee;font-size:12px;padding:5px 11px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:.15s;z-index:200}
+.dk:hover .dk-tip{opacity:1}
+.tile{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff}
+.dk-apps{margin-top:auto;width:42px;height:42px;display:grid;grid-template-columns:repeat(3,1fr);place-items:center;padding:7px;border-radius:10px;cursor:pointer;border:none;background:none}
+.dk-apps:hover{background:rgba(255,255,255,.09)}
+.dk-apps i{width:4px;height:4px;border-radius:50%;background:#e8e8e4}
+.dicons{position:absolute;left:86px;top:48px;display:flex;flex-direction:column;gap:10px;z-index:20}
+.dic{width:96px;padding:8px 4px;border-radius:8px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;border:1px solid transparent}
+.dic:hover{background:rgba(255,255,255,.1)}
+.dic.sel{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.25)}
+.dic span{font-size:11.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);text-align:center;line-height:1.3}
+.winlayer{position:absolute;inset:0;pointer-events:none}
+.win{position:absolute;background:#242423;border:1px solid #3c3c39;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;pointer-events:auto;box-shadow:0 14px 44px rgba(0,0,0,.45);animation:winin .16s ease-out}
+.win-h{height:38px;background:#2e2e2d;display:flex;align-items:center;padding:0 6px 0 14px;cursor:grab;flex:none;border-bottom:1px solid #262625;touch-action:none}
+.win-t{flex:1;font-size:13.5px;font-weight:500;text-align:center;color:#e9e9e5;pointer-events:none;overflow:hidden;white-space:nowrap}
+.win-x{width:28px;height:28px;border-radius:50%;border:none;background:none;color:#d6d6d2;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.win-x:hover{background:#4a4a48}
+.win.focused{border-color:#5a5a56}
+.win-b{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.term{flex:1;overflow-y:auto;background:#300a24;color:#f2f2ee;font-family:var(--mono);font-size:13.5px;line-height:1.42;padding:10px 12px;outline:none;cursor:text}
+.tl{white-space:pre-wrap;word-break:break-all;min-height:19px}
+.pu{color:#33d17a;font-weight:700}
+.pwd2{color:#99c1f1;font-weight:700}
+.dir{color:#5b9dff;font-weight:700}
+.cr{display:inline-block;width:8px;height:16px;background:#f2f2ee;vertical-align:-3px;animation:blink 1.1s steps(1) infinite}
+.files{flex:1;display:flex;overflow:hidden}
+.f-side{width:172px;background:#2a2a29;border-right:1px solid #363634;padding:12px 8px;overflow:auto;flex:none}
+.f-pl{display:flex;gap:9px;align-items:center;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:#d8d8d4}
+.f-pl:hover{background:#373736}
+.f-pl.cur{background:#3f3f3d}
+.f-pl .ic{color:var(--or)}
+.f-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.f-bar{display:flex;gap:10px;align-items:center;padding:9px 12px;border-bottom:1px solid #363634}
+.f-bar button{background:none;border:none;color:#d6d6d2;cursor:pointer;padding:4px 6px;border-radius:5px}
+.f-bar button:hover{background:#3a3a38}
+.f-path{font-size:13px;color:#b8b8b3;overflow:hidden;white-space:nowrap}
+.f-path b{font-weight:500;color:#eee}
+.f-grid{flex:1;overflow:auto;padding:12px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.f-it{width:104px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+.f-it:hover{background:#323230}
+.f-it.sel{background:#3c3c3a;border-color:#5a5a56}
+.f-it span{font-size:11.5px;text-align:center;word-break:break-word;line-height:1.25}
+.f-empty{padding:40px;color:#9a9a96;font-size:13.5px;text-align:center;width:100%}
+.ed{flex:1;display:flex;flex-direction:column}
+.ed textarea{flex:1;background:#1e1e1d;color:#eee;border:none;outline:none;padding:14px;font-family:var(--mono);font-size:13.5px;line-height:1.5;resize:none}
+.ed-info{padding:6px 14px;font-size:12px;color:#9a9a96;border-bottom:1px solid #363634}
+.ffx{flex:1;display:flex;flex-direction:column;background:#1f1f1e;overflow:hidden}
+.fx-tab{background:#2c2c2b;border:1px solid #3a3a38;border-bottom:none;color:#dcdcd8;font-size:12.5px;padding:6px 16px;border-radius:7px 7px 0 0;max-width:220px;overflow:hidden;white-space:nowrap;margin:4px 6px 0}
+.fx-nav{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#262625;border-bottom:1px solid #363634}
+.fx-nav button{background:none;border:none;color:#d6d6d2;cursor:pointer;padding:4px 7px;border-radius:5px}
+.fx-nav button:hover{background:#3a3a38}
+.fx-addr{flex:1}
+.fx-body{flex:1;overflow:auto;display:flex}
+.fx-start{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:60px;background:#f7f6f3;color:#2b2b28}
+.fx-srch{width:min(560px,80%);display:flex;margin:30px 0 26px}
+.fx-srch input{flex:1;padding:12px 18px;border:1px solid #cfcac2;border-radius:22px 0 0 22px;outline:none;font-size:14px}
+.fx-srch button{padding:12px 20px;border:1px solid #cfcac2;border-left:none;border-radius:0 22px 22px 0;background:#fff;cursor:pointer;color:#a1401f}
+.fx-tiles{display:flex;gap:18px}
+.fx-tile{width:100px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;color:#55524c;font-size:12px;border:none;background:none;padding:6px;border-radius:8px}
+.fx-tile:hover{background:#ecebe6}
+.fx-tb{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;margin-bottom:4px}
+.fx-page{flex:1;padding:36px 56px;background:#f7f6f3;color:#2b2b28}
+.fx-page h1{font-size:30px;margin-bottom:14px;font-weight:500}
+.fx-page p{font-size:14.5px;line-height:1.7;margin-bottom:12px;max-width:640px}
+.fx-res{flex:1;padding:26px 40px;background:#fff;color:#222}
+.fx-res h3{font-size:13px;color:#777;font-weight:400;margin-bottom:18px}
+.fx-r{margin-bottom:22px}
+.fx-r b{font-size:17px;font-weight:500;color:#1a0dab;cursor:pointer;display:block}
+.fx-r span{font-size:13px;color:#0a7d33}
+.fx-r p{font-size:13.5px;color:#444;line-height:1.5}
+.set{flex:1;display:flex;overflow:hidden}
+.st-side{width:190px;background:#2a2a29;border-right:1px solid #363634;padding:12px 8px;flex:none}
+.st-pl{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13.5px;color:#d8d8d4}
+.st-pl:hover{background:#373736}
+.st-pl.cur{background:#3f3f3d}
+.st-pl .ic{color:var(--or)}
+.st-main{flex:1;overflow:auto;padding:24px 30px}
+.st-main h2{font-size:20px;font-weight:500;margin-bottom:18px}
+.st-row{display:flex;justify-content:space-between;align-items:center;padding:12px 2px;border-bottom:1px solid #353533;font-size:14px;gap:16px}
+.st-row span{color:var(--dim)}
+.sw{position:relative;width:44px;height:24px;flex:none;cursor:pointer;display:inline-block}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#4a4a46;border-radius:12px;transition:.2s}
+.sw i:before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#eee;top:3px;left:3px;transition:.2s}
+.sw input:checked+i{background:var(--or)}
+.sw input:checked+i:before{left:23px}
+.st-head{display:flex;gap:18px;align-items:center;margin-bottom:22px}
+.st-head .cof{color:var(--or)}
+.pop{position:absolute;top:38px;background:#1c1c1b;border:1px solid #3c3c39;border-radius:12px;box-shadow:0 16px 50px rgba(0,0,0,.5);padding:14px;z-index:180;color:#eee}
+.cal{width:290px}
+.cal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13.5px}
+.cal-h button{background:none;border:none;color:#ddd;cursor:pointer;padding:3px 8px;border-radius:5px}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}
+.cal-g b{color:var(--dim);font-weight:400;padding:5px 0}
+.cal-g span{padding:6px 0;border-radius:50%}
+.cal-g span.today{background:var(--or);color:#fff;font-weight:700}
+.sysm{width:320px;display:flex;flex-direction:column;gap:12px}
+.sysm .sr{display:flex;gap:11px;align-items:center;font-size:13.5px}
+.sysm .sr small{color:var(--dim);display:block;font-size:12px}
+.sysm input[type=range]{width:100%;accent-color:var(--or)}
+.sm-btns{display:flex;gap:8px}
+.sm-btn{flex:1;background:#333330;border:none;color:#eee;padding:11px 0;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px}
+.sm-btn:hover{background:#3f3f3c}
+.sm-pw{display:none;flex-direction:column;gap:8px}
+.sm-pw button{background:#333330;border:none;color:#eee;padding:10px;border-radius:8px;cursor:pointer;text-align:left;padding-left:16px}
+.sm-pw button:hover{background:#3f3f3c}
+.ov{position:absolute;inset:0;background:rgba(12,6,12,.55);backdrop-filter:blur(26px);z-index:150;display:flex;flex-direction:column;align-items:center;padding-top:60px}
+.ov input{width:min(520px,70%);padding:12px 20px;border-radius:24px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.4);color:#fff;outline:none;font-size:14px}
+.ov-grid{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;margin-top:70px;max-width:760px}
+.ov-app{width:110px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;border:none;background:none}
+.ov-app span{color:#eee;font-size:12.5px}
+.lockov{position:absolute;inset:0;background:rgba(8,4,8,.66);backdrop-filter:blur(30px);z-index:220;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.lk-t{font-size:82px;font-weight:300}
+.lk-d{font-size:24px;font-weight:300;color:#ddd}
+.login{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:13vh;overflow:hidden}
+.login .wall{filter:blur(26px) brightness(.45);transform:scale(1.1)}
+.lg-top{position:absolute;top:15vh;text-align:center}
+.lg-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px}
+.lg-av{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:500;color:#fff;box-shadow:0 6px 30px rgba(0,0,0,.4)}
+.lg-name{font-size:19px;font-weight:500}
+.lg-form{display:flex;flex-direction:column;align-items:center;gap:8px}
+.lg-in{display:flex;align-items:center;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.3);border-radius:22px;padding:3px 3px 3px 18px}
+.lg-in input{background:none;border:none;outline:none;color:#fff;width:230px;font-size:14px}
+.lg-in button{width:34px;height:34px;border-radius:50%;border:none;background:var(--or);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none}
+.lg-err{color:#f5a49a;font-size:13px;min-height:18px}
+.lg-card.shake{animation:shake .4s}
+.lg-power{position:absolute;bottom:26px;right:30px}
+.lg-power button{background:rgba(0,0,0,.4);border:none;color:#eee;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lg-note{font-size:11.5px;color:#9a9a96}
+.wmodal{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:230;display:flex;align-items:center;justify-content:center}
+.wm-card{background:#262626;border:1px solid #454542;border-radius:14px;padding:34px 38px;width:470px;max-width:92%;display:flex;flex-direction:column;gap:18px}
+.wm-card .cof{color:var(--or)}
+.wm-card h3{font-size:22px;font-weight:500}
+.wm-card p{font-size:14px;color:var(--dim);line-height:1.55}
+.wm-li{display:flex;gap:12px;align-items:center;font-size:13.5px;padding:7px 0}
+.wm-li .ic{color:var(--or)}
+#simbar{position:fixed;right:12px;bottom:10px;display:flex;gap:6px;align-items:center;z-index:999;opacity:.75;transition:.2s}
+#simbar:hover{opacity:1}
+.sb-phase{font-family:var(--mono);font-size:11px;color:#8a8a86;background:rgba(20,20,20,.85);padding:5px 10px;border-radius:6px;border:1px solid #333330}
+.sb-btn{display:flex;gap:6px;align-items:center;background:rgba(20,20,20,.85);border:1px solid #333330;color:#b8b8b4;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11.5px;font-family:var(--mono)}
+.sb-btn:hover{color:#fff;border-color:#55534e}
+.sb-btn.on{color:var(--or);border-color:#6b3a26}
+#toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%) translateY(20px);background:#1c1c1a;color:#eee;border:1px solid #3c3c39;padding:11px 22px;border-radius:9px;font-size:13.5px;opacity:0;pointer-events:none;transition:.3s;z-index:1000}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#hint{position:fixed;left:12px;bottom:12px;font-family:var(--mono);font-size:11.5px;color:#78786f;max-width:440px;z-index:999;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="stage"><div id="bootph" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#777;font-family:monospace;font-size:13px">Memuat simulator&#8230;</div></div>
+<div id="simbar"></div>
+<div id="toast"></div>
+<div id="hint"></div>
+<div id="errbox"></div>
+<script>
+/* Pemantau error — dipasang di skrip TERPISAH sebelum skrip utama,
+   sehingga error parse pada skrip utama pun tetap tampil sebagai banner merah. */
+(function(){
+  var shown=false;
+  function show(msg){
+    var d=document.getElementById('errbox');
+    if(!d)return;
+    d.style.display='block';
+    d.textContent=msg;
+    shown=true;
+  }
+  window.addEventListener('error',function(e){
+    show('Kesalahan skrip: '+(e.message||'?')+(e.lineno?(' (baris '+e.lineno+')'):''));
+  });
+  setTimeout(function(){
+    var ph=document.getElementById('bootph');
+    if(ph&&ph.isConnected&&!shown){
+      show('Simulator gagal dimulai. Muat ulang halaman (F5). Bila berulang, buka F12 lalu lihat tab Console untuk detailnya.');
+    }
+  },4000);
+})();
+</script>
+<script>
+(function(){
+
+/* ============ UTIL ============ */
+var stage=document.getElementById('stage');
+function $(s){return document.querySelector(s);}
+function h(html){var t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild;}
+function mount(node){stage.innerHTML='';stage.appendChild(node);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function pad2(n){return String(n).padStart(2,'0');}
+function wait(ms){return new Promise(function(r){setTimeout(r,Math.max(1,ms/S.speed));});}
+function rnd(a,b){return a+Math.random()*(b-a);}
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show');},2800);}
+function setHint(txt){$('#hint').textContent=txt;}
+
+/* ============ IKON INLINE (tanpa CDN) ============ */
+var ICONS={
+ 'x':'<path d="M18 6L6 18M6 6l12 12"/>',
+ 'check':'<path d="M20 6L9 17l-5-5"/>',
+ 'chevron-right':'<path d="M9 18l6-6-6-6"/>',
+ 'chevron-left':'<path d="M15 18l-6-6 6-6"/>',
+ 'chevron-down':'<path d="M6 9l6 6 6-6"/>',
+ 'plus':'<path d="M12 5v14M5 12h14"/>',
+ 'power':'<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><path d="M12 2v10"/>',
+ 'lock':'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+ 'search':'<circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>',
+ 'volume-x':'<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M23 9l-6 6M17 9l6 6"/>',
+ 'volume-1':'<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>',
+ 'volume-2':'<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+ 'wifi':'<path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/>',
+ 'wifi-off':'<path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M12 20h.01"/>',
+ 'network':'<rect x="8" y="9" width="8" height="6" rx="1"/><path d="M12 15v6"/><path d="M9 21h6"/><path d="M12 5v4"/><circle cx="12" cy="3" r="1"/>',
+ 'battery-full':'<rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 13v-2"/><path d="M5 10v4M9 10v4M13 10v4M17 10v4"/>',
+ 'rotate-ccw':'<path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+ 'rotate-cw':'<path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+ 'usb':'<path d="M12 17V5"/><path d="M9 8l3-3 3 3"/><circle cx="12" cy="19" r="2"/><path d="M8.5 12.5L12 15.5l3.5-3"/><circle cx="7" cy="12" r="1.2"/><circle cx="17" cy="12" r="1.2"/>',
+ 'folder':'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+ 'terminal':'<path d="M4 17l6-6-6-6"/><path d="M12 19h8"/>',
+ 'settings':'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>',
+ 'trash-2':'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/>',
+ 'file-text':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8"/>',
+ 'download':'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
+ 'hard-drive':'<path d="M2 12h20"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><path d="M6 16h.01M10 16h.01"/>',
+ 'play':'<path d="M5 3l14 9-14 9z"/>',
+ 'user':'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+ 'zap':'<path d="M13 2L3 14h9l-1 8 10-12h-9z"/>',
+ 'package':'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>',
+ 'minimize-2':'<path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7M3 21l7-7"/>',
+ 'table-2':'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+ 'triangle-alert':'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+ 'circle':'<circle cx="12" cy="12" r="10"/>',
+ 'circle-check':'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/>',
+ 'globe':'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+ 'cpu':'<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>',
+ 'mail':'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/>',
+ 'camera':'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+ 'music':'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+ 'film':'<rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/>',
+ 'store':'<path d="M3 9l1-5h16l1 5"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/>',
+ 'shield':'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+ 'users':'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+ 'layout-grid':'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+ 'clock':'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+ 'info':'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'
+};
+function ic(n,s){
+  if(!s)s=16;
+  var p=ICONS[n]||ICONS['circle'];
+  return '<svg class="ic" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';
+}
+
+/* ============ LOGO & GAMBAR ============ */
+function cof(s){
+  return '<svg class="cof" width="'+s+'" height="'+s+'" viewBox="0 0 100 100" fill="currentColor"><circle cx="50" cy="50" r="12.5"/><g stroke="currentColor" stroke-width="10" stroke-linecap="round" fill="none"><path d="M50 50 Q44 34 50 22"/><path d="M50 50 Q60 62 73 64"/><path d="M50 50 Q40 62 27 64"/></g><circle cx="50" cy="17.5" r="9.5"/><circle cx="76" cy="67" r="9.5"/><circle cx="24" cy="67" r="9.5"/></svg>';
+}
+var PWR='<svg width="56" height="56" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"><path d="M36 13v26"/><path d="M22 26a18 18 0 1 0 28 0"/></svg>';
+var FOX='<svg width="30" height="30" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FF9500"/><path d="M32 17C25 11 17 12 15 16l6 10c-6 5-7 13-2 19 5 7 15 8 22 3 5-4 7-10 5-15 5-1 8-4 9-8 1-5-2-10-7-11l-5 6c-1-4-4-8-11-3z" fill="#fff"/><circle cx="26" cy="33" r="3" fill="#FF9500"/><circle cx="38" cy="33" r="3" fill="#FF9500"/><path d="M29 41h6l-3 4z" fill="#FF9500"/></svg>';
+var WALL='<svg viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice"><rect width="1920" height="1080" fill="#170d1b"/><circle cx="-140" cy="180" r="760" fill="#772953" opacity=".5"/><circle cx="1550" cy="560" r="470" fill="none" stroke="#E95420" stroke-width="200" opacity=".14"/><circle cx="1550" cy="560" r="230" fill="none" stroke="#E95420" stroke-width="10" opacity=".3"/><circle cx="1180" cy="920" r="90" fill="#E95420" opacity=".28"/><circle cx="620" cy="860" r="46" fill="#E95420" opacity=".2"/><circle cx="330" cy="620" r="24" fill="#E95420" opacity=".16"/><path d="M0 1040 L1920 620" stroke="#772953" stroke-width="3" opacity=".5"/><path d="M0 1080 L1920 700" stroke="#E95420" stroke-width="2" opacity=".12"/></svg>';
+
+/* ============ STATE ============ */
+var S=null,DESK=null,FSY=null;
+var INST={page:0,special:null,abort:false,el:null,rec:null};
+var phaseTimers=[];
+function addTimer(fn,ms){var id=setInterval(fn,ms);phaseTimers.push(id);return id;}
+function clearTimers(){for(var i=0;i<phaseTimers.length;i++)clearInterval(phaseTimers[i]);phaseTimers=[];}
+var keyHandler=null;
+function setKeyHandler(fn){
+  if(keyHandler)window.removeEventListener('keydown',keyHandler);
+  keyHandler=fn;
+  if(fn)window.addEventListener('keydown',fn);
+}
+var PHASES={off:'Mati',post:'POST',bios:'BIOS',bmenu:'Boot menu',noboot:'No boot',grub:'GRUB',boot:'Boot',splash:'Splash',live:'Sesi live',reboot:'Reboot',login:'Login',desktop:'Desktop'};
+function setPhase(p){S.phase=p;clearTimers();setKeyHandler(null);renderSimbar();}
+function detectTZ(){
+  try{
+    var z=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    var all=[];
+    Object.keys(TZD).forEach(function(r){TZD[r].forEach(function(x){all.push(r+'/'+x);});});
+    return all.indexOf(z)>=0?z:'Asia/Jakarta';
+  }catch(e){return 'Asia/Jakarta';}
+}
+function freshState(){
+  return{phase:'off',speed:(S&&S.speed)?S.speed:1,sfx:(S&&S.sfx!==undefined)?S.sfx:true,
+    usb:true,boot:['usb','ssd','net'],diskHasOS:false,
+    lang:'en',langName:'English',
+    kb:{layout:'English (US)',variant:'English (US)'},
+    net:{type:'ethernet',ssid:null},wifiOn:true,prevNet:null,
+    tryOr:'install',mode:'interactive',apps:'normal',updates:false,third:false,
+    diskMode:'erase',lvm:false,parts:[],
+    tz:{zone:detectTZ()},
+    access:{big:false,contrast:false},
+    user:{name:'',host:'',user:'',pass:'',autologin:false},
+    welcomed:false,vol:65,bootT:Date.now(),pkgs:0};
+}
+function resetAll(){
+  S=freshState();DESK=null;
+  INST={page:0,special:null,abort:false,el:null,rec:null};
+  stage.classList.remove('a11y-big','a11y-contrast');
+  powerScreen();
+}
+
+/* ============ SFX ============ */
+var AC=null;
+function beep(freq,dur,vol){
+  if(!S.sfx)return;
+  try{
+    AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+    var o=AC.createOscillator(),g=AC.createGain();
+    o.type='square';o.frequency.value=freq||880;g.gain.value=vol||0.04;
+    o.connect(g);g.connect(AC.destination);o.start();
+    setTimeout(function(){try{o.stop();}catch(e){}},dur||110);
+  }catch(e){}
+}
+
+/* ============ SIMBAR ============ */
+function renderSimbar(){
+  $('#simbar').innerHTML='<span class="sb-phase">'+(PHASES[S.phase]||S.phase)+'</span>'+
+   '<button class="sb-btn'+(S.usb?' on':'')+'" id="sbU" title="Media instalasi USB">'+ic('usb',13)+'USB</button>'+
+   '<button class="sb-btn" id="sbS" title="Kecepatan simulasi">x'+S.speed+'</button>'+
+   '<button class="sb-btn'+(S.sfx?' on':'')+'" id="sbV" title="Suara">'+ic(S.sfx?'volume-2':'volume-x',13)+'</button>'+
+   '<button class="sb-btn" id="sbR" title="Reset simulasi">'+ic('rotate-ccw',13)+'</button>';
+  $('#sbU').onclick=function(){S.usb=!S.usb;toast(S.usb?'Media USB terpasang':'Media USB dilepas');renderSimbar();};
+  $('#sbS').onclick=function(){S.speed=(S.speed===1)?4:(S.speed===4)?16:1;renderSimbar();};
+  $('#sbV').onclick=function(){S.sfx=!S.sfx;renderSimbar();};
+  $('#sbR').onclick=function(){resetAll();};
+}
+
+/* ============ I18N ============ */
+var L={
+en:{
+ 'k-next':'Continue','k-back':'Back','k-cancel':'Cancel',
+ 'w-title':'Welcome','w-sub':'Choose your language:',
+ 'a-title':'Accessibility','a-sub':'Adjust the installer to your needs. You can change these later in Settings.','a1':'Large text','a1d':'Increase the text size','a2':'High contrast','a2d':'Increase the contrast of interface elements',
+ 'kb-title':'Keyboard layout','kb-sub':'Choose your keyboard layout:','kb-l':'Layout','kb-v':'Variant','kb-test':'Type here to test your keyboard','kb-det':'Detect keyboard layout','kb-deting':'Detecting...',
+ 'n-title':'Connect to internet','n-sub':'Connect to a network to get updates and extra software.','n-eth':'Wired connection 1','n-ethd':'Connected via Ethernet','n-wifi':'Wi-Fi networks','n-scan':'Scanning for networks...','n-off':'I do not want to connect to the internet right now','n-offd':'Updates and extra software cannot be downloaded','n-pass':'Wi-Fi password','n-conn':'Connect','n-hint':'Any password of 8+ characters works in this simulation.',
+ 'ti-title':'Try or Install Ubuntu','ti-sub':'Choose whether to try Ubuntu or install it on this computer.','ti-i':'Install Ubuntu','ti-i-d':'Install Ubuntu on this computer. The selected disk will be formatted and all data on it will be erased.','ti-t':'Try Ubuntu','ti-t-d':'Run the live session from the USB stick without changing anything. You can install later from the desktop.',
+ 'it-title':'Type of installation','it-sub':'How would you like to install Ubuntu?','it-i':'Interactive installation','it-i-d':'Choose the installation options yourself (recommended).','it-a':'Automated installation','it-a-d':'Install automatically using an autoinstall configuration file.','it-note':'Automated installation needs an autoinstall file from the network. Not available in this simulation.',
+ 'ap-title':'Applications and updates','ap-sub':'Choose the applications to install and whether to receive updates.','ap-n':'Normal installation','ap-n-d':'Web browser, utilities, office suite, media players and more.','ap-m':'Minimal installation','ap-m-d':'Web browser and basic utilities only.','ap-upd':'Download updates while installing Ubuntu','ap-upd-off':'(requires an internet connection)','ap-3rd':'Install third-party software for graphics and Wi-Fi hardware','ap-legal':'This software is subject to license terms that come with it. Includes NVIDIA drivers and extra media formats.',
+ 'dk-title':'Disk setup','dk-sub':'Select the disk where Ubuntu will be installed and how to use it.','dk-dev':'SIM SSD 1024GB','dk-spec':'/dev/nvme0n1 - 1.0 TB - NVMe - empty','dk-e':'Erase disk and install Ubuntu','dk-e-d':'The whole disk will be formatted for Ubuntu. All data will be lost.','dk-m':'Manual partitioning','dk-m-d':'Create, resize and choose the partitions yourself.','dk-adv':'Advanced features...','dk-warn':'The whole selected disk will be erased. This action cannot be undone.','adv-t':'Advanced features','adv-none':'No advanced features (standard partitions)','adv-lvm':'Use LVM with the ext4 file system','adv-lvm-d':'The Logical Volume Manager makes resizing and snapshots easier.',
+ 'pt-title':'Manual partitioning','pt-sub':'Create partitions on /dev/nvme0n1. A root (/) partition is required.','pt-new':'New partition','pt-size':'Size (GB)','pt-type':'Type','pt-fs':'File system','pt-del':'delete partition','pt-reset':'Discard changes','pt-needroot':'A root (/) partition is required to continue.','pt-noefi':'Note: no EFI system partition was created. The system may fail to boot on UEFI firmware.','pt-free':'free space','pt-efi':'EFI system partition (FAT32, /boot/efi)','pt-swap':'swap area','pt-root':'ext4 - mount "/"','pt-home':'ext4 - mount "/home"','pt-cust':'ext4 - custom mount point','pt-mt':'Mount point','pt-err-size':'The size exceeds the free space.',
+ 'tz-title':'Where are you?','tz-sub':'Select your location to set the time zone.','tz-zone':'Time zone','tz-now':'Current time',
+ 'u-title':'Who are you?','u-sub':'Set up the first account for this computer.','u-name':'Your name','u-host':'Your computer name','u-user':'Pick a username','u-pass':'Choose a password','u-pass2':'Confirm the password','u-auto':'Log in automatically','u-req':'Require my password to log in','u-str1':'Weak','u-str2':'Fair','u-str3':'Strong','u-e-name':'Please enter your name.','u-e-user':'Lowercase letters, digits, hyphens and underscores only.','u-e-host':'Use letters, digits, dots and hyphens; no spaces.','u-e-pass':'A password of at least 5 characters is required.','u-e-match':'The passwords do not match.',
+ 'c-title':'Review your choices','c-sub':'Everything is set. Confirm to begin the installation.','c-lang':'Language','c-kb':'Keyboard','c-net':'Network','c-apps':'Applications','c-disk':'Disk','c-tz':'Location','c-user':'User','c-login':'Login','c-go':'Install','c-erase':'The selected disk will be formatted: /dev/nvme0n1 (1.0 TB). All data will be lost.','c-edit':'edit',
+ 'p-title':'Installing Ubuntu','p-sub':'This may take a while. Speed it up from the console at the bottom-right.',
+ 'st1':'Preparing to install','st2':'Copying files to disk','st3':'Setting up the system','st4':'Installing packages','st5':'Applying configuration','st6':'Finishing the installation',
+ 'd-title':'Installation complete!','d-sub':'Everything is in place. Restart the computer to start using the new system.','d-note':'Make sure the installation medium is removed before restarting.','d-restart':'Restart Now','d-try':'Continue Testing','d-p-title':'Cancel the installation?','d-p-sub':'The installation has not finished. Cancelling now will leave the disk unusable.','d-p-go':'Keep installing','d-p-c':'Yes, cancel',
+ 'i-title':'Install Ubuntu 26.04 LTS','app-files':'Files','app-ffx':'Firefox','app-term':'Terminal','app-set':'Settings','app-trash':'Trash','app-ed':'Text Editor',
+ 'ov-act':'Activities','ov-s':'Type to search...',
+ 'sm-net':'Connection','sm-vol':'Volume','sm-bat':'Battery','sm-bat-s':'97% - charging','sm-set':'Settings','sm-lock':'Lock','sm-power':'Power','sm-off':'Power Off','sm-re':'Restart',
+ 'w-w-title':'Welcome to Ubuntu 26.04 LTS','w-w-sub':'Hello NAME. A few things to get you started:','w-w1':'Open the Terminal with Ctrl+Alt+T and try the command neofetch','w-w2':'The dock on the left holds your applications','w-w3':'Click the clock for the calendar, or the status icons for sound and power','w-w-open':'Open Terminal','w-w-done':'Done',
+ 'lg-pass':'Password','lg-err':'Wrong password. Please try again.','lg-note':'Use the password you chose in the Who are you? step.',
+ 'set-wifi':'Wi-Fi','set-sound':'Sound','set-power':'Power','set-about':'About','set-test':'Test sound','set-susp':'Automatic suspend','set-off':'Off','set-min':'After 5 minutes','set-min10':'After 10 minutes','set-wifi-off':'Wi-Fi is turned off',
+ 'ab-dev':'Device name','ab-mem':'Memory','ab-cpu':'Processor','ab-disk':'Disk capacity','ab-os':'OS type','ab-gpu':'Graphics','ab-de':'Desktop environment','ab-note':'Ubuntu is developed by the community and Canonical.',
+ 'ff-search':'Search the web','ff-addr':'Search or enter address','fx-doc':'This site is not available inside the simulation. Try one of the shortcuts below.','fx-res1':'Ubuntu 26.04 LTS - official page','fx-res2':'Ubuntu (operating system) - Wikipedia','fx-res3':'The Linux Kernel Archive',
+ 'fi-empty':'This folder is empty','fi-trash':'Trash is empty'
+},
+id:{
+ 'k-next':'Lanjutkan','k-back':'Kembali','k-cancel':'Batal',
+ 'w-title':'Selamat datang','w-sub':'Pilih bahasa Anda:',
+ 'a-title':'Aksesibilitas','a-sub':'Sesuaikan installer dengan kebutuhan Anda. Ini bisa diubah nanti di Pengaturan.','a1':'Teks besar','a1d':'Perbesar ukuran teks','a2':'Kontras tinggi','a2d':'Tambah kontras elemen antarmuka',
+ 'kb-title':'Tata letak papan ketik','kb-sub':'Pilih tata letak papan ketik Anda:','kb-l':'Tata letak','kb-v':'Varian','kb-test':'Ketik di sini untuk menguji papan ketik Anda','kb-det':'Deteksi tata letak','kb-deting':'Mendeteksi...',
+ 'n-title':'Sambungkan ke internet','n-sub':'Sambungkan ke jaringan untuk mendapatkan pembaruan dan perangkat lunak tambahan.','n-eth':'Koneksi kabel 1','n-ethd':'Terhubung lewat Ethernet','n-wifi':'Jaringan Wi-Fi','n-scan':'Memindai jaringan...','n-off':'Saya tidak ingin terhubung ke internet sekarang','n-offd':'Pembaruan dan perangkat lunak tambahan tidak dapat diunduh','n-pass':'Kata sandi Wi-Fi','n-conn':'Sambungkan','n-hint':'Kata sandi apa pun (min. 8 karakter) diterima dalam simulasi ini.',
+ 'ti-title':'Coba atau Instal Ubuntu','ti-sub':'Pilih ingin mencoba Ubuntu atau memasangnya di komputer ini.','ti-i':'Instal Ubuntu','ti-i-d':'Pasang Ubuntu di komputer ini. Disk terpilih akan diformat dan seluruh datanya akan dihapus.','ti-t':'Coba Ubuntu','ti-t-d':'Jalankan sesi live dari USB tanpa mengubah apa pun di komputer ini. Anda bisa memasangnya nanti dari desktop.',
+ 'it-title':'Jenis instalasi','it-sub':'Bagaimana Anda ingin memasang Ubuntu?','it-i':'Instalasi interaktif','it-i-d':'Pilih sendiri opsi-opsi instalasi (disarankan).','it-a':'Instalasi otomatis','it-a-d':'Pasang otomatis memakai berkas konfigurasi autoinstall.','it-note':'Instalasi otomatis membutuhkan berkas autoinstall dari jaringan. Tidak tersedia dalam simulasi ini.',
+ 'ap-title':'Aplikasi dan pembaruan','ap-sub':'Pilih aplikasi yang ingin dipasang dan apakah ingin menerima pembaruan.','ap-n':'Instalasi normal','ap-n-d':'Peramban web, utilitas, aplikasi perkantoran, pemutar media, dan lainnya.','ap-m':'Instalasi minimal','ap-m-d':'Peramban web dan utilitas dasar saja.','ap-upd':'Unduh pembaruan saat memasang Ubuntu','ap-upd-off':'(butuh koneksi internet)','ap-3rd':'Pasang perangkat lunak pihak ketiga untuk grafis dan Wi-Fi','ap-legal':'Perangkat lunak ini tunduk pada ketentuan lisensi yang menyertainya. Termasuk driver NVIDIA dan format media tambahan.',
+ 'dk-title':'Konfigurasi disk','dk-sub':'Pilih disk tempat Ubuntu akan dipasang dan cara menggunakannya.','dk-dev':'SIM SSD 1024GB','dk-spec':'/dev/nvme0n1 - 1,0 TB - NVMe - kosong','dk-e':'Hapus disk dan pasang Ubuntu','dk-e-d':'Seluruh disk akan diformat untuk Ubuntu. Semua data akan hilang.','dk-m':'Partisi manual','dk-m-d':'Buat, ubah ukuran, dan pilih partisi sendiri.','dk-adv':'Fitur lanjutan...','dk-warn':'Seluruh disk terpilih akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.','adv-t':'Fitur lanjutan','adv-none':'Tanpa fitur lanjutan (partisi standar)','adv-lvm':'Gunakan LVM dengan sistem berkas ext4','adv-lvm-d':'Logical Volume Manager memudahkan pengubahan ukuran dan snapshot.',
+ 'pt-title':'Partisi manual','pt-sub':'Buat partisi pada /dev/nvme0n1. Partisi root (/) wajib ada.','pt-new':'Partisi baru','pt-size':'Ukuran (GB)','pt-type':'Jenis','pt-fs':'Sistem berkas','pt-del':'hapus partisi','pt-reset':'Buang perubahan','pt-needroot':'Partisi root (/) diperlukan untuk melanjutkan.','pt-noefi':'Catatan: tidak ada partisi EFI. Sistem bisa gagal boot pada firmware UEFI.','pt-free':'ruang kosong','pt-efi':'Partisi sistem EFI (FAT32, /boot/efi)','pt-swap':'area swap','pt-root':'ext4 - titik kait "/"','pt-home':'ext4 - titik kait "/home"','pt-cust':'ext4 - titik kait khusus','pt-mt':'Titik kait','pt-err-size':'Ukuran melebihi ruang kosong.',
+ 'tz-title':'Di mana Anda?','tz-sub':'Pilih lokasi Anda untuk menentukan zona waktu.','tz-zone':'Zona waktu','tz-now':'Waktu saat ini',
+ 'u-title':'Siapa Anda?','u-sub':'Buat akun pertama untuk komputer ini.','u-name':'Nama Anda','u-host':'Nama komputer Anda','u-user':'Pilih nama pengguna','u-pass':'Pilih kata sandi','u-pass2':'Konfirmasi kata sandi','u-auto':'Masuk secara otomatis','u-req':'Butuh kata sandi saya untuk masuk','u-str1':'Lemah','u-str2':'Cukup','u-str3':'Kuat','u-e-name':'Masukkan nama Anda.','u-e-user':'Hanya huruf kecil, angka, tanda hubung dan garis bawah.','u-e-host':'Gunakan huruf, angka, titik, dan tanda hubung; tanpa spasi.','u-e-pass':'Kata sandi minimal 5 karakter.','u-e-match':'Kata sandi tidak cocok.',
+ 'c-title':'Tinjau pilihan Anda','c-sub':'Semuanya sudah siap. Konfirmasi untuk mulai instalasi.','c-lang':'Bahasa','c-kb':'Papan ketik','c-net':'Jaringan','c-apps':'Aplikasi','c-disk':'Disk','c-tz':'Lokasi','c-user':'Pengguna','c-login':'Masuk','c-go':'Instal','c-erase':'Disk terpilih akan diformat: /dev/nvme0n1 (1,0 TB). Semua data akan hilang.','c-edit':'ubah',
+ 'p-title':'Memasang Ubuntu','p-sub':'Ini bisa memakan waktu. Percepat lewat konsol simulasi di kanan bawah.',
+ 'st1':'Menyiapkan instalasi','st2':'Menyalin berkas ke disk','st3':'Mengatur sistem','st4':'Memasang paket','st5':'Menerapkan konfigurasi','st6':'Menyelesaikan instalasi',
+ 'd-title':'Instalasi selesai!','d-sub':'Semuanya sudah terpasang. Mulai ulang komputer untuk mulai memakai sistem baru.','d-note':'Pastikan media instalasi sudah dilepas sebelum memulai ulang.','d-restart':'Mulai Ulang Sekarang','d-try':'Lanjutkan Mencoba','d-p-title':'Batalkan instalasi?','d-p-sub':'Instalasi belum selesai. Membatalkan sekarang akan membuat disk tidak dapat digunakan.','d-p-go':'Lanjutkan instalasi','d-p-c':'Ya, batalkan',
+ 'i-title':'Instal Ubuntu 26.04 LTS','app-files':'Berkas','app-ffx':'Firefox','app-term':'Terminal','app-set':'Pengaturan','app-trash':'Sampah','app-ed':'Editor Teks',
+ 'ov-act':'Aktivitas','ov-s':'Ketik untuk mencari...',
+ 'sm-net':'Koneksi','sm-vol':'Volume','sm-bat':'Baterai','sm-bat-s':'97% - terisi','sm-set':'Pengaturan','sm-lock':'Kunci','sm-power':'Daya','sm-off':'Matikan','sm-re':'Mulai Ulang',
+ 'w-w-title':'Selamat datang di Ubuntu 26.04 LTS','w-w-sub':'Halo NAME. Beberapa hal untuk memulai:','w-w1':'Buka Terminal dengan Ctrl+Alt+T lalu coba perintah neofetch','w-w2':'Dock di sebelah kiri berisi aplikasi-aplikasi Anda','w-w3':'Klik jam untuk kalender, atau ikon status untuk suara dan daya','w-w-open':'Buka Terminal','w-w-done':'Selesai',
+ 'lg-pass':'Kata sandi','lg-err':'Kata sandi salah. Silakan coba lagi.','lg-note':'Gunakan kata sandi yang Anda buat pada langkah Siapa Anda?',
+ 'set-wifi':'Wi-Fi','set-sound':'Suara','set-power':'Daya','set-about':'Tentang','set-test':'Uji suara','set-susp':'Suspend otomatis','set-off':'Nonaktif','set-min':'Setelah 5 menit','set-min10':'Setelah 10 menit','set-wifi-off':'Wi-Fi dimatikan',
+ 'ab-dev':'Nama perangkat','ab-mem':'Memori','ab-cpu':'Prosesor','ab-disk':'Kapasitas disk','ab-os':'Jenis OS','ab-gpu':'Grafis','ab-de':'Lingkungan desktop','ab-note':'Ubuntu dikembangkan oleh komunitas dan Canonical.',
+ 'ff-search':'Cari di web','ff-addr':'Cari atau masukkan alamat','fx-doc':'Situs ini tidak tersedia di dalam simulasi. Coba salah satu pintasan di bawah.','fx-res1':'Ubuntu 26.04 LTS - halaman resmi','fx-res2':'Ubuntu (sistem operasi) - Wikipedia','fx-res3':'The Linux Kernel Archive',
+ 'fi-empty':'Folder ini kosong','fi-trash':'Sampah kosong'
+}};
+function t(k){
+  var d=L[S.lang]||L.en;
+  if(d[k]!==undefined)return d[k];
+  if(L.en[k]!==undefined)return L.en[k];
+  return k;
+}
+function LOC(){return S.lang==='id'?'id-ID':'en-GB';}
+
+/* ============ DATA ============ */
+var LANGS=[{n:'English',c:'en'},{n:'Bahasa Indonesia',c:'id'},{n:'Deutsch'},{n:'Español'},{n:'Français'},{n:'Italiano'},{n:'Nederlands'},{n:'Polski'},{n:'Português do Brasil'},{n:'Русский'},{n:'Türkçe'},{n:'中文（简体）'},{n:'日本語'},{n:'한국어'},{n:'हिन्दी'},{n:'ไทย'},{n:'Tiếng Việt'},{n:'Català'},{n:'Dansk'},{n:'Suomi'},{n:'Norsk'},{n:'Svenska'}];
+var KBL={'English (US)':['English (US)','English (US, intl., with dead keys)','English (Dvorak)','English (Macintosh)'],'English (UK)':['English (UK)','English (UK, extended)','English (UK, Dvorak)'],'Indonesia':['Indonesia'],'German':['German','German (dead acute)'],'French':['French','French (dead keys)'],'Spanish':['Spanish','Spanish (dead tilde)'],'Italian':['Italian'],'Japanese':['Japanese','Japanese (106-key)'],'Russian':['Russian'],'Chinese':['Chinese (pinyin)']};
+var WIFIS=[{s:'KopiKenanganGratis'},{s:'INDIHOME-A2C1'},{s:'HOME-5G'},{s:'WarnetSebelah'},{s:'AndroidAP_21'},{s:'TP-LINK_5A4F'}];
+var TZD={Africa:['Abidjan','Cairo','Lagos','Johannesburg','Nairobi'],America:['New_York','Chicago','Denver','Los_Angeles','Mexico_City','Sao_Paulo','Toronto','Vancouver'],Asia:['Dubai','Jakarta','Jayapura','Kolkata','Makassar','Seoul','Shanghai','Singapore','Tokyo'],Europe:['Amsterdam','Berlin','London','Madrid','Moscow','Paris'],Australia:['Perth','Sydney'],Pacific:['Auckland','Honolulu']};
+var CITIES=[['Jakarta',106.85,-6.2,'Asia/Jakarta'],['Tokyo',139.7,35.7,'Asia/Tokyo'],['Shanghai',121.5,31.2,'Asia/Shanghai'],['Singapore',103.8,1.35,'Asia/Singapore'],['Delhi',77.2,28.6,'Asia/Kolkata'],['Dubai',55.3,25.3,'Asia/Dubai'],['Moscow',37.6,55.8,'Europe/Moscow'],['London',-0.1,51.5,'Europe/London'],['Paris',2.35,48.85,'Europe/Paris'],['Berlin',13.4,52.5,'Europe/Berlin'],['Cairo',31.2,30.05,'Africa/Cairo'],['Lagos',3.4,6.5,'Africa/Lagos'],['New York',-74,40.7,'America/New_York'],['Los Angeles',-118.2,34,'America/Los_Angeles'],['Sao Paulo',-46.6,-23.5,'America/Sao_Paulo'],['Mexico City',-99.1,19.4,'America/Mexico_City'],['Sydney',151.2,-33.9,'Australia/Sydney'],['Perth',115.9,-32,'Australia/Perth'],['Auckland',174.8,-36.85,'Pacific/Auckland'],['Makassar',119.4,-5.1,'Asia/Makassar'],['Jayapura',140.7,-2.5,'Asia/Jayapura']];
+var LAND=[
+[[-168,65],[-160,71],[-140,70],[-125,70],[-110,73],[-95,74],[-85,70],[-80,73],[-75,68],[-60,60],[-64,55],[-52,47],[-60,45],[-70,43],[-75,35],[-81,26],[-83,29],[-90,29],[-97,26],[-100,20],[-97,16],[-92,15],[-105,20],[-110,24],[-114,30],[-120,34],[-124,40],[-124,48],[-130,55],[-140,60],[-152,58],[-158,55],[-165,60]],
+[[-52,60],[-43,60],[-30,68],[-22,70],[-20,75],[-25,80],[-40,83],[-55,82],[-60,76],[-55,67]],
+[[-81,7],[-75,10],[-60,10],[-52,5],[-44,-3],[-35,-7],[-38,-13],[-40,-20],[-48,-26],[-53,-33],[-58,-38],[-62,-40],[-65,-45],[-68,-50],[-69,-53],[-74,-50],[-73,-44],[-71,-35],[-71,-25],[-70,-18],[-76,-14],[-81,-5],[-80,0],[-78,5]],
+[[-9,37],[-9,43],[-2,44],[0,49],[4,52],[9,55],[11,58],[8,58],[5,62],[10,66],[16,70],[26,71],[30,70],[29,65],[24,60],[21,56],[14,54],[13,51],[9,50],[7,48],[6,45],[0,43],[-2,38]],
+[[-17,14],[-16,21],[-10,28],[-6,35],[0,36],[10,37],[19,32],[25,32],[32,31],[34,28],[36,22],[37,18],[43,11],[48,11],[51,12],[45,2],[40,-4],[38,-12],[35,-20],[33,-26],[27,-33],[19,-34],[15,-28],[12,-18],[9,-5],[8,2],[3,6],[-4,5],[-8,4],[-13,9]],
+[[26,37],[32,37],[40,37],[45,38],[48,30],[52,27],[57,25],[60,25],[63,25],[67,23],[70,22],[72,20],[73,17],[76,10],[78,7],[80,10],[80,14],[83,17],[87,21],[89,22],[92,26],[94,16],[98,10],[100,6],[103,2],[104,1],[105,9],[107,11],[109,13],[108,17],[106,20],[110,21],[113,22],[117,23],[121,28],[121,32],[122,37],[126,38],[127,40],[131,43],[135,46],[141,53],[150,59],[160,60],[165,62],[170,66],[178,68],[178,71],[170,70],[160,71],[150,72],[140,73],[130,72],[110,76],[100,77],[90,76],[80,74],[70,73],[60,70],[50,68],[45,68],[40,67],[35,66],[32,62],[30,56],[30,50],[30,45],[26,40]],
+[[130,31],[132,34],[135,34],[137,35],[140,36],[141,39],[141,41],[140,42],[143,44],[145,44],[142,42],[140,40],[137,36],[133,34]],
+[[95,5],[98,4],[101,2],[104,-1],[106,-4],[105,-6],[102,-4],[99,0],[96,3]],
+[[105,-6],[111,-7.5],[114,-8.5],[112,-8.6],[106,-7]],
+[[109,1],[112,4],[116,4],[117,1],[115,-2],[111,-3],[109,-1]],
+[[119,0],[121,1],[123,0],[122,-3],[120,-5],[119,-3]],
+[[131,-1],[136,-2],[141,-3],[146,-6],[147,-8],[143,-8],[138,-5],[134,-3]],
+[[120,18],[122,17],[123,13],[125,9],[126,7],[123,8],[121,12],[120,16]],
+[[114,-22],[114,-34],[122,-34],[129,-32],[135,-35],[141,-38],[147,-38],[150,-37],[153,-32],[153,-27],[146,-19],[142,-11],[136,-12],[130,-12],[125,-14]],
+[[172,-34],[175,-37],[178,-38],[174,-40],[171,-42],[167,-45],[170,-46],[173,-43]],
+[[-5,50],[-3,53],[-5,56],[-3,58],[-1,57],[0,53],[1,51]],
+[[43,-12],[50,-16],[47,-25],[44,-22]],
+[[-22,64],[-15,65],[-14,66],[-20,66]]];
+function mapSVG(zone){
+  var P='';
+  LAND.forEach(function(poly){
+    poly.forEach(function(pt,i){P+=(i?'L':'M')+(pt[0]+180).toFixed(1)+' '+(90-pt[1]).toFixed(1);});
+    P+='Z';
+  });
+  var svg='<svg viewBox="0 0 360 180" width="100%">';
+  svg+='<rect width="360" height="180" fill="#232326"/>';
+  [30,60,90,120,150,210,240,270,300,330].forEach(function(x){svg+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="180" stroke="#2e2e33"/>';});
+  [30,60,90,120,150].forEach(function(y){svg+='<line x1="0" y1="'+y+'" x2="360" y2="'+y+'" stroke="#2e2e33"/>';});
+  svg+='<path d="'+P+'" fill="#45464c" stroke="#565760" stroke-width=".5"/>';
+  CITIES.forEach(function(c){svg+='<circle class="city" data-z="'+c[3]+'" cx="'+(c[1]+180)+'" cy="'+(90-c[2])+'" r="2.4"/>';});
+  var m=null;
+  CITIES.forEach(function(c){if(c[3]===zone)m=[c[1]+180,90-c[2]];});
+  if(m){svg+='<circle class="pin-ring" cx="'+m[0]+'" cy="'+m[1]+'" r="4"/><circle class="pin" cx="'+m[0]+'" cy="'+m[1]+'" r="3.5"/>';}
+  return svg+'</svg>';
+}
+function KLOG(mode){
+  var live=(mode==='live'||mode==='safe');
+  var host=live?'ubuntu':((S.user&&S.user.host)||'ubuntu');
+  var ts=0;
+  function T(s){ts+=s;var v='['+ts.toFixed(6)+']';while(v.length<13)v=' '+v;return v;}
+  var cmd=live?('BOOT_IMAGE=/casper/vmlinuz boot=casper'+(mode==='safe'?' nomodeset':'')+' quiet splash ---')
+              :'BOOT_IMAGE=/vmlinuz-6.17.0-12-generic root=UUID=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d ro quiet splash ---';
+  var A=[];
+  A.push({txt:T(0)+'Linux version 6.17.0-12-generic (buildd@lcy02-amd64) (x86_64-linux-gnu-gcc-14 (Ubuntu 14.3.0-6ubuntu1~26.04) 14.3.0) #26.04.1-Ubuntu SMP PREEMPT_DYNAMIC'});
+  A.push({txt:T(0)+'Command line: '+cmd});
+  A.push({txt:T(0)+'BIOS-provided physical RAM map:'});
+  A.push({txt:T(0)+'BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable'});
+  A.push({txt:T(0)+'BIOS-e820: [mem 0x000000000009fc00-0x00000000000fffff] reserved'});
+  A.push({txt:T(0)+'BIOS-e820: [mem 0x0000000000100000-0x000000007dffffff] usable'});
+  A.push({txt:T(0)+'BIOS-e820: [mem 0x000000000f0000000-0x000000000fffffff] reserved'});
+  A.push({txt:T(0)+'BIOS-e820: [mem 0x00000001000000000-0x000000087fffffff] usable'});
+  A.push({txt:T(0.01)+'NX (Execute Disable) protection: active'});
+  A.push({txt:T(0.01)+'ACPI: RSDP 0x00000000000F0060 000024 (v02 SIMAMI)'});
+  A.push({txt:T(0.01)+'ACPI: XSDT 0x00000000BFEED9E8 000084 (v01 SIMAMI APTIO26 01072026 AMI 00010013)'});
+  A.push({txt:T(0.02)+'ACPI: Interpreter enabled.'});
+  A.push({txt:T(0.02)+'x86: Booting SMP configuration:'});
+  A.push({txt:T(0.02)+'.... node #0, CPUs:      #2  #4  #6  #8 #10 #12 #14 #16 #18 #20'});
+  A.push({txt:T(0.03)+'tsc: Detected 3500.246 MHz host processor'});
+  A.push({txt:T(0.05)+'Memory: 32581440/33554432K available (16384K kernel code, 5322K rwdata)'});
+  A.push({txt:T(0.05)+'Devtmpfs: initialized'});
+  A.push({txt:T(0.06)+'pci 0000:00:02.0: vgaarb: setting as boot VGA device'});
+  A.push({txt:T(0.06)+'pci 0000:00:1f.3: [8086:7a80] type 00 class 0x040300'});
+  A.push({txt:T(0.07)+'usbcore: registered new interface driver usbfs'});
+  A.push({txt:T(0.09)+'xhci_hcd 0000:00:14.0: xHCI Host Controller'});
+  A.push({txt:T(0.1)+'usb 1-1: new high-speed USB device number 2 using xhci_hcd'});
+  A.push({txt:T(0.12)+'input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0'});
+  A.push({txt:T(0.15)+'nvme nvme0: pci function 1022:1023'});
+  A.push({txt:T(0.16)+'nvme nvme0: 8/0/0 default/read/poll queues'});
+  A.push({txt:T(0.18)+' nvme0n1: p1 p2'});
+  if(live){
+    A.push({txt:T(0.2)+'usb 3-2: new super-speed USB device number 3 using xhci_hcd'});
+    A.push({txt:T(0.21)+'usb 3-2: Product: Ultra FIT'});
+    A.push({txt:T(0.22)+'squashfs: version 4.6 (2023) Phillip Lougher'});
+  }
+  A.push({txt:T(0.25)+'loop: module loaded'});
+  A.push({txt:T(0.3)+'EXT4-fs (nvme0n1p2): mounted filesystem'+(live?' without recovery':' with ordered data mode')+' Opts: (null)'});
+  A.push({txt:T(0.5)+'random: crng init done'});
+  A.push({txt:T(0.6)+'systemd[1]: systemd 257.5-1ubuntu26.04.1 running in system mode (+PAM +AUDIT +SELINUX)'});
+  A.push({txt:T(0.6)+'systemd[1]: Detected architecture x86-64.'});
+  A.push({txt:T(0.61)+'systemd[1]: Set hostname to <'+host+'>.'});
+  A.push({txt:T(0.62)+'systemd[1]: Queued start job for default target Graphical Interface.'});
+  var OK=['Started Journal Service.','Started udev Kernel Device Manager.','Reached target Local File Systems.','Listening on udev Kernel Socket.','Started udev Coldplug all Devices.','Started Network Manager.','Started WPA supplicant.','Started Disk Manager.','Started Accounts Service.','Started Avahi mDNS/DNS-SD Stack.','Started Regular background program processing daemon.','Started Session c1 of User '+(live?'ubuntu':(S.user.user||'user'))+'.','Started GNOME Display Manager.','Reached target Graphical Interface.'];
+  OK.forEach(function(o){A.push({ok:1,t:'[  <em>OK</em> ] '+o});});
+  A.push({txt:T(0.4)+'Ubuntu 26.04 LTS '+host+' tty1'});
+  return A;
+}
+var SLIDES=[
+ {icn:'globe',en:{t:'Firefox',d:'The default web browser: fast, private and synced across your devices.'},id:{t:'Firefox',d:'Peramban web bawaan: cepat, menjaga privasi, dan tersinkron antar perangkat Anda.'}},
+ {icn:'file-text',en:{t:'LibreOffice',d:'A complete office suite: Writer, Calc and Impress cover documents, spreadsheets and slides.'},id:{t:'LibreOffice',d:'Rangkaian perkantoran lengkap: Writer, Calc, dan Impress untuk dokumen, lembar kerja, dan salindia.'}},
+ {icn:'store',en:{t:'App Center',d:'Discover thousands of applications, snaps and debs, in the Ubuntu App Center.'},id:{t:'App Center',d:'Temukan ribuan aplikasi, snap dan deb, di Ubuntu App Center.'}},
+ {icn:'shield',en:{t:'10 years of security',d:'As an LTS release, Ubuntu 26.04 receives security updates until 2031 (2036 with Ubuntu Pro).'},id:{t:'10 tahun keamanan',d:'Sebagai rilis LTS, Ubuntu 26.04 menerima pembaruan keamanan hingga 2031 (2036 dengan Ubuntu Pro).'}},
+ {icn:'users',en:{t:'Help and community',d:'Docs at help.ubuntu.com and answers at askubuntu.com, powered by a worldwide community.'},id:{t:'Bantuan dan komunitas',d:'Dokumentasi di help.ubuntu.com dan jawaban di askubuntu.com, didukung komunitas seluruh dunia.'}}];
+var WEB={
+ 'ubuntu.com':{en:{h:'Ubuntu 26.04 LTS - Resolute',p:['Ubuntu 26.04 LTS ships with the Linux 6.17 kernel, the latest GNOME desktop and ten years of security maintenance for production use.','The redesigned installer, faster App Center and improved ZFS integration make 26.04 the most polished long-term release yet.']},id:{h:'Ubuntu 26.04 LTS - Resolute',p:['Ubuntu 26.04 LTS hadir dengan kernel Linux 6.17, desktop GNOME terbaru, dan sepuluh tahun pemeliharaan keamanan untuk penggunaan produksi.','Installer yang didesain ulang, App Center yang lebih cepat, dan integrasi ZFS yang lebih baik menjadikan 26.04 rilis jangka panjang paling matang sejauh ini.']}},
+ 'wikipedia.org':{en:{h:'Ubuntu (operating system)',p:['Ubuntu is a Linux distribution based on Debian, developed by Canonical and a community of contributors. It is released every six months; every two years a long-term support (LTS) version is published.','The name comes from a South African philosophy meaning humanity to others.']},id:{h:'Ubuntu (sistem operasi)',p:['Ubuntu adalah distribusi Linux berbasis Debian yang dikembangkan oleh Canonical dan komunitas kontributor. Dirilis tiap enam bulan; setiap dua tahun terbit versi LTS (dukungan jangka panjang).','Namanya berasal dari filsafat Afrika Selatan yang berarti kemanusiaan bagi sesama.']}},
+ 'kernel.org':{en:{h:'The Linux Kernel Archive',p:['The latest stable kernel is linux-6.17.tar.xz (142 MB, PGP signed). Mirrors are available worldwide.','Use git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git to track mainline.']},id:{h:'Arsip Kernel Linux',p:['Kernel stabil terbaru adalah linux-6.17.tar.xz (142 MB, bertanda tangan PGP). Mirror tersedia di seluruh dunia.','Gunakan git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git untuk mengikuti mainline.']}}};
+function mkFS(){
+  var u=(DESK&&DESK.user&&DESK.user.user)?DESK.user.user:'ubuntu';
+  return{
+   Documents:{'catatan.txt':'Belanja minggu ini:\n- kopi 200 g\n- buku catatan\n- kabel USB-C','proyek.md':'# Proyek\n- belajar Ubuntu\n- merapikan backup\n- mencoba neofetch'},
+   Downloads:{'ubuntu-26.04-desktop-amd64.iso':'[berkas biner 6,1 GB]'},
+   Music:{},Pictures:{},Videos:{},Public:{},Templates:{},Desktop:{},
+   'readme.txt':'Selamat datang di simulasi Ubuntu 26.04 LTS!\n\nBerkas ini berada di /home/'+u+'\n\nCoba perintah berikut di Terminal:\n  neofetch                 informasi sistem + logo ASCII\n  lsb_release -a           versi Ubuntu\n  df -h                    ruang disk tersisa\n  sudo apt install htop    memasang paket (simulasi)\n  help                     daftar perintah yang tersedia\n\nDokumentasi Ubuntu: help.ubuntu.com',
+   'todo.md':'# Todo\n- [x] Pasang Ubuntu 26.04 LTS\n- [x] Buat pengguna baru\n- [ ] Pelajari perintah Terminal (mulai dari "help")\n- [ ] Lihat info sistem di Pengaturan > Tentang'
+  };
+}
+var UBUART=['            .-/+oossssoo+/-.','        `:+ssssssssssssssssss+:`','      -+ssssssssssssssssssyyssss+-','    .ossssssssssssssssssdMMMNysssso.','   /ssssssssssshdmmNNmmyNMMMMhssssss/','  +ssssssshmydMMMMMMMNNddddyssssssss+',' /sssssshNMMMyhhyyyyyhmNMMMNhsssssssss+','.ssssssdMMMNhsssssssssssssssssssssss+','+sssssdMMMNhsssssssssssssssssssssssss+','+sssshdMMMNhssssssssssssssssssssssss+',' .sssshdMMMNhssssssssssssssssssssss+','  /sssshdMMMNhsssssssssssssssssss+','   /sssshdMMMNhssssssssssssssss+','    .+sssshhNMMMNhssssssssss+','       -+sssssNMMMNhsssss+','         .:+ssssssssss+:','            `-/+oos+/-'];
+
+/* ============ FASE 1: DAYA ============ */
+function powerScreen(){
+  setPhase('off');
+  mount(h('<div class="pwscr">'+
+   '<div class="pw-brand">'+cof(56)+'<div><b>Ubuntu 26.04 LTS</b><span>Simulator Instalasi</span></div></div>'+
+   '<button class="pwbtn" id="pw">'+PWR+'</button>'+
+   '<div class="pw-hint">Tekan tombol daya (atau tombol Enter) untuk menyalakan komputer</div>'+
+   '<div class="pw-spec">SIM-PC - Intel Core i5-14600K - 32 GB DDR5 - SSD NVMe 1 TB - UEFI</div></div>'));
+  setHint('Panel kanan bawah: USB (pasang/cabut media), kecepatan simulasi (x1/x4/x16), suara, dan reset. USB installer sudah terpasang.');
+  $('#pw').onclick=function(){beep(760,120);post(false);};
+  setKeyHandler(function(e){if(e.key==='Enter'){beep(760,120);post(false);}});
+}
+
+/* ============ FASE 2: POST ============ */
+async function post(fast){
+  setPhase('post');
+  var sc=h('<div class="phase-black"></div>');
+  var log=document.createElement('div');
+  log.className='klog';
+  sc.appendChild(log);
+  mount(sc);
+  var del=false,f12=false;
+  var kh=function(e){
+    if(e.key==='Delete'||e.key==='Del'||e.key==='F2')del=true;
+    if(e.key==='F12')f12=true;
+  };
+  window.addEventListener('keydown',kh);
+  function add(txt){var d=document.createElement('div');d.className='ll';d.textContent=txt;log.appendChild(d);}
+  add('SIM BIOS v2.17.1246  Copyright (C) 2026 SimMegatrends, Inc.');
+  add('BIOS Date: 01/15/2026 18:30:00  Ver: 09.12.24');
+  add('');
+  await wait(fast?120:350);
+  add('CPU : Intel(R) Core(TM) i5-14600K CPU @ 3.50GHz');
+  add('     Core Count : 14    /    Thread Count : 20');
+  await wait(fast?100:260);
+  var mem=document.createElement('div');
+  mem.className='ll';
+  log.appendChild(mem);
+  var m=0;
+  while(m<=32768){
+    mem.textContent='Memory Test : '+String(m).padStart(6,'0')+' MB'+(m===32768?'  OK':'');
+    await wait(fast?6:22);
+    m+=2048;
+  }
+  await wait(fast?80:240);
+  add('Detecting Storage Devices ...');
+  await wait(fast?120:380);
+  add('  NVMe0 : SIM SSD 1024GB');
+  if(S.usb)add('  USB1  : SanDisk Ultra FIT 32GB');
+  await wait(fast?80:220);
+  add('Detecting Keyboard / Mouse ... Done');
+  add('');
+  var hint=h('<div class="post-hint">Press <b>DEL</b> to enter Setup, <b>F12</b> for Boot Menu&nbsp;<span class="blink">_</span></div>');
+  sc.appendChild(hint);
+  setHint('Tip: tekan DEL untuk masuk BIOS, atau F12 untuk memilih perangkat boot. Tanpa input, urutan boot normal dijalankan.');
+  var winMs=fast?1100:2400;
+  var t0=Date.now();
+  while(Date.now()-t0<winMs){
+    if(del||f12)break;
+    await wait(80);
+  }
+  window.removeEventListener('keydown',kh);
+  if(del)return bios();
+  if(f12)return bootMenu();
+  bootSequence();
+}
+function bootSequence(){
+  for(var i=0;i<S.boot.length;i++){
+    var d=S.boot[i];
+    if(d==='usb'&&S.usb)return grub('live');
+    if(d==='ssd'&&S.diskHasOS)return grub('installed');
+  }
+  noBoot();
+}
+function noBoot(){
+  setPhase('noboot');
+  mount(h('<div class="noboot">Reboot and Select proper Boot device<br>or Insert Boot Media in selected Boot device<br>and press a key <span class="blink">_</span></div>'));
+  if(S.usb){
+    setHint('Disk masih kosong dan USB tidak ada di urutan boot. Masuk BIOS (DEL saat POST) dan ubah Boot Option #1, atau pakai F12.');
+  }else{
+    setHint('Tip: pasang media USB dari panel kanan bawah, lalu klik layar / tekan tombol apa pun untuk mencoba boot lagi.');
+  }
+  var retry=function(){post(false);};
+  setKeyHandler(function(e){retry();e.preventDefault();});
+  $('.noboot').onclick=retry;
+}
+
+/* ============ FASE 3: BIOS ============ */
+function bios(){
+  setPhase('bios');
+  var tabs=['Main','Advanced','Boot','Security','Exit'];
+  var tab=0,idx=0;
+  var draft={boot:S.boot.slice(),opts:{svm:1,rtc:0,num:0,virus:0}};
+  var DEV={usb:'UEFI: SanDisk Ultra FIT 32GB',ssd:'UEFI: SIM SSD 1024GB',net:'PXE: Network Boot'};
+  function hhmmss(){var d=new Date();return pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());}
+  function dstr(){return new Date().toLocaleDateString('en-CA');}
+  var sc=h('<div class="bios">'+
+   '<div class="b-head">Aptio Setup Utility - Copyright (C) 2026 SimMegatrends, Inc.</div>'+
+   '<div class="b-tabs" id="bt"></div>'+
+   '<div class="b-main"><div class="b-menu" id="bm"></div><div class="b-help" id="bh"></div></div>'+
+   '<div class="b-foot">Panah: pilih - Enter: ubah - Esc: keluar (mouse juga bisa dipakai)</div></div>');
+  mount(sc);
+  function items(){
+    if(tab===0)return[
+      {l:'BIOS Version',v:'2.17.1246'},
+      {l:'Build Date',v:'01/15/2026'},
+      {l:'Processor',v:'Intel Core i5-14600K @ 3.50GHz'},
+      {l:'Core/Thread Count',v:'14 / 20'},
+      {l:'Total Memory',v:'32768 MB (DDR5)'},
+      {l:'System Time',v:hhmmss()},
+      {l:'System Date',v:dstr()}
+    ];
+    if(tab===1)return[
+      {l:'CPU Multi-Core Support',o:'svm',opts:['Enabled','Disabled'],help:'Aktifkan semua inti prosesor.'},
+      {l:'SVM Mode',o:'svm',opts:['Enabled','Disabled'],help:'Aktifkan virtualisasi (diperlukan oleh KVM/VirtualBox).'},
+      {l:'Power On By RTC',o:'rtc',opts:['Disabled','Enabled'],help:'Menyalakan komputer pada jadwal RTC tertentu.'},
+      {l:'Boot Up NumLock State',o:'num',opts:['On','Off']}
+    ];
+    if(tab===2)return[
+      {l:'Boot Option #1',boot:0,help:'Perangkat boot pertama yang dicoba firmware. Tekan Enter untuk mengganti.'},
+      {l:'Boot Option #2',boot:1,help:'Perangkat boot kedua.'},
+      {l:'Boot Option #3',boot:2,help:'Perangkat boot ketiga.'},
+      {l:'UEFI/Legacy Boot',v:'UEFI Only'}
+    ];
+    if(tab===3)return[
+      {l:'Supervisor Password',v:'Not Installed',help:'Kata sandi administrator BIOS. Belum dipasang.'},
+      {l:'User Password',v:'Not Installed'},
+      {l:'Boot Sector Virus Protection',o:'virus',opts:['Disabled','Enabled']}
+    ];
+    return[
+      {l:'Save Changes and Exit',act:'save',help:'Simpan perubahan lalu mulai ulang sistem.'},
+      {l:'Discard Changes and Exit',act:'discard',help:'Buang perubahan lalu mulai ulang sistem.'},
+      {l:'Load Optimized Defaults',act:'defaults',help:'Kembalikan seluruh pengaturan ke nilai pabrik.'}
+    ];
+  }
+  function value(it){
+    if(it.boot!==undefined)return DEV[draft.boot[it.boot]]||'';
+    if(it.v!==undefined)return it.v;
+    if(it.o!==undefined)return it.opts[draft.opts[it.o]];
+    return '';
+  }
+  function activate(it){
+    if(it.boot!==undefined){
+      var cur=draft.boot[it.boot];
+      var avail=['ssd','net'];
+      if(S.usb)avail.unshift('usb');
+      var pos=avail.indexOf(cur);
+      if(pos<0)pos=0;
+      var next=avail[(pos+1)%avail.length];
+      draft.boot=draft.boot.map(function(v,j){
+        if(j===it.boot)return next;
+        if(v===next)return cur;
+        return v;
+      });
+    }else if(it.o){
+      draft.opts[it.o]=(draft.opts[it.o]+1)%it.opts.length;
+    }else if(it.act){
+      doExit(it.act);
+    }
+  }
+  function doExit(k){
+    if(k==='save'){S.boot=draft.boot.slice();toast('Perubahan BIOS disimpan');}
+    else if(k==='defaults'){draft.boot=['usb','ssd','net'];toast('Pengaturan pabrik dimuat');render();return;}
+    else{toast('Perubahan BIOS dibuang');}
+    post(true);
+  }
+  function render(){
+    var bt=document.getElementById('bt');
+    if(!bt)return;
+    var th='';
+    tabs.forEach(function(x,i){th+='<span class="b-tab'+(i===tab?' cur':'')+'" data-t="'+i+'">'+x+'</span>';});
+    bt.innerHTML=th;
+    bt.querySelectorAll('.b-tab').forEach(function(el){
+      el.onclick=function(){tab=+el.getAttribute('data-t');idx=0;render();};
+    });
+    var its=items();
+    if(idx>=its.length)idx=its.length-1;
+    if(idx<0)idx=0;
+    var html='<div class="b-title">'+tabs[tab]+'</div>';
+    its.forEach(function(it,i){
+      html+='<div class="b-row'+(i===idx?' cur':'')+'" data-i="'+i+'"><span>    '+esc(it.l)+'</span><span class="bv">'+esc(value(it))+'</span></div>';
+    });
+    var bm=document.getElementById('bm');
+    bm.innerHTML=html;
+    bm.querySelectorAll('.b-row').forEach(function(r){
+      r.onclick=function(){
+        var i=+r.getAttribute('data-i');
+        if(i===idx){activate(its[i]);render();}
+        else{idx=i;render();}
+      };
+    });
+    var help=its[idx].help||'Pilih item dengan tombol panah; tekan Enter untuk mengubah nilainya.';
+    document.getElementById('bh').innerHTML='<b style="display:block;margin-bottom:8px">Item Help</b>'+esc(help);
+  }
+  setKeyHandler(function(e){
+    if(e.key==='ArrowRight'){tab=(tab+1)%tabs.length;idx=0;render();e.preventDefault();}
+    else if(e.key==='ArrowLeft'){tab=(tab+tabs.length-1)%tabs.length;idx=0;render();e.preventDefault();}
+    else if(e.key==='ArrowDown'){idx=Math.min(items().length-1,idx+1);render();e.preventDefault();}
+    else if(e.key==='ArrowUp'){idx=Math.max(0,idx-1);render();e.preventDefault();}
+    else if(e.key==='Enter'){activate(items()[idx]);render();e.preventDefault();}
+    else if(e.key==='Escape'){tab=tabs.length-1;idx=0;render();e.preventDefault();}
+  });
+  addTimer(render,1000);
+  render();
+  setHint('BIOS: ke tab Boot, ubah Boot Option #1 ke USB (tekan Enter untuk berganti), lalu Exit - Save Changes and Exit.');
+}
+
+/* ============ BOOT MENU ============ */
+function bootMenu(){
+  setPhase('bmenu');
+  var list=[];
+  if(S.usb)list.push(['UEFI: SanDisk Ultra FIT 32GB','usb']);
+  list.push(['UEFI: SIM SSD 1024GB','ssd']);
+  list.push(['PXE: Network Boot','net']);
+  var sel=0;
+  var sc=h('<div class="bmenu"><h3>Boot Menu</h3><div id="bi"></div><div style="color:#777;font-size:12px;margin-top:20px">Panah/Enter atau klik - Esc: reboot</div></div>');
+  mount(sc);
+  function draw(){
+    var bi=document.getElementById('bi');
+    if(!bi)return;
+    var html='';
+    list.forEach(function(d,i){html+='<div class="bi'+(i===sel?' cur':'')+'" data-i="'+i+'">'+esc(d[0])+'</div>';});
+    bi.innerHTML=html;
+    bi.querySelectorAll('.bi').forEach(function(b){
+      b.onclick=function(){sel=+b.getAttribute('data-i');choose();};
+    });
+  }
+  function choose(){
+    var d=list[sel][1];
+    if(d==='usb'&&S.usb)return grub('live');
+    if(d==='ssd'&&S.diskHasOS)return grub('installed');
+    noBoot();
+  }
+  setKeyHandler(function(e){
+    if(e.key==='ArrowDown'){sel=(sel+1)%list.length;draw();e.preventDefault();}
+    else if(e.key==='ArrowUp'){sel=(sel+list.length-1)%list.length;draw();e.preventDefault();}
+    else if(e.key==='Enter'){choose();e.preventDefault();}
+    else if(e.key==='Escape'){post(true);e.preventDefault();}
+  });
+  draw();
+  setHint('Pilih USB installer untuk melanjutkan ke GRUB.');
+}
+
+/* ============ FASE 4: GRUB ============ */
+function grub(mode){
+  setPhase('grub');
+  var live=(mode==='live');
+  var entries;
+  if(live){
+    entries=[['Try or Install Ubuntu','live'],['Ubuntu (safe graphics)','safe'],['OEM install (for manufacturers)','oem'],['Boot from next volume','next'],['UEFI Firmware Settings','fw']];
+  }else{
+    entries=[['Ubuntu','installed'],['Advanced options for Ubuntu','adv']];
+  }
+  var sel=0,cd=live?10:5,done=false;
+  var box=h('<div class="grub">'+
+   '<div class="g-ver">GNU GRUB version 2.12-1ubuntu26.04</div>'+
+   '<div class="g-cd" id="gcd"></div>'+
+   '<div class="g-box" id="gbox"></div>'+
+   '<div class="g-help">Use the up and down keys to select which entry is highlighted.<br>Press Enter to boot the selected entry.</div></div>');
+  mount(box);
+  function draw(){
+    var gb=document.getElementById('gbox');
+    if(!gb)return;
+    var html='';
+    entries.forEach(function(e,i){html+='<div class="g-it'+(i===sel?' cur':'')+'" data-i="'+i+'">'+esc(e[0])+'</div>';});
+    gb.innerHTML=html;
+    gb.querySelectorAll('.g-it').forEach(function(b){
+      b.onclick=function(){sel=+b.getAttribute('data-i');go();};
+    });
+    var gcd=document.getElementById('gcd');
+    if(gcd)gcd.textContent=(cd<=90&&cd>0)?('The highlighted entry will be executed automatically in '+cd+'s.'):'';
+  }
+  function bootMsg(name,cb){
+    mount(h('<div class="grub" style="color:#ddd">Booting '+esc(name)+'...</div>'));
+    setTimeout(cb,600/S.speed);
+  }
+  function go(){
+    if(done)return;
+    var a=entries[sel][1];
+    if(a==='live'||a==='safe'){
+      done=true;
+      bootMsg(entries[sel][0],function(){kernelLog(a);});
+    }else if(a==='installed'){
+      done=true;
+      bootMsg('Ubuntu, with Linux 6.17.0-12-generic',function(){kernelLog('installed');});
+    }else if(a==='adv'){
+      entries=[['Ubuntu, with Linux 6.17.0-12-generic','installed'],['Ubuntu, with Linux 6.17.0-12-generic (recovery mode)','recovery'],['Back','back']];
+      sel=0;cd=999;done=false;draw();
+    }else if(a==='recovery'){
+      done=true;
+      mount(h('<div class="phase-black"><div class="klog"><div class="ll">Ubuntu 26.04 LTS recovery mode (simulasi)</div><div class="ll ok">Melanjutkan boot normal...</div></div></div>'));
+      setTimeout(function(){kernelLog('installed');},2000/S.speed);
+    }else if(a==='back'){
+      grub(mode);
+    }else if(a==='oem'){
+      toast('OEM install dinonaktifkan dalam simulasi');
+    }else if(a==='fw'){
+      done=true;
+      bootMsg('Rebooting into firmware setup...',function(){bios();});
+    }else if(a==='next'){
+      done=true;
+      if(S.usb&&S.diskHasOS)grub('live');
+      else if(S.diskHasOS)grub('installed');
+      else noBoot();
+    }
+  }
+  setKeyHandler(function(e){
+    if(e.key==='ArrowDown'){sel=(sel+1)%entries.length;cd=999;draw();e.preventDefault();}
+    else if(e.key==='ArrowUp'){sel=(sel+entries.length-1)%entries.length;cd=999;draw();e.preventDefault();}
+    else if(e.key==='Enter'){go();e.preventDefault();}
+    else if(e.key==='e'||e.key==='c'){toast('Pengeditan entri GRUB dinonaktifkan dalam simulasi');e.preventDefault();}
+  });
+  draw();
+  setHint('GRUB: panah memilih entri, Enter untuk boot. Entri pertama otomatis dijalankan setelah hitungan mundur.');
+  (async function(){
+    while(cd>0){
+      await wait(1000);
+      cd--;
+      draw();
+      if(cd<=0){go();return;}
+    }
+  })();
+}
+
+/* ============ FASE 5: KERNEL LOG + PLYMOUTH ============ */
+async function typeLines(box,items,min,max){
+  for(var i=0;i<items.length;i++){
+    var it=items[i];
+    var d=document.createElement('div');
+    d.className='ll'+(it.ok?' ok':'');
+    if(it.ok)d.innerHTML=it.t;else d.textContent=it.txt;
+    box.appendChild(d);
+    box.scrollTop=1e9;
+    await wait(rnd(min,max));
+  }
+}
+async function kernelLog(mode){
+  setPhase('boot');
+  var sc=h('<div class="phase-black"></div>');
+  var box=document.createElement('div');
+  box.className='klog';
+  sc.appendChild(box);
+  mount(sc);
+  setHint('');
+  await typeLines(box,KLOG(mode),16,55);
+  await wait(250);
+  plymouth(mode);
+}
+async function plymouth(mode){
+  setPhase('splash');
+  var dots='';
+  var dl=[0,0.13,0.26,0.39,0.52];
+  for(var i=0;i<5;i++)dots+='<span style="animation-delay:'+dl[i]+'s"></span>';
+  mount(h('<div class="ply">'+cof(140)+'<div class="ply-dots">'+dots+'</div></div>'));
+  await wait(2600);
+  S.bootT=Date.now();
+  if(mode==='live'||mode==='safe')startLive();
+  else if(S.user.autologin){toast('Masuk otomatis sebagai '+S.user.name);startDesktop();}
+  else loginScreen();
+}
+
+/* ============ DESKTOP ENGINE ============ */
+function nowInTZ(){
+  try{return new Date(new Date().toLocaleString('en-US',{timeZone:S.tz.zone}));}
+  catch(e){return new Date();}
+}
+function fmtClock(){
+  try{return new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());}
+  catch(e){return new Date().toLocaleTimeString();}
+}
+function netIcon(){return S.net.type==='ethernet'?'network':(S.net.type==='wifi'?'wifi':'wifi-off');}
+function startLive(){createDesktop({user:{user:'ubuntu',name:'ubuntu',host:'ubuntu',pass:''},live:true});}
+function startDesktop(){
+  createDesktop({user:{user:S.user.user||'user',name:S.user.name||'user',host:S.user.host||'ubuntu',pass:S.user.pass},live:false});
+  if(!S.welcomed)setTimeout(showWelcome,900);
+}
+function createDesktop(o){
+  DESK={user:o.user,live:o.live,wins:{},z:30,pop:null,ov:null};
+  FSY=mkFS();
+  var root=h('<div class="desk"><div class="wall">'+WALL+'</div>'+
+   '<div class="topbar"><button class="tb-b" id="tbA">'+esc(t('ov-act'))+'</button>'+
+   '<button class="tb-b tb-c" id="tbC"></button>'+
+   '<span class="tb-r" id="tbS"></span></div>'+
+   '<div class="dock" id="dock"></div>'+
+   '<div class="dicons" id="dicons"></div>'+
+   '<div class="winlayer" id="wlayer"></div></div>');
+  mount(root);
+  DESK.root=root;
+  setPhase(o.live?'live':'desktop');
+  DESK.refreshClock=function(){var c=document.getElementById('tbC');if(c)c.textContent=fmtClock();};
+  DESK.refreshStat=function(){
+    var s=document.getElementById('tbS');
+    if(!s)return;
+    s.innerHTML=ic(netIcon(),15)+ic(S.vol===0?'volume-x':(S.vol<50?'volume-1':'volume-2'),15)+ic('battery-full',15)+ic('chevron-down',14);
+  };
+  addTimer(DESK.refreshClock,5000);
+  DESK.refreshClock();
+  DESK.refreshStat();
+  document.getElementById('tbA').onclick=function(){toggleOverview();};
+  document.getElementById('tbC').onclick=function(){togglePop('cal');};
+  document.getElementById('tbS').onclick=function(){togglePop('sys');};
+  renderDock();
+  renderDicons();
+  setKeyHandler(deskKeys);
+  if(o.live)setTimeout(openInstaller,1000);
+  setHint(o.live?
+   'Sesi live Ubuntu. Jendela installer terbuka otomatis; ikon Instal Ubuntu di desktop bisa dibuka dua kali klik kapan saja.':
+   'Ctrl+Alt+T membuka Terminal - klik jam untuk kalender - ikon kanan atas untuk suara dan daya.');
+  return DESK;
+}
+function deskKeys(e){
+  if(e.ctrlKey&&e.altKey&&(e.key==='t'||e.key==='T')){e.preventDefault();toggleApp('term');return;}
+  if(e.key==='Escape'){
+    if(DESK&&DESK.ov)closeOverview();
+    else if(DESK&&DESK.pop)closePop();
+  }
+}
+function tileFor(id){
+  if(id==='files')return '<div class="tile" style="background:#EE7B30">'+ic('folder',24)+'</div>';
+  if(id==='ffx')return '<div class="tile" style="background:#FF9500">'+FOX+'</div>';
+  if(id==='term')return '<div class="tile" style="background:#1d1d1b;border:1px solid #3c3c39">'+ic('terminal',22)+'</div>';
+  if(id==='set')return '<div class="tile" style="background:#5e5c5a">'+ic('settings',22)+'</div>';
+  if(id==='trash')return '<div class="tile" style="background:#4a4a48">'+ic('trash-2',22)+'</div>';
+  if(id==='ed')return '<div class="tile" style="background:#9c9c98">'+ic('file-text',22)+'</div>';
+  if(id==='installer')return '<div class="tile" style="background:#E95420">'+ic('download',24)+'</div>';
+  return '<div class="tile" style="background:#444">'+ic('circle',22)+'</div>';
+}
+function DOCKLBL(){return{files:t('app-files'),ffx:t('app-ffx'),term:t('app-term'),set:t('app-set'),trash:t('app-trash'),ed:t('app-ed'),installer:t('i-title')};}
+function renderDock(){
+  if(!DESK)return;
+  var d=document.getElementById('dock');
+  if(!d)return;
+  var pinned=['files','ffx','term','set','trash'];
+  var all=pinned.slice();
+  Object.keys(DESK.wins).forEach(function(id){if(all.indexOf(id)<0)all.push(id);});
+  var html='';
+  all.forEach(function(id){
+    html+='<button class="dk'+(DESK.wins[id]?' run':'')+'" data-app="'+id+'">'+tileFor(id)+'<span class="dk-dot"></span><span class="dk-tip">'+esc(DOCKLBL()[id]||'')+'</span></button>';
+  });
+  html+='<button class="dk-apps" id="dkApps"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>';
+  d.innerHTML=html;
+  d.querySelectorAll('.dk[data-app]').forEach(function(b){
+    b.onclick=function(){toggleApp(b.getAttribute('data-app'));};
+  });
+  var apps=document.getElementById('dkApps');
+  if(apps)apps.onclick=function(){toggleOverview();};
+}
+function renderDicons(){
+  var dc=document.getElementById('dicons');
+  if(!dc)return;
+  if(DESK.live&&!S.diskHasOS){
+    dc.innerHTML='<div class="dic" id="dic-inst"><div class="tile" style="background:#E95420;width:56px;height:56px;border-radius:14px">'+ic('download',30)+'</div><span>Instal Ubuntu 26.04 LTS</span></div>';
+    var el=document.getElementById('dic-inst');
+    if(el){
+      el.onclick=function(){el.classList.add('sel');};
+      el.ondblclick=function(){openInstaller();};
+    }
+  }else{
+    dc.innerHTML='';
+  }
+}
+function toggleApp(id){
+  if(!DESK)return;
+  var rec=DESK.wins[id];
+  if(!rec){openApp(id);return;}
+  if(rec.min){rec.min=false;rec.el.style.display='flex';focusWin(id);renderDock();return;}
+  if(rec.el.classList.contains('focused')){rec.min=true;rec.el.style.display='none';renderDock();}
+  else focusWin(id);
+}
+function openApp(id){
+  if(!DESK)return;
+  if(id==='files')openWindow({id:'files',title:t('app-files'),w:780,h:500,build:FilesBuild});
+  else if(id==='ffx')openWindow({id:'ffx',title:t('app-ffx'),w:920,h:600,build:FfxBuild});
+  else if(id==='term')openWindow({id:'term',title:DESK.user.user+'@'+DESK.user.host+': ~',w:740,h:450,build:TermBuild});
+  else if(id==='set')openWindow({id:'set',title:t('app-set'),w:840,h:560,build:SettingsBuild});
+  else if(id==='trash')openWindow({id:'trash',title:t('app-trash'),w:620,h:420,build:function(b,r){FilesBuild(b,r,true);}});
+  else if(id==='ed')openWindow({id:'ed',title:t('app-ed'),w:600,h:460,build:EdBuild});
+}
+function openWindow(o){
+  if(!DESK)return null;
+  var ex=DESK.wins[o.id];
+  if(ex){
+    if(ex.min){ex.min=false;ex.el.style.display='flex';}
+    focusWin(o.id);renderDock();return ex;
+  }
+  var el=h('<div class="win focused"><div class="win-h"><span class="win-t">'+esc(o.title)+'</span><button class="win-x">'+ic('x',15)+'</button></div><div class="win-b"></div></div>');
+  el.style.width=Math.min(o.w,innerWidth-24)+'px';
+  el.style.height=Math.min(o.h,innerHeight-48)+'px';
+  var n=Object.keys(DESK.wins).length;
+  el.style.left=Math.max(66,Math.min(innerWidth-o.w-10,(innerWidth-o.w)/2+n*24-60))+'px';
+  el.style.top=Math.max(38,Math.min(innerHeight-o.h-10,(innerHeight-o.h)/2-14+n*16))+'px';
+  document.getElementById('wlayer').appendChild(el);
+  var rec={el:el,o:o,min:false};
+  DESK.wins[o.id]=rec;
+  o.build(el.querySelector('.win-b'),rec);
+  var head=el.querySelector('.win-h');
+  head.addEventListener('pointerdown',function(ev){
+    if(ev.target.closest('.win-x'))return;
+    var r=el.getBoundingClientRect();
+    var ox=ev.clientX-r.left,oy=ev.clientY-r.top;
+    function mv(e2){
+      el.style.left=Math.max(2,Math.min(innerWidth-90,e2.clientX-ox))+'px';
+      el.style.top=Math.max(34,Math.min(innerHeight-70,e2.clientY-oy))+'px';
+    }
+    function up(){window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);}
+    window.addEventListener('pointermove',mv);
+    window.addEventListener('pointerup',up);
+  });
+  el.addEventListener('pointerdown',function(){focusWin(o.id);});
+  el.querySelector('.win-x').onclick=function(){
+    if(rec.o.onClose&&rec.o.onClose())return;
+    closeWin(o.id);
+  };
+  focusWin(o.id);
+  renderDock();
+  return rec;
+}
+function focusWin(id){
+  var rec=DESK.wins[id];
+  if(!rec)return;
+  DESK.z++;
+  rec.el.style.zIndex=DESK.z;
+  Object.keys(DESK.wins).forEach(function(k){DESK.wins[k].el.classList.remove('focused');});
+  rec.el.classList.add('focused');
+}
+function closeWin(id){
+  var rec=DESK.wins[id];
+  if(!rec)return;
+  rec.el.remove();
+  delete DESK.wins[id];
+  renderDock();
+}
+
+/* ============ POPOVER & OVERVIEW & LOCK ============ */
+function closePop(){if(DESK&&DESK.pop){DESK.pop.remove();DESK.pop=null;}}
+
+function togglePop(kind){
+  if(!DESK)return;
+  if(DESK.pop&&DESK.pop.getAttribute('data-k')===kind)return closePop();
+  closePop();
+  var p=document.createElement('div');
+  p.className='pop';
+  p.setAttribute('data-k',kind);
+  DESK.root.appendChild(p);
+  DESK.pop=p;
+  if(kind==='cal'){
+    p.classList.add('cal');
+    var off=0;
+    function draw(){
+      var base=nowInTZ();
+      var cur=new Date(base.getFullYear(),base.getMonth()+off,1);
+      var lbl='';
+      try{lbl=new Intl.DateTimeFormat(LOC(),{month:'long',year:'numeric'}).format(cur);}catch(e){lbl=cur.toDateString();}
+      var days=[];
+      try{
+        var fmt=new Intl.DateTimeFormat(LOC(),{weekday:'narrow'});
+        for(var i=0;i<7;i++)days.push(fmt.format(new Date(2024,0,1+i)));
+      }catch(e){days=['M','S','S','R','K','J','S'];}
+      var start=(cur.getDay()+6)%7;
+      var dim=new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate();
+      var today=(off===0)?base.getDate():0;
+      var cells='';
+      for(var i=0;i<7;i++)cells+='<b>'+esc(days[i])+'</b>';
+      for(var i=0;i<start;i++)cells+='<span></span>';
+      for(var d=1;d<=dim;d++)cells+='<span'+(d===today?' class="today"':'')+'>'+d+'</span>';
+      p.innerHTML='<div class="cal-h"><button id="cp">'+ic('chevron-left',15)+'</button><span>'+esc(lbl)+'</span><button id="cn">'+ic('chevron-right',15)+'</button></div><div class="cal-g">'+cells+'</div>';
+      document.getElementById('cp').onclick=function(){off--;draw();};
+      document.getElementById('cn').onclick=function(){off++;draw();};
+    }
+    draw();
+    p.style.left=Math.max(10,Math.min(innerWidth-300,innerWidth/2-145))+'px';
+  }else{
+    p.classList.add('sysm');
+    var wifiName=S.net.type==='wifi'?S.net.ssid:(S.net.type==='ethernet'?t('n-eth'):t('set-off'));
+    p.innerHTML=
+     '<div class="sr">'+ic(netIcon())+'<div><b style="font-weight:400">'+t('sm-net')+'</b><small>'+esc(wifiName)+'</small></div></div>'+
+     '<div class="sr">'+ic('volume-2')+'<div style="flex:1"><b style="font-weight:400">'+t('sm-vol')+'</b><input type="range" id="svol" min="0" max="100" value="'+S.vol+'"></div></div>'+
+     '<div class="sr">'+ic('battery-full')+'<div><b style="font-weight:400">'+t('sm-bat')+'</b><small>'+t('sm-bat-s')+'</small></div></div>'+
+     '<div class="sm-btns"><button class="sm-btn" id="sset">'+ic('settings',15)+t('sm-set')+'</button><button class="sm-btn" id="slock">'+ic('lock',15)+t('sm-lock')+'</button><button class="sm-btn" id="spow">'+ic('power',15)+t('sm-power')+'</button></div>'+
+     '<div class="sm-pw" id="spw"><button id="sre">'+ic('rotate-ccw',15)+' '+t('sm-re')+'</button><button id="soff">'+ic('power',15)+' '+t('sm-off')+'</button></div>';
+    document.getElementById('svol').oninput=function(e){S.vol=+e.target.value;DESK.refreshStat();};
+    document.getElementById('sset').onclick=function(){closePop();openApp('set');};
+    document.getElementById('slock').onclick=function(){closePop();lockScreen();};
+    document.getElementById('spow').onclick=function(){
+      var d2=document.getElementById('spw');
+      d2.style.display=(d2.style.display==='flex')?'none':'flex';
+    };
+    document.getElementById('sre').onclick=function(){closePop();rebootInstalled();};
+    document.getElementById('soff').onclick=function(){closePop();powerOffAll();};
+    p.style.left=(innerWidth-336)+'px';
+  }
+  setTimeout(function(){
+    var offFn=function(e){
+    if(!DESK||!DESK.pop){window.removeEventListener('mousedown',offFn);return;}
+    if(!DESK.pop.contains(e.target)&&!e.target.closest('.tb-r')&&!e.target.closest('.tb-c')){
+        closePop();
+        window.removeEventListener('mousedown',offFn);
+      }
+    };
+    window.addEventListener('mousedown',offFn);
+  },10);
+}
+function toggleOverview(){
+  if(!DESK)return;
+  if(DESK.ov)return closeOverview();
+  var ov=h('<div class="ov"><input placeholder="'+esc(t('ov-s'))+'" id="ovq"><div class="ov-grid" id="ovg"></div></div>');
+  DESK.root.appendChild(ov);
+  DESK.ov=ov;
+  var apps=['files','ffx','term','set','ed'];
+  function draw(q){
+    var g=document.getElementById('ovg');
+    if(!g)return;
+    var html='';
+    apps.forEach(function(a){
+      var lbl=DOCKLBL()[a]||'';
+      if(!q||lbl.toLowerCase().indexOf(q)>=0){
+        html+='<button class="ov-app" data-a="'+a+'">'+tileFor(a)+'<span>'+esc(lbl)+'</span></button>';
+      }
+    });
+    g.innerHTML=html;
+    g.querySelectorAll('.ov-app').forEach(function(b){
+      b.onclick=function(){closeOverview();toggleApp(b.getAttribute('data-a'));};
+    });
+  }
+  document.getElementById('ovq').oninput=function(e){draw(e.target.value.toLowerCase());};
+  ov.onclick=function(e){if(e.target===ov)closeOverview();};
+  draw('');
+  document.getElementById('ovq').focus();
+}
+function closeOverview(){if(DESK&&DESK.ov){DESK.ov.remove();DESK.ov=null;}}
+function lockScreen(){
+  var timeStr='',dateStr='';
+  try{
+    timeStr=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+    dateStr=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,weekday:'long',day:'numeric',month:'long'}).format(new Date());
+  }catch(e){timeStr=new Date().toLocaleTimeString();}
+  var lk=h('<div class="lockov"><div class="lk-t">'+esc(timeStr)+'</div><div class="lk-d">'+esc(dateStr)+'</div>'+
+   '<div class="lg-card"><div class="lg-av" style="background:#772953">'+esc((DESK.user.name[0]||'u').toUpperCase())+'</div>'+
+   '<div class="lg-name">'+esc(DESK.user.name)+'</div>'+
+   '<div class="lg-in"><input type="password" id="lki" placeholder="'+esc(t('lg-pass'))+'"><button id="lkb">'+ic('chevron-right',16)+'</button></div>'+
+   '<div class="lg-err" id="lke"></div></div></div>');
+  DESK.root.appendChild(lk);
+  var i=document.getElementById('lki');
+  setTimeout(function(){i.focus();},50);
+  function tryUnlock(){
+    if(i.value===S.user.pass||DESK.live){lk.remove();}
+    else{
+      document.getElementById('lke').textContent=t('lg-err');
+      var card=lk.querySelector('.lg-card');
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+      i.value='';i.focus();
+    }
+  }
+  document.getElementById('lkb').onclick=tryUnlock;
+  i.onkeydown=function(e){if(e.key==='Enter')tryUnlock();};
+}
+function powerOffAll(){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;opacity:0;transition:opacity .9s';
+  document.body.appendChild(ov);
+  requestAnimationFrame(function(){ov.style.opacity='1';});
+  setTimeout(function(){ov.remove();resetAll();},1000);
+}
+async function rebootInstalled(){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:#000;z-index:9999;opacity:0;transition:opacity .8s';
+  document.body.appendChild(ov);
+  requestAnimationFrame(function(){ov.style.opacity='1';});
+  await new Promise(function(r){setTimeout(r,900);});
+  ov.remove();
+  DESK=null;
+  post(true);
+}
+
+/* ============ WELCOME ============ */
+function showWelcome(){
+  if(!DESK||S.welcomed)return;
+  S.welcomed=true;
+  var wm=h('<div class="wmodal"><div class="wm-card">'+cof(54)+
+   '<div><h3>'+esc(t('w-w-title'))+'</h3><p style="margin-top:6px">'+esc(t('w-w-sub').replace('NAME',S.user.name))+'</p></div>'+
+   '<div><div class="wm-li">'+ic('terminal',17)+'<span>'+esc(t('w-w1'))+'</span></div>'+
+   '<div class="wm-li">'+ic('layout-grid',17)+'<span>'+esc(t('w-w2'))+'</span></div>'+
+   '<div class="wm-li">'+ic('clock',17)+'<span>'+esc(t('w-w3'))+'</span></div></div>'+
+   '<div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn ghost" id="wmd">'+esc(t('w-w-done'))+'</button><button class="btn primary" id="wmo">'+esc(t('w-w-open'))+'</button></div></div></div>');
+  DESK.root.appendChild(wm);
+  document.getElementById('wmd').onclick=function(){wm.remove();};
+  document.getElementById('wmo').onclick=function(){wm.remove();toggleApp('term');};
+}
+
+/* ============ APLIKASI: TERMINAL ============ */
+function TermBuild(body,rec){
+  var U=DESK.user;
+  var isLive=DESK.live;
+  var cwd='/home/'+U.user;
+  var buf='';
+  var busy=false;
+  var pwPending=null;
+  var sudoTries=0;
+  var hist=[];
+  var hidx=0;
+  var curTx=null;
+  var curCr=null;
+  var el=document.createElement('div');
+  el.className='term';
+  el.tabIndex=0;
+  body.appendChild(el);
+  function short(p){
+    var hm='/home/'+U.user;
+    if(p===hm)return '~';
+    if(p.indexOf(hm)===0)return '~'+p.slice(hm.length);
+    return p;
+  }
+  function outp(txt){var d=document.createElement('div');d.className='tl';d.textContent=txt;el.appendChild(d);el.scrollTop=1e9;}
+  function outh(html){var d=document.createElement('div');d.className='tl';d.innerHTML=html;el.appendChild(d);el.scrollTop=1e9;}
+  function freeze(){
+    if(curTx)curTx.textContent='';
+    if(curCr){curCr.remove();curCr=null;}
+  }
+  function newPrompt(prefix){
+    var line=document.createElement('div');
+    line.className='tl';
+    if(prefix!==undefined){
+      line.textContent=prefix;
+    }else{
+      var u=document.createElement('span');u.className='pu';u.textContent=U.user+'@'+U.host;
+      var c=document.createElement('span');c.textContent=':';
+      var d=document.createElement('span');d.className='pwd2';d.textContent=short(cwd);
+      var dl=document.createElement('span');dl.textContent='$ ';
+      line.appendChild(u);line.appendChild(c);line.appendChild(d);line.appendChild(dl);
+    }
+    var tx=document.createElement('span');
+    var cr=document.createElement('span');
+    cr.className='cr';
+    line.appendChild(tx);
+    line.appendChild(cr);
+    el.appendChild(line);
+    curTx=tx;
+    curCr=cr;
+    el.scrollTop=1e9;
+  }
+  function renderBuf(){
+    if(curTx)curTx.textContent=pwPending?'':buf;
+  }
+  function resolve(p){
+    var hm='/home/'+U.user;
+    if(!p)return cwd;
+    if(p==='~')return hm;
+    if(p.slice(0,2)==='~/')return hm+'/'+p.slice(2);
+    if(p.charAt(0)!=='/')return cwd+'/'+p;
+    var parts=[];
+    var segs=p.split('/');
+    for(var i=0;i<segs.length;i++){
+      var s2=segs[i];
+      if(!s2||s2==='.')continue;
+      if(s2==='..'){parts.pop();}
+      else{parts.push(s2);}
+    }
+    return '/'+parts.join('/');
+  }
+  function nodeAt(p){
+    var hm='/home/'+U.user;
+    if(p===hm||p===hm+'/')return{dir:true,ch:FSY};
+    if(p.indexOf(hm+'/')!==0)return null;
+    var rel=p.slice(hm.length+1);
+    while(rel.length&&rel.charAt(rel.length-1)==='/')rel=rel.slice(0,-1);
+    if(!rel)return{dir:true,ch:FSY};
+    var cur=FSY;
+    var seg=rel.split('/');
+    for(var i=0;i<seg.length;i++){
+      var s2=seg[i];
+      if(cur===null||typeof cur!=='object')return null;
+      if(!(s2 in cur))return null;
+      cur=cur[s2];
+    }
+    if(typeof cur==='string')return{file:cur};
+    if(cur&&typeof cur==='object')return{dir:true,ch:cur};
+    return null;
+  }
+  var LOCKMSG='E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)\nE: Unable to acquire the dpkg frontend lock, are you root?';
+  var CM={};
+  CM.help=function(){
+    outp('Perintah yang tersedia dalam simulasi ini:\n  help                daftar perintah ini\n  neofetch            info sistem + logo ASCII\n  lsb_release -a      versi Ubuntu\n  uname -a            info kernel\n  df -h, free -h      disk dan memori\n  ls, cd, pwd, cat, echo, whoami, hostname\n  date, uptime, history, clear, exit\n  sudo apt update | sudo apt install <paket>\n  reboot, poweroff    (perlu sudo setelah terpasang)');
+  };
+  CM.neofetch=function(){
+    var up=Math.max(1,Math.round((Date.now()-S.bootT)/60000));
+    var info='<b>'+esc(U.user)+'@'+esc(U.host)+'</b>\n-----------------\nOS: Ubuntu 26.04 LTS x86_64\nHost: SIM-PC (simulated)\nKernel: 6.17.0-12-generic\nUptime: '+(up>=60?Math.floor(up/60)+' jam, '+(up%60)+' menit':up+' menit')+'\nPackages: '+(1836+S.pkgs)+' (dpkg)\nShell: bash 5.3.6\nResolution: '+innerWidth+'x'+innerHeight+'\nDE: GNOME 50\nWM: Mutter\nTheme: Yaru-dark\nIcons: Yaru\nTerminal: gnome-terminal\nCPU: Intel i5-14600K (20) @ 3.50GHz\nMemory: 2154MiB / 31872MiB';
+    var wrap=document.createElement('div');
+    wrap.className='tl';
+    wrap.style.cssText='display:flex;gap:18px;margin:6px 0';
+    var art=document.createElement('pre');
+    art.style.cssText='color:#E95420;font-family:inherit;font-size:12.5px;line-height:1.18;margin:0';
+    art.textContent=UBUART.join('\n');
+    var inf=document.createElement('pre');
+    inf.style.cssText='font-family:inherit;font-size:12.5px;line-height:1.18;margin:0;white-space:pre-wrap';
+    inf.innerHTML=info;
+    wrap.appendChild(art);
+    wrap.appendChild(inf);
+    el.appendChild(wrap);
+    el.scrollTop=1e9;
+  };
+  CM.lsb_release=function(){outp('No LSB modules are available.\nDistributor ID:\tUbuntu\nDescription:\tUbuntu 26.04 LTS\nRelease:\t26.04\nCodename:\tresolute');};
+  CM.uname=function(){outp('Linux '+U.host+' 6.17.0-12-generic #26.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Jan  9 18:12:41 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux');};
+  CM.df=function(){
+    var dev=S.lvm?'/dev/mapper/ubuntu--vg-ubuntu--lv':'/dev/nvme0n1p2';
+    outp('Filesystem      Size  Used Avail Use% Mounted on\ntmpfs           3.1G  2.1M  3.1G   1% /run\n'+dev+'  968G   24G  895G   3% /\ntmpfs            16G     0   16G   0% /dev/shm\n/dev/nvme0n1p1  1.1G  6.1M  1.1G   1% /boot/efi\ntmpfs           3.2G  128K  3.2G   1% /run/user/1000');
+  };
+  CM.free=function(){outp('               total        used        free      shared  buff/cache   available\nMem:            31Gi       2.1Gi        28Gi       412Mi       1.2Gi        29Gi\nSwap:          8.0Gi          0B       8.0Gi');};
+  CM.whoami=function(){outp(U.user);};
+  CM.hostname=function(){outp(U.host);};
+  CM.pwd=function(){outp(cwd);};
+  CM.date=function(){
+    var z=S.tz.zone;
+    var tzl={'Asia/Jakarta':'WIB','Asia/Makassar':'WITA','Asia/Jayapura':'WIT'}[z]||'';
+    try{
+      outp(new Intl.DateTimeFormat('id-ID',{timeZone:z,weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date())+(tzl?' '+tzl:''));
+    }catch(e){outp(new Date().toString());}
+  };
+  CM.uptime=function(){
+    var up=Math.max(1,Math.round((Date.now()-S.bootT)/60000));
+    outp(' '+new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'})+' up '+up+' min,  1 user,  load average: 0.31, 0.25, 0.19');
+  };
+  CM.echo=function(a2){
+    var s=a2.join(' ');
+    s=s.split('$USER').join(U.user);
+    s=s.split('$HOME').join('/home/'+U.user);
+    s=s.split('$PWD').join(cwd);
+    s=s.split('$HOSTNAME').join(U.host);
+    outp(s);
+  };
+  CM.history=function(){hist.forEach(function(x,i){outp('  '+(i+1)+'  '+x);});};
+  CM.clear=function(){el.innerHTML='';};
+  CM.exit=function(){closeWin('term');};
+  CM.reboot=function(a2,had){
+    if(!isLive&&!had){outp('reboot: Permission denied (coba: sudo reboot)');return;}
+    setTimeout(rebootInstalled,400/S.speed);
+  };
+  CM.poweroff=function(a2,had){
+    if(!isLive&&!had){outp('poweroff: Permission denied (coba: sudo poweroff)');return;}
+    setTimeout(powerOffAll,400/S.speed);
+  };
+  CM.ls=function(a2){
+    var showAll=(a2.indexOf('-a')>=0);
+    var long=(a2.indexOf('-l')>=0);
+    var pathArg=null;
+    for(var i=0;i<a2.length;i++){if(a2[i].charAt(0)!=='-'){pathArg=a2[i];break;}}
+    var n=nodeAt(resolve(pathArg||''));
+    if(!n){outp("ls: cannot access '"+(pathArg||'')+"': No such file or directory");return;}
+    if(n.file!==undefined){outp(pathArg||short(cwd));return;}
+    var keys=Object.keys(n.ch);
+    var list=showAll?['.','..'].concat(keys):keys.filter(function(k){return k.charAt(0)!=='.';});
+    if(long){
+      outp('total '+(list.length*4));
+      list.forEach(function(x){
+        var isD=(x==='.'||x==='..')||typeof n.ch[x]==='object';
+        outp((isD?'drwxr-xr-x':'-rw-r--r--')+'  2 '+U.user+' '+U.user+'  4096 Jan 12 10:03 '+x);
+      });
+    }else{
+      outh(list.map(function(x){
+        var isD=(x==='.'||x==='..')||typeof n.ch[x]==='object';
+        return isD?'<span class="dir">'+esc(x)+'</span>':esc(x);
+      }).join('  '));
+    }
+  };
+  CM.cd=function(a2){
+    var p=a2[0]||'~';
+    var tgt=resolve(p);
+    var n=nodeAt(tgt);
+    if(n&&n.dir)cwd=tgt;
+    else outp('bash: cd: '+p+': No such file or directory');
+  };
+  CM.cat=function(a2){
+    if(!a2[0]){outp('cat: missing operand');return;}
+    var n=nodeAt(resolve(a2[0]));
+    if(!n){outp('cat: '+a2[0]+': No such file or directory');return;}
+    if(n.dir){outp('cat: '+a2[0]+': Is a directory');return;}
+    outp(n.file);
+  };
+  CM.apt=function(a2,had){
+    var sub=a2[0];
+    if(sub!=='update'&&sub!=='install'&&sub!=='remove'){
+      outp('apt 2.8.1 (amd64)\nUsage: apt [update|install|remove] <paket>');
+      return;
+    }
+    if(!had){outp(LOCKMSG);return;}
+    busy=true;
+    (async function(){
+      try{
+        var lines=['Reading package lists... Done','Building dependency tree... Done','Reading state information... Done'];
+        if(sub==='update'){
+          lines=['Hit:1 http://id.archive.ubuntu.com/ubuntu resolute InRelease','Get:2 http://id.archive.ubuntu.com/ubuntu resolute-updates InRelease [118 kB]','Get:3 http://security.ubuntu.com/ubuntu resolute-security InRelease [126 kB]','Fetched 244 kB in 1s (218 kB/s)','Reading package lists... Done','All packages are up to date.'];
+        }
+        for(var i=0;i<lines.length;i++){outp(lines[i]);await wait(140);}
+        var pkg=a2[1];
+        if(sub!=='update'){
+          if(!pkg||!/^[a-z0-9][a-z0-9.+-]*$/.test(pkg)){
+            outp('E: Unable to locate package '+(pkg||''));
+          }else if(sub==='install'){
+            outp('The following NEW packages will be installed:');
+            outp('  '+pkg);
+            outp('0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.');
+            await wait(200);
+            outp('Get:1 http://id.archive.ubuntu.com/ubuntu resolute/universe amd64 '+pkg+' [1,204 kB]');
+            await wait(300);
+            outp('Unpacking '+pkg+' (1.2-1) ...');
+            await wait(260);
+            outp('Setting up '+pkg+' (1.2-1) ...');
+            await wait(200);
+            outp('Processing triggers for man-db (2.13.0-1) ...');
+            S.pkgs++;
+          }else{
+            outp('The following packages will be REMOVED:');
+            outp('  '+pkg);
+            outp('Removing '+pkg+' (1.2-1) ...');
+          }
+        }
+      }finally{
+        busy=false;
+        newPrompt();
+      }
+    })();
+  };
+  async function runLine(line){
+    var tr=line.trim();
+    if(!tr){newPrompt();return;}
+    hist.push(tr);
+    hidx=hist.length;
+    var parts=tr.split(/\s+/);
+    var hadSudo=false;
+    if(parts[0]==='sudo'){
+      hadSudo=true;
+      parts=parts.slice(1);
+      if(!isLive&&S.user.pass){
+        pwPending={parts:parts};
+        newPrompt('[sudo] password for '+U.user+': ');
+        return;
+      }
+    }
+    await execCmd(parts,hadSudo);
+  }
+  async function execCmd(a,hadSudo){
+    if(!a.length){outp('usage: sudo command');newPrompt();return;}
+    var c=a[0];
+    var fn=CM[c];
+    if(fn){
+      await fn(a.slice(1),hadSudo);
+    }else{
+      outp('bash: '+c+': command not found');
+    }
+    if(!busy&&c!=='exit'&&c!=='reboot'&&c!=='poweroff')newPrompt();
+  }
+  el.addEventListener('keydown',function(e){
+    if(busy){e.preventDefault();return;}
+    if(pwPending){
+      if(e.key==='Enter'){
+        e.preventDefault();
+        var v=buf;
+        buf='';
+        freeze();
+        var pp=pwPending;
+        pwPending=null;
+        if(v===S.user.pass){
+          execCmd(pp.parts,true);
+        }else{
+          sudoTries++;
+          outp('Sorry, try again.');
+          if(sudoTries>=3){
+            outp('sudo: 3 incorrect password attempts');
+            sudoTries=0;
+          }
+          newPrompt();
+        }
+        return;
+      }
+      if(e.key==='Backspace'){e.preventDefault();buf=buf.slice(0,-1);renderBuf();return;}
+      if(e.key.length===1&&!e.ctrlKey&&!e.metaKey){e.preventDefault();buf+=e.key;renderBuf();return;}
+      return;
+    }
+    if(e.key==='Enter'){
+      e.preventDefault();
+      var cmd=buf;
+      buf='';
+      freeze();
+      runLine(cmd);
+    }else if(e.key==='Backspace'){
+      e.preventDefault();
+      buf=buf.slice(0,-1);
+      renderBuf();
+    }else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(hist.length){hidx=Math.max(0,hidx-1);buf=hist[hidx]||'';renderBuf();}
+    }else if(e.key==='ArrowDown'){
+      e.preventDefault();
+      hidx=Math.min(hist.length,hidx+1);
+      buf=hist[hidx]||'';
+      renderBuf();
+    }else if(e.ctrlKey&&(e.key==='l'||e.key==='L')){
+      e.preventDefault();
+      el.innerHTML='';
+      newPrompt();
+    }else if(e.ctrlKey&&(e.key==='c'||e.key==='C')){
+      e.preventDefault();
+      outh('^C');
+      buf='';
+      newPrompt();
+    }else if(e.key.length===1&&!e.ctrlKey&&!e.metaKey){
+      buf+=e.key;
+      renderBuf();
+    }
+  });
+  el.addEventListener('click',function(){el.focus();});
+  outp('Ubuntu 26.04 LTS '+U.host+' tty1');
+  outp('');
+  outp('Ketik "help" untuk daftar perintah simulasi.');
+  outp('');
+  newPrompt();
+  setTimeout(function(){el.focus();},80);
+}
+
+/* ============ APLIKASI: FILES & EDITOR ============ */
+var FICON='<svg width="46" height="46" viewBox="0 0 48 48"><path d="M6 12c0-2 1.5-3 3-3h10l4 4h16c2 0 3 1 3 3v20c0 2-1 3-3 3H9c-2 0-3-1-3-3z" fill="#E95420"/><path d="M6 18h36v17c0 2-1 3-3 3H9c-2 0-3-1-3-3z" fill="#c7431a"/></svg>';
+var PICON='<svg width="46" height="46" viewBox="0 0 48 48"><path d="M12 4h17l8 8v32H12z" fill="#efede8"/><path d="M29 4l8 8h-8z" fill="#cfccc4"/><path d="M17 22h14M17 28h14M17 34h9" stroke="#b3afa5" stroke-width="2"/></svg>';
+function FilesBuild(body,rec,isTrash){
+  var cwd=isTrash?'trash':[];
+  var root=h('<div class="files"><div class="f-side" id="fside"></div><div class="f-main">'+
+   '<div class="f-bar"><button id="fb">'+ic('chevron-left',16)+'</button><span class="f-path" id="fp"></span></div>'+
+   '<div class="f-grid" id="fg"></div></div></div>');
+  body.appendChild(root);
+  var places=[['home','user','Home'],['Documents','file-text','Documents'],['Downloads','download','Downloads'],['Music','music','Music'],['Pictures','camera','Pictures'],['Videos','film','Videos'],['trash','trash-2','Trash']];
+  function draw(){
+    var side=document.getElementById('fside');
+    if(!side)return;
+    var sh='';
+    places.forEach(function(p){
+      var cur=(cwd==='trash'&&p[0]==='trash')||(p[0]!=='trash'&&(p[0]==='home'?cwd.length===0:cwd[0]===p[0]));
+      sh+='<div class="f-pl'+(cur?' cur':'')+'" data-k="'+p[0]+'">'+ic(p[1],15)+p[2]+'</div>';
+    });
+    side.innerHTML=sh;
+    side.querySelectorAll('.f-pl').forEach(function(p){
+      p.onclick=function(){
+        var k=p.getAttribute('data-k');
+        cwd=(k==='home')?[]:(k==='trash'?'trash':[k]);
+        draw();
+      };
+    });
+    var g=document.getElementById('fg');
+    var fp=document.getElementById('fp');
+    if(cwd==='trash'||isTrash){
+      fp.textContent='';
+      g.innerHTML='<div class="f-empty">'+esc(t('fi-trash'))+'</div>';
+      return;
+    }
+    var n=FSY;
+    for(var i=0;i<cwd.length&&n;i++){n=n[cwd[i]];}
+    if(!n||typeof n!=='object')n={};
+    fp.innerHTML='<b>Beranda</b>'+(cwd.length?' > '+cwd.map(esc).join(' > '):'');
+    var keys=Object.keys(n);
+    if(!keys.length){g.innerHTML='<div class="f-empty">'+esc(t('fi-empty'))+'</div>';return;}
+    var html='';
+    keys.forEach(function(k){
+      var isDir=typeof n[k]!=='string';
+      html+='<div class="f-it" data-k="'+esc(k)+'" data-d="'+(isDir?1:0)+'">'+(isDir?FICON:PICON)+'<span>'+esc(k)+'</span></div>';
+    });
+    g.innerHTML=html;
+    g.querySelectorAll('.f-it').forEach(function(it){
+      it.onclick=function(){
+        g.querySelectorAll('.f-it').forEach(function(x){x.classList.remove('sel');});
+        it.classList.add('sel');
+      };
+      it.ondblclick=function(){
+        var k=it.getAttribute('data-k');
+        if(it.getAttribute('data-d')==='1'){cwd=cwd.concat([k]);draw();}
+        else openEditor(cwd.concat([k]),n[k]);
+      };
+    });
+  }
+  document.getElementById('fb').onclick=function(){
+    if(cwd==='trash')cwd=[];
+    else cwd=cwd.slice(0,-1);
+    draw();
+  };
+  draw();
+}
+function openEditor(path,content){
+  var rec=openWindow({id:'ed',title:t('app-ed'),w:600,h:460,build:EdBuild});
+  if(rec&&rec.edLoad)rec.edLoad(path,content);
+}
+function EdBuild(body,rec){
+  var root=h('<div class="ed"><div class="ed-info">-</div><textarea spellcheck="false" placeholder="..."></textarea></div>');
+  body.appendChild(root);
+  var ta=root.querySelector('textarea');
+  var info=root.querySelector('.ed-info');
+  rec.edPath=null;
+  rec.edLoad=function(path,content){
+    rec.edPath=path;
+    var titleEl=rec.el.querySelector('.win-t');
+    if(titleEl)titleEl.textContent=(path[path.length-1]||'-')+' - '+t('app-ed');
+    info.textContent='/home/'+DESK.user.user+'/'+path.join('/');
+    ta.value=(typeof content==='string')?content:'[berkas biner]';
+  };
+  ta.oninput=function(){
+    if(!rec.edPath)return;
+    var n=FSY;
+    for(var i=0;i<rec.edPath.length-1;i++){
+      if(n&&n[rec.edPath[i]]!==undefined)n=n[rec.edPath[i]];
+      else return;
+    }
+    if(n)n[rec.edPath[rec.edPath.length-1]]=ta.value;
+  };
+}
+
+/* ============ APLIKASI: FIREFOX ============ */
+function FfxBuild(body,rec){
+  var st={view:'start',page:null,q:''};
+  var root=h('<div class="ffx"><div class="fx-tabs"><div class="fx-tab" id="fxt">Ubuntu Start</div></div>'+
+   '<div class="fx-nav"><button id="fxb">'+ic('chevron-left',16)+'</button><button id="fxr">'+ic('rotate-cw',15)+'</button>'+
+   '<input class="ipt fx-addr" id="fxa" placeholder="'+esc(t('ff-addr'))+'"><button id="fxg">'+ic('search',15)+'</button></div>'+
+   '<div class="fx-body" id="fxb2"></div></div>');
+  body.appendChild(root);
+  function draw(){
+    var B=document.getElementById('fxb2');
+    if(!B)return;
+    B.innerHTML='';
+    var tab=document.getElementById('fxt');
+    var addr=document.getElementById('fxa');
+    if(st.view==='start'){
+      var start=h('<div class="fx-start">'+FOX+
+       '<div class="fx-srch"><input id="fxs" placeholder="'+esc(t('ff-search'))+'"><button>'+ic('search',15)+'</button></div>'+
+       '<div class="fx-tiles" id="fxt2"></div></div>');
+      B.appendChild(start);
+      var tiles=[['ubuntu.com','#E95420',cof(30)],['wikipedia.org','#5a5a58',ic('globe',26)],['kernel.org','#2b6b3a',ic('cpu',26)]];
+      var th='';
+      tiles.forEach(function(x){th+='<button class="fx-tile" data-u="'+x[0]+'"><span class="fx-tb" style="background:'+x[1]+'">'+x[2]+'</span>'+x[0]+'</button>';});
+      var t2=document.getElementById('fxt2');
+      t2.innerHTML=th;
+      t2.querySelectorAll('.fx-tile').forEach(function(b){b.onclick=function(){go(b.getAttribute('data-u'));};});
+      var inp=document.getElementById('fxs');
+      inp.onkeydown=function(e){if(e.key==='Enter')search(inp.value);};
+      inp.parentElement.querySelector('button').onclick=function(){search(inp.value);};
+      tab.textContent='Ubuntu Start';
+      addr.value='';
+    }else if(st.view==='page'){
+      var P=WEB[st.page][S.lang==='id'?'id':'en'];
+      var ph='<div class="fx-page"><h1>'+esc(P.h)+'</h1>';
+      P.p.forEach(function(x){ph+='<p>'+esc(x)+'</p>';});
+      ph+='<p style="color:#777;font-size:12px">- halaman simulasi -</p></div>';
+      B.appendChild(h(ph));
+      tab.textContent=st.page;
+      addr.value='https://'+st.page;
+    }else if(st.view==='results'){
+      var res=[[t('fx-res1'),'ubuntu.com'],[t('fx-res2'),'wikipedia.org'],[t('fx-res3'),'kernel.org']];
+      var rh='<div class="fx-res"><h3>'+esc(st.q)+' - '+(S.lang==='id'?'hasil pencarian (simulasi)':'search results (simulated)')+'</h3>';
+      res.forEach(function(r){
+        rh+='<div class="fx-r"><b data-u="'+r[1]+'">'+esc(r[0])+'</b><span>'+r[1]+'</span><p>'+esc((WEB[r[1]][S.lang==='id'?'id':'en'].p[0]||'').slice(0,110))+'...</p></div>';
+      });
+      rh+='</div>';
+      B.appendChild(h(rh));
+      B.querySelectorAll('.fx-r b').forEach(function(b){b.onclick=function(){go(b.getAttribute('data-u'));};});
+      tab.textContent=(S.lang==='id'?'Hasil: ':'Results: ')+st.q;
+      addr.value='duckduckgo.com/?q='+encodeURIComponent(st.q);
+    }else{
+      B.appendChild(h('<div class="fx-page"><h1>'+(S.lang==='id'?'Situs tidak tersedia':'Site unavailable')+'</h1><p>'+esc(t('fx-doc'))+'</p></div>'));
+    }
+  }
+  function go(u){st.view='page';st.page=u;draw();}
+  function search(q){
+    if(!q.trim())return;
+    st.view='results';
+    st.q=q.trim();
+    draw();
+  }
+  function nav(v){
+    if(!v.trim())return;
+    var u=v.trim();
+    if(WEB[u])go(u);
+    else if(u.indexOf('.')>0&&u.indexOf(' ')<0){st.view='off';draw();}
+    else search(u);
+  }
+  document.getElementById('fxb').onclick=function(){st.view='start';draw();};
+  document.getElementById('fxr').onclick=function(){draw();};
+  document.getElementById('fxg').onclick=function(){nav(document.getElementById('fxa').value);};
+  document.getElementById('fxa').onkeydown=function(e){if(e.key==='Enter')nav(e.target.value);};
+  draw();
+}
+
+/* ============ APLIKASI: SETTINGS ============ */
+function SettingsBuild(body,rec){
+  var cur='about';
+  var root=h('<div class="set"><div class="st-side" id="ss"></div><div class="st-main" id="sm2"></div></div>');
+  body.appendChild(root);
+  var panels=[['wifi','wifi',t('set-wifi')],['sound','volume-2',t('set-sound')],['power','zap',t('set-power')],['about','info',t('set-about')]];
+  function draw(){
+    var side=document.getElementById('ss');
+    if(!side)return;
+    var sh='';
+    panels.forEach(function(p){sh+='<div class="st-pl'+(cur===p[0]?' cur':'')+'" data-p="'+p[0]+'">'+ic(p[1],15)+p[2]+'</div>';});
+    side.innerHTML=sh;
+    side.querySelectorAll('.st-pl').forEach(function(b){b.onclick=function(){cur=b.getAttribute('data-p');draw();};});
+    var M=document.getElementById('sm2');
+    M.innerHTML='';
+    if(cur==='about'){
+      M.appendChild(h('<div><div class="st-head">'+cof(44)+'<div><h2 style="margin:0">Ubuntu 26.04 LTS</h2><p style="color:var(--dim);font-size:12.5px">Resolute</p></div></div>'+
+       '<div class="st-row"><span>'+t('ab-dev')+'</span><b>'+esc(DESK.user.host)+'</b></div>'+
+       '<div class="st-row"><span>'+t('ab-mem')+'</span><b>32,0 GiB</b></div>'+
+       '<div class="st-row"><span>'+t('ab-cpu')+'</span><b>Intel Core i5-14600K x 20</b></div>'+
+       '<div class="st-row"><span>'+t('ab-disk')+'</span><b>1,0 TB</b></div>'+
+       '<div class="st-row"><span>'+t('ab-os')+'</span><b>64-bit</b></div>'+
+       '<div class="st-row"><span>'+t('ab-gpu')+'</span><b>Intel Graphics (simulated)</b></div>'+
+       '<div class="st-row"><span>'+t('ab-de')+'</span><b>GNOME 50</b></div>'+
+       '<p style="color:var(--dim);font-size:12.5px;margin-top:18px">'+t('ab-note')+'</p></div>'));
+    }else if(cur==='sound'){
+      M.appendChild(h('<div><h2>'+t('set-sound')+'</h2>'+
+       '<div class="st-row"><span>'+t('sm-vol')+'</span><input type="range" min="0" max="100" value="'+S.vol+'" id="stv" style="width:220px;accent-color:var(--or)"></div>'+
+       '<div style="margin-top:20px"><button class="btn ghost" id="stt">'+t('set-test')+'</button></div></div>'));
+      document.getElementById('stv').oninput=function(e){S.vol=+e.target.value;if(DESK)DESK.refreshStat();};
+      document.getElementById('stt').onclick=function(){beep(523,120);setTimeout(function(){beep(659,120);},150);setTimeout(function(){beep(784,200);},300);};
+    }else if(cur==='power'){
+      M.appendChild(h('<div><h2>'+t('set-power')+'</h2>'+
+       '<div class="st-row"><span>'+t('sm-bat')+'</span><b>'+t('sm-bat-s')+'</b></div>'+
+       '<div class="st-row"><span>'+t('set-susp')+'</span><select class="sel" id="sts" style="width:190px"><option value="off">'+t('set-off')+'</option><option value="5">'+t('set-min')+'</option><option value="10">'+t('set-min10')+'</option></select></div></div>'));
+      document.getElementById('sts').onchange=function(e){toast(t('set-susp')+': '+e.target.selectedOptions[0].textContent);};
+    }else{
+      M.appendChild(h('<div><h2>'+t('set-wifi')+'</h2>'+
+       '<div class="st-row"><span>'+t('set-wifi')+'</span><label class="sw"><input type="checkbox" id="stw" '+(S.wifiOn?'checked':'')+'><i></i></label></div>'+
+       '<div id="stwl" style="margin-top:12px"></div></div>'));
+      document.getElementById('stw').onchange=function(e){
+        S.wifiOn=e.target.checked;
+        draw();
+        if(DESK)DESK.refreshStat();
+      };
+      var wl=document.getElementById('stwl');
+      if(!S.wifiOn){
+        wl.appendChild(h('<p style="color:var(--dim);font-size:13.5px">'+t('set-wifi-off')+'</p>'));
+      }else{
+        var wh='';
+        WIFIS.forEach(function(w,i){
+          var conn=(S.net.type==='wifi'&&S.net.ssid===w.s);
+          wh+='<div class="st-row" data-i="'+i+'" style="cursor:pointer"><span>'+esc(w.s)+'</span><b>'+(conn?'OK':'')+'</b>'+ic('wifi',15)+'</div>';
+        });
+        wl.innerHTML=wh;
+        wl.querySelectorAll('.st-row').forEach(function(r){
+          r.onclick=function(){
+            var w=WIFIS[+r.getAttribute('data-i')];
+            S.net={type:'wifi',ssid:w.s};
+            toast('Terhubung ke '+w.s);
+            draw();
+            if(DESK)DESK.refreshStat();
+          };
+        });
+      }
+    }
+  }
+  draw();
+}
+
+/* ============ INSTALLER ============ */
+function openInstaller(){
+  if(!DESK)return;
+  openWindow({id:'installer',title:t('i-title'),w:960,h:650,build:function(b,rec){
+    INST.el=b;
+    INST.rec=rec;
+    renderInstPage();
+  }});
+}
+function instChain(){
+  var c=['welcome','access','kb','net','ti','mode','apps','disk'];
+  if(S.diskMode==='manual')c.push('parts');
+  c.push('tz','user','confirm');
+  return c;
+}
+function renderInstPage(){
+  if(!INST.el||!INST.el.isConnected)return;
+  var chain=instChain();
+  var pid=INST.special||chain[Math.min(INST.page,chain.length-1)];
+  INST.el.innerHTML='';
+  var fr=h('<div class="inst"><div class="inst-h"><h2 id="ih"></h2><p id="ihp"></p></div>'+
+   '<div class="inst-b" id="ib"></div>'+
+   '<div class="inst-f"><span class="inst-note" id="ifn"></span><div class="inst-btns">'+
+   '<button class="btn ghost" id="ibk">'+esc(t('k-back'))+'</button>'+
+   '<button class="btn primary" id="inx"></button></div></div></div>');
+  INST.el.appendChild(fr);
+  if(INST.rec){
+    var wt=INST.rec.el.querySelector('.win-t');
+    if(wt)wt.textContent=t('i-title');
+  }
+  var A={
+    body:document.getElementById('ib'),
+    setHead:function(ti,su){document.getElementById('ih').textContent=ti;document.getElementById('ihp').textContent=su||'';},
+    setNote:function(n){document.getElementById('ifn').textContent=n||'';},
+    setNext:function(label,fn,en){
+      var b=document.getElementById('inx');
+      b.textContent=label;
+      b.disabled=(en===false);
+      b.onclick=function(){if(b.disabled)return;fn();};
+    }
+  };
+  var bk=document.getElementById('ibk');
+  bk.onclick=function(){
+    if(INST.special)return;
+    INST.page=Math.max(0,INST.page-1);
+    renderInstPage();
+  };
+  bk.style.visibility=(INST.page===0&&!INST.special)?'hidden':'visible';
+  PAGES[pid](A);
+}
+var PAGES={};
+PAGES.welcome=function(A){
+  A.setHead(t('w-title'),t('w-sub'));
+  A.body.appendChild(h('<input class="ipt" id="ws" placeholder="Cari / Search...">'));
+  A.body.appendChild(h('<div class="wgrid" id="wg"></div>'));
+  function draw(q){
+    var g=document.getElementById('wg');
+    if(!g)return;
+    g.innerHTML='';
+    LANGS.forEach(function(l){
+      if(q&&l.n.toLowerCase().indexOf(q)<0)return;
+      var b=h('<button class="lbtn'+(S.langName===l.n?' sel':'')+'"><span>'+esc(l.n)+'</span>'+(S.langName===l.n?ic('check',15):'')+'</button>');
+      b.onclick=function(){S.langName=l.n;S.lang=l.c||'en';applyA11y();renderInstPage();};
+      g.appendChild(b);
+    });
+  }
+  document.getElementById('ws').oninput=function(e){draw(e.target.value.toLowerCase());};
+  draw('');
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+function applyA11y(){
+  stage.classList.toggle('a11y-big',!!(S.access&&S.access.big));
+  stage.classList.toggle('a11y-contrast',!!(S.access&&S.access.contrast));
+}
+PAGES.access=function(A){
+  A.setHead(t('a-title'),t('a-sub'));
+  var rows=[['big','a1','a1d'],['contrast','a2','a2d']];
+  var html='<div>';
+  rows.forEach(function(r){
+    html+='<label class="chk"><input type="checkbox" data-k="'+r[0]+'" '+((S.access&&S.access[r[0]])?'checked':'')+'><span>'+esc(t(r[1]))+'<small>'+esc(t(r[2]))+'</small></span></label>';
+  });
+  html+='</div>';
+  A.body.appendChild(h(html));
+  A.body.querySelectorAll('input').forEach(function(i){
+    i.onchange=function(e){S.access[e.target.getAttribute('data-k')]=e.target.checked;applyA11y();};
+  });
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.kb=function(A){
+  A.setHead(t('kb-title'),t('kb-sub'));
+  A.body.appendChild(h('<div><label class="lbl">'+esc(t('kb-l'))+'</label><select class="sel" id="kbl"></select>'+
+   '<label class="lbl">'+esc(t('kb-v'))+'</label><select class="sel" id="kbv"></select>'+
+   '<label class="lbl">'+esc(t('kb-test'))+'</label><textarea class="ipt" rows="2" id="kbt" style="resize:none"></textarea>'+
+   '<div style="margin-top:14px"><button class="btn ghost" id="kbd">'+esc(t('kb-det'))+'</button></div></div>'));
+  var sl=document.getElementById('kbl');
+  var sv=document.getElementById('kbv');
+  var kh='';
+  Object.keys(KBL).forEach(function(k){kh+='<option'+(S.kb.layout===k?' selected':'')+'>'+esc(k)+'</option>';});
+  sl.innerHTML=kh;
+  function drawV(){
+    var vh='';
+    (KBL[sl.value]||[]).forEach(function(v){vh+='<option'+(S.kb.layout===sl.value&&S.kb.variant===v?' selected':'')+'>'+esc(v)+'</option>';});
+    sv.innerHTML=vh;
+  }
+  drawV();
+  sl.onchange=function(){S.kb.layout=sl.value;S.kb.variant=(KBL[sl.value]||[''])[0];drawV();};
+  sv.onchange=function(){S.kb.variant=sv.value;};
+  document.getElementById('kbd').onclick=async function(){
+    var btn=this;
+    btn.textContent=t('kb-deting');
+    await wait(1000);
+    S.kb={layout:'English (US)',variant:'English (US)'};
+    btn.textContent=t('kb-det');
+    toast('Deteksi: English (US)');
+  };
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.net=function(A){
+  A.setHead(t('n-title'),t('n-sub'));
+  var wrap=h('<div><div id="nc"></div><div id="nw"></div></div>');
+  A.body.appendChild(wrap);
+  function draw(){
+    var nc=document.getElementById('nc');
+    if(!nc)return;
+    var icn,name,desc;
+    if(S.net.type==='ethernet'){icn='network';name=t('n-eth');desc=t('n-ethd');}
+    else if(S.net.type==='wifi'){icn='wifi';name=S.net.ssid;desc=(S.lang==='id'?'Terhubung':'Connected');}
+    else{icn='wifi-off';name=(S.lang==='id'?'Offline':'Offline');desc=t('n-offd');}
+    nc.innerHTML='<div class="opt-card sel" style="cursor:default"><span class="oc-ic">'+ic(icn,22)+'</span><div><h4>'+esc(name)+'</h4><p>'+esc(desc)+'</p></div></div>'+
+     '<label class="chk" style="margin-top:6px"><input type="checkbox" id="noff" '+((S.net.type==='off')?'checked':'')+'><span>'+esc(t('n-off'))+'<small>'+esc(t('n-offd'))+'</small></span></label>';
+    document.getElementById('noff').onchange=function(e){
+      if(e.target.checked){S.prevNet=S.net;S.net={type:'off'};}
+      else{S.net=S.prevNet||{type:'ethernet'};}
+      draw();
+    };
+    var nw=document.getElementById('nw');
+    nw.innerHTML='';
+    if(!S.wifiOn)return;
+    nw.appendChild(h('<label class="lbl">'+esc(t('n-wifi'))+'</label><div id="nwl"><p style="color:var(--dim);font-size:13px">'+esc(t('n-scan'))+'</p></div>'));
+    setTimeout(function(){
+      var nwl=document.getElementById('nwl');
+      if(!nwl)return;
+      var wh='';
+      WIFIS.forEach(function(w,i){wh+='<div class="crow" data-i="'+i+'"><span style="width:auto">'+ic('lock',14)+'</span><b>'+esc(w.s)+'</b><span style="flex:none">'+ic('wifi',15)+'</span></div>';});
+      nwl.innerHTML=wh;
+      nwl.querySelectorAll('.crow').forEach(function(r){
+        r.onclick=function(){connect(WIFIS[+r.getAttribute('data-i')]);};
+      });
+    },1000/S.speed);
+  }
+  function connect(w){
+    if(A.body.querySelector('.modal-ov'))return;
+    var ov=h('<div class="modal-ov"><div class="modal"><h3>'+esc(w.s)+'</h3><p>'+esc(t('n-pass'))+'</p>'+
+     '<input type="password" class="ipt" id="nwp" style="margin-top:12px" placeholder="'+esc(t('n-pass'))+'">'+
+     '<p style="font-size:12px;margin-top:8px">'+esc(t('n-hint'))+'</p>'+
+     '<div class="m-btns"><button class="btn ghost" id="nwx">'+esc(t('k-cancel'))+'</button><button class="btn primary" id="nwc">'+esc(t('n-conn'))+'</button></div></div></div>');
+    A.body.appendChild(ov);
+    document.getElementById('nwx').onclick=function(){ov.remove();};
+    document.getElementById('nwc').onclick=async function(){
+      var p=document.getElementById('nwp').value;
+      if(p.length<8){document.getElementById('nwp').style.borderColor='#c01c28';return;}
+      ov.remove();
+      var nw=document.getElementById('nw');
+      if(nw)nw.innerHTML='<p style="color:var(--dim);font-size:13px">'+(S.lang==='id'?'Menghubungkan...':'Connecting...')+'</p>';
+      await wait(1500);
+      S.net={type:'wifi',ssid:w.s};
+      draw();
+    };
+  }
+  draw();
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.ti=function(A){
+  A.setHead(t('ti-title'),t('ti-sub'));
+  A.body.appendChild(h('<div class="pgw">'+
+   '<div class="opt-card'+(S.tryOr==='install'?' sel':'')+'" id="cI" style="flex:1"><span class="oc-ic">'+ic('hard-drive',26)+'</span><div><h4>'+esc(t('ti-i'))+'</h4><p>'+esc(t('ti-i-d'))+'</p></div></div>'+
+   '<div class="opt-card'+(S.tryOr==='try'?' sel':'')+'" id="cT" style="flex:1"><span class="oc-ic">'+ic('play',26)+'</span><div><h4>'+esc(t('ti-t'))+'</h4><p>'+esc(t('ti-t-d'))+'</p></div></div></div>'));
+  document.getElementById('cI').onclick=function(){S.tryOr='install';renderInstPage();};
+  document.getElementById('cT').onclick=function(){S.tryOr='try';renderInstPage();};
+  A.setNext(t('k-next'),function(){
+    if(S.tryOr==='try'){
+      closeWin('installer');
+      toast('Mode coba Ubuntu. Klik dua kali ikon Instal Ubuntu di desktop kapan saja untuk memasang.');
+      return;
+    }
+    INST.page++;renderInstPage();
+  });
+};
+PAGES.mode=function(A){
+  A.setHead(t('it-title'),t('it-sub'));
+  A.body.appendChild(h('<div style="display:flex;flex-direction:column;gap:12px">'+
+   '<div class="opt-card'+(S.mode==='interactive'?' sel':'')+'" id="mI"><span class="oc-ic">'+ic('user',24)+'</span><div><h4>'+esc(t('it-i'))+'</h4><p>'+esc(t('it-i-d'))+'</p></div></div>'+
+   '<div class="opt-card dis" id="mA"><span class="oc-ic">'+ic('zap',24)+'</span><div><h4>'+esc(t('it-a'))+'</h4><p>'+esc(t('it-a-d'))+'</p></div></div>'+
+   '<p id="mnote" style="display:none;color:#f5a49a;font-size:12.5px">'+esc(t('it-note'))+'</p></div>'));
+  document.getElementById('mI').onclick=function(){S.mode='interactive';renderInstPage();};
+  document.getElementById('mA').onclick=function(){document.getElementById('mnote').style.display='block';beep(320,120);};
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.apps=function(A){
+  A.setHead(t('ap-title'),t('ap-sub'));
+  var chips=[['globe','Firefox'],['file-text','LibreOffice'],['mail','Thunderbird'],['camera','Shotwell'],['music','Rhythmbox']];
+  var chipHtml='';
+  if(S.apps==='normal'){
+    chipHtml='<div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">';
+    chips.forEach(function(c){chipHtml+='<span style="font-size:11.5px;border:1px solid #4a4a46;border-radius:20px;padding:3px 11px;display:inline-flex;align-items:center;gap:5px">'+ic(c[0],12)+c[1]+'</span>';});
+    chipHtml+='</div>';
+  }
+  A.body.appendChild(h('<div style="display:flex;flex-direction:column;gap:12px">'+
+   '<div class="opt-card'+(S.apps==='normal'?' sel':'')+'" id="aN"><span class="oc-ic">'+ic('package',24)+'</span><div><h4>'+esc(t('ap-n'))+'</h4><p>'+esc(t('ap-n-d'))+'</p>'+chipHtml+'</div></div>'+
+   '<div class="opt-card'+(S.apps==='minimal'?' sel':'')+'" id="aM"><span class="oc-ic">'+ic('minimize-2',24)+'</span><div><h4>'+esc(t('ap-m'))+'</h4><p>'+esc(t('ap-m-d'))+'</p></div></div>'+
+   '<label class="chk"><input type="checkbox" id="aup" '+((S.updates)?'checked':'')+' '+((S.net.type==='off')?'disabled':'')+'><span>'+esc(t('ap-upd'))+'<small>'+((S.net.type==='off')?esc(t('ap-upd-off')):'')+'</small></span></label>'+
+   '<label class="chk"><input type="checkbox" id="a3" '+((S.third)?'checked':'')+'><span>'+esc(t('ap-3rd'))+'<small>'+esc(t('ap-legal'))+'</small></span></label></div>'));
+  document.getElementById('aN').onclick=function(){S.apps='normal';renderInstPage();};
+  document.getElementById('aM').onclick=function(){S.apps='minimal';renderInstPage();};
+  document.getElementById('aup').onchange=function(e){S.updates=e.target.checked;};
+  document.getElementById('a3').onchange=function(e){S.third=e.target.checked;};
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.disk=function(A){
+  A.setHead(t('dk-title'),t('dk-sub'));
+  var html='<div>'+
+   '<div class="opt-card sel" style="cursor:default;margin-bottom:14px"><span class="oc-ic">'+ic('hard-drive',26)+'</span><div><h4>'+esc(t('dk-dev'))+'</h4><p>'+esc(t('dk-spec'))+'</p></div></div>'+
+   '<div style="display:flex;flex-direction:column;gap:12px">'+
+   '<div class="opt-card'+(S.diskMode==='erase'?' sel':'')+'" id="dE"><span class="oc-ic">'+ic('trash-2',22)+'</span><div><h4>'+esc(t('dk-e'))+'</h4><p>'+esc(t('dk-e-d'))+'</p></div></div>'+
+   '<div class="opt-card'+(S.diskMode==='manual'?' sel':'')+'" id="dM"><span class="oc-ic">'+ic('table-2',22)+'</span><div><h4>'+esc(t('dk-m'))+'</h4><p>'+esc(t('dk-m-d'))+'</p></div></div></div>';
+  if(S.diskMode==='erase'){
+    html+='<button class="btn ghost" id="dA" style="margin-top:16px">'+esc(t('dk-adv'))+' '+(S.lvm?'<b>LVM</b>':'')+'</button>';
+    html+='<div class="alert">'+ic('triangle-alert',18)+'<span>'+esc(t('dk-warn'))+'</span></div>';
+  }
+  html+='</div>';
+  A.body.appendChild(h(html));
+  document.getElementById('dE').onclick=function(){S.diskMode='erase';renderInstPage();};
+  document.getElementById('dM').onclick=function(){S.diskMode='manual';S.parts=[];renderInstPage();};
+  var adv=document.getElementById('dA');
+  if(adv)adv.onclick=function(){
+    var ov=h('<div class="modal-ov"><div class="modal"><h3>'+esc(t('adv-t'))+'</h3>'+
+     '<label class="chk"><input type="radio" name="adv" value="none" '+(!S.lvm?'checked':'')+'><span>'+esc(t('adv-none'))+'</span></label>'+
+     '<label class="chk"><input type="radio" name="adv" value="lvm" '+(S.lvm?'checked':'')+'><span>'+esc(t('adv-lvm'))+'<small>'+esc(t('adv-lvm-d'))+'</small></span></label>'+
+     '<div class="m-btns"><button class="btn primary" id="advk">'+esc(t('k-next'))+'</button></div></div></div>');
+    A.body.appendChild(ov);
+    ov.querySelectorAll('input')[0].onchange=function(){S.lvm=false;};
+    ov.querySelectorAll('input')[1].onchange=function(){S.lvm=true;};
+    document.getElementById('advk').onclick=function(){ov.remove();renderInstPage();};
+  };
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.parts=function(A){
+  A.setHead(t('pt-title'),t('pt-sub'));
+  var TOTAL=1024;
+  function free(){return TOTAL-S.parts.reduce(function(s,p){return s+p.size;},0);}
+  A.body.appendChild(h('<div>'+
+   '<div class="dbar" id="pdb"></div><div style="font-size:12px;color:var(--dim)" id="pfr"></div>'+
+   '<table class="parts-t"><thead><tr><th>Nama</th><th>'+esc(t('pt-size'))+'</th><th>'+esc(t('pt-fs'))+'</th><th>'+esc(t('pt-mt'))+'</th><th></th></tr></thead><tbody id="ptb"></tbody></table>'+
+   '<div style="display:flex;gap:10px;margin-top:16px"><button class="btn ghost" id="pnew">'+ic('plus',14)+' '+esc(t('pt-new'))+'</button><button class="btn ghost" id="pres">'+esc(t('pt-reset'))+'</button></div></div>'));
+  var TYPES={efi:{l:t('pt-efi'),fs:'fat32',mt:'/boot/efi',def:1},
+             swap:{l:t('pt-swap'),fs:'linux-swap',mt:'swap',def:8},
+             root:{l:t('pt-root'),fs:'ext4',mt:'/',def:100},
+             home:{l:t('pt-home'),fs:'ext4',mt:'/home',def:0},
+             cust:{l:t('pt-cust'),fs:'ext4',mt:'',def:0}};
+  function draw(){
+    if(!document.getElementById('pdb'))return;
+    var bh='';
+    S.parts.forEach(function(p){bh+='<i style="width:'+(p.size/TOTAL*100)+'%"></i>';});
+    document.getElementById('pdb').innerHTML=bh;
+    document.getElementById('pfr').textContent=t('pt-free')+': '+free().toFixed(1)+' GB';
+    var th='';
+    S.parts.forEach(function(p,i){
+      th+='<tr><td>nvme0n1p'+(i+1)+'</td><td>'+p.size+' GB</td><td>'+p.fs+'</td><td>'+esc(p.mt)+'</td><td><button data-i="'+i+'" title="'+esc(t('pt-del'))+'">'+ic('trash-2',14)+'</button></td></tr>';
+    });
+    document.getElementById('ptb').innerHTML=th;
+    document.getElementById('ptb').querySelectorAll('button').forEach(function(b){
+      b.onclick=function(){S.parts.splice(+b.getAttribute('data-i'),1);draw();};
+    });
+    var hasRoot=S.parts.some(function(p){return p.mt==='/';});
+    var hasEfi=S.parts.some(function(p){return p.mt==='/boot/efi';});
+    var note=(hasRoot?'':t('pt-needroot')+' ')+(hasRoot&&!hasEfi?t('pt-noefi'):'');
+    A.setNote(note);
+    A.setNext(t('k-next'),function(){INST.page++;renderInstPage();},hasRoot);
+  }
+  draw();
+  document.getElementById('pres').onclick=function(){S.parts=[];draw();};
+  document.getElementById('pnew').onclick=function(){
+    if(free()<=0){toast(t('pt-err-size'));return;}
+    var oh='';
+    Object.keys(TYPES).forEach(function(k){oh+='<option value="'+k+'">'+esc(TYPES[k].l)+'</option>';});
+    var ov=h('<div class="modal-ov"><div class="modal"><h3>'+esc(t('pt-new'))+'</h3>'+
+     '<label class="lbl">'+esc(t('pt-type'))+'</label><select class="sel" id="ppty">'+oh+'</select>'+
+     '<label class="lbl">'+esc(t('pt-size'))+'</label><input type="number" class="ipt" id="pptz" min="0.1" step="0.1" value="100">'+
+     '<div id="ppmtw" style="display:none"><label class="lbl">'+esc(t('pt-mt'))+'</label><input class="ipt" id="ppmt" placeholder="/data"></div>'+
+     '<p id="pperr" style="color:#f5a49a;font-size:12.5px;margin-top:8px"></p>'+
+     '<div class="m-btns"><button class="btn ghost" id="ppx">'+esc(t('k-cancel'))+'</button><button class="btn primary" id="ppk">'+esc(t('k-next'))+'</button></div></div></div>');
+    A.body.appendChild(ov);
+    function sync(){
+      var k=document.getElementById('ppty').value;
+      document.getElementById('pptz').value=Math.min(TYPES[k].def||1,Math.max(0.1,free()));
+      document.getElementById('ppmtw').style.display=(k==='cust')?'block':'none';
+    }
+    document.getElementById('ppty').onchange=sync;
+    sync();
+    document.getElementById('ppx').onclick=function(){ov.remove();};
+    document.getElementById('ppk').onclick=function(){
+      var k=document.getElementById('ppty').value;
+      var sz=parseFloat(document.getElementById('pptz').value);
+      if(!sz||sz<=0||sz>free()){document.getElementById('pperr').textContent=t('pt-err-size');return;}
+      var mt=(k==='cust')?(document.getElementById('ppmt').value||'/data'):TYPES[k].mt;
+      S.parts.push({size:sz,fs:TYPES[k].fs,mt:mt});
+      ov.remove();
+      draw();
+    };
+  };
+};
+PAGES.tz=function(A){
+  A.setHead(t('tz-title'),t('tz-sub'));
+  A.body.appendChild(h('<div class="pgw"><div class="map-wrap" style="flex:1.4" id="tzm"></div>'+
+   '<div style="flex:1;display:flex;flex-direction:column;gap:4px">'+
+   '<div><label class="lbl">'+esc(t('tz-zone'))+'</label><select class="sel" id="tzz"></select></div>'+
+   '<div><label class="lbl">'+esc(t('tz-now'))+'</label><div style="font-size:26px;font-weight:300" id="tzc"></div><div style="font-size:12.5px;color:var(--dim)" id="tzo"></div></div></div></div>'));
+  var zl=document.getElementById('tzz');
+  var oh='';
+  Object.keys(TZD).forEach(function(r){
+    TZD[r].forEach(function(z){oh+='<option value="'+r+'/'+z+'"'+(S.tz.zone===r+'/'+z?' selected':'')+'>'+r+' / '+z+'</option>';});
+  });
+  zl.innerHTML=oh;
+  zl.onchange=function(){S.tz.zone=zl.value;drawMap();drawClock();};
+  function drawMap(){
+    var m=document.getElementById('tzm');
+    if(!m)return;
+    m.innerHTML=mapSVG(S.tz.zone);
+    m.querySelectorAll('.city').forEach(function(c){
+      c.onclick=function(){
+        S.tz.zone=c.getAttribute('data-z');
+        zl.value=S.tz.zone;
+        drawMap();drawClock();
+      };
+    });
+  }
+  function drawClock(){
+    var c=document.getElementById('tzc');
+    if(!c)return;
+    try{
+      c.textContent=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+      document.getElementById('tzo').textContent=S.tz.zone;
+    }catch(e){document.getElementById('tzo').textContent=S.tz.zone;}
+  }
+  drawMap();
+  drawClock();
+  addTimer(drawClock,10000);
+  A.setNext(t('k-next'),function(){INST.page++;renderInstPage();});
+};
+PAGES.user=function(A){
+  A.setHead(t('u-title'),t('u-sub'));
+  A.body.appendChild(h('<div>'+
+   '<label class="lbl">'+esc(t('u-name'))+'</label><input class="ipt" id="un" value="'+esc(S.user.name)+'">'+
+   '<label class="lbl">'+esc(t('u-host'))+'</label><input class="ipt" id="uh" value="'+esc(S.user.host)+'">'+
+   '<label class="lbl">'+esc(t('u-user'))+'</label><input class="ipt" id="uu" value="'+esc(S.user.user)+'">'+
+   '<div style="display:flex;gap:18px;margin-top:16px">'+
+   '<div style="flex:1"><label class="lbl">'+esc(t('u-pass'))+'</label><input type="password" class="ipt" id="up"><div class="bar" style="width:200px"><i id="ups"></i></div><div style="font-size:12px;color:var(--dim)" id="upl"></div></div>'+
+   '<div style="flex:1"><label class="lbl">'+esc(t('u-pass2'))+'</label><input type="password" class="ipt" id="up2"><div style="font-size:12.5px;margin-top:12px" id="upe"></div></div></div>'+
+   '<div style="margin-top:20px;display:flex;flex-direction:column;gap:2px">'+
+   '<label class="chk"><input type="radio" name="lg" id="ua" '+((S.user.autologin)?'checked':'')+'><span>'+esc(t('u-auto'))+'</span></label>'+
+   '<label class="chk"><input type="radio" name="lg" id="ur" '+((!S.user.autologin)?'checked':'')+'><span>'+esc(t('u-req'))+'</span></label></div>'+
+   '<div class="alert" style="display:none" id="uerr">'+ic('triangle-alert',18)+'<span></span></div></div>'));
+  var userDirty=S.user.user!=='';
+  var hostDirty=S.user.host!=='';
+  function validate(){
+    var name=document.getElementById('un').value.trim();
+    var user=document.getElementById('uu').value.trim();
+    var host=document.getElementById('uh').value.trim();
+    var p1=document.getElementById('up').value;
+    var p2=document.getElementById('up2').value;
+    if(!name)return[false,t('u-e-name')];
+    if(!user||!/^[a-z_][a-z0-9_-]*$/.test(user))return[false,t('u-e-user')];
+    if(!host||!/^[a-zA-Z0-9][a-zA-Z0-9.-]*$/.test(host))return[false,t('u-e-host')];
+    if(p1.length<5)return[false,t('u-e-pass')];
+    if(p1!==p2)return[false,t('u-e-match')];
+    return[true,''];
+  }
+  function val(){
+    var r=validate();
+    A.setNext(t('k-next'),commit,r[0]);
+    var er=document.getElementById('uerr');
+    er.style.display=r[0]?'none':'flex';
+    er.querySelector('span').textContent=r[1];
+  }
+  function commit(){
+    var r=validate();
+    if(!r[0])return;
+    S.user={
+      name:document.getElementById('un').value.trim(),
+      host:document.getElementById('uh').value.trim(),
+      user:document.getElementById('uu').value.trim(),
+      pass:document.getElementById('up').value,
+      autologin:document.getElementById('ua').checked
+    };
+    INST.page++;renderInstPage();
+  }
+  document.getElementById('un').oninput=function(e){
+    var v=e.target.value;
+    if(!userDirty){
+      var u=v.trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9_-]/g,'');
+      document.getElementById('uu').value=u;
+    }
+    if(!hostDirty&&document.getElementById('uu').value){
+      document.getElementById('uh').value=document.getElementById('uu').value+'-desktop';
+    }
+    val();
+  };
+  document.getElementById('uh').oninput=function(e){hostDirty=(e.target.value!=='');val();};
+  document.getElementById('uu').oninput=function(e){userDirty=(e.target.value!=='');val();};
+  function strength(v){
+    var s=0;
+    if(v.length>=5)s++;
+    if(v.length>=8)s++;
+    if(v.length>=12)s++;
+    if((/[a-z]/.test(v)&&/[A-Z]/.test(v))||/[0-9]/.test(v))s++;
+    if(s>3)s=3;
+    return s;
+  }
+  function pv(){
+    var v=document.getElementById('up').value;
+    var s=strength(v);
+    var bar=document.getElementById('ups');
+    bar.style.width=(v.length?(s*33):0)+'%';
+    bar.style.background=['#c01c28','#E95420','#e9a13b','#3e9e4f'][s];
+    var labels=[t('u-str1'),t('u-str2'),t('u-str3')];
+    document.getElementById('upl').textContent=v?(labels[Math.max(0,s-1)]||''):'';
+    var p2=document.getElementById('up2').value;
+    var upe=document.getElementById('upe');
+    if(p2&&p2===v)upe.innerHTML='<span style="color:#3e9e4f">'+ic('check',14)+'</span>';
+    else if(p2)upe.innerHTML='<span style="color:#f5a49a">'+esc(t('u-e-match'))+'</span>';
+    else upe.innerHTML='';
+    val();
+  }
+  document.getElementById('up').oninput=pv;
+  document.getElementById('up2').oninput=pv;
+  document.getElementById('ua').onchange=val;
+  document.getElementById('ur').onchange=val;
+  A.setNext(t('k-next'),commit,false);
+};
+PAGES.confirm=function(A){
+  A.setHead(t('c-title'),t('c-sub'));
+  var chain=instChain();
+  var netLabel=(S.net.type==='ethernet')?t('n-eth'):(S.net.type==='wifi'?S.net.ssid:'Offline');
+  var rows=[
+    ['c-lang',S.langName,'welcome'],
+    ['c-kb',S.kb.layout+' - '+S.kb.variant,'kb'],
+    ['c-net',netLabel,'net'],
+    ['c-apps',(S.apps==='normal'?t('ap-n'):t('ap-m')),'apps'],
+    ['c-disk',(S.diskMode==='erase'?(t('dk-e')+(S.lvm?' (LVM)':'')):(t('dk-m')+' - '+S.parts.length+' partisi')),'disk'],
+    ['c-tz',S.tz.zone,'tz'],
+    ['c-user',(S.user.user||'-')+' - '+(S.user.name||''),'user'],
+    ['c-login',(S.user.autologin?t('u-auto'):t('u-req')),'user']
+  ];
+  var html='<div>';
+  rows.forEach(function(r){
+    html+='<div class="crow" data-p="'+r[2]+'"><span>'+esc(t(r[0]))+'</span><b>'+esc(r[1])+'</b><span style="color:#7c7a74;font-size:12px">'+esc(t('c-edit'))+'</span>'+ic('chevron-right',15)+'</div>';
+  });
+  if(S.diskMode==='erase')html+='<div class="alert">'+ic('triangle-alert',18)+'<span>'+esc(t('c-erase'))+'</span></div>';
+  html+='</div>';
+  A.body.appendChild(h(html));
+  A.body.querySelectorAll('.crow').forEach(function(c){
+    c.onclick=function(){
+      INST.page=chain.indexOf(c.getAttribute('data-p'));
+      renderInstPage();
+    };
+  });
+  A.setNext(t('c-go'),function(){
+    INST.special='progress';
+    renderInstPage();
+    runInstall();
+  });
+};
+PAGES.progress=function(A){
+  A.setHead(t('p-title'),t('p-sub'));
+  A.setNote('');
+  var steps=[t('st1'),t('st2'),t('st3'),t('st4'),t('st5'),t('st6')];
+  var sh='';
+  steps.forEach(function(s,i){sh+='<div class="strow" data-i="'+i+'">'+ic('circle',14)+'<span>'+esc(s)+'</span></div>';});
+  A.body.appendChild(h('<div class="pgw"><div style="flex:1">'+
+   '<div class="pct" id="pgp">0%</div><div class="bar"><i id="pgb"></i></div>'+
+   '<div id="pgs">'+sh+'</div></div>'+
+   '<div style="flex:1"><div class="slide" id="pgsl"></div></div></div>'));
+  drawSlide(0);
+  if(INST.rec)INST.rec.o.onClose=function(){showCancel();return true;};
+  function drawSlide(idx){
+    var el2=document.getElementById('pgsl');
+    if(!el2)return;
+    var sl=SLIDES[idx%SLIDES.length];
+    var c=sl[S.lang==='id'?'id':'en'];
+    el2.innerHTML=ic(sl.icn,38)+'<h4>'+esc(c.t)+'</h4><p>'+esc(c.d)+'</p>';
+  }
+  function showCancel(){
+    if(A.body.querySelector('.modal-ov'))return;
+    var ov=h('<div class="modal-ov"><div class="modal"><h3>'+esc(t('d-p-title'))+'</h3><p>'+esc(t('d-p-sub'))+'</p>'+
+     '<div class="m-btns"><button class="btn ghost" id="cpx">'+esc(t('d-p-c'))+'</button><button class="btn primary" id="cpg">'+esc(t('d-p-go'))+'</button></div></div></div>');
+    A.body.appendChild(ov);
+    document.getElementById('cpg').onclick=function(){ov.remove();};
+    document.getElementById('cpx').onclick=function(){
+      INST.abort=true;
+      ov.remove();
+      closeWin('installer');
+      INST.special=null;
+      INST.page=instChain().indexOf('confirm');
+    };
+  }
+};
+async function runInstall(){
+  INST.abort=false;
+  var steps=[t('st1'),t('st2'),t('st3'),t('st4'),t('st5'),t('st6')];
+  var w=[8,45,18,14,10,5];
+  var p=0;
+  var ticks=0;
+  for(var i=0;i<steps.length;i++){
+    if(INST.abort)return;
+    markStep(i,steps[i]);
+    var n=Math.max(4,Math.ceil(w[i]*16));
+    for(var j=0;j<n;j++){
+      if(INST.abort)return;
+      await wait(50);
+      var pg=document.getElementById('pgp');
+      if(!pg)return;
+      p+=w[i]/n;
+      pg.textContent=Math.floor(p)+'%';
+      document.getElementById('pgb').style.width=p+'%';
+      ticks++;
+      if(ticks%80===0)drawInstallSlide(Math.floor(ticks/80));
+    }
+  }
+  if(INST.abort)return;
+  S.diskHasOS=true;
+  renderDicons();
+  if(INST.rec)INST.rec.o.onClose=null;
+  INST.special='done';
+  renderInstPage();
+  toast('Instalasi selesai');
+}
+function markStep(i,label){
+  var row=document.querySelector('#pgs [data-i="'+i+'"]');
+  if(!row)return;
+  row.classList.add('on');
+  row.innerHTML=ic('circle-check',14)+'<span>'+esc(label)+'</span>';
+}
+function drawInstallSlide(idx){
+  var el2=document.getElementById('pgsl');
+  if(!el2)return;
+  var sl=SLIDES[idx%SLIDES.length];
+  var c=sl[S.lang==='id'?'id':'en'];
+  el2.innerHTML=ic(sl.icn,38)+'<h4>'+esc(c.t)+'</h4><p>'+esc(c.d)+'</p>';
+}
+PAGES.done=function(A){
+  A.setHead(t('d-title'),t('d-sub'));
+  A.body.appendChild(h('<div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:34px">'+
+   '<span style="width:84px;height:84px;border-radius:50%;background:var(--or);color:#fff;display:flex;align-items:center;justify-content:center">'+ic('check',44)+'</span>'+
+   '<p style="color:var(--dim);font-size:13px">'+esc(t('d-note'))+'</p></div>'));
+  document.getElementById('ibk').style.visibility='hidden';
+  A.setNext(t('d-restart'),function(){rebootNotice();});
+  var g=h('<button class="btn ghost">'+esc(t('d-try'))+'</button>');
+  document.getElementById('inx').parentElement.insertBefore(g,document.getElementById('inx'));
+  g.onclick=function(){
+    closeWin('installer');
+    toast('Sesi live masih berjalan. Disk sudah berisi Ubuntu. Restart dari menu daya untuk memakainya.');
+  };
+  if(INST.rec)INST.rec.o.onClose=null;
+};
+
+/* ============ REBOOT & LOGIN ============ */
+async function rebootNotice(){
+  DESK=null;
+  setPhase('reboot');
+  mount(h('<div class="rbnote"><div class="blink" style="color:#fff">Please remove the installation medium, then press ENTER:</div>'+
+   '<div style="font-size:13px;color:#888">(Lepaskan media instalasi, lalu tekan ENTER)</div></div>'));
+  S.usb=false;
+  renderSimbar();
+  toast('Media USB dilepas');
+  setHint('Tekan ENTER (atau tunggu sebentar) untuk memulai ulang komputer.');
+  var fired=false;
+  function go(){if(fired)return;fired=true;post(true);}
+  setKeyHandler(function(e){if(e.key==='Enter')go();});
+  setTimeout(go,5000);
+}
+function loginScreen(){
+  setPhase('login');
+  var nm=S.user.name||S.user.user||'user';
+  var cols=['#772953','#E95420','#2e7d32','#35507a','#8a4fbf'];
+  var seed=S.user.user||'u';
+  var acc=0;
+  for(var i=0;i<seed.length;i++)acc+=seed.charCodeAt(i);
+  var col=cols[acc%cols.length];
+  var timeStr='',dateStr='';
+  try{
+    timeStr=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+    dateStr=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,weekday:'long',day:'numeric',month:'long'}).format(new Date());
+  }catch(e){timeStr=new Date().toLocaleTimeString();}
+  var sc=h('<div class="login"><div class="wall">'+WALL+'</div>'+
+   '<div class="lg-top"><div class="lk-t" id="lgt">'+esc(timeStr)+'</div><div class="lk-d" id="lgd">'+esc(dateStr)+'</div></div>'+
+   '<div class="lg-card"><div class="lg-av" style="background:'+col+'">'+esc((nm[0]||'u').toUpperCase())+'</div>'+
+   '<div class="lg-name">'+esc(nm)+'</div>'+
+   '<form class="lg-form" id="lgf"><div class="lg-in"><input type="password" id="lgi" placeholder="'+esc(t('lg-pass'))+'" autocomplete="off"><button type="submit">'+ic('chevron-right',17)+'</button></div>'+
+   '<div class="lg-err" id="lge"></div></form>'+
+   '<div class="lg-note">'+esc(t('lg-note'))+'</div></div>'+
+   '<div class="lg-power"><button id="lgp">'+ic('power',18)+'</button></div></div>');
+  mount(sc);
+  function upd(){
+    try{
+      document.getElementById('lgt').textContent=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+      document.getElementById('lgd').textContent=new Intl.DateTimeFormat(LOC(),{timeZone:S.tz.zone,weekday:'long',day:'numeric',month:'long'}).format(new Date());
+    }catch(e){}
+  }
+  upd();
+  addTimer(upd,5000);
+  var inp=document.getElementById('lgi');
+  setTimeout(function(){inp.focus();},150);
+  document.getElementById('lgf').onsubmit=function(e){
+    e.preventDefault();
+    if(inp.value===S.user.pass){
+      inp.blur();
+      var ov=h('<div style="position:absolute;inset:0;background:#0a0a0b;opacity:0;transition:opacity .7s;z-index:5"></div>');
+      sc.appendChild(ov);
+      requestAnimationFrame(function(){ov.style.opacity='1';});
+      setTimeout(startDesktop,750);
+    }else{
+      document.getElementById('lge').textContent=t('lg-err');
+      var card=sc.querySelector('.lg-card');
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+      beep(300,140);
+      inp.select();
+    }
+  };
+  var pwopen=false;
+  document.getElementById('lgp').onclick=function(){
+    if(pwopen)return;
+    pwopen=true;
+    var p=h('<div class="pop sysm" style="position:absolute;right:20px;bottom:80px"><div class="sm-pw" style="display:flex">'+
+     '<button id="lgr">'+ic('rotate-ccw',15)+' '+esc(t('sm-re'))+'</button>'+
+     '<button id="lgo">'+ic('power',15)+' '+esc(t('sm-off'))+'</button></div></div>');
+    sc.appendChild(p);
+    document.getElementById('lgr').onclick=function(){p.remove();pwopen=false;DESK=null;post(true);};
+    document.getElementById('lgo').onclick=function(){p.remove();powerOffAll();};
+  };
+  setHint('Login GDM: masukkan kata sandi yang Anda buat pada langkah Siapa Anda?, lalu tekan Enter.');
+}
+
+/* ============ MULAI ============ */
+try{
+  S=freshState();
+  renderSimbar();
+  powerScreen();
+}catch(err){
+  var eb=document.getElementById('errbox');
+  if(eb){eb.style.display='block';eb.textContent='Gagal memulai: '+(err.message||err);}
+}
+})();
+</script>
+</body>
+</html>
