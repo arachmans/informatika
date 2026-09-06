@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>BootForge — Utilitas USB Bootable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+<style>
+  :root{
+    --bg:#101114; --win:#1a1c20; --panel:#15161a; --line:#2b2f36; --line2:#343941;
+    --txt:#e9e7e2; --mut:#9a968e; --dim:#6f6c66;
+    --amber:#f0a13d; --amber-hi:#ffb953; --ink:#241703;
+    --green:#5cbf6e; --red:#e0524f;
+    --mono:'IBM Plex Mono',monospace; --ui:'Space Grotesk',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:var(--ui);min-height:100vh}
+  button{font-family:inherit;user-select:none}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+
+  .stage{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 16px;gap:14px}
+  .window{width:1060px;max-width:100%;background:var(--win);border:1px solid var(--line);border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,.55);overflow:hidden}
+
+  /* ── bilah judul ── */
+  .titlebar{display:flex;justify-content:space-between;align-items:center;padding:0 20px;height:56px;background:#16181c;border-bottom:1px solid var(--line)}
+  .brand{display:flex;gap:12px;align-items:center}
+  .brand-mark{width:34px;height:34px;border-radius:8px;background:#202329;border:1px solid var(--line2);display:grid;place-items:center;color:var(--amber)}
+  .brand-mark svg{width:17px;height:17px}
+  .brand-text strong{font-size:15px;letter-spacing:.06em}
+  .brand-text span{display:block;font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.22em;margin-top:2px}
+  .titlebar-right{display:flex;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--mut);border:1px solid #2f333b;border-radius:99px;padding:5px 11px;white-space:nowrap}
+  .chip svg{width:11px;height:11px}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:#4a4e56;flex-shrink:0}
+  .chip.busy{color:var(--amber);border-color:#4a3a22}.chip.busy .dot{background:var(--amber);animation:pulse 1.1s ease infinite}
+  .chip.ok{color:var(--green);border-color:#28402c}.chip.ok .dot{background:var(--green)}
+  .chip.err{color:var(--red);border-color:#4a2a29}.chip.err .dot{background:var(--red)}
+  @keyframes pulse{50%{opacity:.3}}
+
+  /* ── isi ── */
+  .content{display:grid;grid-template-columns:minmax(0,1fr) 320px}
+  .col-form{padding:18px 20px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:17px}
+  .col-side{padding:18px 20px;background:#17181c}
+
+  .group-head{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--mut);margin-bottom:9px}
+  .group-head svg{width:13px;height:13px;color:var(--amber);flex-shrink:0}
+  .group-head .mini-btn{margin-left:auto}
+
+  .select,.text-input{width:100%;background:#141519;border:1px solid #2f333b;color:var(--txt);font-family:var(--mono);font-size:12.5px;padding:9px 12px;border-radius:7px;outline:none}
+  .select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a968e' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;cursor:pointer}
+  .select:focus,.text-input:focus{border-color:var(--amber)}
+  .select:disabled,.text-input:disabled{opacity:.45;cursor:not-allowed}
+  .select.sm{width:auto;padding:6px 26px 6px 10px;font-size:11px}
+
+  .mini-btn{width:24px;height:24px;border-radius:6px;border:1px solid #2f333b;background:transparent;color:var(--mut);display:inline-grid;place-items:center;cursor:pointer;flex-shrink:0}
+  .mini-btn:hover{border-color:var(--amber);color:var(--txt)}
+  .mini-btn svg{width:12px;height:12px}
+  .spin svg{animation:rot .7s linear}
+  @keyframes rot{to{transform:rotate(360deg)}}
+
+  .boot-row{display:flex;gap:10px}
+  .boot-row .select{flex:1}
+  .btn-ghost{background:transparent;border:1px solid #343941;color:#cfccc5;padding:0 14px;border-radius:7px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;cursor:pointer;display:inline-flex;gap:8px;align-items:center;height:38px;white-space:nowrap}
+  .btn-ghost:hover:not(:disabled){border-color:var(--amber);color:var(--txt)}
+  .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost svg{width:12px;height:12px}
+
+  .iso-info{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--amber);border-radius:7px;padding:9px 12px;margin-top:10px;min-height:44px}
+  .iso-info svg{width:15px;height:15px;color:var(--amber);flex-shrink:0}
+  .iso-info strong{display:block;font-family:var(--mono);font-size:11.5px;color:var(--txt);word-break:break-all}
+  .iso-info span{display:block;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
+  .note-dim{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  .note-warn{font-family:var(--mono);font-size:10.5px;color:var(--amber)}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .f-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--dim)}
+  .fs-hint{font-family:var(--mono);font-size:10px;line-height:1.6;color:var(--amber);background:rgba(240,161,61,.06);border:1px solid #3d3categories? no; border:1px solid #3d311c;border-radius:6px;padding:8px 11px;margin-top:-4px}
+  .fs-hint[hidden]{display:none}
+
+  details.advanced>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--mut);padding:4px 0;user-select:none}
+  summary::-webkit-details-marker{display:none}
+  details.advanced summary svg{width:13px;height:13px;color:var(--amber)}
+  details.advanced summary .chev{margin-left:auto;color:var(--dim);transition:transform .15s}
+  details.advanced[open] summary .chev{transform:rotate(180deg)}
+  .adv-body{padding:6px 2px 0}
+  .check{display:flex;gap:10px;align-items:center;font-size:12.5px;color:#cfccc5;padding:7px 0;cursor:pointer}
+  .check input{appearance:none;width:16px;height:16px;border:1px solid #3a3f47;border-radius:4px;background:#141519;cursor:pointer;position:relative;flex-shrink:0;margin:0}
+  .check input:checked{background:var(--amber);border-color:var(--amber)}
+  .check input:checked::after{content:'';position:absolute;left:5px;top:2px;width:4px;height:8px;border:solid var(--ink);border-width:0 2px 2px;transform:rotate(45deg)}
+  .check input:disabled{opacity:.35;cursor:not-allowed}
+  .check-inline{display:flex;gap:12px;align-items:center;padding:7px 0}
+  .check-inline .check{padding:0}
+  .sim-row{display:flex;gap:12px;align-items:center;padding:10px 0 4px;border-top:1px dashed #262a30;margin-top:6px}
+  .sim-row span{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em}
+
+  .btn-start{height:46px;border-radius:8px;background:var(--amber);color:var(--ink);font-weight:700;letter-spacing:.14em;font-size:13px;border:none;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;margin-top:3px;transition:background .15s}
+  .btn-start svg{width:15px;height:15px}
+  .btn-start:hover:not(:disabled){background:var(--amber-hi)}
+  .btn-start:disabled{background:#2a2419;color:#6b5c3b;cursor:not-allowed;border:1px solid #3a3323}
+  .btn-start.cancel{background:transparent;border:1px solid var(--red);color:var(--red)}
+  .btn-start.cancel:hover{background:rgba(224,82,79,.1)}
+
+  /* ── panel samping ── */
+  .device-view{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px 12px;margin-bottom:14px}
+  .usb-art{width:100%;display:block}
+  #usbFill{fill:#3d424b}
+  #usbFill.busy{fill:var(--amber)}
+  #usbFill.ready{fill:var(--green)}
+  #led{fill:#2c2f35}
+  #led.busy{fill:var(--amber);animation:blink .5s step-end infinite}
+  #led.ok{fill:var(--green)}
+  #led.err{fill:var(--red)}
+  @keyframes blink{0%{fill:var(--amber)}50%{fill:#2c2f35}}
+  .device-name{font-weight:600;font-size:14px;margin-top:6px}
+  .device-sub{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:2px}
+  .cap-line{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--mut);margin-top:8px}
+  .cap-line b{color:var(--txt);font-weight:500}
+
+  .props{display:flex;flex-direction:column}
+  .prow{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #24272d;font-family:var(--mono);font-size:10.5px}
+  .prow:last-child{border-bottom:none}
+  .prow span{color:var(--dim)}
+  .prow b{color:#cfccc5;font-weight:500;text-align:right;word-break:break-all}
+  .prow b.okv{color:var(--green)}
+
+  .live-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+  .stat em{display:block;font-style:normal;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.14em;margin-bottom:4px}
+  .stat b{font-family:var(--mono);font-size:17px;color:var(--amber);font-weight:600}
+  .live-stats[hidden]{display:none}
+
+  /* ── konsol ── */
+  .console{border-top:1px solid var(--line);background:#16181c}
+  .progress-row{display:flex;align-items:center;gap:14px;padding:13px 20px;border-bottom:1px solid #24272d;flex-wrap:wrap}
+  .phase{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--mut);width:168px;flex-shrink:0}
+  .bar{flex:1;min-width:180px;height:8px;background:#24272d;border-radius:99px;overflow:hidden}
+  .bar-fill{height:100%;width:0;background:var(--amber);border-radius:99px;transition:background-color .25s}
+  .bar-fill.ok{background:var(--green)}
+  .bar-fill.err{background:var(--red)}
+  .pct{font-family:var(--mono);font-size:13px;width:44px;text-align:right}
+  .speed{font-family:var(--mono);font-size:11px;color:var(--mut);width:170px;text-align:right;flex-shrink:0}
+
+  .log-head{display:flex;align-items:center;gap:10px;padding:7px 20px;border-bottom:1px solid #24272d}
+  .log-head .log-title{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--dim)}
+  .log-head .log-title svg{width:12px;height:12px}
+  .log-actions{margin-left:auto;display:flex;gap:8px}
+  .log-actions button{background:transparent;border:1px solid #2f333b;color:var(--mut);border-radius:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;padding:4px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+  .log-actions button:hover{border-color:var(--amber);color:var(--txt)}
+  .log-actions svg{width:11px;height:11px}
+  .log-body{height:190px;overflow-y:auto;padding:10px 20px 14px;background:#0e0f12;font-family:var(--mono);font-size:11.5px;line-height:1.8}
+  .log-body::-webkit-scrollbar{width:10px}
+  .log-body::-webkit-scrollbar-thumb{background:#2a2d33;border-radius:6px;border:2px solid #0e0f12}
+  .ln{display:flex;gap:10px}
+  .ts{color:#585551;flex-shrink:0}
+  .ln-info .msg{color:#b7b3ab}
+  .ln-dim .msg{color:#6f6c66}
+  .ln-ok .msg{color:var(--green)}
+  .ln-warn .msg{color:var(--amber)}
+  .ln-err .msg{color:var(--red)}
+  .ln-file .msg{color:#d8d5ce}
+
+  .stage-note{font-family:var(--mono);font-size:10px;color:#55534e;letter-spacing:.06em}
+
+  /* ── modal ── */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(8,9,11,.74);display:flex;align-items:center;justify-content:center;z-index:50;opacity:0;pointer-events:none;transition:opacity .18s;padding:16px}
+  .modal-backdrop.open{opacity:1;pointer-events:auto}
+  .modal{width:540px;max-width:100%;background:#1b1d22;border:1px solid var(--line2);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.6);transform:translateY(10px) scale(.98);transition:transform .18s;max-height:calc(100vh - 40px);display:flex;flex-direction:column}
+  .modal-backdrop.open .modal{transform:none}
+  .modal-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #262a30;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--txt)}
+  .modal-head svg{width:15px;height:15px;color:var(--amber)}
+  .modal-head .mini-btn{margin-left:auto}
+  .modal-body{padding:16px 18px;overflow-y:auto}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid #262a30}
+
+  .iso-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .iso-item{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid #2b2f36;border-radius:8px;cursor:pointer;transition:border-color .12s,background .12s}
+  .iso-item:hover{border-color:#4a4f57}
+  .iso-item.sel{border-color:var(--amber);background:rgba(240,161,61,.05)}
+  .iso-item svg{width:16px;height:16px;color:var(--dim);flex-shrink:0}
+  .iso-item.sel>svg{color:var(--amber)}
+  .iso-meta{min-width:0;flex:1}
+  .iso-meta strong{display:block;font-family:var(--mono);font-size:11.5px;font-weight:500;word-break:break-all}
+  .iso-meta span{display:block;font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:2px}
+  .iso-item .tick{color:var(--amber);width:14px;height:14px;flex-shrink:0}
+
+  .dropzone{border:1.5px dashed #3a3f47;border-radius:9px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+  .dropzone:hover,.dropzone.over{border-color:var(--amber);background:rgba(240,161,61,.05)}
+  .dropzone svg{width:20px;height:20px;color:var(--dim)}
+  .dropzone.over svg{color:var(--amber)}
+  .dropzone strong{font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .dropzone span{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+
+  .modal-warn .modal-body{text-align:center;padding:26px 24px 20px}
+  .warn-ic{width:52px;height:52px;border-radius:50%;border:1px solid #4a3a22;background:rgba(240,161,61,.08);display:grid;place-items:center;margin:0 auto 14px}
+  .warn-ic svg{width:24px;height:24px;color:var(--amber)}
+  .modal-warn h3{font-size:17px;font-weight:600;margin-bottom:10px}
+  .warn-device{font-family:var(--mono);font-size:13px;color:var(--amber);padding:9px 14px;border:1px solid #3d311c;border-radius:7px;background:rgba(240,161,61,.06);margin-bottom:10px}
+  .warn-meta{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.7}
+  .modal-warn p{font-size:12.5px;color:var(--mut);line-height:1.6;margin-top:8px}
+
+  .btn-primary{background:var(--amber);border:none;color:var(--ink);font-weight:700;letter-spacing:.1em;font-size:11px;padding:0 18px;height:38px;border-radius:7px;cursor:pointer;font-family:var(--mono)}
+  .btn-primary:hover:not(:disabled){background:var(--amber-hi)}
+  .btn-primary:disabled{background:#2a2419;color:#6b5c3b;cursor:not-allowed}
+  .btn-danger{background:var(--red);border:none;color:#fff;font-weight:700;letter-spacing:.1em;font-size:11px;padding:0 18px;height:38px;border-radius:7px;cursor:pointer;font-family:var(--mono)}
+  .btn-danger:hover:not(:disabled){background:#e8635f}
+  .btn-danger:disabled{background:#3a2626;color:#8a5f5d;cursor:not-allowed}
+  .btn-plain{background:transparent;border:1px solid #343941;color:#cfccc5;font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:0 16px;height:38px;border-radius:7px;cursor:pointer}
+  .btn-plain:hover{border-color:var(--amber);color:var(--txt)}
+
+  /* ── toast ── */
+  .toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:80}
+  .toast{display:flex;gap:10px;align-items:center;background:#1f2126;border:1px solid var(--line2);border-left:3px solid var(--amber);border-radius:8px;padding:10px 14px;min-width:230px;max-width:340px;font-size:12.5px;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:toastIn .22s ease}
+  .toast svg{width:15px;height:15px;color:var(--amber);flex-shrink:0}
+  .toast.ok{border-left-color:var(--green)}.toast.ok svg{color:var(--green)}
+  .toast.err{border-left-color:var(--red)}.toast.err svg{color:var(--red)}
+  .toast.out{opacity:0;transform:translateX(10px);transition:.25s}
+  @keyframes toastIn{from{opacity:0;transform:translateX(12px)}}
+
+  @media (max-width:980px){
+    .content{grid-template-columns:1fr}
+    .col-form{border-right:none;border-bottom:1px solid var(--line)}
+    .speed{width:auto}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="window">
+
+    <!-- Bilah judul -->
+    <header class="titlebar">
+      <div class="brand">
+        <div class="brand-mark"><i data-lucide="usb"></i></div>
+        <div class="brand-text">
+          <strong>BOOTFORGE</strong>
+          <span>USB INSTALLER STUDIO · v3.7.1</span>
+        </div>
+      </div>
+      <div class="titlebar-right">
+        <span class="chip"><i data-lucide="usb"></i>3 PERANGKAT USB</span>
+        <span class="chip" id="statusChip"><span class="dot"></span>SIAGA</span>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Kolom formulir -->
+      <main class="col-form">
+
+        <section>
+          <div class="group-head"><i data-lucide="usb"></i><span>PERANGKAT</span>
+            <button class="mini-btn" id="btnRescan" title="Pindai ulang bus USB"><i data-lucide="refresh-cw"></i></button>
+          </div>
+          <select class="select" id="selDevice"></select>
+        </section>
+
+        <section>
+          <div class="group-head"><i data-lucide="disc-3"></i><span>PILIHAN BOOT</span></div>
+          <div class="boot-row">
+            <select class="select" id="selBoot">
+              <option value="iso">Disk atau image ISO (bootable)</option>
+              <option value="nonboot">Non-bootable</option>
+            </select>
+            <button class="btn-ghost" id="btnPickIso"><i data-lucide="folder-open"></i>PILIH</button>
+          </div>
+          <div class="iso-info" id="isoInfo"></div>
+        </section>
+
+        <section>
+          <div class="group-head"><i data-lucide="database"></i><span>PARTISI &amp; SISTEM FILE</span></div>
+          <div class="row2">
+            <div class="field"><span class="f-label">SKEMA PARTISI</span>
+              <select class="select" id="selScheme">
+                <option value="gpt">Skema partisi GPT</option>
+                <option value="mbr">Skema partisi MBR</option>
+              </select>
+            </div>
+            <div class="field"><span class="f-label">SISTEM TARGET</span>
+              <select class="select" id="selTarget" disabled>
+                <option value="uefi">UEFI (tanpa CSM)</option>
+                <option value="bios">BIOS atau UEFI</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><span class="f-label">SISTEM FILE</span>
+              <select class="select" id="selFS">
+                <option value="FAT32">FAT32</option>
+                <option value="NTFS">NTFS</option>
+                <option value="exFAT">exFAT</option>
+              </select>
+            </div>
+            <div class="field"><span class="f-label">UKURAN CLUSTER</span>
+              <select class="select" id="selCluster"></select>
+            </div>
+          </div>
+          <div class="field"><span class="f-label">LABEL VOLUME</span>
+            <input class="text-input" id="inLabel" type="text" maxlength="32" placeholder="Label volume (mis. WIN11_X64)" autocomplete="off">
+          </div>
+          <div class="fs-hint" id="fsHint" hidden></div>
+        </section>
+
+        <details class="advanced" id="advBox">
+          <summary><i data-lucide="settings-2"></i><span>OPSI LANJUTAN</span><i data-lucide="chevron-down" class="chev"></i></summary>
+          <div class="adv-body">
+            <label class="check"><input type="checkbox" id="optQuick" checked><span>Format cepat (quick format)</span></label>
+            <div class="check-inline">
+              <label class="check"><input type="checkbox" id="optBad"><span>Periksa bad blok</span></label>
+              <select class="select sm" id="selPasses" disabled>
+                <option value="1">1× lintasan</option>
+                <option value="2">2× lintasan</option>
+                <option value="3">3× lintasan</option>
+                <option value="4">4× lintasan</option>
+              </select>
+            </div>
+            <label class="check"><input type="checkbox" id="optBiosFix"><span>Tambahkan perbaikan BIOS lama (khusus MBR)</span></label>
+            <label class="check"><input type="checkbox" id="optIcon"><span>Ikon volume &amp; label extended</span></label>
+            <div class="sim-row">
+              <span>KECEPATAN SIMULASI</span>
+              <select class="select sm" id="selSimSpeed">
+                <option value="1">1× (realistis)</option>
+                <option value="4">4×</option>
+                <option value="10" selected>10× (demo)</option>
+                <option value="25">25×</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
+        <button class="btn-start" id="btnStart" disabled><i data-lucide="play"></i>MULAI</button>
+      </main>
+
+      <!-- Panel samping -->
+      <aside class="col-side">
+        <div class="device-view">
+          <svg viewBox="0 0 340 132" class="usb-art" aria-hidden="true">
+            <rect x="6" y="46" width="54" height="40" rx="4" fill="#3a3f47"/>
+            <rect x="16" y="54" width="9" height="24" rx="2" fill="#14161a"/>
+            <rect x="42" y="54" width="9" height="24" rx="2" fill="#14161a"/>
+            <rect x="60" y="24" width="266" height="84" rx="12" fill="#202329" stroke="#343941"/>
+            <rect x="84" y="54" width="196" height="24" rx="4" fill="#14161a"/>
+            <rect id="usbFill" x="84" y="54" width="0" height="24" rx="4"/>
+            <circle cx="286" cy="38" r="4" fill="none" stroke="#343941" stroke-width="2"/>
+            <circle id="led" cx="300" cy="66" r="5"/>
+          </svg>
+          <div class="device-name" id="dvName">—</div>
+          <div class="device-sub" id="dvSub">—</div>
+          <div class="cap-line"><b id="capUsed">0 B</b><b id="capTotal">—</b></div>
+        </div>
+        <div class="props" id="propsList"></div>
+        <div class="live-stats" id="liveStats" hidden>
+          <div class="stat"><em>KECEPATAN TULIS</em><b id="statSpeed">—</b></div>
+          <div class="stat"><em>WAKTU TERSISA</em><b id="statEta">—</b></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Konsol -->
+    <footer class="console">
+      <div class="progress-row">
+        <span class="phase" id="phaseLabel">SIAGA</span>
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+        <span class="pct" id="pctLabel">0%</span>
+        <span class="speed" id="speedLine"></span>
+      </div>
+      <div class="log-head">
+        <span class="log-title"><i data-lucide="terminal"></i>LOG PROSES</span>
+        <div class="log-actions">
+          <button id="btnSaveLog"><i data-lucide="save"></i>SIMPAN LOG</button>
+          <button id="btnClearLog"><i data-lucide="trash-2"></i>BERSIHKAN</button>
+        </div>
+      </div>
+      <div class="log-body" id="logBody"></div>
+    </footer>
+  </div>
+
+  <p class="stage-note">SIMULASI EDUKATIF — TIDAK ADA PENULISAN NYATA KE PERANGKAT USB FISIK</p>
+</div>
+
+<!-- Modal pilih ISO -->
+<div class="modal-backdrop" id="isoModal">
+  <div class="modal">
+    <div class="modal-head"><i data-lucide="disc-3"></i>PILIH IMAGE ISO
+      <button class="mini-btn" id="btnIsoClose"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="iso-list" id="isoList"></div>
+      <div class="dropzone" id="dropzone">
+        <i data-lucide="hard-drive"></i>
+        <strong>Tarik berkas .iso ke sini</strong>
+        <span>atau klik untuk menjelajah — hanya nama &amp; ukuran yang dibaca</span>
+        <input type="file" id="fileInput" accept=".iso" hidden>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-plain" id="btnIsoCancel">BATAL</button>
+      <button class="btn-primary" id="btnIsoOk" disabled>PILIH IMAGE</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal konfirmasi penghancuran -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal modal-warn">
+    <div class="modal-body">
+      <div class="warn-ic"><i data-lucide="trash-2"></i></div>
+      <h3>Hancurkan perangkat ini?</h3>
+      <div class="warn-device" id="warnDevice">—</div>
+      <div class="warn-meta" id="warnMeta">—</div>
+      <p>Seluruh isi perangkat akan dihapus permanen. Pastikan tidak ada data penting yang belum dicadangkan.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-plain" id="btnConfirmCancel">BATAL</button>
+      <button class="btn-danger" id="btnConfirmGo" disabled>HANCURKAN (3)</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+const $ = id => document.getElementById(id);
+const GiB = 1024**3;
+
+/* ──────────── data simulasi ──────────── */
+const DEVICES = [
+  {id:'d1', vendor:'SanDisk',  model:'Ultra Fit 3.2',       size:64e9, used:12.4e9, bus:'USB 3.2 Gen 1', write:74,  vid:'0x0781', pid:'0x5583', rev:'1.00', serial:'0101 8F3A2C41B9', written:null},
+  {id:'d2', vendor:'Kingston', model:'DataTraveler 100 G3', size:32e9, used:0,      bus:'USB 3.0',       write:38,  vid:'0x0951', pid:'0x1666', rev:'1.02', serial:'60A44F74C02177', written:null},
+  {id:'d3', vendor:'Generic',  model:'Flash Disk SUV 2.0',  size:16e9, used:6.1e9,  bus:'USB 2.0',       write:9.5, vid:'0x090C', pid:'0x1000', rev:'1.10', serial:'AA0409123344B2', written:null},
+];
+const IMAGES = [
+  {id:'w11',  name:'Win11_24H2_English_x64.iso',        size:6.16e9, wimFile:'install.wim', wimSize:5.15e9, index:9, label:'CCCOMA_X64'},
+  {id:'w10',  name:'Win10_22H2_English_x64.iso',        size:5.62e9, wimFile:'install.esd', wimSize:3.32e9, index:6, label:'CCCOMA_X64'},
+  {id:'ltsc', name:'Win11_Enterprise_LTSC_24H2_x64.iso',size:5.21e9, wimFile:'install.wim', wimSize:4.31e9, index:1, label:'LTSC_X64'},
+];
+const CLUSTERS = {
+  FAT32:[['default','Default (32 KiB)'],['16k','16 KiB'],['32k','32 KiB'],['64k','64 KiB']],
+  NTFS :[['default','Default (4 KiB)'],['512b','512 B'],['1k','1 KiB'],['2k','2 KiB'],['4k','4 KiB'],['8k','8 KiB']],
+  exFAT:[['default','Default (128 KiB)'],['32k','32 KiB'],['128k','128 KiB'],['256k','256 KiB']],
+};
+
+const state = { device:null, mode:'iso', image:null, scheme:'gpt', fs:'FAT32', run:null, btn:'start' };
+let isoSelId = null, cdTimer = null;
+const logStore = [];
+
+/* ──────────── utilitas ──────────── */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function refreshIcons(){ if(window.lucide) lucide.createIcons(); }
+function fmtBytes(b){
+  if(b>=1e9)  return (b/1e9).toFixed(2).replace('.',',')+' GB';
+  if(b>=1e6)  return (b/1e6).toFixed(1).replace('.',',')+' MB';
+  if(b>=1e3)  return (b/1e3).toFixed(0)+' KB';
+  return Math.round(b)+' B';
+}
+const fmtGB  = b => (b/1e9).toFixed(1)+' GB';
+const fmtGiB = b => (b/GiB).toFixed(2).replace('.',',')+' GiB';
+function fmtEta(s){ if(!isFinite(s)||s<0) return '—'; s=Math.round(s);
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function fmtDur(s){ return s<60 ? s.toFixed(1)+' s' : Math.floor(s/60)+' m '+Math.round(s%60)+' s'; }
+function nowClock(){ const d=new Date();
+  return [d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':'); }
+
+/* ──────────── log & toast ──────────── */
+function log(cls,msg){
+  const line={t:nowClock(),cls,m:msg}; logStore.push(line);
+  const div=document.createElement('div'); div.className='ln ln-'+cls;
+  div.innerHTML=`<span class="ts">[${line.t}]</span><span class="msg">${esc(msg)}</span>`;
+  logBody.appendChild(div);
+  logBody.scrollTop=logBody.scrollHeight;
+}
+function toast(type,msg){
+  const icons={info:'info',ok:'check',err:'x',warn:'alert-triangle'};
+  const el=document.createElement('div'); el.className='toast '+type;
+  el.innerHTML=`<i data-lucide="${icons[type]||'info'}"></i><span>${esc(msg)}</span>`;
+  toasts.appendChild(el); refreshIcons();
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),260); },3600);
+}
+
+/* ──────────── render panel perangkat ──────────── */
+function renderProps(){
+  const d=state.device, w=d.written;
+  const rows=[
+    ['Model',`${d.vendor} ${d.model}`],
+    ['Kapasitas',fmtGB(d.size)],
+    ['Terpakai',fmtBytes(w?w.bytes:d.used)],
+    ['Antarmuka',d.bus],
+    ['ID vendor',`${d.vid}:${d.pid}`],
+    ['Revisi',d.rev],
+    ['Serial',d.serial],
+    ['Volume',w?w.label:'—'],
+    ['Sistem file',w?w.fs:'—'],
+    ['Skema partisi',w?(w.scheme==='gpt'?'GPT • 3 partisi':'MBR • 1 partisi'):'—'],
+    ['Status', w?(w.bootable?'SIAP • bootable':'Volume siap'):(d.used>0?'berisi data pengguna':'kosong'), w?'okv':''],
+  ];
+  propsList.innerHTML=rows.map(r=>`<div class="prow"><span>${r[0]}</span><b class="${r[2]||''}">${esc(r[1])}</b></div>`).join('');
+}
+function renderVisual(mode){
+  const d=state.device;
+  let frac = mode==='ok' ? (d.written?d.written.bytes/d.size:0)
+           : mode==='busy' ? 0 : (d.used||0)/d.size;
+  usbFill.setAttribute('width',(196*Math.min(frac,1)).toFixed(1));
+  usbFill.setAttribute('class', mode==='busy'?'busy': mode==='ok'?'ready':'');
+  led.setAttribute('class', mode==='busy'?'busy': mode==='ok'?'ok': mode==='err'?'err':'');
+  capUsed.textContent=fmtBytes(mode==='ok'?(d.written?d.written.bytes:0): mode==='busy'?0:(d.used||0));
+}
+function onDeviceChange(doLog=true){
+  const d=state.device;
+  dvName.textContent=`${d.vendor} ${d.model}`;
+  dvSub.textContent=`${d.bus} • ${fmtGB(d.size)}`;
+  capTotal.textContent=fmtGB(d.size);
+  renderProps(); renderVisual('idle');
+  if(state.btn==='close'){ setStartBtn('start'); resetConsole(); }
+  if(doLog) log('info',`Perangkat dipilih: ${d.vendor} ${d.model} (${fmtGB(d.size)}, ${d.bus})`);
+}
+
+/* ──────────── info ISO & rekomendasi ──────────── */
+function renderIsoInfo(){
+  if(state.mode!=='iso'){
+    isoInfo.innerHTML=`<i data-lucide="info"></i><div><span class="note-warn">USB diformat tanpa bootloader (non-bootable).</span></div>`;
+    refreshIcons(); return;
+  }
+  if(!state.image){
+    isoInfo.innerHTML=`<i data-lucide="info"></i><div><span class="note-dim">Belum ada image terpilih — tekan <b>PILIH</b> untuk membuka pustaka ISO.</span></div>`;
+    refreshIcons(); return;
+  }
+  const im=state.image;
+  isoInfo.innerHTML=`<i data-lucide="disc-3"></i><div><strong>${esc(im.name)}</strong>
+    <span>${fmtGB(im.size)} • ${im.wimFile} ${fmtGiB(im.wimSize)}${im.index?(' • '+im.index+' edisi'):' • metadata berkas lokal'}</span></div>`;
+  refreshIcons();
+}
+function recommendFS(){
+  let fs='FAT32';
+  if(state.mode==='iso' && state.image && state.image.wimSize>4*GiB) fs='NTFS';
+  selFS.value=fs; state.fs=fs; rebuildCluster(); updateFsHint();
+}
+function rebuildCluster(){
+  selCluster.innerHTML=(CLUSTERS[state.fs]||CLUSTERS.FAT32).map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');
+}
+function clusterText(){
+  const t=selCluster.options[selCluster.selectedIndex].text;
+  const m=t.match(/\((.+)\)/); return t.startsWith('Default') ? (m?m[1]:'') : t;
+}
+function updateFsHint(){
+  let t='';
+  if(state.mode==='iso' && state.image){
+    const big=state.image.wimSize>4*GiB;
+    if(state.fs==='FAT32' && big)
+      t=`${state.image.wimFile} (${fmtGiB(state.image.wimSize)}) melebihi 4 GiB — akan dipecah otomatis menjadi install*.swm agar tetap kompatibel FAT32.`;
+    else if(state.fs==='NTFS' && state.scheme==='gpt')
+      t='Bootloader uefi:ntfs akan dipasang di partisi EFI kecil agar tetap dapat boot di mode UEFI.';
+  }
+  fsHint.textContent=t; fsHint.hidden=!t;
+}
+
+/* ──────────── daftar berkas image ──────────── */
+function buildFiles(img,split){
+  const list=[
+    {p:'efi/boot/bootx64.efi',s:1.42e6},
+    {p:'efi/boot/cdboot.efi',s:1.31e6},
+    {p:'efi/microsoft/boot/bcd',s:33e3},
+    {p:'bootmgr.efi',s:498e3},
+    {p:'bootmgr',s:415e3},
+    {p:'boot/bcd',s:35e3},
+    {p:'boot/boot.sdi',s:3.1e6},
+    {p:'boot/fonts/wgl4_boot.ttf',s:56e3},
+    {p:'boot/fonts/segmono_boot.ttf',s:47e3},
+    {p:'setup.exe',s:118e3},
+    {p:'sources/setup.exe',s:143e3},
+  ];
+  if(split){
+    const part=3.6e9, parts=Math.ceil(img.wimSize/part);
+    let rem=img.wimSize, i=1;
+    while(rem>0){ const s=Math.min(part,rem);
+      list.push({p:`sources/install${i>1?i:''}.swm`,s,part:i,parts,big:true}); rem-=s; i++; }
+  } else {
+    list.push({p:'sources/'+img.wimFile,s:img.wimSize,big:true});
+  }
+  return list;
+}
+
+/* ──────────── bangun fase proses ──────────── */
+function P(id,label,w,dur,logs){
+  return {id,label,w,dur,trig:(logs||[]).map(l=>({at:l[0],cls:l[1],msg:l[2],done:false}))};
+}
+function buildPhases(cfg){
+  const d=cfg.device, ph=[];
+  if(cfg.bootable){
+    const trig=[
+      [0.05,'info','Memeriksa struktur image...'],
+      [0.30,'dim',`Arsitektur x64 • ISO9660/UDF • ${cfg.image.index||'?'} edisi Windows`],
+      [0.55,'dim',`Berkas terbesar: sources/${cfg.image.wimFile} (${fmtGiB(cfg.image.wimSize)})`],
+    ];
+    if(cfg.split) trig.push([0.78,'warn',`${cfg.image.wimFile} melebihi 4 GiB — file akan dipecah menjadi install*.swm agar kompatibel FAT32`]);
+    if(cfg.image.custom) trig.push([0.86,'dim','Image kustom — isi diestimasi dari metadata berkas lokal']);
+    trig.push([0.96,'ok','Analisis image selesai']);
+    ph.push(P('analyze','ANALISIS IMAGE',2,2.6,trig));
+  } else {
+    ph.push(P('prep','PERSIAPAN',5,1.1,[[0.3,'info','Mode non-bootable — bootloader tidak akan dipasang.']]));
+  }
+  if(cfg.passes>0){
+    const dur=d.size/(d.write*1.1e6)*cfg.passes, steps=cfg.passes*10;
+    const trig=[[0.02,'info',`Pemeriksaan bad blok — ${cfg.passes}× lintasan penuh...`]];
+    for(let i=1;i<=steps;i++){
+      const pass=Math.ceil(i/10), pct=(i%10)*10||100;
+      trig.push([(i/steps)*0.96,'dim',`Lintasan ${pass} — ${pct}% (0 bad blok)`]);
+    }
+    trig.push([0.98,'ok','Pemeriksaan bad blok selesai — 0 sektor rusak']);
+    ph.push(P('bad','PERIKSA BAD BLOK',8,dur,trig));
+  }
+  let ptrig;
+  if(cfg.bootable && cfg.scheme==='gpt'){
+    ptrig=[[0.10,'info','Menghapus struktur partisi lama (MBR/GPT)...'],
+           [0.35,'info','Menulis tabel partisi GPT...'],
+           [0.55,'dim','EFI System Partition — 100 MiB — FAT32'],
+           [0.68,'dim','Microsoft Reserved (MSR) — 16 MiB'],
+           [0.80,'dim',`Partisi dasar — ${fmtGiB(d.size-116e6)} — ${cfg.fs}`]];
+    if(cfg.fs==='NTFS') ptrig.push([0.90,'dim','Partisi EFI berisi bootloader uefi:ntfs (boot UEFI dari NTFS)']);
+    ptrig.push([0.97,'ok','Tabel partisi GPT siap']);
+  } else {
+    ptrig=[[0.10,'info','Menghapus MBR lama...'],
+           [0.35,'info',cfg.bootable?'Menulis MBR + boot code BIOS...':'Menulis MBR baru...'],
+           [0.72,'dim',`Partisi #1 — ${fmtGiB(d.size-1e6)} — ${cfg.fs}${cfg.bootable?' — aktif':''}`]];
+    if(cfg.biosFix) ptrig.push([0.86,'dim','Perbaikan BIOS lama diterapkan (Int 19h / CHS)']);
+    ptrig.push([0.97,'ok','Tabel partisi MBR siap']);
+  }
+  ph.push(P('part','PARTISI',cfg.bootable?2:15,2.2,ptrig));
+  if(cfg.quick){
+    const trig=[[0.12,'info',`Memformat volume ${cfg.label} — ${cfg.fs}, cluster ${cfg.clusterText}, format cepat...`]];
+    if(cfg.icon) trig.push([0.70,'dim','Label extended & ikon volume disetel']);
+    trig.push([0.96,'ok','Format selesai']);
+    ph.push(P('fmt','FORMAT',cfg.bootable?3:80,3.4,trig));
+  } else {
+    const dur=d.size/(d.write*0.6e6);
+    const trig=[[0.02,'info',`Memformat penuh volume ${cfg.label} — ${cfg.fs}, cluster ${cfg.clusterText}...`]];
+    for(let i=1;i<=12;i++) trig.push([(i/12)*0.95,'dim',`Pemformatan... ${Math.round(i/12*100)}%`]);
+    trig.push([0.98,'ok','Format penuh selesai']);
+    ph.push(P('fmt','FORMAT',cfg.bootable?10:80,dur,trig));
+  }
+  if(cfg.bootable){
+    const wOther=ph.reduce((a,p)=>a+p.w,0)+4;
+    ph.push({id:'copy',label:'SALIN BERKAS',type:'copy',w:Math.max(40,100-wOther),bytesTotal:cfg.bytesTotal,
+      enter(){ const R=state.run; R.copyT=R.sim;
+        log('info',`Menyalin ${cfg.files.length} berkas ke volume ${cfg.label} (F:):`); },
+      end(){ const R=state.run;
+        const avg=cfg.bytesTotal/1e6/Math.max(0.01,R.sim-R.copyT);
+        log('ok',`Salin selesai — ${cfg.files.length} berkas, ${fmtBytes(cfg.bytesTotal)} (rata-rata ${avg.toFixed(1)} MB/s)`); }});
+    ph.push(P('verify','VERIFIKASI',4,cfg.bytesTotal/(d.write*2e6),[
+      [0.08,'info','Memverifikasi integritas data (SHA-256)...'],
+      [0.45,'dim','Checksum 45% — cocok'],
+      [0.85,'dim','Checksum 85% — cocok'],
+      [0.97,'ok',`${cfg.files.length} berkas diverifikasi — 0 galat`],
+    ]));
+  }
+  return ph;
+}
+
+/* ──────────── kumpulkan konfigurasi & jalankan ──────────── */
+function gatherConfig(){
+  const d=state.device, mode=selBoot.value, image=state.image;
+  const bootable = mode==='iso' && !!image;
+  const scheme=selScheme.value, fs=selFS.value;
+  let label=inLabel.value.trim() || (bootable?image.label:'USB_DRIVE');
+  let truncated=false;
+  if(fs==='FAT32' && label.length>11){ label=label.slice(0,11); truncated=true; }
+  const split = bootable && fs==='FAT32' && image.wimSize>4*GiB;
+  const files = bootable ? buildFiles(image,split) : [];
+  let off=0; files.forEach(f=>{ f.start=off; off+=f.s; f.end=off; });
+  const bytesTotal=files.reduce((a,f)=>a+f.s,0);
+  return { device:d, bootable, image, scheme, fs,
+    target: scheme==='gpt'?'UEFI (tanpa CSM)':'BIOS atau UEFI',
+    clusterText:clusterText(), label, labelTruncated:truncated,
+    quick:optQuick.checked,
+    passes: optBad.checked ? parseInt(selPasses.value,10) : 0,
+    biosFix: optBiosFix.checked && !optBiosFix.disabled,
+    icon: optIcon.checked,
+    simSpeed: parseInt(selSimSpeed.value,10),
+    split, files, bytesTotal };
+}
+function startRun(cfg){
+  const ph=buildPhases(cfg);
+  const R={cfg,ph,totalW:ph.reduce((a,p)=>a+p.w,0),idx:0,doneW:0,sim:0,
+           last:performance.now(),bytesDone:0,fi:0,marks:new Set(),jit:1,
+           rate:cfg.device.write,copyT:0,aborted:false};
+  state.run=R;
+  log('info',`Perangkat: ${cfg.device.vendor} ${cfg.device.model} (${cfg.device.vid}:${cfg.device.pid}) — ${fmtGB(cfg.device.size)}, ${cfg.device.bus}`);
+  if(cfg.bootable) log('info',`Image: ${cfg.image.name} (${fmtGiB(cfg.image.size)})`);
+  else log('info','Mode: non-bootable');
+  log('info',`Skema: ${cfg.scheme.toUpperCase()} • Target: ${cfg.target} • ${cfg.fs} • cluster ${cfg.clusterText}`);
+  log('info',`Label volume: ${cfg.label}`);
+  if(cfg.labelTruncated) log('warn','Label dipotong menjadi 11 karakter (batas sistem file FAT32)');
+  if(cfg.biosFix) log('dim','Perbaikan BIOS lama akan diterapkan pada boot code');
+  barFill.classList.remove('ok','err'); barFill.style.width='0%';
+  pctLabel.textContent='0%';
+  lockForm(true); setStartBtn('cancel'); setChip('busy','PROSES');
+  renderVisual('busy'); liveStats.hidden=false;
+  requestAnimationFrame(step);
+}
+function step(ts){
+  const R=state.run; if(!R||R.aborted) return;
+  const dt=Math.min((ts-R.last)/1000,0.1); R.last=ts;
+  const sdt=dt*R.cfg.simSpeed; R.sim+=sdt;
+  const ph=R.ph[R.idx];
+  if(!ph){ finishRun(); return; }
+  if(!ph._entered){ ph._entered=true; if(ph.enter) ph.enter(); }
+  let p=0;
+  if(ph.type==='copy'){
+    R.jit=Math.min(1.16,Math.max(0.84,R.jit+(Math.random()-0.5)*0.05));
+    R.rate=R.cfg.device.write*R.jit;
+    R.bytesDone=Math.min(R.cfg.bytesTotal,R.bytesDone+R.rate*1e6*sdt);
+    p=R.cfg.bytesTotal? R.bytesDone/R.cfg.bytesTotal : 1;
+    const files=R.cfg.files;
+    while(R.fi<files.length && R.bytesDone>=files[R.fi].end){
+      const f=files[R.fi];
+      let m=`  ${f.p} (${fmtBytes(f.s)})`;
+      if(f.part) m+=` — bagian ${f.part}/${f.parts}`;
+      log('file',m); R.fi++;
+    }
+    const cf=files[Math.min(R.fi,files.length-1)];
+    if(R.fi<files.length && cf.s>1.5e9){
+      const inF=(R.bytesDone-cf.start)/cf.s;
+      [0.25,0.5,0.75].forEach(mk=>{
+        const key=cf.start+':'+mk;
+        if(inF>=mk && !R.marks.has(key)){ R.marks.add(key);
+          log('dim',`  ${cf.p} — ${Math.round(mk*100)}% (${fmtBytes(R.bytesDone-cf.start)} / ${fmtBytes(cf.s)})`); }
+      });
+    }
+  } else {
+    ph.t=(ph.t||0)+sdt; p=Math.min(ph.t/ph.dur,1);
+    if(ph.trig) ph.trig.forEach(t=>{ if(!t.done&&p>=t.at){ t.done=true; log(t.cls,t.msg); } });
+  }
+  const overall=(R.doneW+ph.w*p)/R.totalW;
+  barFill.style.width=(overall*100).toFixed(1)+'%';
+  pctLabel.textContent=Math.round(overall*100)+'%';
+  phaseLabel.textContent=ph.label;
+  if(ph.type==='copy'){
+    const rem=(R.cfg.bytesTotal-R.bytesDone)/R.rate;
+    speedLine.textContent=`${R.rate.toFixed(1)} MB/s • sisa ${fmtEta(rem)}`;
+    statSpeed.textContent=R.rate.toFixed(1)+' MB/s';
+    statEta.textContent=fmtEta(rem);
+    capUsed.textContent=fmtBytes(R.bytesDone);
+    usbFill.setAttribute('width',(196*Math.min(R.bytesDone/R.cfg.device.size,1)).toFixed(1));
+  } else { speedLine.textContent=''; statSpeed.textContent='—'; statEta.textContent='—'; }
+  if(p>=1){
+    if(ph.end) ph.end();
+    R.doneW+=ph.w; R.idx++;
+    if(R.idx>=R.ph.length){ finishRun(); return; }
+  }
+  requestAnimationFrame(step);
+}
+function finishRun(){
+  const R=state.run; if(!R) return; state.run=null;
+  const cfg=R.cfg;
+  barFill.style.width='100%'; barFill.classList.add('ok');
+  pctLabel.textContent='100%'; phaseLabel.textContent='SELESAI'; speedLine.textContent='';
+  cfg.device.written={label:cfg.label,fs:cfg.fs,scheme:cfg.scheme,
+    bytes:cfg.bootable?cfg.bytesTotal:0,files:cfg.bootable?cfg.files.length:0,bootable:cfg.bootable};
+  log('ok', cfg.bootable
+    ? `MEDIA SIAP — volume "${cfg.label}" dapat di-boot pada ${cfg.target}.`
+    : `Volume "${cfg.label}" siap digunakan (non-bootable).`);
+  log('info',`Durasi total: ${fmtDur(R.sim)}`);
+  renderProps(); renderVisual('ok');
+  setStartBtn('close'); lockForm(false); setChip('ok','SIAP');
+  liveStats.hidden=true;
+  toast('ok', cfg.bootable?'USB bootable siap digunakan.':'Volume selesai diformat.');
+}
+function cancelRun(){
+  const R=state.run; if(!R) return;
+  R.aborted=true; state.run=null;
+  log('err','Proses dibatalkan oleh pengguna — media tidak lengkap & tidak dapat di-boot.');
+  phaseLabel.textContent='DIBATALKAN';
+  barFill.classList.add('err'); speedLine.textContent='';
+  setStartBtn('start'); lockForm(false); setChip('err','DIBATALKAN');
+  renderVisual('err'); liveStats.hidden=true;
+  toast('err','Proses dibatalkan.');
+  setTimeout(()=>{ if(!state.run) resetConsole(); },2600);
+}
+function resetConsole(){
+  barFill.classList.remove('ok','err'); barFill.style.width='0%';
+  pctLabel.textContent='0%'; phaseLabel.textContent='SIAGA'; speedLine.textContent='';
+  setChip('','SIAGA'); renderVisual('idle');
+}
+
+/* ──────────── kontrol formulir ──────────── */
+const LOCKABLE=['selDevice','btnRescan','selBoot','btnPickIso','selScheme','selFS','selCluster','inLabel',
+                'optQuick','optBad','optBiosFix','optIcon','selSimSpeed'];
+function syncFix(){ optBiosFix.disabled = (state.scheme==='gpt'); }
+function lockForm(v){
+  LOCKABLE.forEach(id=>{ $(id).disabled=v; });
+  selPasses.disabled = v ? true : !optBad.checked;
+  syncFix();
+}
+function setChip(cls,text){
+  statusChip.className='chip'+(cls?' '+cls:'');
+  statusChip.innerHTML=`<span class="dot"></span>${esc(text)}`;
+}
+function checkStart(){ if(state.btn==='start') btnStart.disabled=(state.mode==='iso'&&!state.image); }
+function setStartBtn(mode){
+  state.btn=mode;
+  if(mode==='start'){ btnStart.classList.remove('cancel'); btnStart.innerHTML='<i data-lucide="play"></i>MULAI'; checkStart(); }
+  else if(mode==='cancel'){ btnStart.classList.add('cancel'); btnStart.disabled=false; btnStart.innerHTML='<i data-lucide="x"></i>BATALKAN'; }
+  else { btnStart.classList.remove('cancel'); btnStart.disabled=false; btnStart.innerHTML='<i data-lucide="check"></i>TUTUP'; }
+  refreshIcons();
+}
+
+/* ──────────── modal ISO ──────────── */
+function openIso(){ isoSelId=state.image?state.image.id:null; renderIsoList(); isoModal.classList.add('open'); }
+function closeIso(){ isoModal.classList.remove('open'); }
+function renderIsoList(){
+  isoList.innerHTML=IMAGES.map(im=>`
+    <div class="iso-item ${im.id===isoSelId?'sel':''}" data-id="${im.id}">
+      <i data-lucide="disc-3"></i>
+      <div class="iso-meta"><strong>${esc(im.name)}</strong>
+        <span>${fmtGB(im.size)} • ${im.wimFile} ${fmtGiB(im.wimSize)}${im.index?(' • '+im.index+' edisi'):' • metadata lokal'}</span></div>
+      ${im.id===isoSelId?'<i data-lucide="check" class="tick"></i>':''}
+    </div>`).join('');
+  refreshIcons();
+  [...isoList.querySelectorAll('.iso-item')].forEach(el=>el.addEventListener('click',()=>{
+    isoSelId=el.dataset.id; renderIsoList();
+  }));
+  btnIsoOk.disabled=!isoSelId;
+}
+function addCustomIso(file){
+  if(!/\.iso$/i.test(file.name)){ toast('err','Bukan berkas .iso — diabaikan'); return; }
+  const img={id:'c'+Date.now(), name:file.name, size:file.size,
+             wimFile:'install.wim', wimSize:Math.max(1e9,file.size*0.85), index:null, custom:true};
+  IMAGES.push(img); isoSelId=img.id; renderIsoList();
+  toast('ok',`Image "${file.name}" dimuat (hanya metadata yang dibaca)`);
+}
+
+/* ──────────── modal konfirmasi ──────────── */
+function openConfirm(){
+  const d=state.device;
+  warnDevice.textContent=`${d.vendor} ${d.model} — ${fmtGB(d.size)}`;
+  const sub = state.mode==='iso' && state.image
+    ? `${selScheme.value.toUpperCase()} • ${selFS.value} • ${state.image.name}`
+    : `${selScheme.value.toUpperCase()} • ${selFS.value} • non-bootable`;
+  warnMeta.innerHTML=`${fmtBytes(d.used)} data akan dihapus permanen<br>${esc(sub)}`;
+  confirmModal.classList.add('open');
+  let n=3; btnConfirmGo.disabled=true; btnConfirmGo.textContent=`HANCURKAN (${n})`;
+  clearInterval(cdTimer);
+  cdTimer=setInterval(()=>{ n--;
+    if(n>0) btnConfirmGo.textContent=`HANCURKAN (${n})`;
+    else { clearInterval(cdTimer); btnConfirmGo.disabled=false; btnConfirmGo.textContent='HANCURKAN & MULAI'; }
+  },900);
+}
+function closeConfirm(){ confirmModal.classList.remove('open'); clearInterval(cdTimer); }
+
+/* ──────────── event wiring ──────────── */
+btnStart.addEventListener('click',()=>{
+  if(state.btn==='cancel'){ cancelRun(); return; }
+  if(state.btn==='close'){ resetConsole(); setStartBtn('start'); return; }
+  if(state.mode==='iso' && !state.image){ toast('err','Pilih image ISO terlebih dahulu'); return; }
+  openConfirm();
+});
+btnConfirmGo.addEventListener('click',()=>{ closeConfirm(); startRun(gatherConfig()); });
+btnConfirmCancel.addEventListener('click',closeConfirm);
+
+btnRescan.addEventListener('click',()=>{
+  btnRescan.classList.add('spin'); setTimeout(()=>btnRescan.classList.remove('spin'),720);
+  log('info','Memindai ulang bus USB — 3 perangkat removable ditemukan');
+  toast('info','Pemindaian selesai — 3 perangkat USB aktif');
+});
+selDevice.addEventListener('change',()=>{
+  state.device=DEVICES.find(d=>d.id===selDevice.value); onDeviceChange();
+});
+selBoot.addEventListener('change',()=>{
+  state.mode=selBoot.value;
+  renderIsoInfo();
+  if(state.mode==='nonboot' && !inLabel.value) inLabel.value='USB_DRIVE';
+  checkStart();
+});
+btnPickIso.addEventListener('click',()=>{ if(!btnPickIso.disabled) openIso(); });
+btnIsoClose.addEventListener('click',closeIso);
+btnIsoCancel.addEventListener('click',closeIso);
+btnIsoOk.addEventListener('click',()=>{
+  state.image=IMAGES.find(im=>im.id===isoSelId)||null;
+  closeIso(); renderIsoInfo();
+  if(state.image){ inLabel.value=state.image.label; recommendFS(); }
+  checkStart();
+  if(state.image) log('info',`Image ISO terpilih: ${state.image.name} (${fmtGiB(state.image.size)})`);
+});
+isoModal.addEventListener('click',e=>{ if(e.target===isoModal) closeIso(); });
+
+selScheme.addEventListener('change',()=>{
+  state.scheme=selScheme.value;
+  selTarget.value = state.scheme==='gpt'?'uefi':'bios';
+  syncFix(); recommendFS();
+});
+selFS.addEventListener('change',()=>{
+  state.fs=selFS.value; rebuildCluster(); updateFsHint();
+});
+optBad.addEventListener('change',()=>{ selPasses.disabled=!optBad.checked; });
+
+/* drag & drop ISO kustom */
+dropzone.addEventListener('click',()=>fileInput.click());
+['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev,e=>{e.preventDefault();dropzone.classList.remove('over');}));
+dropzone.addEventListener('drop',e=>{ if(e.dataTransfer.files[0]) addCustomIso(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change',()=>{ if(fileInput.files[0]) addCustomIso(fileInput.files[0]); fileInput.value=''; });
+
+/* log: simpan & bersihkan */
+btnSaveLog.addEventListener('click',()=>{
+  const txt='BOOTFORGE — LOG PROSES\n'+new Date().toString()+'\n\n'
+    +logStore.map(l=>`[${l.t}]  ${l.m}`).join('\n')+'\n';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='bootforge-log.txt'; a.click(); URL.revokeObjectURL(a.href);
+  toast('ok','Log disimpan sebagai bootforge-log.txt');
+});
+btnClearLog.addEventListener('click',()=>{ logBody.innerHTML=''; logStore.length=0; toast('info','Log dibersihkan'); });
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeIso(); closeConfirm(); }
+});
+
+/* ──────────── inisialisasi ──────────── */
+selDevice.innerHTML=DEVICES.map(d=>`<option value="${d.id}">${d.vendor} ${d.model} — ${fmtGB(d.size)} • ${d.bus}</option>`).join('');
+state.device=DEVICES[0];
+selScheme.value='gpt'; selTarget.value='uefi';
+selBoot.value='iso'; state.mode='iso';
+recommendFS(); renderIsoInfo();
+onDeviceChange(false); checkStart(); refreshIcons();
+log('info','BootForge 3.7.1 dimuat — 3 perangkat USB removable terdeteksi');
+log('dim','Mode simulasi aktif: tidak ada penulisan nyata ke perangkat fisik.');
+})();
+</script>
+</body>
+</html>
