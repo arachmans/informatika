@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLOOKUP — Simulasi Visual</title>
+<meta name="description" content="Simulasi interaktif cara kerja rumus VLOOKUP di Excel, divisualisasikan sel demi sel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4eee0; --paper2:#ece4d0; --card:#fffdf6;
+    --ink:#231f16; --ink75:rgba(35,31,22,.78); --ink60:rgba(35,31,22,.6);
+    --ink45:rgba(35,31,22,.45); --ink30:rgba(35,31,22,.32);
+    --line:#d9cfb6; --grid:#e8e1cd;
+    --green:#175f43; --green-soft:#dfeae0;
+    --amber:#a75a12; --amber-soft:#f4e5c8;
+    --teal:#0d6a62; --teal-soft:#d9e9e5;
+    --plum:#8f4058; --red:#b23c30; --red-soft:#f3ddd6;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+    --sans:'Archivo','Helvetica Neue',Arial,sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  ::selection{background:var(--green-soft)}
+  body{
+    margin:0; color:var(--ink); font-family:var(--sans);
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(1100px 520px at 50% -8%, rgba(255,250,235,.8), rgba(255,250,235,0)),
+      linear-gradient(rgba(35,31,22,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(35,31,22,.05) 1px, transparent 1px);
+    background-size:auto, 30px 30px, 30px 30px;
+  }
+  body::before{content:''; position:fixed; top:0; left:0; right:0; height:3px; background:var(--green); z-index:50}
+  .wrap{max-width:1140px; margin:0 auto; padding:58px 26px 90px}
+  button{font-family:inherit}
+  :focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+
+  /* ---------- Kepala ---------- */
+  .eyebrow{display:flex; align-items:center; gap:12px; font:600 11px/1 var(--mono); letter-spacing:.22em; color:var(--green); text-transform:uppercase}
+  .eyebrow::before{content:''; width:28px; height:2px; background:var(--green)}
+  h1{font-family:var(--serif); font-weight:600; font-size:clamp(38px,6vw,62px); line-height:1.06; letter-spacing:-.012em; margin:20px 0 18px}
+  h1 .v{font-family:var(--mono); font-weight:700; color:var(--green); letter-spacing:-.03em; padding:0 .05em .03em; border-bottom:.13em solid var(--green)}
+  h1 em{font-style:italic; font-weight:500; color:var(--ink60)}
+  .lead{font:400 16.5px/1.68 var(--sans); color:var(--ink75); max-width:64ch}
+  .lead b{color:var(--green); font-weight:600}
+
+  /* ---------- Panggung ---------- */
+  .stage{margin-top:42px; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 26px 52px -38px rgba(35,31,22,.45)}
+  .fbar{display:flex; align-items:stretch; border-bottom:1px solid var(--line); background:#f9f3e3}
+  .namebox{width:62px; display:grid; place-items:center; font:600 12px var(--mono); color:var(--ink60); border-right:1px solid var(--line); background:var(--paper2)}
+  .fx{width:46px; display:grid; place-items:center; font:italic 600 15px var(--serif); color:var(--ink45); border-right:1px solid var(--line)}
+  .formula{flex:1; min-width:240px; font:600 15px/2.1 var(--mono); padding:6px 16px; color:var(--ink)}
+  .formula .fn{color:var(--ink60); font-weight:500}
+  .formula .p{color:var(--ink45)}
+  .arg{font:inherit; border:1px solid; border-radius:7px; padding:1px 9px; cursor:pointer; margin:0 2px; vertical-align:baseline; transition:background .15s}
+  .a-lookup{--ac:var(--amber)} .a-table{--ac:var(--green)} .a-col{--ac:var(--teal)} .a-range{--ac:var(--plum)}
+  .arg{color:var(--ac); border-color:color-mix(in srgb,var(--ac) 45%,transparent); background:color-mix(in srgb,var(--ac) 7%,transparent)}
+  .arg:hover{background:color-mix(in srgb,var(--ac) 17%,transparent)}
+  .arg.seen{background:color-mix(in srgb,var(--ac) 13%,transparent)}
+  .arg.reading{background:color-mix(in srgb,var(--ac) 24%,transparent); border-color:var(--ac); box-shadow:0 2px 0 color-mix(in srgb,var(--ac) 40%,transparent)}
+  .fbar-hint{align-self:center; margin-left:auto; padding-right:16px; font:500 10px var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--ink30); white-space:nowrap}
+
+  /* lembar kerja */
+  .sheet-scroll{overflow-x:auto; padding:18px 18px 10px}
+  .sheet-scroll::-webkit-scrollbar{height:10px}
+  .sheet-scroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px}
+  .sheet{display:grid; position:relative; width:max-content; border-top:1px solid var(--line); border-left:1px solid var(--line)}
+  .cell{height:34px; display:flex; align-items:center; padding:0 10px; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); font:500 13px/1.2 var(--mono); color:var(--ink); background:var(--card); white-space:nowrap; overflow:hidden}
+  .cletter{height:26px; justify-content:center; padding:0; font:600 11px var(--mono); color:var(--ink45); background:#f1ead8; letter-spacing:.05em}
+  .cletter.fg{color:var(--amber)}
+  .corner{background:#f1ead8}
+  .crow{justify-content:center; padding:0; font:500 11px var(--mono); color:var(--ink45); background:#f1ead8}
+  .crow svg{width:12px; height:12px; display:block}
+  .crow.outx,.crow.pass{background:#f1ead8}
+  .crow.outx{color:var(--red)} .crow.pass{color:var(--amber)}
+  .crow.hitnum{background:var(--green); color:#f2eddd}
+  .chead,.qhead{height:38px; font:600 11px var(--mono); text-transform:uppercase; letter-spacing:.07em; color:#f2eddd}
+  .chead{background:var(--green)} .qhead{background:var(--amber)}
+  .cdata.z{background:#f9f4e6}
+  .cnum{justify-content:flex-end; font-weight:600}
+  .ca{cursor:pointer; transition:background .15s}
+  .ca:hover{background:var(--amber-soft); box-shadow:inset 0 0 0 1px var(--amber)}
+  .cempty.q{background:#fcf6e7}
+  .sheet input.cell{border-top:none; border-left:none; border-right:1px solid var(--grid); border-bottom:1px solid var(--grid); outline:none}
+  .cin{background:#fdf5e3; font-weight:600; color:#8c4f10; padding:0 10px; caret-color:var(--amber)}
+  .cin:focus{box-shadow:inset 0 0 0 2px var(--amber); background:#fff8e8}
+  .cin.cinbad{box-shadow:inset 0 0 0 2px var(--red); background:var(--red-soft)}
+  @media(pointer:coarse){.cin{font-size:16px}}
+  .cres{font-weight:600; color:var(--ink30)}
+  .cres.ok{color:var(--green); background:var(--green-soft); animation:popin .5s}
+  .cres.err{color:#fff; background:var(--red); font-weight:700; animation:popin .5s}
+
+  /* status sel saat animasi (urutan penting: .matched harus mengalahkan .passcell) */
+  .scanning{box-shadow:inset 0 0 0 2px var(--amber); animation:scanbg .8s ease-in-out infinite}
+  @keyframes scanbg{0%,100%{background:#f2e3c3}50%{background:#eddaaf}}
+  .out{color:var(--ink30)!important}
+  .passcell{background:#f6ecd4}
+  .matched,.sourced{background:var(--green-soft); color:var(--green); font-weight:700; box-shadow:inset 0 0 0 2px var(--green)}
+  .stopcell{background:var(--red-soft); color:var(--red); font-weight:700; box-shadow:inset 0 0 0 2px var(--red)}
+  .argflash{box-shadow:inset 0 0 0 2px var(--amber); animation:argblink .55s ease-in-out 2}
+  @keyframes argblink{50%{background:#f4e5c8}}
+  .hl{background:#e2ead9; color:var(--green); font-weight:700}
+  .shake{animation:shake .5s}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(3px)}30%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}50%{transform:translateX(-3px)}}
+  @keyframes popin{0%{transform:scale(.85)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+  /* lapisan overlay (anotasi di atas lembar) */
+  .ov{position:absolute; inset:0; pointer-events:none; z-index:6}
+  .ov>*{position:absolute}
+  .tblout{border:2px dashed var(--green); border-radius:9px; background:rgba(23,95,67,.05); opacity:.9}
+  .tbltag{background:var(--card); border:1.5px solid var(--green); color:var(--green); font:700 10.5px var(--mono); padding:3px 8px; border-radius:999px; transform:translateY(-100%); margin-top:-4px}
+  .reftag{display:flex; gap:8px; align-items:center; justify-content:center; min-width:116px; height:30px; padding:0 12px; background:var(--amber); color:#fbf3e4; font:700 12.5px var(--mono); border-radius:8px; transform:rotate(-1.6deg); box-shadow:0 6px 14px -6px rgba(35,31,22,.45)}
+  .reftag svg{width:13px; height:13px}
+  .cmptag{display:flex; gap:6px; align-items:center; background:var(--card); border:1.5px solid var(--ink); border-radius:8px; padding:3px 9px; font:600 12px var(--mono); box-shadow:2px 5px 0 rgba(35,31,22,.16); transform:rotate(-2deg)}
+  .cmptag b{font-weight:700} .cmptag i{font-style:normal; font-weight:800; color:var(--red)}
+  .cmptag.lte i{color:var(--ink60)}
+  .cmptag.eq{background:var(--green-soft); border-color:var(--green)} .cmptag.eq i{color:var(--green)}
+  .cmptag.stop{background:var(--red-soft); border-color:var(--red)}
+  .cmptag em{font-style:normal; font:800 10px var(--mono); color:var(--red); letter-spacing:.1em; margin-left:2px}
+  .rowband{background:rgba(23,95,67,.12); border:1.5px solid var(--green); border-radius:7px}
+  .bandtag{background:var(--green); color:#f2eddd; font:700 10.5px var(--mono); padding:3px 9px; border-radius:999px; transform:translate(-100%,-115%); letter-spacing:.08em}
+  .colbadge{width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font:700 12px var(--mono); background:var(--card); border:2px solid var(--ink30); color:var(--ink60); box-shadow:0 2px 0 rgba(35,31,22,.14)}
+  .colbadge.target{border-color:var(--teal); color:var(--teal); box-shadow:0 0 0 4px rgba(13,106,98,.2)}
+  .colbadge.on{background:var(--teal-soft); border-color:var(--teal); color:var(--teal)}
+  .colbadge.hit{background:var(--teal); border-color:var(--teal); color:#eef7f4; animation:badgepop .4s}
+  @keyframes badgepop{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
+  .cursor{border:2.5px solid var(--green); border-radius:5px; box-shadow:0 0 0 4px rgba(23,95,67,.18); background:rgba(23,95,67,.06); transition:left .32s cubic-bezier(.35,.8,.3,1)}
+  .valchip{background:var(--green); color:#f2eddd; font:700 13px var(--mono); padding:7px 13px; border-radius:9px; box-shadow:0 10px 24px -10px rgba(23,95,67,.55); z-index:8}
+  .nachip{background:var(--red); color:#fff; font:800 14px var(--mono); padding:7px 12px; border-radius:9px; box-shadow:0 10px 24px -10px rgba(178,60,48,.6); z-index:8}
+
+  /* baris keterangan (caption) */
+  .caption{display:flex; align-items:center; gap:12px; min-height:48px; padding:9px 18px; border-top:1px solid var(--line); background:#f9f4e6}
+  .phase{font:700 10.5px var(--mono); letter-spacing:.14em; color:var(--green); background:var(--green-soft); padding:4px 9px; border-radius:6px; flex-shrink:0; min-width:82px; text-align:center}
+  .cap-text{font:500 13px/1.5 var(--mono); color:var(--ink75)}
+  .cap-text b{color:var(--green)} .cap-text b.bad{color:var(--red)}
+  .cap-text.swap{animation:capin .3s}
+  @keyframes capin{from{opacity:0; transform:translateY(3px)}}
+
+  /* dek kendali */
+  .deck{display:flex; flex-wrap:wrap; gap:18px 28px; padding:16px 18px 18px; border-top:1px solid var(--line); align-items:flex-end}
+  .dgroup{display:flex; flex-direction:column; gap:8px}
+  .dgroup>label{font:700 10px var(--mono); letter-spacing:.18em; color:var(--ink45); text-transform:uppercase}
+  .ghint{font:400 11.5px/1.5 var(--sans); color:var(--ink45); max-width:250px}
+  .pills{display:flex; gap:6px; flex-wrap:wrap}
+  .pill{font:600 12px var(--mono); padding:6px 11px; border-radius:999px; border:1.5px solid var(--line); background:var(--card); color:var(--ink75); cursor:pointer; transition:.15s}
+  .pill:hover{border-color:var(--amber); color:var(--amber)}
+  .pill.on{background:var(--ink); color:var(--card); border-color:var(--ink)}
+  .pill.na{border-style:dashed; border-color:rgba(178,60,48,.6)}
+  .pill.na.on{background:var(--red); border-color:var(--red); color:#fff}
+  .segs{display:flex; border:1.5px solid var(--line); border-radius:10px; overflow:hidden; width:max-content}
+  .seg{font:600 12px var(--mono); padding:8px 12px; background:var(--card); border:none; border-right:1px solid var(--line); cursor:pointer; color:var(--ink60); display:flex; gap:7px; align-items:center; transition:.15s}
+  .segs>.seg:last-child{border-right:none}
+  .seg b{font-weight:700}
+  .seg:hover{background:#f6f0df; color:var(--ink)}
+  .seg.on{background:var(--green); color:#f2eddd}
+  .mode-hint{font:400 11.5px/1.55 var(--sans); color:var(--ink45); max-width:270px}
+  .mode-hint b{color:var(--ink)}
+  .deck-right{margin-left:auto; display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap}
+  .run{display:flex; align-items:center; gap:10px; background:var(--green); color:#f4f0e2; font:700 14px var(--sans); border:none; border-radius:11px; padding:12px 24px; cursor:pointer; box-shadow:0 3px 0 rgba(23,95,67,.35); transition:.15s}
+  .run svg{width:13px; height:13px}
+  .run:hover{transform:translateY(-1px); box-shadow:0 5px 0 rgba(23,95,67,.35)}
+  .run:active{transform:translateY(1px); box-shadow:0 1px 0 rgba(23,95,67,.35)}
+  .run.stop{background:var(--red); box-shadow:0 3px 0 rgba(178,60,48,.4)}
+
+  /* ---------- Langkah ---------- */
+  .steps,.insights{margin-top:60px}
+  .sec-head{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; margin-bottom:6px}
+  h2{font-family:var(--serif); font-weight:600; font-size:clamp(24px,3.4vw,32px); letter-spacing:-.01em; margin:0}
+  .sub{font:400 14.5px/1.6 var(--sans); color:var(--ink60); max-width:56ch}
+  .track{list-style:none; display:flex; position:relative; padding:0; margin:30px 0 0}
+  .track::before{content:''; position:absolute; top:14px; left:8.333%; right:8.333%; height:2px; background:var(--line)}
+  .track::after{content:''; position:absolute; top:14px; left:8.333%; height:2px; width:calc(var(--p,0%)*.8333); background:var(--green); transition:width .4s}
+  .track li{flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; padding:0 6px; position:relative}
+  .n{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; background:var(--card); border:2px solid var(--line); color:var(--ink45); font:700 13px var(--mono); position:relative; z-index:1; transition:.25s}
+  .n svg{width:14px; height:14px}
+  .t{font:600 12px var(--sans); color:var(--ink45); text-align:center}
+  .track li.active .n{background:var(--ink); border-color:var(--ink); color:var(--card); transform:scale(1.12); box-shadow:0 0 0 5px rgba(35,31,22,.12)}
+  .track li.active .t{color:var(--ink)}
+  .track li.done .n{background:var(--green); border-color:var(--green); color:#eef4ee}
+  .track li.done .t{color:var(--ink75)}
+  .track li.error .n{background:var(--red); border-color:var(--red); color:#fff}
+  .track li.error .t{color:var(--red)}
+  .track li.skip .n{border-style:dashed; opacity:.55}
+  .track li.skip .t{opacity:.45}
+  .detail{margin-top:22px; border:1px solid var(--line); border-left:5px solid var(--green); border-radius:12px; background:var(--card); padding:16px 22px; min-height:78px; display:flex; flex-direction:column; gap:6px}
+  .detail.error{border-left-color:var(--red)}
+  .detail.swap{animation:capin .35s}
+  .d-title{font:700 15px var(--sans); display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+  .d-title .k{font:700 11px var(--mono); color:var(--green); background:var(--green-soft); padding:2px 8px; border-radius:5px; letter-spacing:.08em}
+  .detail.error .k{color:var(--red); background:var(--red-soft)}
+  .d-text{font:400 14.5px/1.68 var(--sans); color:var(--ink75)}
+  .d-text b{color:var(--ink)}
+
+  /* ---------- Wawasan ---------- */
+  .ins{display:grid; grid-template-columns:auto 1fr; gap:22px; padding:26px 0; border-top:1px solid var(--line)}
+  .ins:last-of-type{border-bottom:1px solid var(--line)}
+  .no{font:700 15px var(--mono); color:var(--green); border:1.5px solid var(--line); background:var(--card); width:42px; height:42px; display:grid; place-items:center; border-radius:9px; margin-top:2px}
+  .ins h3{font:700 17px var(--sans); margin:4px 0 8px}
+  .ins p{font:400 14.5px/1.72 var(--sans); color:var(--ink75); max-width:74ch; margin:0}
+  .ins p b{color:var(--ink)}
+  .ins code{font:600 12.5px var(--mono); background:var(--paper2); padding:2px 6px; border-radius:5px; color:var(--ink); white-space:nowrap}
+  .try{display:inline-flex; align-items:center; gap:8px; margin-top:14px; font:700 12.5px var(--mono); color:var(--green); background:none; border:1.5px dashed rgba(23,95,67,.5); border-radius:999px; padding:7px 15px; cursor:pointer; transition:.15s}
+  .try svg{width:12px; height:12px}
+  .try:hover{background:var(--green-soft); border-style:solid}
+
+  footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--line); font:400 13px/1.7 var(--sans); color:var(--ink45)}
+  .kbd{border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 7px; font:600 11px var(--mono); background:var(--card); color:var(--ink60)}
+
+  /* popover argumen */
+  .pop{position:fixed; z-index:60; width:300px; max-width:calc(100vw - 24px); background:var(--ink); color:#efe9d8; border-radius:12px; padding:14px 16px; box-shadow:0 18px 40px -12px rgba(35,31,22,.55); opacity:0; transform:translateY(-6px) scale(.97); pointer-events:none; transition:.18s}
+  .pop.show{opacity:1; transform:none; pointer-events:auto}
+  .pop-arrow{position:absolute; top:-6px; left:var(--ax,50%); width:12px; height:12px; background:var(--ink); transform:translateX(-50%) rotate(45deg); border-radius:2px}
+  .pop.show.pop-above .pop-arrow{top:auto; bottom:-6px}
+  .pop-title{font:700 12px var(--mono); margin-bottom:7px; letter-spacing:.05em}
+  .pop-body{font:400 13px/1.62 var(--sans); color:rgba(239,233,216,.88)}
+
+  @media(max-width:900px){
+    .wrap{padding:44px 18px 70px}
+    .fbar-hint{display:none}
+    .deck-right{margin-left:0; width:100%; justify-content:space-between}
+    .track{flex-wrap:wrap; row-gap:18px}
+    .track::before,.track::after{display:none}
+    .track li{flex:1 1 30%}
+  }
+  @media(max-width:560px){
+    .namebox{width:46px} .fx{width:36px}
+    .cap-text{font-size:12px}
+    .deck{gap:16px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Simulasi interaktif · Rumus Excel</div>
+    <h1>Cara kerja <span class="v">VLOOKUP</span>,<br><em>sel demi sel.</em></h1>
+    <p class="lead">VLOOKUP mencari sebuah nilai di <b>kolom pertama</b> sebuah tabel, lalu mengambil isi baris yang sama dari kolom lain. Susun sendiri rumusnya di panggung di bawah, tekan <b>Jalankan</b>, dan ikuti seluruh prosesnya — dari argumen, ke pemindaian baris demi baris, sampai nilai hasilnya terbang pulang ke sel rumus.</p>
+  </header>
+
+  <section class="stage" aria-label="Panggung simulasi VLOOKUP">
+    <div class="fbar">
+      <span class="namebox">G2</span>
+      <span class="fx">fx</span>
+      <div class="formula">
+        <span class="fn">=VLOOKUP(</span><button class="arg a-lookup" data-arg="lookup" type="button">F2</button><span class="p">,</span>
+        <button class="arg a-table" data-arg="table" type="button">A2:D10</button><span class="p">,</span>
+        <button class="arg a-col" data-arg="col" type="button" id="argCol">4</button><span class="p">,</span>
+        <button class="arg a-range" data-arg="range" type="button" id="argRange">FALSE</button><span class="fn">)</span>
+      </div>
+      <span class="fbar-hint">klik argumen untuk penjelasan</span>
+    </div>
+
+    <div class="sheet-scroll" id="sheetScroll">
+      <div class="sheet" id="sheet"><div class="ov" id="ov"></div></div>
+    </div>
+
+    <div class="caption">
+      <span class="phase" id="phase">SIAP</span>
+      <span class="cap-text" id="capText"></span>
+    </div>
+
+    <div class="deck">
+      <div class="dgroup">
+        <label>Nilai yang dicari · F2</label>
+        <div class="pills" id="pills">
+          <button class="pill" type="button" data-v="P-001">P-001</button>
+          <button class="pill" type="button" data-v="P-004">P-004</button>
+          <button class="pill on" type="button" data-v="P-005">P-005</button>
+          <button class="pill" type="button" data-v="P-008">P-008</button>
+          <button class="pill na" type="button" data-v="P-015" title="Sengaja tidak ada di tabel — untuk melihat error #N/A">P-015</button>
+        </div>
+        <div class="ghint">P-015 sengaja tidak ada di tabel — untuk melihat error #N/A.</div>
+      </div>
+      <div class="dgroup">
+        <label>Ambil dari kolom</label>
+        <div class="segs" id="colSegs">
+          <button class="seg" type="button" data-v="1"><b>1</b>Kode</button>
+          <button class="seg" type="button" data-v="2"><b>2</b>Nama</button>
+          <button class="seg" type="button" data-v="3"><b>3</b>Kategori</button>
+          <button class="seg on" type="button" data-v="4"><b>4</b>Harga</button>
+        </div>
+      </div>
+      <div class="dgroup">
+        <label>Mode pencocokan</label>
+        <div class="segs" id="modeSegs">
+          <button class="seg on" type="button" data-exact="1"><b>FALSE</b>Tepat</button>
+          <button class="seg" type="button" data-exact="0"><b>TRUE</b>Perkiraan</button>
+        </div>
+        <div class="mode-hint" id="modeHint"></div>
+      </div>
+      <div class="deck-right">
+        <div class="dgroup">
+          <label>Kecepatan</label>
+          <div class="segs" id="speedSegs">
+            <button class="seg" type="button" data-sp="0.55"><b>0,5×</b>Lambat</button>
+            <button class="seg on" type="button" data-sp="1"><b>1×</b>Normal</button>
+            <button class="seg" type="button" data-sp="1.9"><b>2×</b>Cepat</button>
+          </div>
+        </div>
+        <button class="run" id="runBtn" type="button"></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="steps">
+    <div class="sec-head">
+      <h2>Enam langkah, satu hasil</h2>
+      <p class="sub">Panel ini menyala mengikuti simulasi — setiap kali rumus dijalankan, keenam langkah berjalan berurutan.</p>
+    </div>
+    <ol class="track" id="track">
+      <li><span class="n">1</span><span class="t">Baca rumus</span></li>
+      <li><span class="n">2</span><span class="t">Ambil nilai</span></li>
+      <li><span class="n">3</span><span class="t">Pindai kolom 1</span></li>
+      <li><span class="n">4</span><span class="t">Temukan baris</span></li>
+      <li><span class="n">5</span><span class="t">Lompat ke kolom</span></li>
+      <li><span class="n">6</span><span class="t">Kembalikan hasil</span></li>
+    </ol>
+    <div class="detail" id="stepDetail">
+      <div class="d-title" id="dTitle"></div>
+      <div class="d-text" id="dText"></div>
+    </div>
+  </section>
+
+  <section class="insights">
+    <div class="sec-head">
+      <h2>Empat jebakan klasik VLOOKUP</h2>
+      <p class="sub">Setelah pola enam langkahnya masuk akal, empat hal inilah penyebab #N/A dan hasil “aneh” yang paling sering terjadi.</p>
+    </div>
+
+    <div class="ins">
+      <div class="no">01</div>
+      <div>
+        <h3>Nomor kolom dihitung dari dalam tabel</h3>
+        <p><code>col_index_num</code> adalah urutan kolom <b>dari dalam table_array</b>, bukan dari kolom A lembar kerja. Di panggung di atas, table_array-nya <code>A2:D10</code>, jadi kolom 4 = kolom D. Tapi kalau table_array-nya <code>B2:E10</code>, kolom 4 = kolom E. Kalau nomornya melebihi jumlah kolom tabel, Excel menjawab <code>#REF!</code>.</p>
+      </div>
+    </div>
+
+    <div class="ins">
+      <div class="no">02</div>
+      <div>
+        <h3>VLOOKUP tidak bisa menoleh ke kiri</h3>
+        <p>Pencarian selalu terjadi di <b>kolom pertama</b> table_array, dan pengambilan nilai hanya bisa ke arah kanan. Kalau tabelmu terbalik — nama produk di kiri, kodenya di kanan — VLOOKUP tidak bisa mencari nama lalu mengembalikan kode. Untuk itu pasangkan <code>INDEX + MATCH</code>, atau pakai <code>XLOOKUP</code> (Excel 2021 ke atas).</p>
+      </div>
+    </div>
+
+    <div class="ins">
+      <div class="no">03</div>
+      <div>
+        <h3>FALSE dan TRUE bukan formalitas</h3>
+        <p><b>FALSE</b> berarti “harus persis sama” — meleset satu huruf saja, hasilnya #N/A. <b>TRUE</b> — yang justru menjadi default kalau argumen keempat dibiarkan kosong — mengambil nilai terbesar yang masih ≤ nilai pencarian; pada data yang tidak terurut naik, hasilnya bisa tampak benar padahal salah.</p>
+        <button class="try" id="tryApprox" type="button">Coba: cari “P-015” dengan mode PERKIRAAN <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+
+    <div class="ins">
+      <div class="no">04</div>
+      <div>
+        <h3>#N/A sering karena hal-hal sepele</h3>
+        <p>Teks <code>P-005&nbsp;</code> dengan spasi di akhir <b>tidak sama</b> dengan <code>P-005</code>. Angka 5 juga tidak sama dengan teks <code>"5"</code>. Huruf besar/kecil memang diabaikan, tapi spasi tidak. Fungsi <code>TRIM()</code> membereskan spasi liar; kalau angka tersimpan sebagai teks, <code>VALUE()</code> atau Text to Columns yang menyelamatkan.</p>
+        <button class="try" id="trySpace" type="button">Coba: “P-005 ” dengan spasi tersembunyi <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Alat belajar mandiri — seluruh simulasi berjalan lokal di peramban, tanpa server dan tanpa Excel.&ensp;·&ensp;Tekan <span class="kbd">Spasi</span> kapan pun untuk menjalankan ulang simulasi.
+  </footer>
+</div>
+
+<div class="pop" id="pop" role="dialog" aria-hidden="true">
+  <div class="pop-arrow"></div>
+  <div class="pop-title" id="popTitle"></div>
+  <div class="pop-body" id="popBody"></div>
+</div>
+
+<script>
+/* =========================================================
+   SIMULASI VISUAL VLOOKUP
+   ========================================================= */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc  = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const mark = s => esc(s).replace(/ /g, '·');                       // tampilkan spasi sebagai ·
+/* Perbandingan ala Excel: teks case-insensitive, tapi spasi IKUT dihitung */
+const eq = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+const gt = (a, b) => String(a).toLowerCase() >  String(b).toLowerCase();
+
+/* ---------- ikon (inline SVG) ---------- */
+const IC = {
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  stop:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>'
+};
+
+/* ---------- data & konstanta ---------- */
+const COLS = [
+  {L:'A', w:88,  h:'Kode'},
+  {L:'B', w:232, h:'Nama Produk'},
+  {L:'C', w:122, h:'Kategori'},
+  {L:'D', w:112, h:'Harga'},
+  {L:'E', w:38,  h:''},
+  {L:'F', w:150, h:'Kode yang Dicari'},
+  {L:'G', w:200, h:'Hasil VLOOKUP'}
+];
+const COLNAMES = ['Kode','Nama Produk','Kategori','Harga'];
+const DATA = [
+  ['P-001','Kopi Arabika Gayo','Minuman',85000],
+  ['P-002','Teh Hijau Sencha','Minuman',45000],
+  ['P-003','Gula Aren Cair','Bahan',32000],
+  ['P-004','Susu Oat 1L','Bahan',68000],
+  ['P-005','Sirup Vanilla','Bahan',52000],
+  ['P-006','Kopi Robusta Temanggung','Minuman',72000],
+  ['P-007','Matcha Premium','Minuman',95000],
+  ['P-008','Cangkir Keramik','Peralatan',55000],
+  ['P-009','French Press 350ml','Peralatan',165000]
+];
+const ROW0 = 2; // data menempati baris Excel 2..10
+const fmt = v => typeof v === 'number' ? 'Rp ' + v.toLocaleString('id-ID') : v;
+
+/* ---------- state ---------- */
+const state = { lookup:'P-005', col:4, exact:true };
+let speed = 1, runId = 0;
+class Aborted extends Error{}
+
+/* ---------- elemen ---------- */
+const sheet = $('#sheet'), ov = $('#ov'), sheetScroll = $('#sheetScroll');
+const phaseEl = $('#phase'), capText = $('#capText');
+const trackEl = $('#track'), trackEls = $$('#track li');
+const detail = $('#stepDetail'), dTitle = $('#dTitle'), dText = $('#dText');
+const runBtn = $('#runBtn'), argCol = $('#argCol'), argRange = $('#argRange'), modeHint = $('#modeHint');
+const pop = $('#pop'), popTitle = $('#popTitle'), popBody = $('#popBody');
+const cellAt = {}, rowNum = {}, letterEl = {};
+let G2, lookupInput, badgeEls = [];
+
+/* ---------- bangun lembar kerja ---------- */
+function buildSheet(){
+  sheet.style.gridTemplateColumns = '46px ' + COLS.map(c => c.w + 'px').join(' ');
+  const add = (cls, html) => {
+    const d = document.createElement('div');
+    d.className = 'cell ' + cls;
+    if (html != null) d.innerHTML = html;
+    sheet.appendChild(d);
+    return d;
+  };
+  add('corner', '');
+  COLS.forEach((c, i) => { letterEl[i] = add('cletter' + (i >= 5 ? ' fg' : ''), c.L); cellAt['0:' + i] = letterEl[i]; });
+
+  for (let r = 1; r <= 11; r++){
+    const rn = add('crow', String(r));
+    rn.dataset.base = r; rowNum[r] = rn;
+
+    COLS.forEach((c, i) => {
+      // sel F2: input nilai pencarian
+      if (r === 2 && i === 5){
+        const inp = document.createElement('input');
+        inp.className = 'cell cin'; inp.id = 'lookupInput';
+        inp.value = state.lookup; inp.spellcheck = false; inp.autocomplete = 'off';
+        inp.setAttribute('aria-label', 'Sel F2 — nilai yang dicari');
+        sheet.appendChild(inp); cellAt['2:5'] = inp; lookupInput = inp;
+        return;
+      }
+      // sel G2: hasil VLOOKUP
+      if (r === 2 && i === 6){
+        G2 = add('cres', '—'); cellAt['2:6'] = G2; return;
+      }
+      const isData = r >= ROW0 && r <= ROW0 + DATA.length - 1;
+      const z = (isData && (r - ROW0) % 2 === 1) ? ' z' : '';
+      let cls = 'cempty', html = '';
+      if (r === 1){
+        if (i < 4){ cls = 'chead'; html = c.h; }
+        else if (i >= 5 && c.h){ cls = 'qhead'; html = c.h; }
+      } else if (isData){
+        const d = DATA[r - ROW0];
+        if (i === 0){ cls = 'cdata ca'; html = d[0]; }
+        else if (i === 1){ cls = 'cdata'; html = d[1]; }
+        else if (i === 2){ cls = 'cdata'; html = d[2]; }
+        else if (i === 3){ cls = 'cdata cnum'; html = fmt(d[3]); }
+        else if (i === 5 || i === 6){ cls = 'cempty q'; }
+      } else if (i === 5 || i === 6){ cls = 'cempty q'; }
+      const el = add(cls.includes('cempty') ? cls : cls + z, html);
+      cellAt[r + ':' + i] = el;
+      // klik sel kode = jadikan nilai pencarian & langsung jalankan
+      if (i === 0 && isData){
+        el.title = 'Jadikan nilai pencarian';
+        el.addEventListener('click', () => { applyLookup(DATA[r - ROW0][0]); run(); });
+      }
+    });
+  }
+}
+
+/* ---------- utilitas posisi & overlay ---------- */
+const cellPos = (r, c) => { const el = cellAt[r + ':' + c]; return {x:el.offsetLeft, y:el.offsetTop, w:el.offsetWidth, h:el.offsetHeight}; };
+function ovel(cls, html){ const d = document.createElement('div'); d.className = cls; if (html != null) d.innerHTML = html; ov.appendChild(d); return d; }
+
+/* ---------- mesin waktu (dibatalkan-sadar, peka kecepatan) ---------- */
+function wait(ms){
+  return new Promise((res, rej) => {
+    const id = runId, dur = ms / speed, t0 = performance.now();
+    (function tk(){
+      if (runId !== id) return rej(new Aborted());
+      if (performance.now() - t0 >= dur) return res();
+      requestAnimationFrame(tk);
+    })();
+  });
+}
+
+/* ---------- teks & panel ---------- */
+function caption(html){
+  capText.innerHTML = html;
+  capText.classList.remove('swap'); void capText.offsetWidth; capText.classList.add('swap');
+}
+function phase(t){ phaseEl.textContent = t; }
+function setDetail(n, title, html, err){
+  dTitle.innerHTML = (n ? `<span class="k">LANGKAH ${n}</span>` : '') + `<span>${title}</span>`;
+  dText.innerHTML = html;
+  detail.classList.toggle('error', !!err);
+  detail.classList.remove('swap'); void detail.offsetWidth; detail.classList.add('swap');
+}
+function markStep(i, cls){
+  const li = trackEls[i]; li.className = cls || '';
+  li.querySelector('.n').innerHTML = cls === 'done' ? IC.check : cls === 'error' ? IC.x : cls === 'skip' ? '–' : String(i + 1);
+}
+function setProgress(i){ trackEl.style.setProperty('--p', (i / (trackEls.length - 1) * 100).toFixed(1) + '%'); }
+const STEP_TITLES = ['Baca rumus','Ambil nilai','Pindai kolom pertama','Temukan baris','Lompat ke kolom','Kembalikan hasil'];
+function setStep(i, text, err){
+  for (let k = 0; k < i; k++) markStep(k, 'done');
+  markStep(i, err ? 'error' : 'active');
+  setProgress(i);
+  if (text != null) setDetail(i + 1, STEP_TITLES[i], text, err);
+}
+
+/* ---------- reset visual ---------- */
+const DIRTY = ['scanning','matched','sourced','out','passcell','stopcell','argflash','hl','ok','err','cinbad','shake'];
+function resetVisuals(){
+  ov.innerHTML = ''; badgeEls = [];
+  Object.values(cellAt).forEach(c => c.classList.remove(...DIRTY));
+  for (let r = 1; r <= 11; r++){ const el = rowNum[r]; el.className = 'cell crow'; el.textContent = el.dataset.base; }
+  Object.values(letterEl).forEach(el => el.classList.remove('hl'));
+  $$('.arg').forEach(a => a.classList.remove('reading','seen'));
+  G2.className = 'cell cres'; G2.textContent = '—';
+  trackEls.forEach((li, i) => { li.className = ''; li.querySelector('.n').textContent = i + 1; });
+  setProgress(0);
+  setDetail(0, 'Siap dijalankan', 'Tekan <b>Jalankan</b> dan enam langkah di bawah akan menyala satu per satu mengikuti simulasi.', false);
+}
+
+/* ---------- UI kendali ---------- */
+function runningUI(on){
+  runBtn.classList.toggle('stop', on);
+  runBtn.innerHTML = (on ? IC.stop : IC.play) + '<span>' + (on ? 'Hentikan' : 'Jalankan') + '</span>';
+}
+function abortRun(){
+  runId++;
+  resetVisuals(); runningUI(false);
+  phase('SIAP');
+  caption('Klik kode mana pun di kolom A, atau susun parameternya di bawah — lalu tekan <b>Jalankan</b>.');
+}
+function syncPills(){ $$('#pills .pill').forEach(p => p.classList.toggle('on', p.dataset.v === state.lookup)); }
+function syncControls(){
+  syncPills();
+  $$('#colSegs .seg').forEach(b => b.classList.toggle('on', +b.dataset.v === state.col));
+  $$('#modeSegs .seg').forEach(b => b.classList.toggle('on', (b.dataset.exact === '1') === state.exact));
+  $$('#speedSegs .seg').forEach(b => b.classList.toggle('on', +b.dataset.sp === speed));
+  argCol.textContent = state.col;
+  argRange.textContent = state.exact ? 'FALSE' : 'TRUE';
+  modeHint.innerHTML = state.exact
+    ? 'FALSE — wajib cocok persis; meleset sedikit = <b>#N/A</b>.'
+    : 'TRUE — ambil nilai terbesar yang ≤ pencarian. Tabel wajib <b>terurut naik</b>.';
+}
+function applyLookup(v){ state.lookup = v; lookupInput.value = v; syncPills(); }
+function applyMode(exact){ state.exact = exact; syncControls(); }
+
+/* ---------- adegan animasi ---------- */
+function readChip(arg){
+  $$('.arg').forEach(a => {
+    if (a.dataset.arg === arg) a.classList.add('reading');
+    else { a.classList.remove('reading'); a.classList.add('seen'); }
+  });
+}
+function flashCell(sel){
+  const el = cellAt[sel];
+  el.classList.remove('argflash'); void el.offsetWidth; el.classList.add('argflash');
+}
+function drawTableOutline(){
+  const a = cellPos(ROW0, 0), d = cellPos(ROW0 + DATA.length - 1, 3);
+  const o = ovel('tblout', null);
+  o.style.left = (a.x - 3) + 'px'; o.style.top = (a.y - 3) + 'px';
+  o.style.width = (d.x + d.w - a.x + 6) + 'px'; o.style.height = (d.y + d.h - a.y + 6) + 'px';
+  const tag = ovel('tbltag', 'A2:D10');
+  tag.style.left = a.x + 'px'; tag.style.top = (a.y - 4) + 'px';
+  for (let c = 0; c < 4; c++) letterEl[c].classList.add('hl');
+  for (let r = ROW0; r <= ROW0 + DATA.length - 1; r++) rowNum[r].classList.add('hl');
+}
+function drawColBadges(){
+  badgeEls = [];
+  for (let c = 0; c < 4; c++){
+    const el = letterEl[c], b = ovel('colbadge', String(c + 1));
+    b.style.left = (el.offsetLeft + el.offsetWidth / 2 - 13) + 'px';
+    b.style.top = (el.offsetTop + el.offsetHeight / 2 - 13) + 'px';
+    if (c === state.col - 1) b.classList.add('target');
+    badgeEls.push(b);
+  }
+}
+function drawRefTag(L){
+  const t = ovel('reftag', IC.search + '<span>' + L + '</span>');
+  const a1 = cellPos(1, 0);
+  t.style.left = (a1.x + 2) + 'px'; t.style.top = (a1.y + 4) + 'px';
+}
+function posCmp(cmp, r, code, lookup, kind){
+  const p = cellPos(r, 0);
+  const ops = {neq:'≠', lte:'≤', eq:'=', lteok:'≤', stop:'&gt;'};
+  const good = (kind === 'eq' || kind === 'lteok');
+  cmp.className = 'cmptag ' + (good ? 'eq' : kind);
+  cmp.innerHTML = `<b>${esc(code)}</b><i>${ops[kind]}</i><b>${mark(lookup)}</b>` + (kind === 'stop' ? '<em>STOP</em>' : '');
+  cmp.style.left = (p.x + p.w - 6) + 'px'; cmp.style.top = (p.y - 5) + 'px';
+}
+const hitNum  = r => { const el = rowNum[r]; el.innerHTML = IC.check; el.classList.add('hitnum'); };
+const passNum = r => { const el = rowNum[r]; el.innerHTML = IC.check; el.classList.add('pass'); };
+const outNum  = r => { const el = rowNum[r]; el.innerHTML = IC.x; el.classList.add('outx'); };
+function drawBand(mr){
+  const a = cellPos(mr, 0), d = cellPos(mr, 3);
+  const b = ovel('rowband', null);
+  b.style.left = a.x + 'px'; b.style.top = a.y + 'px';
+  b.style.width = (d.x + d.w - a.x) + 'px'; b.style.height = a.h + 'px';
+  const tag = ovel('bandtag', `BARIS ${mr} COCOK`);
+  tag.style.left = (d.x + d.w) + 'px'; tag.style.top = a.y + 'px';
+}
+function scrollG2IntoView(){
+  const target = G2.offsetLeft + 18 + G2.offsetWidth + 30 - sheetScroll.clientWidth;
+  if (target > sheetScroll.scrollLeft + 8) sheetScroll.scrollTo({left:target, behavior:'smooth'});
+}
+async function flyChip(cls, text, r, c){
+  const myRun = runId;                       // jika run baru dimulai, run lama harus bungkam tombol
+  const chip = ovel(cls, text);
+  const s = cellPos(r, c), d = cellPos(2, 6);
+  const cw = chip.offsetWidth, ch = chip.offsetHeight;
+  const sx = s.x + 6, sy = s.y + 2;
+  const ex = d.x + (d.w - cw) / 2, ey = d.y + (d.h - ch) / 2;
+  chip.style.left = sx + 'px'; chip.style.top = sy + 'px';
+  const dx = ex - sx, dy = ey - sy;
+  const dur = Math.max(700, 1250 / speed);
+  const a = chip.animate([
+    {transform:'translate(0,0) scale(.55)', opacity:.25},
+    {transform:'translate(0,-16px) scale(1.08)', opacity:1, offset:.22},
+    {transform:`translate(${dx * .55}px, ${dy * .5 - 46}px) scale(1.05) rotate(2deg)`, offset:.72},
+    {transform:`translate(${dx}px, ${dy}px) scale(1)`, opacity:1}
+  ], {duration:dur, easing:'cubic-bezier(.5,.05,.25,1)'});
+  // tunggu animasi selesai (dengan pengaman waktu), lalu buang chip
+  await Promise.race([
+    a.finished.catch(() => {}),
+    new Promise(res => setTimeout(res, dur + 200))
+  ]);
+  chip.remove();
+  if (runId !== myRun) throw new Aborted();  // jangan biarkan run lama menimpa hasil run baru
+}
+
+/* =========================================================
+   ALUR UTAMA
+   ========================================================= */
+async function run(){
+  const my = ++runId;
+  resetVisuals(); runningUI(true);
+  if (sheetScroll.scrollLeft) sheetScroll.scrollLeft = 0;
+  phase('MULAI'); caption('Menyiapkan panggung…');
+
+  const raw = state.lookup ?? '';
+  const lookup = raw;                 // dibandingkan APA ADANYA — spasi ikut dihitung, seperti Excel
+  const L = mark(raw);
+  const ci = state.col;
+  const approx = !state.exact;        // TRUE di Excel (range_lookup) = mode perkiraan
+
+  try{
+    if (!raw.trim()){
+      caption('Sel F2 masih kosong — ketik dulu nilai yang ingin dicari (mis. <b>P-005</b>).');
+      lookupInput.classList.remove('shake'); void lookupInput.offsetWidth; lookupInput.classList.add('shake');
+      lookupInput.focus();
+      return;
+    }
+
+    /* --- LANGKAH 1 : baca rumus --- */
+    phase('FASE 1/6');
+    setStep(0, `VLOOKUP membaca empat argumennya dulu: nilai yang dicari (<b>F2</b>), tabel sumbernya (<b>A2:D10</b>), kolom ke berapa yang diambil (<b>${ci} — ${COLNAMES[ci-1]}</b>), dan mode pencocokannya (<b>${state.exact ? 'FALSE — tepat' : 'TRUE — perkiraan'}</b>).`);
+    readChip('lookup');
+    caption('Argumen 1 — <b>lookup_value</b>: nilai yang dicari ada di sel F2.');
+    flashCell('2:5'); await wait(680);
+
+    readChip('table');
+    caption('Argumen 2 — <b>table_array</b>: A2:D10. Hanya kolom pertamanya yang akan dicari.');
+    drawTableOutline(); await wait(800);
+
+    readChip('col');
+    caption(`Argumen 3 — <b>col_index_num</b>: ${ci} → kolom “${COLNAMES[ci-1]}”, dihitung dari kolom pertama tabel.`);
+    drawColBadges(); await wait(800);
+
+    readChip('range');
+    caption(state.exact
+      ? 'Argumen 4 — <b>range_lookup: FALSE</b>. Pencocokan harus tepat; kalau tidak ketemu, hasilnya #N/A.'
+      : 'Argumen 4 — <b>range_lookup: TRUE</b>. Ambil nilai terbesar yang ≤ pencarian — tabel wajib terurut naik.');
+    await wait(950);
+
+    /* --- LANGKAH 2 : ambil nilai --- */
+    phase('FASE 2/6');
+    setStep(1, `Sel F2 dibaca dan nilainya jadi patokan pencarian: <b>“${L}”</b>. Nilai inilah yang akan dibandingkan dengan setiap baris di kolom pertama tabel.`);
+    flashCell('2:5');
+    caption(`Nilai yang dicari: <b>“${L}”</b> — diambil dari sel F2.`);
+    drawRefTag(L);
+    await wait(1050);
+
+    /* --- LANGKAH 3 : pindai kolom pertama --- */
+    phase('FASE 3/6');
+    setStep(2, state.exact
+      ? 'VLOOKUP hanya melihat kolom <b>PERTAMA</b> table_array — di sini kolom Kode. Ia berjalan dari atas ke bawah, membandingkan satu sel demi satu sel sampai ketemu.'
+      : `Mode perkiraan berjalan turun selama isi kolom Kode masih ≤ “${L}”, lalu berhenti — baris terakhir yang lolos dianggap hasil. Ingat: tabel harus terurut naik.`);
+    const cmp = ovel('cmptag', '');
+    let hit = -1, stopAt = -1, hitMarked = false;
+
+    for (let i = 0; i < DATA.length; i++){
+      const r = ROW0 + i, code = DATA[i][0], cel = cellAt[r + ':0'];
+      cel.classList.add('scanning');
+      posCmp(cmp, r, code, lookup, approx ? 'lte' : 'neq');
+      caption(approx ? `Perkiraan — apakah <b>${code}</b> ≤ ${L}?` : `Membandingkan <b>${code}</b> dengan ${L}…`);
+      await wait(approx ? 320 : 450);
+      cel.classList.remove('scanning');
+
+      if (eq(code, lookup)){                       // ketemu persis (huruf besar/kecil diabaikan)
+        cel.classList.add('matched'); hitNum(r); hitMarked = true; hit = i;
+        posCmp(cmp, r, code, lookup, 'eq');
+        break;
+      }
+      if (approx && gt(code, lookup)){             // khusus perkiraan: berhenti saat melewati pencarian
+        cel.classList.add('stopcell'); stopAt = i;
+        posCmp(cmp, r, code, lookup, 'stop');
+        break;
+      }
+      if (approx){ passNum(r); cel.classList.add('passcell'); }   // lolos uji ≤
+      else       { outNum(r);  cel.classList.add('out'); }       // gugur (coret!)
+    }
+
+    // rangkum hasil pencarian
+    let matchIdx = -1, notFound = false, approxMsg = '';
+    if (approx){
+      if (hit >= 0){ matchIdx = hit; }
+      else if (stopAt === 0){ notFound = true; approxMsg = ` — nilai pertama tabel (${DATA[0][0]}) sudah lebih besar dari pencarian`; }
+      else if (stopAt > 0){ matchIdx = stopAt - 1; approxMsg = ` — berhenti di ${DATA[stopAt][0]} yang lebih besar; baris terakhir yang lolos: ${DATA[matchIdx][0]}`; }
+      else { matchIdx = DATA.length - 1; approxMsg = ' — semua nilai ≤ pencarian, jadi baris terakhir yang diambil'; }
+    } else {
+      matchIdx = hit;                              // -1 kalau tidak ketemu
+      notFound = hit < 0;
+    }
+
+    /* --- LANGKAH 4 : temukan baris / #N/A --- */
+    phase('FASE 4/6');
+    if (notFound){
+      setStep(3, `Tidak ada satu pun baris yang cocok${approxMsg}. VLOOKUP tidak pernah menebak — ia langsung mengembalikan <b>#N/A</b>.`, true);
+      caption(approx ? `Tidak ada nilai ≤ ${L} — hasilnya <b class="bad">#N/A</b>.` : `“${L}” tidak ditemukan di kolom Kode → <b class="bad">#N/A</b>.`);
+      await wait(1000);
+      scrollG2IntoView(); await wait(420);
+      await flyChip('nachip', '#N/A', ROW0 + DATA.length - 1, 0);
+      G2.textContent = '#N/A'; G2.classList.add('err');
+      markStep(4, 'skip'); markStep(5, 'skip');
+      phase('SELESAI');
+
+      // petunjuk spasi tersembunyi: nilai mentah ≠ versi bersihnya yang ADA di tabel
+      const trimmed = raw.trim();
+      let extra = '';
+      if (trimmed !== raw && DATA.some(d => eq(d[0], trimmed))){
+        extra = ` Psst — nilai di F2 mengandung <b class="bad">spasi tersembunyi</b>: “${L}” ≠ “${mark(trimmed)}”. Hapus spasinya (atau bungkus dengan TRIM), lalu coba lagi.`;
+        lookupInput.classList.add('cinbad');
+      }
+      caption(`Hasil: <b class="bad">#N/A</b>.${extra} Coba ganti mode pencocokan atau perbaiki nilainya, lalu Jalankan lagi.`);
+      return;
+    }
+
+    const mr = ROW0 + matchIdx, code = DATA[matchIdx][0];
+    const exactHit = eq(code, lookup);
+    if (!hitMarked){
+      cellAt[mr + ':0'].classList.add('matched'); hitNum(mr);
+      posCmp(cmp, mr, code, lookup, 'lteok');
+    }
+    setStep(3, approx && !exactHit
+      ? `<b>${code}</b> adalah nilai terbesar yang masih ≤ “${L}” — baris Excel ke-${mr} (A${mr}:D${mr}) yang diambil sebagai sumber nilai.`
+      : `“<b>${code} = ${mark(lookup)}</b>” — cocok! Baris Excel ke-${mr} terpilih, dan seluruh baris itu (A${mr}:D${mr}) menjadi sumber nilai.`);
+    caption(`<b>${code}</b> ${approx && !exactHit ? '≤' : '='} ${L} — ketemu! Baris <b>${mr}</b> yang akan dipakai.`);
+    await wait(1150);
+    drawBand(mr);
+    caption(`Seluruh baris ${mr} disorot — nilai akan diambil dari sini.`);
+    await wait(1050);
+
+    /* --- LANGKAH 5 : lompat ke kolom ke-N --- */
+    phase('FASE 5/6');
+    setStep(4, `Dari kolom pencarian, VLOOKUP melangkah ke kolom ke-${ci} pada baris yang sama — nomornya dihitung dari kolom pertama tabel: Kode (1), Nama (2), Kategori (3), Harga (4).${ci === 1 ? ' Kolom 1 = kolom pencarian itu sendiri.' : ''}`);
+    const cur = ovel('cursor', null);
+    const p0 = cellPos(mr, 0);
+    cur.style.left = p0.x + 'px'; cur.style.top = p0.y + 'px';
+    cur.style.width = p0.w + 'px'; cur.style.height = p0.h + 'px';
+    badgeEls[0].classList.add('on', 'hit');
+    caption(`Mulai dari kolom <b>1</b> — ${COLNAMES[0]}.`);
+    await wait(650);
+    if (ci > 1){
+      for (let c = 1; c < ci; c++){
+        const p = cellPos(mr, c);
+        cur.style.left = p.x + 'px';
+        await wait(440);
+        badgeEls[c - 1].classList.remove('hit');
+        badgeEls[c].classList.add('on', 'hit');
+        caption(`Kolom <b>${c + 1}</b> — ${COLNAMES[c]}.`);
+        await wait(330);
+      }
+    } else {
+      caption('Kolom ke-1 adalah kolom pencarian itu sendiri — tidak perlu berpindah tempat.');
+      await wait(1150);
+    }
+
+    /* --- LANGKAH 6 : kembalikan hasil --- */
+    phase('FASE 6/6');
+    const valTxt = fmt(DATA[matchIdx][ci - 1]);
+    setStep(5, `Isi sel <b>${COLS[ci-1].L}${mr}</b> — <b>${esc(valTxt)}</b> — dicabut dari tabel dan dikirim ke sel G2, tempat rumus itu ditulis.`);
+    cellAt[mr + ':' + (ci - 1)].classList.add('sourced');
+    caption(`Mengambil nilai dari sel <b>${COLS[ci-1].L}${mr}</b>…`);
+    await wait(850);
+    scrollG2IntoView(); await wait(420);
+    await flyChip('valchip', esc(valTxt), mr, ci - 1);
+    G2.textContent = valTxt; G2.classList.add('ok');
+    for (let k = 0; k < 6; k++) markStep(k, 'done');
+    setProgress(5);
+    setDetail(6, 'Selesai', `Nilai <b>${esc(valTxt)}</b> sekarang tinggal di sel G2 — itulah jawaban akhir VLOOKUP.${ci === 1 ? ' (Kolom 1 = kolom pencarian, jadi hasilnya memang sama dengan nilai yang dicari.)' : ''}`, false);
+    caption(`Selesai — VLOOKUP mengembalikan <b>${esc(valTxt)}</b> ke sel G2.`);
+    phase('SELESAI');
+    await wait(650);
+  } catch(err){
+    if (!(err instanceof Aborted)) console.error(err);
+  } finally {
+    if (runId === my) runningUI(false);
+  }
+}
+
+/* =========================================================
+   PENJELASAN ARGUMEN (popover)
+   ========================================================= */
+const ARG_INFO = {
+  lookup:{cv:'--amber', t:'lookup_value', b:'Nilai yang sedang dicari — di sini diambil dari sel F2. Bisa berupa teks, angka, atau referensi sel lain.',
+    live:()=>`Sekarang: “${mark(state.lookup || '—')}”.`},
+  table:{cv:'--green', t:'table_array', b:'Rentang tabel sumbernya. VLOOKUP hanya mencari di kolom PERTAMA rentang ini, dan nomor kolom dihitung mulai dari kolom pertamanya.'},
+  col:{cv:'--teal', t:'col_index_num', b:'Nomor kolom yang nilainya diambil — dihitung dari kolom pertama table_array, bukan dari kolom A lembar kerja.',
+    live:()=>`Sekarang: ${state.col} → kolom “${COLNAMES[state.col-1]}”.`},
+  range:{cv:'--plum', t:'range_lookup', b:'FALSE: harus cocok persis (kalau tidak ada → #N/A). TRUE: ambil nilai terbesar yang ≤ pencarian — tabel wajib terurut naik.',
+    live:()=>`Sekarang: ${state.exact ? 'FALSE' : 'TRUE'} (${state.exact ? 'tepat' : 'perkiraan'}).`}
+};
+function hidePop(){ pop.classList.remove('show'); pop.dataset.for = ''; pop.setAttribute('aria-hidden','true'); }
+function togglePop(btn){
+  const arg = btn.dataset.arg;
+  if (pop.classList.contains('show') && pop.dataset.for === arg){ hidePop(); return; }
+  const info = ARG_INFO[arg];
+  popTitle.textContent = info.t; popTitle.style.color = `var(${info.cv})`;
+  popBody.innerHTML = info.b + (info.live ? ' ' + info.live() : '');
+  pop.dataset.for = arg;
+  pop.classList.add('show'); pop.setAttribute('aria-hidden','false');
+  const r = btn.getBoundingClientRect();
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  let x = Math.min(Math.max(12, r.left + r.width / 2 - pw / 2), window.innerWidth - pw - 12);
+  let y = r.bottom + 12, above = false;
+  if (y + ph > window.innerHeight - 12){ y = Math.max(12, r.top - ph - 14); above = true; }
+  pop.style.left = x + 'px'; pop.style.top = y + 'px';
+  pop.classList.toggle('pop-above', above);
+  pop.style.setProperty('--ax', Math.max(10, Math.min(r.left + r.width / 2 - x, pw - 10)) + 'px');
+}
+
+/* =========================================================
+   WIRING KENDALI
+   ========================================================= */
+function boot(){
+  buildSheet();
+
+  $$('.arg').forEach(a => a.addEventListener('click', e => { e.stopPropagation(); togglePop(a); }));
+  pop.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', hidePop);
+
+  lookupInput.addEventListener('input', () => { state.lookup = lookupInput.value; syncPills(); abortRun(); });
+  lookupInput.addEventListener('keydown', e => { if (e.key === 'Enter'){ lookupInput.blur(); run(); } });
+
+  $('#pills').addEventListener('click', e => {
+    const b = e.target.closest('.pill'); if (!b) return;
+    applyLookup(b.dataset.v); run();
+  });
+  $('#colSegs').addEventListener('click', e => {
+    const b = e.target.closest('.seg'); if (!b) return;
+    state.col = +b.dataset.v; syncControls(); abortRun();
+  });
+  $('#modeSegs').addEventListener('click', e => {
+    const b = e.target.closest('.seg'); if (!b) return;
+    state.exact = b.dataset.exact === '1'; syncControls(); abortRun();
+  });
+  $('#speedSegs').addEventListener('click', e => {
+    const b = e.target.closest('.seg'); if (!b) return;
+    speed = +b.dataset.sp; syncControls();
+  });
+
+  runBtn.addEventListener('click', () => { runBtn.classList.contains('stop') ? abortRun() : run(); });
+
+  $('#tryApprox').addEventListener('click', () => { applyMode(false); applyLookup('P-015'); run(); });
+  $('#trySpace').addEventListener('click',  () => { applyMode(true);  applyLookup('P-005 '); run(); });
+
+  document.addEventListener('keydown', e => {
+    if (e.code !== 'Space' || e.defaultPrevented) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'BUTTON' || t.tagName === 'A' || t.isContentEditable)) return;
+    e.preventDefault(); runBtn.click();
+  });
+
+  syncControls();
+  resetVisuals();
+  phase('SIAP');
+  caption('Klik kode mana pun di kolom A, atau susun parameternya di bawah — lalu tekan <b>Jalankan</b>.');
+  runningUI(false);
+
+  // demo otomatis saat halaman dibuka
+  setTimeout(run, 800);
+}
+boot();
+</script>
+</body>
+</html>
