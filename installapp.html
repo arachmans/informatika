@@ -2259,8 +2259,10 @@ function phaseDone(spec,body,win,mode,cfg){
     setTimeout(function(){launchApp('corel')},900);
   }
   body.innerHTML='';
-  var check=h('svg',{class:'bigcheck',viewBox:'0 0 80 80'},
-    '<svg viewBox="0 0 80 80" width="80" height="80" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="40" cy="40" r="34"/><path d="M25 41.5l10 10 20-22"/></svg>');
+  var check = h('svg', { class: 'bigcheck', viewBox: '0 0 80 80' }, [
+    h('circle', { cx: '40', cy: '40', r: '34' }),
+    h('path', { d: 'M25 41.5l10 10 20-22' })
+  ]);
   var title=spec.doneTitle(mode);
   var msg=spec.doneMsg(mode);
   var chipArr=spec.chips(mode);
