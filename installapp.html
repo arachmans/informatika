@@ -1,0 +1,3289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows 11 — Simulasi Instalasi Office & CorelDRAW</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#4cc2ff; --accent-t:rgba(76,194,255,.16); --accent-text:#08131a;
+  --bg:#202020; --surface:#2b2b2b;
+  --stroke:rgba(255,255,255,.09); --stroke-2:rgba(255,255,255,.17);
+  --text:#f3f3f3; --text-2:#c9c9c9; --text-3:#9b9b9b;
+  --ok:#6ccb5f; --err:#ff99a4; --tb-h:48px; color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI Variable Text','Segoe UI','Noto Sans',sans-serif;font-size:14px;color:var(--text);background:#000;-webkit-font-smoothing:antialiased}
+#os{position:fixed;inset:0;overflow:hidden;user-select:none}
+input,textarea,select,[contenteditable]{user-select:text}
+svg{display:block;width:100%;height:100%}
+.i16{width:16px;height:16px;display:inline-flex;flex:none}
+.i18{width:18px;height:18px;display:inline-flex;flex:none}
+.i24{width:24px;height:24px;display:inline-flex;flex:none}
+.i32{width:32px;height:32px;display:inline-flex;flex:none}
+.i40{width:40px;height:40px;display:inline-flex;flex:none}
+.i48{width:48px;height:48px;display:inline-flex;flex:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ====== Desktop ====== */
+#wallpaper{position:absolute;inset:0;width:100%;height:100%}
+#brightness{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;z-index:2000}
+#desktop{position:absolute;inset:0 0 var(--tb-h) 0;z-index:1}
+#dicons{position:absolute;inset:8px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;gap:2px}
+.dicon{width:86px;height:94px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:6px 4px;border-radius:6px;border:1px solid transparent}
+.dicon .i48{filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
+.dicon .lbl{font-size:12px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85);text-align:center;line-height:1.25;max-width:82px;overflow-wrap:break-word}
+.dicon:hover{background:rgba(255,255,255,.07)}
+.dicon.sel{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.32)}
+.dicon.pop{animation:pop .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+.ic-small .dicon .i48{width:32px;height:32px}
+.ic-large .dicon{height:112px}.ic-large .dicon .i48{width:62px;height:62px}
+#band{position:absolute;border:1px solid var(--accent);background:var(--accent-t);z-index:5;pointer-events:none}
+#band[hidden]{display:none}
+
+/* ====== Taskbar ====== */
+#taskbar{position:absolute;left:0;right:0;bottom:0;height:var(--tb-h);display:flex;align-items:center;justify-content:center;background:rgba(25,27,31,.82);backdrop-filter:blur(28px) saturate(1.5);border-top:1px solid rgba(255,255,255,.06);z-index:800}
+body.no-trans #taskbar{background:#1b1d21;backdrop-filter:none}
+.tb-center{display:flex;align-items:center;gap:4px}
+.tb-btn,.tb-app-btn{width:44px;height:40px;border:0;background:none;border-radius:6px;display:grid;place-items:center;color:#e9f3fc;position:relative}
+.tb-btn svg,.tb-app-btn svg{width:22px;height:22px}
+.tb-btn:hover,.tb-app-btn:hover{background:rgba(255,255,255,.09)}
+.tb-app-btn .ind{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);height:3px;width:0;border-radius:2px;background:var(--accent);transition:width .16s}
+.tb-app-btn.running .ind{width:8px}
+.tb-app-btn.active .ind{width:17px}
+.tb-app-btn.active{background:rgba(255,255,255,.07)}
+#tb-apps{display:flex;gap:4px;margin-left:6px;padding-left:8px;border-left:1px solid rgba(255,255,255,.08)}
+.tb-right{position:absolute;right:4px;display:flex;align-items:center;gap:1px}
+#btn-tray{display:flex;gap:7px;align-items:center;padding:7px 9px;border:0;border-radius:6px;background:none;color:#fff}
+#btn-tray svg{width:16px;height:16px}
+#btn-tray:hover{background:rgba(255,255,255,.09)}
+#btn-clock{display:flex;flex-direction:column;align-items:flex-end;padding:4px 10px;border:0;border-radius:6px;background:none;color:#fff;font-size:12px;line-height:1.35;font-family:inherit}
+#btn-clock:hover{background:rgba(255,255,255,.09)}
+
+/* ====== Panels ====== */
+.panel{position:absolute;background:rgba(34,36,41,.88);backdrop-filter:blur(34px) saturate(1.4);border:1px solid var(--stroke);border-radius:10px;box-shadow:0 18px 55px rgba(0,0,0,.55);z-index:850;opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .16s,transform .16s ease}
+.panel.open{opacity:1;transform:none;pointer-events:auto}
+body.no-trans .panel{background:#232529;backdrop-filter:none}
+#panel-start{left:50%;transform:translate(-50%,14px);bottom:60px;width:620px;padding:26px 30px 0;max-height:calc(100vh - 90px);display:flex;flex-direction:column;overflow:auto}
+#panel-start.open{transform:translate(-50%,0)}
+.st-search{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid var(--stroke-2);border-bottom:2px solid var(--accent);border-radius:18px;padding:8px 16px;margin-bottom:20px}
+.st-search input{flex:1;background:none;border:0;outline:0;color:var(--text);font:inherit;font-size:13px}
+.st-h{font-size:13px;font-weight:600;margin:2px 0 10px}
+.st-pin{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin-bottom:18px}
+.st-pi{border:0;background:none;border-radius:6px;padding:12px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text);font:inherit;font-size:11.5px}
+.st-pi svg{width:30px;height:30px}
+.st-pi:hover{background:rgba(255,255,255,.08)}
+.st-rec{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:16px}
+.st-ri{display:flex;gap:12px;align-items:center;padding:8px 10px;border-radius:6px;border:0;background:none;text-align:left;color:var(--text);font:inherit}
+.st-ri:hover{background:rgba(255,255,255,.08)}
+.st-ri svg{width:26px;height:26px}
+.st-ri .n{font-size:12.5px}.st-ri .s{font-size:11px;color:var(--text-3)}
+.st-foot{margin:6px -30px 0;padding:14px 30px;border-top:1px solid var(--stroke);background:rgba(255,255,255,.025);display:flex;align-items:center}
+.st-user{display:flex;align-items:center;gap:11px;font-size:13px;flex:1}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-text);display:grid;place-items:center;font-weight:700;font-size:13px}
+.pw-btn{width:38px;height:38px;border:0;border-radius:6px;background:none;color:var(--text-2);display:grid;place-items:center}
+.pw-btn:hover{background:rgba(255,255,255,.1)}
+.pw-btn svg{width:17px;height:17px}
+.st-empty{font-size:12px;color:var(--text-3);padding:6px 2px 14px}
+.st-results{overflow:auto;flex:1;min-height:80px;max-height:380px;margin-bottom:14px}
+.st-res{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:6px;width:100%;border:0;background:none;color:var(--text);font:inherit;text-align:left}
+.st-res:hover{background:rgba(255,255,255,.08)}
+#panel-cal{right:10px;bottom:60px;width:330px;padding:20px}
+.cal-time{font-size:42px;font-weight:600;letter-spacing:.5px}
+.cal-date{color:var(--text-2);font-size:13px;margin:2px 0 16px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav b{font-size:13.5px;font-weight:600}
+.cal-nav button{width:28px;height:28px;border:0;border-radius:5px;background:none;color:var(--text-2);display:grid;place-items:center}
+.cal-nav button:hover{background:rgba(255,255,255,.1)}
+.cal-nav svg{width:14px;height:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-grid .dh{font-size:11px;color:var(--text-3);padding:5px 0}
+.cal-grid .dd{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;font-size:13px;border:1px solid transparent}
+.cal-grid .dd:hover{border-color:var(--stroke-2)}
+.cal-grid .dd.today{background:var(--accent);color:var(--accent-text);font-weight:600}
+.cal-grid .dd.sel{border-color:var(--accent)}
+#panel-quick{right:10px;bottom:60px;width:364px;padding:20px}
+.qs-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px}
+.qs-t{height:52px;border-radius:6px;border:1px solid var(--stroke-2);background:rgba(255,255,255,.05);color:var(--text);display:flex;align-items:center;gap:11px;padding:0 15px;font:inherit;font-size:12.5px}
+.qs-t svg{width:18px;height:18px}
+.qs-t:hover{background:rgba(255,255,255,.09)}
+.qs-t.on{background:var(--accent);color:var(--accent-text);border-color:transparent;font-weight:600}
+.qs-row{display:flex;align-items:center;gap:13px;margin:15px 2px}
+.qs-row .i18{color:var(--text-2)}
+.qs-row input[type=range]{flex:1;accent-color:var(--accent)}
+.qs-row b{width:40px;font-size:12px;text-align:right;font-weight:400;color:var(--text-2)}
+
+/* ====== Menu ====== */
+.menu{position:absolute;background:rgba(38,40,45,.94);backdrop-filter:blur(26px);border:1px solid var(--stroke);border-radius:8px;padding:5px;min-width:230px;box-shadow:0 14px 40px rgba(0,0,0,.5);animation:menuin .13s ease-out;z-index:900}
+body.no-trans .menu{background:#27292d;backdrop-filter:none}
+@keyframes menuin{from{opacity:0;transform:scale(.97)}}
+.mi{display:flex;align-items:center;gap:11px;padding:8px 11px;border-radius:5px;font-size:13px;position:relative;cursor:default}
+.mi:hover{background:rgba(255,255,255,.09)}
+.mi .msub{margin-left:auto;color:var(--text-3)}
+.submenu{position:absolute;left:calc(100% + 6px);top:-5px;display:none;background:rgba(38,40,45,.94);backdrop-filter:blur(26px);border:1px solid var(--stroke);border-radius:8px;padding:5px;min-width:180px;box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.mi:hover>.submenu{display:block}
+.msep{height:1px;background:var(--stroke);margin:5px 8px}
+
+/* ====== Toast ====== */
+#toasts{position:absolute;right:14px;bottom:62px;z-index:950;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.toast{width:356px;background:rgba(40,42,47,.96);backdrop-filter:blur(22px);border:1px solid var(--stroke);border-radius:9px;padding:15px 17px;display:flex;gap:13px;box-shadow:0 12px 38px rgba(0,0,0,.55);animation:toastin .3s cubic-bezier(.2,.9,.25,1.1);cursor:default}
+@keyframes toastin{from{transform:translateX(30px);opacity:0}}
+.toast.out{transition:.25s;transform:translateX(30px);opacity:0}
+.toast .tt{font-size:13.5px;font-weight:600;margin-bottom:2px}
+.toast .tm{font-size:12.5px;color:var(--text-2);line-height:1.45}
+.toast .i24{margin-top:2px}
+
+/* ====== Windows ====== */
+#winlayer{position:absolute;inset:0;z-index:100;pointer-events:none}
+#winlayer .window{pointer-events:auto}
+.window{position:absolute;background:var(--bg);border:1px solid var(--stroke);border-radius:9px;box-shadow:0 26px 68px rgba(0,0,0,.6),0 5px 16px rgba(0,0,0,.4);display:flex;flex-direction:column;min-width:340px;min-height:180px;overflow:hidden;animation:winopen .16s ease-out}
+@keyframes winopen{from{opacity:0;transform:scale(.96)}}
+.window.minimized{display:none}
+.window.maxed{left:0!important;top:0!important;width:100%!important;height:calc(100% - var(--tb-h))!important;border-radius:0}
+.wtitle{height:36px;display:flex;align-items:center;gap:9px;padding-left:13px;flex:none}
+.wtitle .i16{opacity:.95}
+.wtitle .t{font-size:12px;color:var(--text-2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wctrl{display:flex;align-self:stretch}
+.wctrl button{width:46px;border:0;background:none;color:var(--text-2);display:grid;place-items:center;padding:0}
+.wctrl button:hover{background:rgba(255,255,255,.09);color:#fff}
+.wctrl .close:hover{background:#c42b1c}
+.wctrl svg{width:11px;height:11px}
+.wbody{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+
+/* ====== Controls ====== */
+.btn{font:inherit;font-size:13px;padding:8px 20px;border-radius:5px;border:1px solid var(--stroke-2);background:rgba(255,255,255,.06);color:var(--text)}
+.btn:hover{background:rgba(255,255,255,.11)}
+.btn:active{transform:scale(.985);opacity:.85}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-text);font-weight:600}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.35;pointer-events:none}
+input[type=text],input:not([type]),select{background:rgba(255,255,255,.05);border:1px solid var(--stroke-2);border-radius:5px;padding:7px 11px;color:var(--text);font:inherit;font-size:13px;outline:0}
+input:focus,select:focus{border-color:var(--accent)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+input[type=range]{accent-color:var(--accent)}
+input:disabled{opacity:.45}
+.field{margin-bottom:16px}
+.field>label{display:block;font-size:12px;color:var(--text-3);margin-bottom:7px}
+.inrow{display:flex;gap:8px}
+.inrow input{flex:1;min-width:0}
+.link{color:var(--accent);text-decoration:none}
+.link:hover{text-decoration:underline}
+.iw-modal{position:absolute;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:30;animation:winopen .15s}
+.iw-card{width:min(440px,90%);background:var(--surface);border:1px solid var(--stroke-2);border-radius:9px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.iw-card h3{font-size:16px;margin-bottom:8px}
+.iw-card p{font-size:13px;color:var(--text-2);line-height:1.55}
+.iw-card .acts{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.colorpop{position:absolute;top:38px;left:0;background:var(--surface);border:1px solid var(--stroke-2);border-radius:7px;padding:9px;display:none;grid-template-columns:repeat(4,18px);gap:7px;z-index:40;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.colorpop.open{display:grid}
+.colorpop i{width:18px;height:18px;border-radius:4px;border:1px solid rgba(255,255,255,.2);cursor:default}
+
+/* ====== Dialog pilih folder ====== */
+.bf-card{width:min(560px,94%);background:var(--surface);border:1px solid var(--stroke-2);border-radius:9px;box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden;display:flex;flex-direction:column;animation:winopen .15s}
+.bf-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--stroke)}
+.bf-head .i18{color:#e9a83b}
+.bf-tree{height:300px;overflow:auto;padding:8px;background:rgba(0,0,0,.18)}
+.bf-row{display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:5px;font-size:13px;cursor:default;color:var(--text)}
+.bf-row:hover{background:rgba(255,255,255,.06)}
+.bf-row.sel{background:var(--accent-t);box-shadow:inset 0 0 0 1px var(--accent)}
+.bf-tw{width:18px;height:18px;border:0;background:none;color:var(--text-3);display:grid;place-items:center;flex:none;border-radius:4px;padding:0}
+.bf-tw:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.bf-tw svg{width:12px;height:12px}
+.bf-row .i16{opacity:.9}
+.bf-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-kids{margin-left:15px;border-left:1px solid var(--stroke);padding-left:2px}
+.bf-rename{width:150px;height:22px;padding:1px 6px;font-size:12.5px;border-radius:4px;border:1px solid var(--accent);background:rgba(255,255,255,.06);color:var(--text);outline:0;font-family:inherit}
+.bf-foot{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--stroke);background:rgba(255,255,255,.028)}
+.bf-cur{flex:1;font-size:12px;color:var(--text-2);font-family:'JetBrains Mono',Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bf-free{font-size:11.5px;color:var(--text-3);flex:none}
+.bf-acts{display:flex;justify-content:flex-end;gap:9px;padding:12px 16px;border-top:1px solid var(--stroke)}
+
+/* ====== UAC ====== */
+#uac{position:absolute;inset:0;z-index:2100;display:grid;place-items:center;background:rgba(0,0,0,0);transition:background .18s}
+#uac.show{background:rgba(0,0,0,.55)}
+.uac-wrap{transform:scale(.97);opacity:0;transition:.18s}
+#uac.show .uac-wrap{transform:none;opacity:1}
+.uac-cap{color:#cfd6dd;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:9px;margin:0 2px 9px}
+.uac-cap .i16{color:#9fb6c8}
+.uac-box{width:470px;background:#2b2b2b;border:1px solid rgba(255,255,255,.2);border-radius:8px;box-shadow:0 34px 90px rgba(0,0,0,.7);overflow:hidden}
+.uac-body{padding:20px 24px 22px}
+.uac-body .q{font-size:14px;line-height:1.5;margin-bottom:18px}
+.uac-prog{display:flex;gap:14px;align-items:center;margin-bottom:20px}
+.uac-prog .i40{filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.uac-prog .pn{font-size:14.5px;font-weight:600}
+.uac-prog .pp{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.uac-src{font-size:12px;color:var(--text-3);margin-bottom:22px}
+.uac-acts{display:flex;justify-content:flex-end;gap:9px}
+
+/* ====== Veil ====== */
+#veil{position:absolute;inset:0;z-index:3000;background:#000;display:grid;place-items:center;opacity:0;transition:opacity .3s}
+#veil.show{opacity:1}
+#uac[hidden],#veil[hidden]{display:none!important}
+.veil-c{display:flex;flex-direction:column;align-items:center;gap:34px;color:#e8e8e8}
+.veil-c .vlogo{width:84px;height:84px}
+.dots{position:relative;width:40px;height:40px}
+.dots i{position:absolute;left:50%;top:0;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#fff;transform-origin:2.5px 20px;animation:orbit 2s cubic-bezier(.45,.1,.55,.9) infinite}
+.dots i:nth-child(2){animation-delay:-.13s}.dots i:nth-child(3){animation-delay:-.26s}
+.dots i:nth-child(4){animation-delay:-.39s}.dots i:nth-child(5){animation-delay:-.52s}
+@keyframes orbit{to{transform:rotate(360deg)}}
+.vmsg{font-size:14px;color:#c9c9c9}
+.pwr-big{width:76px;height:76px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:none;color:#fff;display:grid;place-items:center}
+.pwr-big:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+.pwr-big svg{width:30px;height:30px}
+#veil.sleep{cursor:pointer}
+
+/* ====== Installer ====== */
+.iz{flex:1;min-height:0;display:flex;flex-direction:column}
+.iz-head{display:flex;gap:15px;align-items:center;padding:24px 28px 18px;border-bottom:1px solid var(--stroke)}
+.iz-head .i40{filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.iz-head h2{font-size:19px;font-weight:600}
+.iz-head .sub{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.iz-body{flex:1;overflow:auto;padding:20px 28px}
+.iz-foot{display:flex;align-items:center;padding:15px 28px;border-top:1px solid var(--stroke);background:rgba(255,255,255,.028)}
+.iz-foot .l{font-size:12px;color:var(--text-3);flex:1}
+.iz-foot .r{display:flex;gap:9px}
+/* -- stepper wizard -- */
+.wz-steps{display:flex;gap:4px;padding:14px 26px 12px;border-bottom:1px solid var(--stroke);flex:none}
+.wz-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.wz-step .dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.07);color:var(--text-3);flex:none}
+.wz-step.done .dot{background:rgba(108,203,95,.16);color:var(--ok)}
+.wz-step.cur .dot{background:var(--accent);color:var(--accent-text)}
+.wz-step.done .dot svg{width:13px;height:13px}
+.wz-step .sl{font-size:10.5px;color:var(--text-3);text-align:center;line-height:1.25}
+.wz-step.cur .sl{color:var(--text);font-weight:600}
+.wz-pane{animation:wzF .24s ease-out}
+.wz-pane.back{animation:wzB .24s ease-out}
+@keyframes wzF{from{opacity:0;transform:translateX(18px)}}
+@keyframes wzB{from{opacity:0;transform:translateX(-18px)}}
+.wz-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:22px 20px 8px;gap:13px}
+.wz-hero h2{font-size:20px;font-weight:600}
+.wz-hero p{font-size:13px;color:var(--text-2);max-width:470px;line-height:1.65}
+.wz-facts{display:flex;gap:30px;margin-top:10px}
+.wz-facts .f{display:flex;flex-direction:column;gap:4px}
+.wz-facts .fk{font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px}
+.wz-facts .fv{font-size:13px}
+.wz-eula{height:230px;overflow:auto;border:1px solid var(--stroke);border-radius:7px;background:rgba(0,0,0,.28);padding:14px 16px;font-size:12.5px;color:var(--text-2);line-height:1.6}
+.wz-agree{display:flex;gap:10px;align-items:center;font-size:13px;margin-top:12px}
+.wz-hint{font-size:11.5px;color:var(--text-3);margin:7px 2px 0}
+.wz-hint-err{font-size:11.5px;color:var(--err);margin:7px 2px 0;min-height:15px}
+.wz-lead{font-size:13px;color:var(--text-2);margin-bottom:12px}
+/* -- elemen wizard lain -- */
+.rrow{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border:1px solid var(--stroke-2);border-radius:6px;margin-bottom:8px;cursor:default}
+.rrow:hover{background:rgba(255,255,255,.04)}
+.rrow.on{border-color:var(--accent);background:var(--accent-t)}
+.rrow .rad{width:18px;height:18px;border-radius:50%;border:1.6px solid var(--text-3);margin-top:1px;flex:none;display:grid;place-items:center}
+.rrow.on .rad{border-color:var(--accent)}
+.rrow.on .rad::after{content:'';width:9px;height:9px;border-radius:50%;background:var(--accent)}
+.rrow b{font-size:13.5px;display:block}
+.rrow span{font-size:12px;color:var(--text-2)}
+.app-pick{display:flex;align-items:center;gap:11px;padding:7px 10px;border-radius:6px}
+.app-pick:hover{background:rgba(255,255,255,.04)}
+.app-pick .i32{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.app-pick b{font-size:13px;flex:1}
+.sw{width:40px;height:21px;border-radius:11px;background:rgba(255,255,255,.25);position:relative;transition:.15s;border:0;flex:none;cursor:default}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:var(--accent)}
+.sw.on::after{left:22px}
+/* -- progres -- */
+.pg-top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px}
+.pg-top h3{font-size:15px;font-weight:600}
+.pg-pct{font-size:32px;font-weight:250;line-height:1;color:var(--text)}
+.pg-meta{font-size:12px;color:var(--text-3);margin-bottom:12px}
+.pg-meta b{color:var(--text-2);font-weight:400}
+.pg-bar{height:6px;background:rgba(255,255,255,.13);border-radius:3px;overflow:hidden;margin-bottom:20px}
+.pg-fill{height:100%;width:0;background:var(--accent);border-radius:3px}
+.comps{display:grid;grid-template-columns:1fr 1fr;gap:1px 26px;margin-bottom:16px}
+.comp{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-3);padding:5px 0}
+.comp.run{color:var(--text)}
+.comp.done{color:var(--text-2)}
+.comp b{font-weight:400}
+.cst{width:17px;height:17px;display:grid;place-items:center;flex:none}
+.cst.w::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--text-3)}
+.cst.r{border:2px solid rgba(255,255,255,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cst.d{color:var(--ok)}
+.cst.d svg{width:15px;height:15px}
+.logwrap{border:1px solid var(--stroke);border-radius:7px;overflow:hidden}
+.loghead{display:flex;align-items:center;gap:9px;padding:8px 13px;background:rgba(255,255,255,.04);font-size:12px;color:var(--text-2);cursor:default}
+.loghead .lg{flex:1}
+.logbox{height:148px;overflow:auto;background:rgba(0,0,0,.4);padding:9px 13px;font-family:'JetBrains Mono',Consolas,monospace;font-size:11.5px;line-height:1.75;color:#b7c4cd}
+.logbox .ts{color:#63707c;margin-right:9px}
+.logbox .okk{color:var(--ok)}
+.logbox .errl{color:var(--err)}
+.logwrap.collapsed .logbox{display:none}
+.loghead .i16{transition:.2s}
+.logwrap.collapsed .loghead .i16{transform:rotate(180deg)}
+.done-c{display:flex;flex-direction:column;align-items:center;padding:34px 20px 20px;text-align:center;overflow:auto}
+.done-c h2{font-size:21px;font-weight:600;margin:20px 0 8px}
+.done-c p{font-size:13px;color:var(--text-2);max-width:420px;line-height:1.6}
+.bigcheck{width:74px;height:74px}
+.bigcheck circle{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:220;stroke-dashoffset:220;animation:dash .7s .1s ease-out forwards}
+.bigcheck path{fill:none;stroke:var(--ok);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:dash .45s .65s ease-out forwards}
+@keyframes dash{to{stroke-dashoffset:0}}
+.sumcard{width:100%;max-width:470px;margin-top:22px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);border-radius:8px;padding:15px 19px;text-align:left}
+.sumcard .row{display:flex;justify-content:space-between;font-size:12.5px;padding:3.5px 0}
+.sumcard .row span{color:var(--text-3)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px;justify-content:center}
+.chip{display:flex;align-items:center;gap:7px;font-size:12px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);padding:5px 12px 5px 8px;border-radius:20px}
+.chip .i18{filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+
+/* ====== Explorer ====== */
+.ex{flex:1;min-height:0;display:flex;flex-direction:column}
+.ex-tools{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--stroke)}
+.ex-tools .nav{width:32px;height:30px;border:0;border-radius:5px;background:none;color:var(--text-2);display:grid;place-items:center}
+.ex-tools .nav:hover{background:rgba(255,255,255,.09)}
+.ex-tools .nav svg{width:15px;height:15px}
+.crumb{flex:1;display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.05);border:1px solid var(--stroke-2);border-radius:5px;padding:5px 12px;font-size:12.5px;color:var(--text-2);min-width:0}
+.crumb svg{width:11px;height:11px;color:var(--text-3)}
+.ex-search{width:170px}
+.ex-main{flex:1;display:flex;min-height:0}
+.ex-side{width:172px;flex:none;border-right:1px solid var(--stroke);padding:9px 6px;overflow:auto}
+.ex-side .si{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;color:var(--text-2);font:inherit;font-size:12.5px;padding:7px 11px;border-radius:5px;text-align:left}
+.ex-side .si svg{width:16px;height:16px}
+.ex-side .si:hover{background:rgba(255,255,255,.06)}
+.ex-side .si.on{background:rgba(255,255,255,.09);color:var(--text)}
+.ex-grid{flex:1;overflow:auto;padding:16px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px;position:relative}
+.exi{width:96px;padding:11px 6px 9px;border-radius:6px;display:flex;flex-direction:column;align-items:center;gap:8px;border:1px solid transparent}
+.exi:hover{background:rgba(255,255,255,.06)}
+.exi.sel{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28)}
+.exi .i48,.exi .i40{filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.exi .lbl{font-size:11.5px;text-align:center;line-height:1.3;color:var(--text)}
+.exi img{width:46px;height:38px;object-fit:cover;border-radius:3px}
+.ex-status{padding:6px 14px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-3)}
+.ex-empty{color:var(--text-3);font-size:13px}
+.drive{width:100%;display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:6px}
+.drive:hover{background:rgba(255,255,255,.05)}
+.drive .dbar{flex:1;height:5px;background:rgba(255,255,255,.14);border-radius:3px;overflow:hidden}
+.drive .dbar i{display:block;height:100%;background:var(--accent)}
+
+/* ====== Terminal ====== */
+.term{flex:1;background:#0c0c0c;font-family:'JetBrains Mono',Consolas,monospace;font-size:12.5px;line-height:1.6;padding:10px 14px;overflow:auto;user-select:text;cursor:text}
+.term .p{color:#4cc2ff}
+.tline{display:flex;gap:8px;align-items:baseline}
+.tline input{flex:1;background:none;border:0;outline:0;color:#e8e8e8;font:inherit;padding:0}
+.term .o{color:#ccc;white-space:pre-wrap;word-break:break-all}
+
+/* ====== Settings ====== */
+.se{flex:1;overflow:auto;padding:26px 34px}
+.se h1{font-size:26px;font-weight:600;margin-bottom:4px}
+.se .sub2{color:var(--text-2);font-size:13px;margin-bottom:26px}
+.se h4{font-size:13.5px;font-weight:600;margin:22px 0 12px}
+.swatches{display:flex;gap:11px}
+.swat{width:34px;height:34px;border-radius:7px;border:2px solid transparent;padding:0}
+.swat:hover{transform:scale(1.08)}
+.swat.on{border-color:#fff}
+.wallrow{display:flex;gap:13px;flex-wrap:wrap}
+.wallth{border:2px solid transparent;border-radius:8px;padding:0;overflow:hidden;background:none;line-height:0}
+.wallth.on{border-color:var(--accent)}
+.wallth canvas{width:150px;height:94px;display:block}
+.togrow{display:flex;align-items:center;gap:13px;font-size:13px;padding:10px 0}
+
+/* ====== Notepad ====== */
+.np{flex:1;min-height:0;display:flex;flex-direction:column}
+.np-menu{display:flex;gap:4px;padding:6px 10px;border-bottom:1px solid var(--stroke)}
+.np-menu button{font:inherit;font-size:12.5px;border:0;background:none;color:var(--text-2);padding:5px 12px;border-radius:5px}
+.np-menu button:hover{background:rgba(255,255,255,.08)}
+.np-body{flex:1;overflow:auto;background:#1e1e1e}
+.np-body>div{min-height:100%;padding:14px 18px;font-family:Consolas,'JetBrains Mono',monospace;font-size:13.5px;line-height:1.55;white-space:pre-wrap;outline:0;color:#e6e6e6}
+.np-stat{padding:5px 12px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-3)}
+
+/* ====== Word ====== */
+.wd{flex:1;min-height:0;display:flex;flex-direction:column}
+.wd-qa{display:flex;align-items:center;gap:9px;padding:6px 13px;border-bottom:1px solid var(--stroke);font-size:12px;color:var(--text-3)}
+.wd-qa .sv{border:0;background:none;color:var(--text-2);width:30px;height:28px;border-radius:5px;display:grid;place-items:center}
+.wd-qa .sv:hover{background:rgba(255,255,255,.09)}
+.wd-qa .sv svg{width:14px;height:14px}
+.wd-tab{padding:5px 13px 0}
+.wd-tab .tab{font-size:12.5px;color:var(--text-2);display:inline-block;padding:7px 15px;border-radius:6px 6px 0 0;background:rgba(255,255,255,.06)}
+.wd-rib{display:flex;gap:20px;align-items:center;padding:8px 13px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03);flex-wrap:wrap}
+.rgroup{display:flex;align-items:center;gap:3px;padding-right:18px;border-right:1px solid var(--stroke)}
+.rgroup:last-child{border-right:0}
+.rb{min-width:30px;height:30px;border:0;border-radius:5px;background:none;color:var(--text);display:grid;place-items:center;padding:0 6px;font:inherit;font-size:13px}
+.rb:hover{background:rgba(255,255,255,.1)}
+.rb.act{background:var(--accent-t);color:var(--accent)}
+.rb svg{width:16px;height:16px}
+.rb.b{font-weight:800}.rb.i{font-style:italic;font-family:Georgia,serif}.rb.u{text-decoration:underline}.rb.s{text-decoration:line-through}
+.rb .cbar{display:block;width:14px;height:3px;background:#d18f00;margin-top:1px}
+select.rb{width:auto;height:30px;padding:0 8px;font-size:12.5px}
+.wd-wrap{flex:1;overflow:auto;background:#2a2a2a;display:flex;justify-content:center;padding:26px 14px}
+.wd-page{width:640px;min-height:830px;background:#fff;color:#1a1a1a;padding:76px 84px;outline:0;box-shadow:0 3px 18px rgba(0,0,0,.4);line-height:1.6;font-size:12px}
+.wd-page:empty::before{content:'Mulai mengetik di dokumen…';color:#9b9b9b}
+.wd-page h1{color:#1f3b73}.wd-page h2{color:#1f3b73}
+.wd-stat{display:flex;gap:18px;padding:6px 16px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-3)}
+.wd-stat .sp{flex:1}
+
+/* ====== Excel ====== */
+.xl{flex:1;min-height:0;display:flex;flex-direction:column}
+.xl-rib{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03)}
+.xl-fx{display:flex;align-items:center;gap:9px;padding:5px 8px;border-bottom:1px solid var(--stroke)}
+.xl-name{width:74px;text-align:center;font-size:12px;background:rgba(255,255,255,.05);border:1px solid var(--stroke-2);border-radius:4px;padding:4px 6px;color:var(--text-2)}
+.xl-fx .fx{font-size:12px;font-style:italic;color:var(--text-3);font-family:Georgia,serif}
+.xl-fx input{flex:1;font-family:'JetBrains Mono',Consolas,monospace;font-size:12.5px}
+.xl-grid{flex:1;overflow:auto;outline:0}
+.xl-row{display:flex;width:max-content}
+.xl-h,.xl-rh{flex:none;background:rgba(255,255,255,.055);border-right:1px solid var(--stroke);border-bottom:1px solid var(--stroke);font-size:11px;color:var(--text-3);display:flex;align-items:center;justify-content:center}
+.xl-h{width:92px;height:22px}
+.xl-rh{width:42px}
+.xl-rh.hl,.xl-h.hl{background:var(--accent-t);color:var(--accent)}
+.xl-c{flex:none;width:92px;height:26px;border-right:1px solid rgba(255,255,255,.055);border-bottom:1px solid rgba(255,255,255,.055);padding:0 6px;font-size:12.5px;display:flex;align-items:center;overflow:hidden;white-space:nowrap}
+.xl-c.num{justify-content:flex-end}
+.xl-c.cur{box-shadow:inset 0 0 0 1.5px var(--accent);background:rgba(255,255,255,.02)}
+.xl-c.edit{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1.5px #fff}
+.xl-c.errc{color:var(--err)}
+.xl-stat{display:flex;gap:16px;padding:6px 14px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-3)}
+.xl-sheets{display:flex;gap:4px;flex:1}
+.xl-sheets span{font-size:11.5px;padding:3px 12px;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:3px 3px 0 0;border-bottom:0;margin-bottom:-6px}
+
+/* ====== PowerPoint ====== */
+.pp{flex:1;min-height:0;display:flex;flex-direction:column}
+.pp-rib{display:flex;align-items:center;gap:6px;padding:7px 13px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03)}
+.pp-main{flex:1;display:flex;min-height:0}
+.pp-side{width:150px;flex:none;border-right:1px solid var(--stroke);overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.pp-th{width:102px;height:58px;border:2px solid transparent;border-radius:4px;overflow:hidden;background:none;padding:0;line-height:0}
+.pp-th.on{border-color:var(--accent)}
+.pp-th .in{width:256px;height:144px;transform:scale(.375);transform-origin:0 0;background:#fff;color:#222;font-size:30px;line-height:1.25;padding:26px 28px;text-align:left;overflow:hidden}
+.pp-th .in h1{font-size:56px;color:#b7472a;margin:0 0 14px}
+.pp-th .in h2{font-size:44px;color:#b7472a;margin:0 0 10px}
+.pp-th .in p{margin:0 0 10px}
+.pp-th .in li{margin:6px 0 6px 36px}
+.pp-add{width:102px;height:58px;border:1px dashed var(--stroke-2);border-radius:4px;background:none;color:var(--text-3);display:grid;place-items:center}
+.pp-add:hover{background:rgba(255,255,255,.05)}
+.pp-add svg{width:15px;height:15px}
+.pp-stage{flex:1;display:grid;place-items:center;padding:22px;background:#1c1c1c;overflow:auto}
+.pp-slide{width:min(100%,760px);aspect-ratio:16/9;background:#fff;color:#222;outline:0;padding:40px 48px;box-shadow:0 4px 24px rgba(0,0,0,.5);overflow:auto}
+.pp-slide h1{font-size:26px;color:#b7472a;margin:0 0 12px}
+.pp-slide h2{font-size:20px;color:#b7472a;margin:0 0 10px}
+.pp-slide p{margin:0 0 12px}
+.pp-slide li{margin:5px 0 5px 18px}
+.pp-slide:empty::before{content:'Klik untuk menambahkan teks';color:#aaa}
+.pp-notes{border-top:1px solid var(--stroke);padding:9px 16px;font-size:12px;color:var(--text-3)}
+.pp-notes [contenteditable]{color:var(--text-2);outline:0}
+.pp-notes [contenteditable]:empty::before{content:'Klik untuk menambahkan catatan';}
+
+/* ====== Outlook ====== */
+.ol{flex:1;min-height:0;display:flex;flex-direction:column}
+.ol-rib{display:flex;gap:8px;padding:9px 14px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03)}
+.ol-main{flex:1;display:flex;min-height:0}
+.ol-side{width:170px;flex:none;border-right:1px solid var(--stroke);padding:11px 7px}
+.ol-fi{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:var(--text-2);font:inherit;font-size:13px;padding:8px 12px;border-radius:5px;text-align:left}
+.ol-fi svg{width:15px;height:15px}
+.ol-fi:hover{background:rgba(255,255,255,.06)}
+.ol-fi.on{background:rgba(255,255,255,.09);color:var(--text)}
+.ol-fi b{margin-left:auto;font-weight:400;font-size:11.5px;color:var(--text-3)}
+.ol-list{width:300px;flex:none;border-right:1px solid var(--stroke);overflow:auto}
+.ol-mail{padding:12px 16px;border-bottom:1px solid var(--stroke);border-left:3px solid transparent;cursor:default}
+.ol-mail:hover{background:rgba(255,255,255,.04)}
+.ol-mail.sel{background:rgba(255,255,255,.06);border-left-color:var(--accent)}
+.ol-mail .r1{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px}
+.ol-mail .frm{font-weight:600}
+.ol-mail .tm{color:var(--text-3);font-size:11.5px}
+.ol-mail .sj{font-size:12.5px;margin-bottom:3px}
+.ol-mail .pv{font-size:11.5px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ol-mail.unread .sj{font-weight:700}
+.ol-read{flex:1;overflow:auto;padding:26px 32px}
+.ol-read h2{font-size:18px;margin-bottom:14px;font-weight:600}
+.ol-read .meta{font-size:12.5px;color:var(--text-2);padding-bottom:14px;border-bottom:1px solid var(--stroke);margin-bottom:18px;line-height:1.7}
+.ol-read .bd{font-size:13.5px;line-height:1.75;color:var(--text)}
+.ol-comp{display:flex;flex-direction:column;gap:10px;min-height:100%;padding:18px 22px}
+.ol-comp .frow2{display:flex;gap:11px;align-items:center}
+.ol-comp .frow2 label{width:64px;font-size:12px;color:var(--text-3);flex:none}
+.ol-comp input{flex:1}
+.ol-comp [contenteditable]{flex:1;min-height:120px;background:rgba(255,255,255,.03);border:1px solid var(--stroke-2);border-radius:6px;padding:13px 15px;font-size:13.5px;line-height:1.6;outline:0}
+.ol-comp .acts2{display:flex;gap:9px;justify-content:flex-end}
+
+/* ====== OneNote / Photos ====== */
+.onenote{flex:1;overflow:auto;padding:30px 40px;background:#252528}
+.onenote .nt-side{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--text-3);margin-bottom:20px}
+.onenote h2{font-size:24px;outline:0;margin-bottom:4px;font-weight:600;min-height:32px}
+.onenote .dt{font-size:11.5px;color:var(--text-3);margin-bottom:18px}
+.onenote .bd{min-height:300px;outline:0;font-size:13.5px;line-height:1.8;color:var(--text)}
+.onenote .bd:empty::before{content:'Mulai menulis catatan…';color:var(--text-3)}
+.ph{flex:1;min-height:0;display:flex;flex-direction:column}
+.ph-img{flex:1;display:grid;place-items:center;background:#191919;overflow:hidden;padding:20px}
+.ph-img img{max-width:100%;max-height:100%;box-shadow:0 4px 24px rgba(0,0,0,.5);background:#333}
+.ph-cap{padding:10px 18px;border-top:1px solid var(--stroke);font-size:12.5px;color:var(--text-2);display:flex;justify-content:space-between}
+
+/* ====== CorelDRAW ====== */
+.cd{flex:1;min-height:0;display:flex;flex-direction:column}
+.cd-top{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03);flex-wrap:wrap}
+.cd-lab{font-size:11.5px;color:var(--text-3)}
+.cd-vsep{width:1px;height:22px;background:var(--stroke);margin:0 4px}
+.cd-hint{font-size:11.5px;color:var(--text-3);margin-left:auto}
+.cd-tools{width:46px;flex:none;border-right:1px solid var(--stroke);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:3px}
+.cdt{width:36px;height:34px;border:0;border-radius:5px;background:none;color:var(--text-2);display:grid;place-items:center}
+.cdt:hover{background:rgba(255,255,255,.09);color:var(--text)}
+.cdt.on{background:var(--accent-t);color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cdt svg{width:17px;height:17px}
+.cdtb{min-width:30px;height:30px;border:0;border-radius:5px;background:none;color:var(--text-2);display:grid;place-items:center;padding:0 6px}
+.cdtb:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.cdtb svg{width:15px;height:15px}
+.cd-main{flex:1;display:flex;min-height:0}
+.cd-canvas{flex:1;position:relative;background:#7e8388;overflow:hidden}
+.cd-page{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64%;height:80%;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.35)}
+.cd-canvas svg{position:absolute;inset:0;width:100%;height:100%}
+.cd-stat{display:flex;gap:14px;padding:6px 14px;border-top:1px solid var(--stroke);font-size:11.5px;color:var(--text-3)}
+.cd-spm{flex:1;text-align:center}
+.cd-swatch{width:26px;height:26px;border-radius:5px;border:1px solid var(--stroke-2);cursor:default;padding:0}
+.cd-textin{position:absolute;z-index:6;background:#fff;color:#111;border:1px solid var(--accent);outline:0;font:13px 'Segoe UI',sans-serif;padding:2px 6px;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="os">
+  <canvas id="wallpaper"></canvas>
+  <div id="brightness"></div>
+  <div id="desktop">
+    <div id="dicons"></div>
+    <div id="band" hidden></div>
+  </div>
+  <div id="winlayer"></div>
+  <div id="toasts"></div>
+  <div id="taskbar">
+    <div class="tb-center">
+      <button class="tb-btn" id="btn-start" title="Mulai"></button>
+      <button class="tb-btn" id="btn-search" title="Pencarian"></button>
+      <div id="tb-apps"></div>
+    </div>
+    <div class="tb-right">
+      <button id="btn-tray" title="Pengaturan cepat"></button>
+      <button id="btn-clock"><span id="tb-time"></span><span id="tb-date"></span></button>
+    </div>
+  </div>
+  <div id="menu-layer"></div>
+  <div id="panel-start" class="panel"></div>
+  <div id="panel-cal" class="panel"></div>
+  <div id="panel-quick" class="panel"></div>
+  <div id="uac" hidden>
+    <div class="uac-wrap">
+      <div class="uac-cap"><span class="i16" id="uac-capic"></span>Pengguna Akun Kontrol</div>
+      <div class="uac-box"><div class="uac-body">
+        <div class="q">Apakah Anda ingin mengizinkan aplikasi ini membuat perubahan pada perangkat Anda?</div>
+        <div class="uac-prog">
+          <span class="i40" id="uac-ic"></span>
+          <div>
+            <div class="pn" id="uac-pn">Microsoft Office Setup</div>
+            <div class="pp" id="uac-pp">Penerbit: Microsoft Corporation</div>
+          </div>
+        </div>
+        <div class="uac-src">Sumber file: Hard disk pada komputer ini</div>
+        <div class="uac-acts">
+          <button class="btn" id="uac-no">Tidak</button>
+          <button class="btn primary" id="uac-yes">Ya</button>
+        </div>
+      </div></div>
+    </div>
+  </div>
+  <div id="veil" hidden></div>
+</div>
+
+<script>
+'use strict';
+/* ============ Util ============ */
+function $(s){return document.querySelector(s)}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+function h(tag,props){
+  var e=document.createElement(tag);
+  props=props||{};
+  for(var k in props){
+    var v=props[k];
+    if(k==='class')e.className=v;
+    else if(k==='html')e.innerHTML=v;
+    else if(k==='style')Object.assign(e.style,v);
+    else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);
+    else if(v!==false&&v!==null&&v!==undefined)e.setAttribute(k,v);
+  }
+  for(var i=2;i<arguments.length;i++){
+    var c=arguments[i];
+    if(c===null||c===undefined||c===false)continue;
+    if(Array.isArray(c)){
+      for(var j=0;j<c.length;j++){
+        var x=c[j];
+        if(x===null||x===undefined||x===false)continue;
+        e.append(x.nodeType?x:document.createTextNode(x));
+      }
+    }else e.append(c.nodeType?c:document.createTextNode(c));
+  }
+  return e;
+}
+function clamp(v,a,b){return Math.min(Math.max(v,a),b)}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hexA(hex,a){var n=parseInt(hex.slice(1),16);return'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'}
+
+/* ============ Ikon ============ */
+function ic(inner,fill){
+  return '<svg viewBox="0 0 24 24" fill="'+(fill?'currentColor':'none')+'" stroke="'+(fill?'none':'currentColor')+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+inner+'</svg>';
+}
+var IC={
+  win:function(){return ic('<rect x="3.2" y="3.2" width="8.2" height="8.2" rx="1"/><rect x="12.6" y="3.2" width="8.2" height="8.2" rx="1"/><rect x="3.2" y="12.6" width="8.2" height="8.2" rx="1"/><rect x="12.6" y="12.6" width="8.2" height="8.2" rx="1"/>',true)},
+  search:function(){return ic('<circle cx="11" cy="11" r="6.4"/><path d="M15.8 15.8L21 21"/>')},
+  folder:function(){return '<svg viewBox="0 0 24 24"><path d="M2.5 7c0-1.1.9-2 2-2h4.4l1.9 2.1h8.7c1.1 0 2 .9 2 2v9.4c0 1.1-.9 2-2 2H4.5c-1.1 0-2-.9-2-2z" fill="#e9a83b"/><path d="M2.5 10.6h19v6.9c0 1.1-.9 2-2 2H4.5c-1.1 0-2-.9-2-2z" fill="#ffce5c"/></svg>'},
+  trash:function(){return ic('<path d="M4 7h16"/><path d="M9.5 7V4.8c0-.4.4-.8.8-.8h3.4c.4 0 .8.4.8.8V7"/><path d="M6.2 7l.7 12.3c.1.9.8 1.7 1.7 1.7h6.8c.9 0 1.6-.8 1.7-1.7L17.8 7"/><path d="M10 11v6M14 11v6"/>')},
+  wifi:function(){return ic('<path d="M2.6 9.3a13.8 13.8 0 0 1 18.8 0"/><path d="M5.9 12.7a9 9 0 0 1 12.2 0"/><path d="M9.2 16a4.5 4.5 0 0 1 5.6 0"/><circle cx="12" cy="19.2" r="1.15" fill="currentColor" stroke="none"/>')},
+  globe:function(){return ic('<circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8M12 3.6c2.5 2.3 3.8 5.2 3.8 8.4s-1.3 6.1-3.8 8.4c-2.5-2.3-3.8-5.2-3.8-8.4s1.3-6.1 3.8-8.4z"/>')},
+  vol:function(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.4v5.2h3.4L12 18.8V5.2L7.4 9.4H4z" fill="currentColor" stroke="none"/><path d="M15.3 9.2a4.3 4.3 0 0 1 0 5.6"/><path d="M17.9 6.8a7.8 7.8 0 0 1 0 10.4"/></svg>'},
+  bt:function(){return ic('<path d="M7 7l10 9-5 5V2.5l5 4.5-10 9"/>')},
+  plane:function(){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.2 2.6h1.6c.4 0 .7.35.7.8V21c0 .5-.3.9-.8.9h-.8c-.5 0-.8-.4-.8-.9V3.4c0-.45.3-.8.7-.8z"/><path d="M12 9.8L21 14v2.2L12 13 3 16.2V14z"/><path d="M12 16l4 3.4v1.4l-4-1.4-4 1.4v-1.4z"/></svg>'},
+  batt:function(){return ic('<rect x="2" y="8" width="17" height="8" rx="2"/><path d="M21.5 10.5v3" stroke-width="2"/>')},
+  power:function(){return ic('<path d="M12 3v8"/><path d="M6.6 6.8a8 8 0 1 0 10.8 0"/>')},
+  moon:function(){return ic('<path d="M20 13.6A8 8 0 1 1 10.4 4 6.4 6.4 0 0 0 20 13.6z"/>')},
+  restart:function(){return ic('<path d="M4.5 5.5v5h5"/><path d="M5.2 10.5a8 8 0 1 1-.7 3"/>')},
+  check:function(){return ic('<path d="M4.5 12.5l5 5 10-11"/>')},
+  chevD:function(){return ic('<path d="M6 9.5l6 6 6-6"/>')},
+  chevR:function(){return ic('<path d="M9.5 5.5l6.5 6.5-6.5 6.5"/>')},
+  chevL:function(){return ic('<path d="M14.5 5.5L8 12l6.5 6.5"/>')},
+  arrL:function(){return ic('<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>')},
+  arrR:function(){return ic('<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>')},
+  arrU:function(){return ic('<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>')},
+  refresh:function(){return ic('<path d="M20.5 4.5v5h-5"/><path d="M20 9.5A8.2 8.2 0 1 0 20.3 13"/>')},
+  close:function(){return ic('<path d="M5 5l14 14M19 5L5 19"/>')},
+  min:function(){return ic('<path d="M5 12h14"/>')},
+  max:function(){return ic('<rect x="5.5" y="5.5" width="13" height="13" rx="1.5"/>')},
+  restore:function(){return ic('<rect x="4.5" y="8" width="11" height="11" rx="1.5"/><path d="M8.5 8V5.5c0-.6.4-1 1-1H19c.6 0 1 .4 1 1v9.5c0 .6-.4 1-1 1h-2.5"/>')},
+  shield:function(){return '<svg viewBox="0 0 24 24"><path d="M12 2.5l7.6 2.9v5.2c0 4.9-3.2 8.7-7.6 10.4-4.4-1.7-7.6-5.5-7.6-10.4V5.4z" fill="currentColor"/></svg>'},
+  doc:function(){return ic('<path d="M13 2.5H6.5c-.6 0-1 .4-1 1v17c0 .6.4 1 1 1h11c.6 0 1-.4 1-1V8z"/><path d="M13 2.5V8h5.5"/><path d="M8.5 13h7M8.5 16.5h7M8.5 9.5h2"/>')},
+  imgf:function(){return ic('<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4.5 17.5l5-5 4 4 2.5-2.5 4.5 4.5"/>')},
+  monitor:function(){return ic('<rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M9 21h6M12 17v4"/>')},
+  disk:function(){return ic('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.3"/>')},
+  gear:function(){return ic('<circle cx="12" cy="12" r="3.1"/><path d="M12 2.8v2.4M12 18.8v2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M2.8 12h2.4M18.8 12h2.4M4.9 19.1l1.7-1.7M17.4 6.6l1.7-1.7"/>')},
+  notepad:function(){return ic('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7.5h6M9 11.5h6M9 15.5h4"/>')},
+  terminal:function(){return ic('<rect x="2.5" y="4" width="19" height="16" rx="2"/><path d="M6.5 9l3.5 3-3.5 3"/><path d="M12.5 15.5h5"/>')},
+  send:function(){return ic('<path d="M21 3L10.5 13.5"/><path d="M21 3l-6.8 18-3.7-7.5L3 9.8z"/>')},
+  mail:function(){return ic('<rect x="2.8" y="5" width="18.4" height="14" rx="2"/><path d="M3.5 6.5L12 13l8.5-6.5"/>')},
+  plus:function(){return ic('<path d="M12 5v14M5 12h14"/>')},
+  paint:function(){return ic('<path d="M14.5 4.5l5 5L9.2 19.8H4.2v-5z"/><path d="M12.5 6.5l5 5"/>')},
+  save:function(){return ic('<path d="M4.5 4.5v15h15v-11l-4-4z"/><path d="M8 19.5v-5.5h8v5.5"/><path d="M8 4.5v4h6"/>')},
+  undo:function(){return ic('<path d="M8 5L3.5 9.5 8 14"/><path d="M3.5 9.5H14.5a5.5 5.5 0 0 1 0 11h-4"/>')},
+  redo:function(){return ic('<path d="M16 5l4.5 4.5L16 14"/><path d="M20.5 9.5H9.5a5.5 5.5 0 0 0 0 11h4"/>')},
+  alignL:function(){return ic('<path d="M4 6.5h16M4 10.5h10M4 14.5h16M4 18.5h10"/>')},
+  alignC:function(){return ic('<path d="M4 6.5h16M7 10.5h10M4 14.5h16M7 18.5h10"/>')},
+  alignR:function(){return ic('<path d="M4 6.5h16M10 10.5h10M4 14.5h16M10 18.5h10"/>')},
+  alignJ:function(){return ic('<path d="M4 6.5h16M4 10.5h16M4 14.5h16M4 18.5h16"/>')},
+  ulL:function(){return ic('<circle cx="4.5" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="17" r="1" fill="currentColor" stroke="none"/><path d="M9 7h11M9 12h11M9 17h11"/>')},
+  olL:function(){return ic('<path d="M8.5 6.5h11.5M8.5 12h11.5M8.5 17.5h11.5"/><path d="M3.5 6h2.8M4.9 6v3M3.2 11.2h3v2.8M3.2 14h3M3.5 16.5h2.5v3H3.5z"/>')},
+  sun:function(){return ic('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/>')},
+  info:function(){return ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/>')},
+  pick:function(){return ic('<path d="M5.5 2.5l13.5 10.7-5.8.9 3.1 6.4-2.7 1.3-3.1-6.5-5 3.9z"/>',true)},
+  rectT:function(){return ic('<rect x="3.5" y="6.5" width="17" height="11" rx="1"/>')},
+  ellT:function(){return ic('<ellipse cx="12" cy="12" rx="8.5" ry="6"/>')},
+  penT:function(){return ic('<path d="M4 20l1.2-4.2L16 5a2.2 2.2 0 0 1 3.1 3.1L8.3 18.9z"/><path d="M14.5 6.5l3 3"/>')},
+  textT:function(){return ic('<path d="M5 5.5h14"/><path d="M12 5.5v13"/><path d="M9 18.5h6"/>')},
+  copy:function(){return ic('<rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/>')},
+  front:function(){return ic('<rect x="3.5" y="8" width="12.5" height="12.5" rx="2"/><rect x="8" y="3.5" width="12.5" height="12.5" rx="2" fill="currentColor" stroke="none"/>')},
+  back:function(){return ic('<rect x="8" y="3.5" width="12.5" height="12.5" rx="2"/><rect x="3.5" y="8" width="12.5" height="12.5" rx="2" fill="currentColor" stroke="none"/>')}
+};
+function officeIcon(letter,dark,light){
+  return '<svg viewBox="0 0 48 48"><rect x="3" y="3" width="42" height="42" rx="9.5" fill="'+dark+'"/><path d="M46 15 L15 46 H37.5 Q46 46 46 37.5 Z" fill="'+light+'"/><text x="18.5" y="31.5" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="21" font-weight="700" fill="#fff">'+letter+'</text></svg>';
+}
+var OFF={
+  word:{icon:officeIcon('W','#185abd','#41a5ee')},
+  excel:{icon:officeIcon('X','#0e6e3a','#33c481')},
+  powerpoint:{icon:officeIcon('P','#c43e1c','#ed6c47')},
+  outlook:{icon:officeIcon('O','#0f5e9e','#28a8ea')},
+  onenote:{icon:officeIcon('N','#6b17a1','#b147d2')},
+  setup:{icon:officeIcon('O','#c23a00','#ff8c3b')}
+};
+function setupIcon(){
+  var inner=officeIcon('O','#c23a00','#ff8c3b');
+  inner=inner.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+  return '<svg viewBox="0 0 48 48">'+inner+'<path d="M39 33l6 2.2v4.1c0 3.9-2.5 6.9-6 8.4-3.5-1.5-6-4.5-6-8.4v-4.1z" fill="#ffca28" stroke="rgba(0,0,0,.35)" stroke-width="1"/></svg>';
+}
+function corelIcon(){
+  return '<svg viewBox="0 0 48 48">'+
+    '<rect x="3" y="3" width="42" height="42" rx="9.5" fill="#151b24"/>'+
+    '<circle cx="24" cy="24" r="13.5" fill="none" stroke="#9dc41f" stroke-width="4.2"/>'+
+    '<circle cx="24" cy="24" r="5.2" fill="#9dc41f"/></svg>';
+}
+function suiteBadge(letter,color){
+  return '<svg viewBox="0 0 24 24"><rect x="1" y="1" width="22" height="22" rx="5.5" fill="'+color+'"/><text x="12" y="16.6" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" font-weight="700" fill="#fff">'+letter+'</text></svg>';
+}
+function corelSetupIcon(){
+  var inner=corelIcon().replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+  return '<svg viewBox="0 0 48 48">'+inner+'<path d="M39 33l6 2.2v4.1c0 3.9-2.5 6.9-6 8.4-3.5-1.5-6-4.5-6-8.4v-4.1z" fill="#ffca28" stroke="rgba(0,0,0,.35)" stroke-width="1"/></svg>';
+}
+
+/* ============ State ============ */
+var S={installed:false,apps:{word:true,excel:true,powerpoint:true,outlook:true,onenote:true},
+       corel:false,corelLicense:'key',
+       officePath:'C:\\Program Files\\Microsoft Office',
+       corelPath:'C:\\Program Files\\Corel\\Corel Graphics Suite 2024',
+       wall:0,wifi:true,bt:false,plane:false,saver:false,vol:70,bright:100,accent:'#4cc2ff'};
+var APPS={
+  explorer:{id:'explorer',name:'Explorer',icon:IC.folder(),pinned:true,launch:function(){openExplorer('desktop')}},
+  notepad:{id:'notepad',name:'Notepad',icon:IC.notepad(),launch:function(){openNotepad(null)}},
+  terminal:{id:'terminal',name:'Terminal',icon:IC.terminal(),launch:function(){openTerminal()}},
+  settings:{id:'settings',name:'Pengaturan',icon:IC.gear(),launch:function(){openSettings()}},
+  word:{id:'word',name:'Word',icon:OFF.word.icon,full:'Microsoft Word',gate:'installed',launch:function(a){openWord(a)}},
+  excel:{id:'excel',name:'Excel',icon:OFF.excel.icon,full:'Microsoft Excel',gate:'installed',launch:function(a){openExcel(a)}},
+  powerpoint:{id:'powerpoint',name:'PowerPoint',icon:OFF.powerpoint.icon,full:'Microsoft PowerPoint',gate:'installed',launch:function(a){openPPT(a)}},
+  outlook:{id:'outlook',name:'Outlook',icon:OFF.outlook.icon,full:'Microsoft Outlook',gate:'installed',launch:function(){openOutlook()}},
+  onenote:{id:'onenote',name:'OneNote',icon:OFF.onenote.icon,full:'Microsoft OneNote',gate:'installed',launch:function(){openOneNote()}},
+  corel:{id:'corel',name:'CorelDRAW',icon:corelIcon(),full:'CorelDRAW Graphics Suite',gate:'corel',launch:function(){openCorel(null)}}
+};
+function appVisible(a){return !a.full||!!S[a.gate]}
+function launchApp(id){if(APPS[id])APPS[id].launch();closePanels();}
+
+/* ============ Wallpaper ============ */
+var WALLS=[
+  {bg:['#07202f','#020a12'],petals:['#1a86ff','#41b1ff','#74d0ff','#2e5cff','#8ee0ff','#4aa3ff'],glow:'#3fa9ff'},
+  {bg:['#032015','#02100a'],petals:['#0fae62','#2ed573','#7ff0a8','#0c9f8f','#b7ffd4','#1fc47f'],glow:'#2ed573'},
+  {bg:['#241102','#120802'],petals:['#ff7a1a','#ffa53d','#ffd28a','#e0551a','#ffe9b0','#ff9550'],glow:'#ffa53d'}
+];
+function drawPetal(ctx,pts,wid,col){
+  var SEG=pts.length-1,L=[],R=[],s,p0,p1,nx,ny,m,w;
+  for(s=0;s<=SEG;s++){
+    p0=pts[Math.max(0,s-1)];p1=pts[Math.min(SEG,s+1)];
+    nx=-(p1[1]-p0[1]);ny=p1[0]-p0[0];
+    m=Math.hypot(nx,ny)||1;nx/=m;ny/=m;
+    w=(wid*(1-(s/SEG)*.82)+1.6)/2;
+    L.push([pts[s][0]+nx*w,pts[s][1]+ny*w]);
+    R.push([pts[s][0]-nx*w,pts[s][1]-ny*w]);
+  }
+  ctx.beginPath();
+  ctx.moveTo(L[0][0],L[0][1]);
+  for(s=1;s<=SEG;s++)ctx.lineTo(L[s][0],L[s][1]);
+  for(s=SEG;s>=0;s--)ctx.lineTo(R[s][0],R[s][1]);
+  ctx.closePath();
+  ctx.fillStyle=hexA(col,.5);
+  ctx.shadowColor=col;ctx.shadowBlur=38;
+  ctx.fill();ctx.fill();
+}
+function drawWall(cv,variant){
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var W=cv.clientWidth||150,H=cv.clientHeight||94;
+  cv.width=W*dpr;cv.height=H*dpr;
+  var ctx=cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  var p=WALLS[variant];
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,p.bg[0]);g.addColorStop(1,p.bg[1]);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  var cx=W*.5,cy=H*.47,R=Math.min(W,H)*.36,rnd=mulberry32(7+variant*13);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  var i,ang,len,wid,swirl,pts,s,t,a,r;
+  for(i=0;i<7;i++){
+    ang=(i/7)*Math.PI*2-Math.PI/2+(rnd()-.5)*.55;
+    len=R*(.78+.3*rnd());wid=R*(.10+.09*rnd());swirl=1.9+rnd()*.9;
+    pts=[];
+    for(s=0;s<=64;s++){
+      t=s/64;a=ang+swirl*t;r=len*(1-t)+len*.05;
+      pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);
+    }
+    drawPetal(ctx,pts,wid,p.petals[i%p.petals.length]);
+  }
+  var cg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*.55);
+  cg.addColorStop(0,hexA(p.glow,.5));cg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=cg;ctx.beginPath();ctx.arc(cx,cy,R*.55,0,7);ctx.fill();
+  ctx.restore();
+  var vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.78);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.55)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+}
+var rsz;
+window.addEventListener('resize',function(){
+  clearTimeout(rsz);
+  rsz=setTimeout(function(){drawWall($('#wallpaper'),S.wall)},150);
+});
+
+/* ============ Audio ============ */
+var AC=null,master=null;
+function ensureAudio(){
+  if(AC)return;
+  try{
+    AC=new(window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain();
+    master.gain.value=S.vol/100*.4;
+    master.connect(AC.destination);
+  }catch(e){}
+}
+document.addEventListener('pointerdown',function(){
+  ensureAudio();
+  if(AC&&AC.state==='suspended')AC.resume();
+},true);
+function tone(f,delay,dur,type,v){
+  if(!AC)return;
+  var t=AC.currentTime+delay;
+  var o=AC.createOscillator(),g=AC.createGain();
+  o.type=type||'sine';o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(v||.5,t+.015);
+  g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g);g.connect(master);
+  o.start(t);o.stop(t+dur+.05);
+}
+function chNotify(){tone(830,0,.5);tone(1175,.13,.6)}
+function chErr(){tone(311,0,.4,'triangle')}
+
+/* ============ Toast ============ */
+function toast(o){
+  var box=$('#toasts');
+  while(box.children.length>=3)box.firstChild.remove();
+  var t=h('div',{class:'toast',onclick:function(){
+    t.classList.add('out');
+    setTimeout(function(){t.remove()},260);
+  }},
+    h('span',{class:'i24',html:o.icon||IC.info()}),
+    h('div',{},h('div',{class:'tt'},o.title),o.msg?h('div',{class:'tm'},o.msg):null));
+  box.append(t);
+  setTimeout(function(){
+    t.classList.add('out');
+    setTimeout(function(){t.remove()},260);
+  },o.dur||5600);
+  if(o.sound!==false)chNotify();
+}
+
+/* ============ Window manager ============ */
+var WM={z:120,wins:[],active:null};
+var TB={map:{}};
+function tbGet(app){
+  var t=TB.map[app.id];
+  if(t)return t;
+  var btn=h('button',{class:'tb-app-btn',title:app.name},
+    h('span',{class:'i24',html:app.icon}),
+    h('span',{class:'ind'}));
+  t={btn:btn,wins:[],pinned:!!app.pinned,app:app};
+  btn.addEventListener('click',function(){
+    if(!t.wins.length){if(app.launch)app.launch();return}
+    var w=t.wins[t.wins.length-1];
+    if(w.min)w.restore();
+    else if(WM.active===w)w.minimize();
+    else w.focus();
+  });
+  $('#tb-apps').append(btn);
+  TB.map[app.id]=t;
+  return t;
+}
+function tbSync(){
+  var ids=Object.keys(TB.map);
+  for(var i=0;i<ids.length;i++){
+    var t=TB.map[ids[i]];
+    t.btn.classList.toggle('running',t.wins.length>0);
+    t.btn.classList.toggle('active',t.wins.indexOf(WM.active)>=0);
+    if(!t.wins.length&&!t.pinned){t.btn.remove();delete TB.map[ids[i]]}
+  }
+}
+function createWindow(o){
+  var el=h('div',{class:'window'});
+  var vw=window.innerWidth,vh=window.innerHeight-48,n=WM.wins.length%6;
+  var w=o.w||720,hh=o.h||480;
+  el.style.width=w+'px';el.style.height=hh+'px';
+  el.style.left=clamp(o.x!==undefined?o.x:(vw-w)/2+n*30-60,0,Math.max(0,vw-160))+'px';
+  el.style.top=clamp(o.y!==undefined?o.y:Math.max(6,(vh-hh)/2+n*26-40),0,Math.max(0,vh-80))+'px';
+  var win={el:el,app:o.app,min:false,maxed:false,pre:null,onBeforeClose:null};
+  var bMin=h('button',{title:'Minimalkan',html:IC.min()});
+  var bMax=h('button',{title:'Maksimalkan',html:IC.max()});
+  var bX=h('button',{class:'close',title:'Tutup',html:IC.close()});
+  var titleEl=h('span',{class:'t'},o.title);
+  var tb=h('div',{class:'wtitle'},
+    h('span',{class:'i16',html:o.icon||''}),
+    titleEl,
+    h('div',{class:'wctrl'},bMin,bMax,bX));
+  var body=h('div',{class:'wbody'});
+  el.append(tb,body);
+  $('#winlayer').append(el);
+  win.body=body;win.titleEl=titleEl;
+  win.focus=function(){WM.z++;el.style.zIndex=WM.z;WM.active=win;tbSync()};
+  win.minimize=function(){win.min=true;el.classList.add('minimized');if(WM.active===win)WM.active=null;tbSync()};
+  win.restore=function(){win.min=false;el.classList.remove('minimized');win.focus()};
+  win.toggleMax=function(){
+    if(win.maxed){
+      el.classList.remove('maxed');
+      Object.assign(el.style,win.pre);
+      win.maxed=false;bMax.innerHTML=IC.max();bMax.title='Maksimalkan';
+    }else{
+      win.pre={left:el.style.left,top:el.style.top,width:el.style.width,height:el.style.height};
+      el.classList.add('maxed');
+      win.maxed=true;bMax.innerHTML=IC.restore();bMax.title='Pulihkan';
+    }
+  };
+  win.close=function(force){
+    if(!force&&win.onBeforeClose&&win.onBeforeClose()===false)return;
+    if(o.onClose)o.onClose();
+    el.remove();
+    var ix=WM.wins.indexOf(win);
+    if(ix>=0)WM.wins.splice(ix,1);
+    var t=TB.map[o.app.id];
+    if(t){var jx=t.wins.indexOf(win);if(jx>=0)t.wins.splice(jx,1)}
+    if(WM.active===win)WM.active=null;
+    tbSync();
+  };
+  bMin.addEventListener('click',function(e){e.stopPropagation();win.minimize()});
+  bMax.addEventListener('click',function(e){e.stopPropagation();win.toggleMax()});
+  bX.addEventListener('click',function(e){e.stopPropagation();win.close()});
+  tb.addEventListener('dblclick',function(e){if(!e.target.closest('button'))win.toggleMax()});
+  tb.addEventListener('pointerdown',function(e){
+    if(e.target.closest('button')||win.maxed)return;
+    win.focus();
+    var sx=e.clientX-el.offsetLeft,sy=e.clientY-el.offsetTop;
+    function mv(ev){
+      el.style.left=clamp(ev.clientX-sx,-el.offsetWidth+130,window.innerWidth-90)+'px';
+      el.style.top=clamp(ev.clientY-sy,0,window.innerHeight-96)+'px';
+    }
+    function up(){
+      window.removeEventListener('pointermove',mv);
+      window.removeEventListener('pointerup',up);
+    }
+    window.addEventListener('pointermove',mv);
+    window.addEventListener('pointerup',up);
+  });
+  el.addEventListener('pointerdown',function(){win.focus()},true);
+  WM.wins.push(win);
+  var t=tbGet(o.app);
+  t.wins.push(win);
+  win.focus();
+  if(o.build)o.build(body,win);
+  return win;
+}
+function closeAllWins(){
+  var arr=WM.wins.slice();
+  for(var i=0;i<arr.length;i++)arr[i].close(true);
+}
+
+/* ============ Panel ============ */
+function closePanels(){
+  $$('.panel.open').forEach(function(p){p.classList.remove('open')});
+  hideMenus();
+}
+function togglePanel(id){
+  var el=$(id),open=el.classList.contains('open');
+  closePanels();
+  if(!open){el.classList.add('open');if(el._onopen)el._onopen()}
+}
+document.addEventListener('pointerdown',function(e){
+  if(!e.target.closest('.panel')&&!e.target.closest('#taskbar')&&!e.target.closest('.menu'))closePanels();
+},true);
+
+/* ============ Desktop ============ */
+var desktopItems=[
+  {id:'recycle',name:'Recycle Bin',icon:IC.trash(),kind:'Sistem',
+   open:function(){toast({title:'Recycle Bin kosong',msg:'Tidak ada item untuk dipulihkan.',icon:IC.trash()})}},
+  {id:'setup',name:'setup.exe',icon:setupIcon(),kind:'File',
+   open:function(){runSetup('office')}},
+  {id:'cdsetup',name:'CorelDRAW-Setup.exe',icon:corelSetupIcon(),kind:'File',
+   open:function(){runSetup('corel')}}
+];
+function renderDesktop(){
+  var c=$('#dicons');
+  c.innerHTML='';
+  desktopItems.forEach(function(it){
+    var el=h('div',{class:'dicon','data-id':it.id},
+      h('span',{class:'i48',html:it.icon}),
+      h('span',{class:'lbl'},it.name));
+    el.addEventListener('pointerdown',function(e){
+      e.stopPropagation();
+      $$('.dicon.sel').forEach(function(x){x.classList.remove('sel')});
+      el.classList.add('sel');
+    });
+    el.addEventListener('dblclick',function(){if(it.open)it.open()});
+    c.append(el);
+  });
+}
+function clearSelection(){$$('.dicon.sel').forEach(function(x){x.classList.remove('sel')})}
+function addOfficeIcons(){
+  var labels={word:'Word',excel:'Excel',powerpoint:'PowerPoint',outlook:'Outlook',onenote:'OneNote'};
+  for(var k in S.apps){
+    if(!S.apps[k])continue;
+    (function(kk){
+      desktopItems.push({id:'office_'+kk,name:labels[kk],icon:OFF[kk].icon,kind:'Aplikasi',
+        open:function(){launchApp(kk)}});
+    })(k);
+  }
+  renderDesktop();
+  $$('#dicons .dicon').forEach(function(el){
+    if(el.dataset.id&&el.dataset.id.indexOf('office_')===0)el.classList.add('pop');
+  });
+}
+function removeOfficeIcons(){
+  desktopItems=desktopItems.filter(function(i){return !i.id||i.id.indexOf('office_')!==0});
+  renderDesktop();
+}
+function addCorelIcons(){
+  desktopItems.push({id:'corel_app',name:'CorelDRAW',icon:corelIcon(),kind:'Aplikasi',
+    open:function(){launchApp('corel')}});
+  renderDesktop();
+  $$('#dicons .dicon').forEach(function(el){
+    if(el.dataset.id==='corel_app')el.classList.add('pop');
+  });
+}
+function removeCorelIcons(){
+  desktopItems=desktopItems.filter(function(i){return i.id!=='corel_app'});
+  renderDesktop();
+}
+ $('#desktop').addEventListener('pointerdown',function(e){
+  if(e.button!==0||e.target.closest('.dicon'))return;
+  clearSelection();closePanels();
+  var band=$('#band'),x0=e.clientX,y0=e.clientY;
+  band.hidden=false;
+  function mv(ev){
+    var x=Math.min(x0,ev.clientX),y=Math.min(y0,ev.clientY);
+    var w=Math.abs(ev.clientX-x0),hh=Math.abs(ev.clientY-y0);
+    band.style.left=x+'px';band.style.top=y+'px';
+    band.style.width=w+'px';band.style.height=hh+'px';
+    $$('.dicon').forEach(function(el){
+      var r=el.getBoundingClientRect();
+      el.classList.toggle('sel',!(r.right<x||r.left>x+w||r.bottom<y||r.top>y+hh));
+    });
+  }
+  function up(){
+    band.hidden=true;
+    window.removeEventListener('pointermove',mv);
+    window.removeEventListener('pointerup',up);
+  }
+  window.addEventListener('pointermove',mv);
+  window.addEventListener('pointerup',up);
+});
+document.addEventListener('contextmenu',function(e){
+  e.preventDefault();
+  if(e.target.closest('#desktop')&&!e.target.closest('.window'))desktopMenu(e.clientX,e.clientY);
+});
+document.addEventListener('keydown',function(e){
+  var tg=e.target;
+  if(tg.closest&&tg.closest('input,textarea,select,[contenteditable]'))return;
+  if(e.key==='Escape'){closePanels();clearSelection();return}
+  if(e.key==='Enter'){
+    var s=$('.dicon.sel');
+    if(s){
+      var it=desktopItems.find(function(i){return i.id===s.dataset.id});
+      if(it&&it.open)it.open();
+    }
+    return;
+  }
+  var dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+  if(dirs){
+    var els=$$('.dicon');
+    var i=els.findIndex(function(x){return x.classList.contains('sel')});
+    if(i<0){if(els[0])els[0].classList.add('sel');return}
+    var col=Math.floor($('#dicons').clientHeight/98)||1;
+    var ni=i+dirs[1]*col+dirs[0];
+    if(ni<0||ni>=els.length)return;
+    els[i].classList.remove('sel');
+    els[ni].classList.add('sel');
+    e.preventDefault();
+  }
+});
+function desktopMenu(x,y){
+  showMenu(x,y,[
+    {label:'Tampilan',icon:IC.monitor(),sub:[
+      {label:'Ikon besar',action:function(){$('#dicons').classList.add('ic-large');$('#dicons').classList.remove('ic-small')}},
+      {label:'Ikon sedang',action:function(){$('#dicons').classList.remove('ic-large','ic-small')}},
+      {label:'Ikon kecil',action:function(){$('#dicons').classList.add('ic-small');$('#dicons').classList.remove('ic-large')}}]},
+    {label:'Urutkan berdasarkan',icon:IC.ulL(),sub:[
+      {label:'Nama',action:function(){desktopItems.sort(function(a,b){return a.name.localeCompare(b.name)});renderDesktop()}},
+      {label:'Jenis',action:function(){desktopItems.sort(function(a,b){return (a.kind||'').localeCompare(b.kind||'')||a.name.localeCompare(b.name)});renderDesktop()}}]},
+    {label:'Segarkan',icon:IC.refresh(),action:function(){
+      var c=$('#dicons');c.style.opacity=0;
+      setTimeout(function(){c.style.transition='opacity .25s';c.style.opacity=1},90);
+    }},
+    '-',
+    {label:'Buka di Terminal',icon:IC.terminal(),action:function(){openTerminal()}},
+    {label:'Personalisasi',icon:IC.paint(),action:function(){openSettings()}}
+  ]);
+}
+
+/* ============ Menu ============ */
+function hideMenus(){$('#menu-layer').innerHTML=''}
+function showMenu(x,y,items){
+  hideMenus();
+  var m=h('div',{class:'menu'});
+  items.forEach(function(it){
+    if(it==='-'){m.append(h('div',{class:'msep'}));return}
+    var row=h('div',{class:'mi'},
+      h('span',{class:'i16',html:it.icon||''}),
+      h('span',{},it.label),
+      it.sub?h('span',{class:'msub i16',html:IC.chevR()}):null);
+    if(it.sub){
+      var sm=h('div',{class:'submenu'});
+      it.sub.forEach(function(s){
+        sm.append(h('div',{class:'mi',onclick:function(){hideMenus();if(s.action)s.action()}},
+          h('span',{class:'i16',html:s.icon||''}),
+          h('span',{},s.label)));
+      });
+      row.append(sm);
+    }else{
+      row.addEventListener('click',function(){hideMenus();if(it.action)it.action()});
+    }
+    m.append(row);
+  });
+  $('#menu-layer').append(m);
+  var r=m.getBoundingClientRect();
+  m.style.left=clamp(x,8,window.innerWidth-r.width-8)+'px';
+  m.style.top=clamp(y,8,window.innerHeight-r.height-60)+'px';
+  return m;
+}
+
+/* ============ Menu Mulai ============ */
+var rebuildStart=function(){};
+function buildStart(){
+  var el=$('#panel-start');
+  var inp=h('input',{placeholder:'Cari aplikasi dan file'});
+  var resBox=h('div',{class:'st-results',style:{display:'none'}});
+  var pinBox=h('div',{class:'st-pin'});
+  var recBox=h('div',{class:'st-rec'});
+  function fill(){
+    pinBox.innerHTML='';
+    Object.keys(APPS).forEach(function(id){
+      var a=APPS[id];
+      if(!appVisible(a))return;
+      pinBox.append(h('button',{class:'st-pi',onclick:function(){launchApp(id)}},
+        h('span',{class:'i24',html:a.icon}),
+        h('span',{},a.name)));
+    });
+    recBox.innerHTML='';
+    if(S.installed){
+      ['word','excel','powerpoint','outlook','onenote'].filter(function(k){return S.apps[k]}).forEach(function(k){
+        recBox.append(h('button',{class:'st-ri',onclick:function(){launchApp(k)}},
+          h('span',{class:'i18',html:OFF[k].icon}),
+          h('div',{},
+            h('div',{class:'n'},APPS[k].full),
+            h('div',{class:'s'},'Baru ditambahkan'))));
+      });
+    }
+    if(S.corel){
+      recBox.append(h('button',{class:'st-ri',onclick:function(){launchApp('corel')}},
+        h('span',{class:'i18',html:corelIcon()}),
+        h('div',{},
+          h('div',{class:'n'},'CorelDRAW Graphics Suite'),
+          h('div',{class:'s'},'Baru ditambahkan'))));
+    }
+    if(!S.installed&&!S.corel){
+      recBox.append(h('div',{class:'st-empty'},'Belum ada rekomendasi — aplikasi yang baru dipasang akan muncul di sini.'));
+    }
+  }
+  fill();
+  rebuildStart=fill;
+  inp.addEventListener('input',function(){
+    var q=inp.value.trim().toLowerCase();
+    resBox.innerHTML='';
+    resBox.style.display=q?'block':'none';
+    pinBox.style.display=q?'none':'grid';
+    recBox.style.display=q?'none':'grid';
+    if(!q)return;
+    Object.keys(APPS).forEach(function(id){
+      var a=APPS[id];
+      if(!appVisible(a))return;
+      if(a.name.toLowerCase().indexOf(q)<0)return;
+      resBox.append(h('button',{class:'st-res',onclick:function(){
+        launchApp(id);inp.value='';inp.dispatchEvent(new Event('input'));
+      }},
+        h('span',{class:'i24',html:a.icon}),
+        h('span',{},
+          h('div',{},a.name),
+          h('div',{style:{fontSize:'11px',color:'var(--text-3)'}},'Aplikasi'))));
+    });
+  });
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&resBox.firstChild)resBox.firstChild.click();
+  });
+  var pwBtn=h('button',{class:'pw-btn',title:'Daya',html:IC.power()});
+  pwBtn.addEventListener('click',function(e){
+    e.stopPropagation();
+    var cur=$('#menu-layer .menu');
+    if(cur&&cur._pw){hideMenus();return}
+    var m=showMenu(10,10,[
+      {label:'Tidur',icon:IC.moon(),action:sleepPC},
+      {label:'Matikan',icon:IC.power(),action:shutdownPC},
+      {label:'Mulai ulang',icon:IC.restart(),action:restartPC}
+    ]);
+    if(m){
+      m._pw=true;
+      var r=pwBtn.getBoundingClientRect();
+      m.style.left=clamp(r.right-m.offsetWidth-10,8,window.innerWidth-m.offsetWidth-8)+'px';
+      m.style.top=Math.max(8,r.top-m.offsetHeight-12)+'px';
+    }
+  });
+  el.addEventListener('pointerdown',function(e){
+    if(!pwBtn.contains(e.target))hideMenus();
+  });
+  var searchRow=h('div',{class:'st-search'},
+    h('span',{class:'i18',html:IC.search()}),inp);
+  var footRow=h('div',{class:'st-foot'},
+    h('div',{class:'st-user'},h('span',{class:'avatar'},'P'),h('span',{},'Pengguna')),
+    pwBtn);
+  el.append(searchRow,resBox,
+    h('div',{class:'st-h'},'Tersemat'),pinBox,
+    h('div',{class:'st-h'},'Direkomendasikan'),recBox,
+    footRow);
+  el._onopen=function(){
+    inp.value='';
+    inp.dispatchEvent(new Event('input'));
+    setTimeout(function(){inp.focus()},60);
+  };
+}
+
+/* ============ Kalender ============ */
+var calM=0,calSel=null;
+function buildCal(){
+  var el=$('#panel-cal');
+  var time=h('div',{class:'cal-time'});
+  var date=h('div',{class:'cal-date'});
+  var lbl=h('b',{});
+  var grid=h('div',{class:'cal-grid'});
+  function render(){
+    var now=new Date(),base=new Date(now.getFullYear(),now.getMonth()+calM,1);
+    lbl.textContent=base.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+    date.textContent=now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    grid.innerHTML='';
+    ['Sen','Sel','Rab','Kam','Jum','Sab','Min'].forEach(function(d){
+      grid.append(h('div',{class:'dh'},d));
+    });
+    var off=(base.getDay()+6)%7;
+    var days=new Date(base.getFullYear(),base.getMonth()+1,0).getDate();
+    var i,d;
+    for(i=0;i<off;i++)grid.append(h('div'));
+    for(d=1;d<=days;d++){
+      (function(dd){
+        var today=calM===0&&dd===now.getDate();
+        var sel=calSel&&calSel.d===dd&&calSel.m===calM;
+        grid.append(h('div',{
+          class:'dd'+(today?' today':'')+(sel?' sel':''),
+          onclick:function(){calSel={d:dd,m:calM};render()}
+        },String(dd)));
+      })(d);
+    }
+  }
+  el._onopen=render;
+  el._time=time;
+  var navBtns=h('div',{style:{display:'flex',gap:'2px'}},
+    h('button',{html:IC.chevL(),onclick:function(){calM--;render()}}),
+    h('button',{html:IC.chevR(),onclick:function(){calM++;render()}}));
+  var nav=h('div',{class:'cal-nav'},lbl,navBtns);
+  el.append(time,date,nav,grid);
+}
+
+/* ============ Quick settings ============ */
+function buildQuick(){
+  var el=$('#panel-quick');
+  var defs=[
+    {k:'wifi',name:'Wi-Fi',icon:IC.wifi()},
+    {k:'bt',name:'Bluetooth',icon:IC.bt()},
+    {k:'plane',name:'Mode pesawat',icon:IC.plane()},
+    {k:'saver',name:'Hemat baterai',icon:IC.batt()}
+  ];
+  var grid=h('div',{class:'qs-grid'});
+  var tbtns={};
+  function update(){
+    defs.forEach(function(t){tbtns[t.k].classList.toggle('on',!!S[t.k])});
+  }
+  defs.forEach(function(t){
+    var b=h('button',{class:'qs-t'},
+      h('span',{class:'i18',html:t.icon}),
+      h('span',{},t.name));
+    b.addEventListener('click',function(){
+      S[t.k]=!S[t.k];
+      if(S.plane){S.wifi=false;S.bt=false}
+      if(S.wifi)S.plane=false;
+      syncTray();update();
+    });
+    tbtns[t.k]=b;
+    grid.append(b);
+  });
+  update();
+  var bR=h('input',{type:'range',min:'20',max:'100',value:String(S.bright)});
+  var bLab=h('b',{},S.bright+'%');
+  bR.addEventListener('input',function(){
+    S.bright=+bR.value;
+    $('#brightness').style.opacity=(100-S.bright)/140;
+    bLab.textContent=S.bright+'%';
+  });
+  var vR=h('input',{type:'range',min:'0',max:'100',value:String(S.vol)});
+  var vLab=h('b',{},S.vol+'%');
+  vR.addEventListener('input',function(){
+    S.vol=+vR.value;
+    vLab.textContent=S.vol+'%';
+    if(master)master.gain.value=S.vol/100*.4;
+  });
+  var rowB=h('div',{class:'qs-row'},h('span',{class:'i18',html:IC.sun()}),bR,bLab);
+  var rowV=h('div',{class:'qs-row'},h('span',{class:'i18',html:IC.vol()}),vR,vLab);
+  el.append(grid,rowB,rowV);
+  el._onopen=function(){bR.value=S.bright;vR.value=S.vol};
+}
+function syncTray(){
+  $('#btn-tray').innerHTML='<span class="i16">'+(S.wifi?IC.wifi():IC.globe())+'</span><span class="i16">'+IC.vol()+'</span><span class="i16">'+IC.batt()+'</span>';
+}
+
+/* ============ Jam ============ */
+function tickClock(){
+  var d=new Date();
+  $('#tb-time').textContent=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  $('#tb-date').textContent=d.toLocaleDateString('id-ID');
+  var t=$('#panel-cal')._time;
+  if(t&&$('#panel-cal').classList.contains('open'))t.textContent=d.toLocaleTimeString('id-ID');
+}
+setInterval(tickClock,1000);
+
+/* ============ UAC ============ */
+function showUAC(spec){
+  return new Promise(function(res){
+    var ov=$('#uac');
+    $('#uac-pn').textContent=spec.uacName;
+    $('#uac-pp').textContent='Penerbit: '+spec.uacPub;
+    $('#uac-ic').innerHTML=spec.icon;
+    ov.hidden=false;
+    requestAnimationFrame(function(){ov.classList.add('show')});
+    function done(ok){
+      ov.classList.remove('show');
+      setTimeout(function(){ov.hidden=true},200);
+      res(ok);
+    }
+    $('#uac-yes').onclick=function(){done(true)};
+    $('#uac-no').onclick=function(){done(false)};
+  });
+}
+function runSetup(key){
+  var spec=INSTALL_SPECS[key]||INSTALL_SPECS.office;
+  showUAC(spec).then(function(ok){if(ok)openInstaller(spec)});
+}
+
+/* ============ Dialog pilih folder (lokasi instalasi) ============ */
+var DIR_TREE={
+  'C:':{
+    'Program Files':{'Microsoft':{},'Corel':{},'Common Files':{},'Windows Apps':{}},
+    'Program Files (x86)':{'Microsoft':{},'Common Files':{}},
+    'Users':{'Pengguna':{'Desktop':{},'Documents':{},'Downloads':{},'Pictures':{},'Music':{},'Videos':{}}},
+    'Windows':{},
+    'Games':{'SteamLibrary':{},'Epic Games':{}},
+    'Temp':{}
+  },
+  'D:':{'Data':{'Proyek':{},'Arsip':{}},'Backup':{},'Tools':{}},
+  'E:':{'Media':{},'Dump':{}}
+};
+var DRIVE_LABEL={'C:':'Local Disk (C:)','D:':'Data (D:)','E:':'Removable Disk (E:)'};
+var DRIVE_FREE={'C:':118.4,'D:':856.2,'E:':23.1};
+function treeLookup(path){
+  var parts=path.split('\\'),node=DIR_TREE,i;
+  for(i=0;i<parts.length;i++){
+    if(!parts[i])continue;
+    if(!node[parts[i]])return null;
+    node=node[parts[i]];
+  }
+  return node;
+}
+function browseFolder(host,startPath,cb){
+  var expanded={},sel=null,rowEls={},initPath='';
+  startPath=startPath||'C:\\Program Files';
+  /* pastikan rantai folder awal tersedia (dan induknya terbuka) */
+  (function(){
+    var parts=startPath.split('\\'),node=DIR_TREE,cur='';
+    for(var i=0;i<parts.length;i++){
+      if(!parts[i])continue;
+      if(!node[parts[i]])node[parts[i]]={};
+      cur=cur?cur+'\\'+parts[i]:parts[i];
+      node=node[parts[i]];
+      if(i<parts.length-1)expanded[cur]=true;
+    }
+    initPath=cur;
+  })();
+  var treeEl=h('div',{class:'bf-tree'});
+  var curEl=h('span',{class:'bf-cur'},initPath);
+  var freeEl=h('span',{class:'bf-free'},'');
+  var btnNew=h('button',{class:'btn',disabled:'',style:{padding:'5px 12px',fontSize:'12px'}},'Folder baru');
+  function buildLevel(box,node,parentPath){
+    Object.keys(node).sort(function(a,b){return a.localeCompare(b)}).forEach(function(name){
+      var path=parentPath?parentPath+'\\'+name:name;
+      var kids=node[name]||{};
+      var hasKids=Object.keys(kids).length>0;
+      var isOpen=!!expanded[path];
+      var tw=h('button',{class:'bf-tw',html:hasKids?(isOpen?IC.chevD():IC.chevR()):''});
+      var row=h('div',{class:'bf-row'+(isOpen?' open':'')},
+        tw,
+        h('span',{class:'i16',html:IC.folder()}),
+        h('span',{class:'bf-name'},DRIVE_LABEL[path]||name));
+      rowEls[path]=row;
+      box.append(row);
+      if(hasKids){
+        var kb=h('div',{class:'bf-kids'});
+        rowEls[path+'\\#kids']=kb;
+        box.append(kb);
+        if(isOpen)buildLevel(kb,kids,path);
+        else kb.hidden=true;
+        tw.addEventListener('click',function(e){
+          e.stopPropagation();
+          expanded[path]=!expanded[path];
+          if(expanded[path]){
+            row.classList.add('open');
+            if(!kb.hasChildNodes())buildLevel(kb,kids,path);
+            kb.hidden=false;
+            tw.innerHTML=IC.chevD();
+          }else{
+            row.classList.remove('open');
+            kb.hidden=true;
+            tw.innerHTML=IC.chevR();
+          }
+        });
+      }
+      row.addEventListener('click',function(){select(path)});
+    });
+  }
+  function renderTree(){
+    treeEl.innerHTML='';
+    rowEls={};
+    buildLevel(treeEl,DIR_TREE,'');
+    if(sel&&rowEls[sel])rowEls[sel].classList.add('sel');
+  }
+  function select(path){
+    if(sel&&rowEls[sel])rowEls[sel].classList.remove('sel');
+    sel=path;
+    if(rowEls[path])rowEls[path].classList.add('sel');
+    curEl.textContent=path;
+    var d=path.charAt(0).toUpperCase()+':';
+    freeEl.textContent=DRIVE_FREE[d]!==undefined?String(DRIVE_FREE[d]).replace('.',',')+' GB bebas':'';
+    btnNew.disabled=false;
+  }
+  function startRename(path){
+    var row=rowEls[path];
+    if(!row)return;
+    var leaf=path.split('\\').pop();
+    var parentPath=path.split('\\').slice(0,-1).join('\\');
+    var nameEl=row.querySelector('.bf-name');
+    var inp=h('input',{class:'bf-rename',value:leaf});
+    nameEl.textContent='';
+    nameEl.append(inp);
+    inp.focus();
+    inp.select();
+    var done=false;
+    function commit(){
+      if(done)return;
+      done=true;
+      var v=inp.value.trim();
+      if(!v||v===leaf||/[\\"|:*?<>]/.test(v)){
+        nameEl.textContent=leaf;
+        select(path);
+        return;
+      }
+      var parent=treeLookup(parentPath);
+      if(!parent){nameEl.textContent=leaf;return}
+      delete parent[leaf];
+      parent[v]={};
+      var newPath=parentPath+'\\'+v;
+      delete rowEls[path];
+      rowEls[newPath]=row;
+      var kb=rowEls[path+'\\#kids'];
+      if(kb){delete rowEls[path+'\\#kids'];rowEls[newPath+'\\#kids']=kb}
+      nameEl.textContent=v;
+      if(expanded[path]){expanded[newPath]=true;delete expanded[path]}
+      select(newPath);
+    }
+    inp.addEventListener('keydown',function(e){
+      e.stopPropagation();
+      if(e.key==='Enter')commit();
+      else if(e.key==='Escape'){done=true;nameEl.textContent=leaf;select(path)}
+    });
+    inp.addEventListener('blur',commit);
+  }
+  btnNew.addEventListener('click',function(){
+    if(!sel)return;
+    var node=treeLookup(sel);
+    if(!node)return;
+    var base='Folder baru',name=base,n=2;
+    while(node[name]){name=base+' ('+n+')';n++}
+    node[name]={};
+    var newPath=sel+'\\'+name;
+    expanded[sel]=true;
+    renderTree();
+    select(newPath);
+    startRename(newPath);
+  });
+  renderTree();
+  select(initPath);
+  var ov=h('div',{class:'iw-modal'});
+  function close(){ov.remove();document.removeEventListener('keydown',onKey)}
+  function onKey(e){if(e.key==='Escape')close()}
+  document.addEventListener('keydown',onKey);
+  var btnOK=h('button',{class:'btn primary',onclick:function(){
+    var p=sel||initPath;
+    if(/^[A-Za-z]:$/.test(p))p+='\\';
+    close();
+    cb(p);
+  }},'OK');
+  var btnCancel=h('button',{class:'btn',onclick:close},'Batal');
+  var foot=h('div',{class:'bf-foot'},btnNew,curEl,freeEl);
+  var acts=h('div',{class:'bf-acts'},btnCancel,btnOK);
+  var card=h('div',{class:'bf-card'},
+    h('div',{class:'bf-head'},
+      h('span',{class:'i18',html:IC.folder()}),
+      h('span',{style:{fontSize:'14px',fontWeight:'600'}},'Pilih lokasi instalasi')),
+    treeEl,foot,acts);
+  ov.append(card);
+  host.append(ov);
+}
+
+/* ============ Spesifikasi penginstal ============ */
+function GUID(){
+  var bytes=crypto.getRandomValues(new Uint8Array(8));
+  var hex='';
+  for(var i=0;i<bytes.length;i++)hex+=bytes[i].toString(16).padStart(2,'0');
+  return '{'+hex.toUpperCase().match(/.{8}/g).join('-')+'}';
+}
+function randomOf(a){return a[Math.floor(Math.random()*a.length)]}
+var INSTALL_SPECS={
+office:{
+  key:'office',
+  icon:OFF.setup.icon,
+  uacName:'Microsoft Office Setup',
+  uacPub:'Microsoft Corporation',
+  winTitle:'Microsoft Office Setup',
+  splash:'Menyiapkan penginstal Microsoft Office…',
+  welcomeTitle:'Microsoft Office',
+  welcomeMsg:'Penginstal ini akan memasang aplikasi produktivitas Office — Word, Excel, PowerPoint, Outlook, dan OneNote — di komputer ini. Klik Berikutnya untuk melanjutkan.',
+  facts:[['Versi','2408 (build 17932)'],['Unduhan','± 2,1 GB'],['Kebutuhan','4 GB RAM · Windows 11 64-bit']],
+  fullLabel:'Pemasangan lengkap',
+  fullSub:'Semua aplikasi Office (disarankan)',
+  customSub:'Pilih aplikasi yang ingin dipasang',
+  path:'C:\\Program Files\\Microsoft Office',
+  sizeLine:'Ukuran unduhan: ± 2,1 GB',
+  reqGB:2.1,
+  installedTitle:'Office sudah terpasang',
+  maintainLine:'Microsoft Office versi 2408 (build 17932.20162) ditemukan di komputer ini.',
+  hasSerial:false,
+  dur:21000,repairDur:9500,uninstDur:8500,
+  progTitles:{install:'Menginstal Microsoft Office',repair:'Memperbaiki Microsoft Office',uninstall:'Menghapus Microsoft Office'},
+  buildOptions:function(pane,cfg){
+    var lang=h('select');
+    [['id-ID','Bahasa Indonesia'],['en-US','English (United States)'],['ja-JP','日本語 (Jepang)'],['ar-SA','العربية (Arab)']]
+      .forEach(function(p){lang.append(h('option',{value:p[0]},p[1]))});
+    lang.addEventListener('change',function(){cfg.lang=lang.value});
+    var arch=h('select');
+    [['64','64-bit (disarankan)'],['32','32-bit']].forEach(function(p){
+      arch.append(h('option',{value:p[0]},p[1]));
+    });
+    arch.addEventListener('change',function(){cfg.arch=arch.value});
+    pane.append(h('div',{class:'field'},h('label',{},'Bahasa aplikasi'),lang));
+    pane.append(h('div',{class:'field'},h('label',{},'Arsitektur'),arch));
+    pane.append(h('div',{class:'wz-hint'},'Pembaruan otomatis dan opsi lanjutan dapat diatur setelah instalasi dari aplikasi Office.'));
+  },
+  summaryExtras:function(cfg){
+    var names={'id-ID':'Bahasa Indonesia','en-US':'English (United States)','ja-JP':'日本語','ar-SA':'العربية'};
+    return [['Bahasa',names[cfg.lang]||cfg.lang],['Arsitektur',cfg.arch+'-bit']];
+  },
+  pickList:function(){
+    return ['word','excel','powerpoint','outlook','onenote'].map(function(k){
+      return {k:k,label:APPS[k].full,icon:OFF[k].icon};
+    });
+  },
+  isInstalled:function(){return S.installed},
+  comps:function(mode,cfg){
+    var list=[],k;
+    if(mode==='install'){
+      list.push({name:'Komponen inti Office',at:4});
+      var at={word:24,excel:42,powerpoint:56,outlook:68,onenote:78};
+      for(k in at)if(cfg.mode==='full'||cfg.picks[k])list.push({name:APPS[k].full,at:at[k]});
+      list.push({name:'Alat Proofing Bahasa',at:88});
+      list.push({name:'Komponen bersama Office',at:96});
+    }else if(mode==='repair'){
+      list.push({name:'Memverifikasi berkas sistem',at:8});
+      Object.keys(S.apps).filter(function(k){return S.apps[k]}).forEach(function(k,i){
+        list.push({name:'Memperbaiki '+APPS[k].full,at:22+i*14});
+      });
+      list.push({name:'Mendaftarkan ulang komponen',at:92});
+    }else{
+      list.push({name:'Menghentikan proses Office',at:6});
+      Object.keys(S.apps).filter(function(k){return S.apps[k]}).forEach(function(k,i){
+        list.push({name:'Menghapus '+APPS[k].full,at:18+i*13});
+      });
+      list.push({name:'Membersihkan registri',at:88});
+      list.push({name:'Menghapus berkas bersama',at:96});
+    }
+    return list;
+  },
+  logs:function(mode,cfg){
+    var L=[],k;
+    var P=cfg.path||S.officePath||'C:\\Program Files\\Microsoft Office';
+    if(mode==='install'){
+      L.push([.2,'[setup.exe] Memverifikasi tanda tangan digital ... <i class="okk">OK</i>']);
+      L.push([.8,'[setup] Penginstal Click-to-Run — mode '+cfg.arch+'-bit']);
+      L.push([1.2,'[fs] Membuat folder: '+P]);
+      L.push([1.6,'[c2r] Membuat kunci registri: HKLM\\SOFTWARE\\Microsoft\\Office\\ClickToRun']);
+      L.push([2.6,'[net] Tersambung ke officecdn.microsoft.com']);
+      L.push([3.4,'[net] Mengunduh konfigurasi ProPlusRetail.'+cfg.lang+'.xml']);
+      var at={word:14,excel:34,powerpoint:49,outlook:62,onenote:73};
+      var exe={word:'WINWORD.EXE',excel:'EXCEL.EXE',powerpoint:'POWERPNT.EXE',outlook:'OUTLOOK.EXE',onenote:'ONENOTE.EXE'};
+      for(k in at){
+        if(cfg.mode==='full'||cfg.picks[k]){
+          L.push([at[k],'[setup] Menyalin '+exe[k]+' → '+P+'\\root\\Office16\\']);
+          L.push([at[k]+3,'[shell] Membuat pintasan: '+APPS[k].full+'.lnk']);
+          L.push([at[k]+5,'[regsvr32] Mendaftarkan komponen: '+GUID()+'.dll']);
+        }
+      }
+      L.push([86,'[c2r] Memasang alat proofing: id-ID, en-US']);
+      L.push([99.3,'[setup] Finalisasi pengaturan ...']);
+      L.push([100,'[setup] Penginstalan selesai. Kode keluar: <i class="okk">0x0</i>']);
+    }else if(mode==='repair'){
+      L.push([.5,'[setup] Mode perbaikan dipilih']);
+      L.push([3,'[sfc] Memverifikasi hash berkas sistem di '+P+' ...']);
+      L.push([97,'[setup] Perbaikan selesai. Kode keluar: <i class="okk">0x0</i>']);
+    }else{
+      L.push([.5,'[setup] Mode penghapusan dipilih']);
+      L.push([4,'[c2r] Menghentikan proses Office ...']);
+      L.push([90,'[reg] Menghapus kunci: HKLM\\SOFTWARE\\Microsoft\\Office']);
+      L.push([98,'[fs] Menghapus folder: '+P]);
+      L.push([98.5,'[setup] Penghapusan selesai. Kode keluar: <i class="okk">0x0</i>']);
+    }
+    return L.filter(function(x){return x[0]<=100}).sort(function(a,b){return a[0]-b[0]});
+  },
+  randLine:function(mode,base){
+    var B=base||S.officePath||'C:\\Program Files\\Microsoft Office';
+    var files=['stream.x64.id-id.dat','office32ww.x-ms','setup.dll','c2rclient.exe','wordlr.cab','oissp.cab','excelrWW.xml'];
+    var mb=Math.round(Math.random()*1800+40);
+    if(mode==='install')return randomOf([
+      '[net] Mengunduh '+randomOf(files)+' — '+Math.round(Math.random()*90)+'% ('+mb+' MB)',
+      '[c2r] Menerapkan patch: '+GUID(),
+      '[fs] Menulis: '+B+'\\root\\vfs\\ProgramFilesCommonX64\\'+randomOf(files),
+      '[net] Laju unduhan '+(8+Math.random()*16).toFixed(1)+' MB/dtk']);
+    if(mode==='repair')return randomOf(['[sfc] Hash cocok: '+randomOf(files),'[c2r] Memulihkan komponen '+GUID()]);
+    return randomOf(['[fs] Menghapus: '+B+'\\root\\Office16\\'+randomOf(files),'[reg] Menghapus nilai registri: '+GUID()]);
+  },
+  applyInstall:function(cfg){
+    if(cfg.mode==='full')S.apps={word:true,excel:true,powerpoint:true,outlook:true,onenote:true};
+    else{
+      S.apps={word:false,excel:false,powerpoint:false,outlook:false,onenote:false};
+      for(var k in cfg.picks)S.apps[k]=!!cfg.picks[k];
+    }
+    S.installed=true;
+    if(cfg.path)S.officePath=cfg.path;
+    addOfficeIcons();rebuildStart();
+  },
+  applyUninstall:function(){
+    S.installed=false;
+    removeOfficeIcons();rebuildStart();
+  },
+  maintRows:function(){
+    var n=Object.keys(S.apps).filter(function(k){return S.apps[k]}).length;
+    return [['Lokasi',S.officePath],['Bahasa','Bahasa Indonesia'],['Aplikasi terpasang',n+' aplikasi']];
+  },
+  doneTitle:function(mode){
+    return mode==='install'?'Office telah terinstal':mode==='repair'?'Perbaikan selesai':'Office telah dihapus';
+  },
+  doneMsg:function(mode){
+    if(mode==='repair')return 'Semua komponen Office telah diverifikasi dan diperbaiki. Anda dapat langsung melanjutkan pekerjaan.';
+    if(mode==='uninstall')return 'Semua komponen dan pintasan telah dihapus dari komputer ini. Anda tetap bisa menjalankan setup.exe lagi untuk memasang ulang.';
+    return 'Microsoft Office siap digunakan. Coba buka salah satu aplikasi dari desktop atau menu Mulai — semuanya berfungsi.';
+  },
+  chips:function(mode){
+    if(mode==='uninstall')return [];
+    return Object.keys(S.apps).filter(function(k){return S.apps[k]}).map(function(k){
+      return h('span',{class:'chip'},h('span',{class:'i18',html:OFF[k].icon}),APPS[k].full);
+    });
+  },
+  doneRows:function(mode,cfg){
+    return [['Produk','Microsoft Office (simulasi)'],['Lokasi',cfg.path||S.officePath],['Status',mode==='uninstall'?'Tidak terpasang':'Berjalan baik']];
+  },
+  toastDone:function(mode){
+    if(mode==='install')return{title:'Microsoft Office berhasil dipasang',msg:'Semua aplikasi siap digunakan. Pintasan telah ditambahkan ke desktop dan menu Mulai.',icon:OFF.setup.icon};
+    if(mode==='uninstall')return{title:'Microsoft Office telah dihapus',msg:'Komputer Anda kembali seperti sebelum Office dipasang.',icon:IC.info()};
+    return null;
+  },
+  eulaParas:[
+    'PERANGKAT LUNAK INI ADALAH SIMULASI. Seluruh nama produk, merek, dan teks di bawah ini hanyalah contoh untuk keperluan demonstrasi antarmuka.',
+    '1. Dengan menginstal simulasi ini, Anda setuju untuk menjelajahi seluruh alur pemasangan dengan santai dan menikmati prosesnya.',
+    '2. Tidak ada berkas nyata yang ditulis ke komputer Anda; seluruh aktivitas berlangsung di dalam jendela peramban.',
+    '3. Dokumen yang Anda ketik di aplikasi simulasi tidak dikirim ke mana pun — semuanya hanya hidup di memori halaman.'
+  ]
+},
+corel:{
+  key:'corel',
+  icon:corelSetupIcon(),
+  uacName:'CorelDRAW Graphics Suite 2024 Setup',
+  uacPub:'Corel Corporation',
+  winTitle:'CorelDRAW Graphics Suite 2024 Setup',
+  splash:'Menyiapkan penginstal CorelDRAW Graphics Suite…',
+  welcomeTitle:'CorelDRAW Graphics Suite 2024',
+  welcomeMsg:'Selamat datang! Penginstal ini akan memasang CorelDRAW dan aplikasi pendampingnya: desain vektor, penyuntingan foto, hingga manajemen font. Klik Berikutnya untuk melanjutkan.',
+  facts:[['Versi','24.5.0 (568)'],['Unduhan','± 1,4 GB'],['Kebutuhan','8 GB RAM · Windows 11 64-bit']],
+  fullLabel:'Pemasangan tipikal',
+  fullSub:'Semua fitur suite (disarankan)',
+  customSub:'Pilih fitur yang ingin dipasang',
+  path:'C:\\Program Files\\Corel\\Corel Graphics Suite 2024',
+  sizeLine:'Ukuran unduhan: ± 1,4 GB',
+  reqGB:1.4,
+  installedTitle:'CorelDRAW sudah terpasang',
+  maintainLine:'CorelDRAW Graphics Suite 2024 (24.5.0.568) ditemukan di komputer ini.',
+  hasSerial:true,
+  dur:18000,repairDur:9000,uninstDur:8000,
+  progTitles:{install:'Menginstal CorelDRAW Graphics Suite',repair:'Memperbaiki CorelDRAW Graphics Suite',uninstall:'Menghapus CorelDRAW Graphics Suite'},
+  buildOptions:function(pane,cfg){
+    var cb1=h('input',{type:'checkbox'});
+    cb1.checked=cfg.shortcuts;
+    cb1.addEventListener('change',function(){cfg.shortcuts=cb1.checked});
+    var cb2=h('input',{type:'checkbox'});
+    cb2.checked=cfg.runAfter;
+    cb2.addEventListener('change',function(){cfg.runAfter=cb2.checked});
+    pane.append(h('label',{class:'wz-agree',style:{marginTop:'0'}},cb1,
+      h('span',{},'Buat pintasan CorelDRAW di desktop')));
+    pane.append(h('label',{class:'wz-agree'},cb2,
+      h('span',{},'Buka CorelDRAW setelah instalasi selesai')));
+    pane.append(h('div',{class:'wz-hint',style:{marginTop:'14px'}},'Ekstensi berkas .cdr, .cpt, dan .cmx akan didaftarkan secara otomatis.'));
+  },
+  summaryExtras:function(cfg){
+    return [['Lisensi',cfg.license==='trial'?'Uji coba 30 hari':'Nomor seri']];
+  },
+  pickList:function(){
+    return [
+      {k:'cdraw',label:'CorelDRAW',icon:suiteBadge('C','#7ab648')},
+      {k:'ppaint',label:'Corel PHOTO-PAINT',icon:suiteBadge('P','#3d7ea6')},
+      {k:'capture',label:'Corel CAPTURE',icon:suiteBadge('A','#c75146')},
+      {k:'fontm',label:'Corel Font Manager',icon:suiteBadge('F','#8a6fbf')},
+      {k:'connect',label:'Corel CONNECT',icon:suiteBadge('N','#c78f3d')}
+    ];
+  },
+  isInstalled:function(){return S.corel},
+  comps:function(mode,cfg){
+    var list=[];
+    var labels={cdraw:'CorelDRAW',ppaint:'Corel PHOTO-PAINT',capture:'Corel CAPTURE',fontm:'Corel Font Manager',connect:'Corel CONNECT'};
+    var at={cdraw:16,ppaint:30,capture:44,fontm:58,connect:72};
+    var on=function(k){return cfg.mode==='full'||cfg.picks[k]};
+    var k,i;
+    if(mode==='install'){
+      list.push({name:'Berkas penyiapan',at:3});
+      for(k in at)if(on(k))list.push({name:labels[k],at:at[k]});
+      list.push({name:'Konten kreatif (klipart & font)',at:88});
+      list.push({name:'Komponen bersama (.NET, VC++)',at:96});
+    }else if(mode==='repair'){
+      list.push({name:'Memverifikasi berkas sistem',at:8});
+      i=0;
+      for(k in at)if(on(k)){list.push({name:'Memperbaiki '+labels[k],at:22+i*13});i++}
+      list.push({name:'Mendaftarkan ulang ekstensi berkas',at:92});
+    }else{
+      list.push({name:'Menghentikan proses Corel',at:6});
+      i=0;
+      for(k in at)if(on(k)){list.push({name:'Menghapus '+labels[k],at:18+i*13});i++}
+      list.push({name:'Membersihkan registri & ekstensi',at:88});
+      list.push({name:'Menghapus berkas bersama',at:96});
+    }
+    return list;
+  },
+  logs:function(mode,cfg){
+    var L=[];
+    var P=cfg.path||S.corelPath||'C:\\Program Files\\Corel\\Corel Graphics Suite 2024';
+    var files={cdraw:'CorelDRW.exe',ppaint:'CorelPP.exe',capture:'CorelCAP.exe',fontm:'CorelFM.exe',connect:'CorelCN.exe'};
+    var labels={cdraw:'CorelDRAW',ppaint:'Corel PHOTO-PAINT',capture:'Corel CAPTURE',fontm:'Corel Font Manager',connect:'Corel CONNECT'};
+    var at={cdraw:12,ppaint:26,capture:40,fontm:54,connect:68};
+    var on=function(k){return cfg.mode==='full'||cfg.picks[k]};
+    var k;
+    if(mode==='install'){
+      L.push([.3,'[setup] CorelDRAW Graphics Suite 2024 (24.5.0.568) — penginstal Windows']);
+      L.push([.8,'[fs] Membuat folder: '+P]);
+      L.push([1,'[msiexec] Menjalankan: msiexec /i CorelGraphicsSuite.msi /qn']);
+      if(cfg.license==='key')L.push([2,'[setup] Memvalidasi nomor seri … <i class="okk">OK</i>']);
+      else L.push([2,'[setup] Mode uji coba 30 hari diaktifkan']);
+      for(k in at)if(on(k)){
+        L.push([at[k],'[msiexec] Feature: '+k.toUpperCase()+' — memasang '+labels[k]]);
+        L.push([at[k]+3,'[fs] Menyalin: '+P+'\\Programs\\'+files[k]]);
+      }
+      L.push([84,'[reg] Mendaftarkan ekstensi berkas: .cdr .cdrw .cpt .cmx']);
+      L.push([88,'[setup] Mengindeks konten kreatif (klipart, font) …']);
+      L.push([99,'[msiexec] Kode pengembalian: 0x0 (berhasil)']);
+      L.push([100,'[setup] Penginstalan selesai.']);
+    }else if(mode==='repair'){
+      L.push([.5,'[setup] Mode perbaikan dipilih']);
+      L.push([2,'[msiexec] Menjalankan: msiexec /fvam CorelGraphicsSuite.msi /qn']);
+      L.push([5,'[sfc] Memverifikasi hash komponen suite di '+P+' ...']);
+      for(k in at)if(on(k))L.push([at[k],'[sfc] Hash cocok: '+files[k]]);
+      L.push([97,'[setup] Perbaikan selesai. Kode keluar: <i class="okk">0x0</i>']);
+    }else{
+      L.push([.5,'[setup] Mode penghapusan dipilih']);
+      L.push([2,'[msiexec] Menghapus produk: '+GUID()]);
+      L.push([5,'[setup] Menghentikan proses Corel ...']);
+      for(k in at)if(on(k))L.push([at[k],'[fs] Menghapus: '+P+'\\Programs\\'+files[k]]);
+      L.push([90,'[reg] Menghapus ekstensi: .cdr .cpt .cmx']);
+      L.push([98,'[fs] Menghapus folder: '+P]);
+      L.push([98.5,'[setup] Penghapusan selesai. Kode keluar: <i class="okk">0x0</i>']);
+    }
+    return L.filter(function(x){return x[0]<=100}).sort(function(a,b){return a[0]-b[0]});
+  },
+  randLine:function(mode,base){
+    var B=base||S.corelPath||'C:\\Program Files\\Corel\\Corel Graphics Suite 2024';
+    var f=['CorelDrw.cab','PPWorker.dll','CdrFmt.flt','GMS\\AsciiHex.bin','Fonts\\Caku___.ttf','UIToolbar.cfg','cdrclr.cpl','Splash\\splash.png'];
+    if(mode==='install')return randomOf([
+      '[msiexec] Menyalin '+B+'\\Programs\\'+randomOf(f),
+      '[setup] Mendaftarkan server COM: '+GUID(),
+      '[font] Memetakan ulang cache font …',
+      '[setup] Mengoptimalkan profil warna …']);
+    if(mode==='repair')return randomOf(['[sfc] Memverifikasi tanda tangan: '+randomOf(f),'[msiexec] Memulihkan komponen '+GUID()]);
+    return randomOf(['[fs] Menghapus: '+B+'\\Programs\\'+randomOf(f),'[reg] Menghapus nilai registri: '+GUID()]);
+  },
+  applyInstall:function(cfg){
+    S.corel=true;
+    S.corelLicense=cfg.license||'key';
+    if(cfg.path)S.corelPath=cfg.path;
+    if(cfg.shortcuts!==false)addCorelIcons();
+    rebuildStart();
+  },
+  applyUninstall:function(){
+    S.corel=false;
+    removeCorelIcons();rebuildStart();
+  },
+  maintRows:function(){
+    return [['Lokasi',S.corelPath],
+      ['Lisensi',S.corelLicense==='key'?'Nomor seri':'Uji coba 30 hari'],
+      ['Fitur terpasang','5 fitur inti']];
+  },
+  doneTitle:function(mode){
+    return mode==='install'?'CorelDRAW Graphics Suite telah terinstal':mode==='repair'?'Perbaikan selesai':'CorelDRAW Graphics Suite telah dihapus';
+  },
+  doneMsg:function(mode){
+    if(mode==='repair')return 'Semua komponen suite telah diverifikasi dan diperbaiki. Anda dapat langsung melanjutkan pekerjaan desain.';
+    if(mode==='uninstall')return 'CorelDRAW dan seluruh komponennya telah dihapus dari komputer ini. Anda tetap bisa menjalankan CorelDRAW-Setup.exe lagi untuk memasang ulang.';
+    return 'CorelDRAW siap digunakan. Buka dari desktop atau menu Mulai — kanvas, bentuk, garis bebas, dan teks sepenuhnya berfungsi.';
+  },
+  chips:function(mode){
+    if(mode==='uninstall')return [];
+    return [h('span',{class:'chip'},h('span',{class:'i18',html:corelIcon()}),'CorelDRAW Graphics Suite')];
+  },
+  doneRows:function(mode,cfg){
+    return [['Produk','CorelDRAW Graphics Suite 2024 (simulasi)'],
+      ['Lokasi',cfg.path||S.corelPath],
+      ['Lisensi',cfg.license==='trial'?'Uji coba 30 hari':'Nomor seri'],
+      ['Status',mode==='uninstall'?'Tidak terpasang':'Berjalan baik']];
+  },
+  toastDone:function(mode){
+    if(mode==='install')return{title:'CorelDRAW Graphics Suite berhasil dipasang',msg:'CorelDRAW siap digunakan. Pintasan telah ditambahkan ke desktop dan menu Mulai.',icon:corelIcon()};
+    if(mode==='uninstall')return{title:'CorelDRAW Graphics Suite telah dihapus',msg:'Komputer Anda kembali seperti sebelum CorelDRAW dipasang.',icon:IC.info()};
+    return null;
+  },
+  eulaParas:[
+    'PERANGKAT LUNAK INI ADALAH SIMULASI. Seluruh nama produk, merek, dan teks di bawah ini hanyalah contoh untuk keperluan demonstrasi antarmuka.',
+    '1. Dengan menginstal simulasi ini, Anda setuju untuk menjelajahi seluruh alur pemasangan dengan santai dan menikmati prosesnya.',
+    '2. Tidak ada berkas nyata yang ditulis ke komputer Anda; seluruh aktivitas berlangsung di dalam jendela peramban.',
+    '3. Gambar yang Anda buat di kanvas simulasi tidak dikirim ke mana pun — semuanya hanya hidup di memori halaman.'
+  ]
+}
+};
+INSTALL_SPECS.office.tbApp={id:'installer_office',name:'Microsoft Office Setup',icon:OFF.setup.icon,
+  launch:function(){openInstaller(INSTALL_SPECS.office)}};
+INSTALL_SPECS.corel.tbApp={id:'installer_corel',name:'CorelDRAW Setup',icon:corelSetupIcon(),
+  launch:function(){openInstaller(INSTALL_SPECS.corel)}};
+
+/* ============ Alur penginstal ============ */
+function openInstaller(spec){
+  createWindow({app:spec.tbApp,title:spec.winTitle,w:780,h:568,
+    build:function(body,win){phaseSplash(spec,body,win)}});
+}
+function phaseSplash(spec,body,win){
+  var bigIcon=h('span',{class:'i40',
+    style:{width:'72px',height:'72px',filter:'drop-shadow(0 3px 8px rgba(0,0,0,.5))'},
+    html:spec.icon});
+  var msg=h('div',{style:{fontSize:'15px'}},spec.splash);
+  var dots=h('div',{class:'dots'},h('i'),h('i'),h('i'),h('i'),h('i'));
+  var box=h('div',{style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'22px'}},
+    bigIcon,msg,dots);
+  body.append(box);
+  setTimeout(function(){
+    if(!win.el.isConnected)return;
+    body.innerHTML='';
+    if(spec.isInstalled())phaseMaintain(spec,body,win);
+    else phaseWizard(spec,body,win);
+  },1600);
+}
+/* ============ Wizard bertahap (langkah demi langkah) ============ */
+function phaseWizard(spec,body,win){
+  var picks=spec.pickList();
+  var cfg={mode:'full',agree:false,lang:'id-ID',arch:'64',license:'key',
+    serial:'CDR24-8KQ5-WT9MA-B2JH4',picks:{},shortcuts:true,runAfter:false,path:spec.path};
+  picks.forEach(function(p){cfg.picks[p.k]=true});
+  function serialOk(){
+    if(!spec.hasSerial)return true;
+    return cfg.license==='trial'||cfg.serial.trim().length>=10;
+  }
+  var steps=[],stepIdx=0,dir=1;
+  function addStep(label,build,valid){
+    steps.push({label:label,build:build,valid:valid||function(){return true}});
+  }
+
+  /* --- Langkah: Selamat datang --- */
+  addStep('Selamat datang',function(pane){
+    var icon=h('span',{class:'i40',
+      style:{width:'84px',height:'84px',filter:'drop-shadow(0 4px 10px rgba(0,0,0,.45))'},
+      html:spec.icon});
+    var facts=h('div',{class:'wz-facts'},spec.facts.map(function(f){
+      return h('div',{class:'f'},
+        h('span',{class:'fk'},f[0]),
+        h('span',{class:'fv'},f[1]));
+    }));
+    pane.append(h('div',{class:'wz-hero'},icon,
+      h('h2',{},spec.welcomeTitle),
+      h('p',{},spec.welcomeMsg),
+      facts));
+  });
+
+  /* --- Langkah: Lisensi (EULA) --- */
+  addStep('Lisensi',function(pane){
+    var paras=spec.eulaParas.map(function(t,ix){
+      return h('p',{style:ix?{marginTop:'10px'}:null},t);
+    });
+    var cb=h('input',{type:'checkbox',onchange:function(){cfg.agree=cb.checked;refreshNav()}});
+    pane.append(h('div',{class:'field'},
+      h('label',{},'Ketentuan lisensi — '+spec.welcomeTitle),
+      h('div',{class:'wz-eula'},paras)));
+    pane.append(h('label',{class:'wz-agree'},cb,
+      h('span',{},'Saya telah membaca dan menyetujui ketentuan di atas')));
+  },function(){return cfg.agree});
+
+  /* --- Langkah: Jenis lisensi (khusus Corel) --- */
+  if(spec.hasSerial){
+    addStep('Jenis lisensi',function(pane){
+      var serialIn=h('input',{spellcheck:'false'});
+      serialIn.value=cfg.serial;
+      serialIn.style.letterSpacing='1px';
+      serialIn.style.fontFamily="'JetBrains Mono',monospace";
+      serialIn.style.width='100%';
+      var hint=h('div',{class:'wz-hint-err'});
+      serialIn.addEventListener('input',function(){
+        cfg.serial=serialIn.value;
+        hint.textContent=serialOk()?'':'Nomor seri tampaknya belum lengkap (min. 10 karakter).';
+        refreshNav();
+      });
+      var rKey=h('div',{class:'rrow on'},
+        h('span',{class:'rad'}),
+        h('div',{},h('b',{},'Saya memiliki nomor seri'),h('span',{},'Aktivasi permanen dengan nomor seri yang sah')));
+      var rTrial=h('div',{class:'rrow'},
+        h('span',{class:'rad'}),
+        h('div',{},h('b',{},'Uji coba gratis 30 hari'),h('span',{},'Semua fitur, tanpa nomor seri')));
+      function setLic(m){
+        cfg.license=m;
+        rKey.classList.toggle('on',m==='key');
+        rTrial.classList.toggle('on',m==='trial');
+        serialIn.disabled=m!=='key';
+        serialIn.style.opacity=m==='key'?'1':'.45';
+        hint.textContent='';
+        refreshNav();
+      }
+      rKey.addEventListener('click',function(){setLic('key')});
+      rTrial.addEventListener('click',function(){setLic('trial')});
+      pane.append(h('div',{class:'field'},h('label',{},'Metode aktivasi'),
+        rKey,
+        h('div',{class:'inrow',style:{margin:'4px 0 8px'}},serialIn),
+        rTrial,
+        hint));
+    },serialOk);
+  }
+
+  /* --- Langkah: Komponen --- */
+  addStep('Komponen',function(pane){
+    var appList=h('div',{style:{display:'none'}});
+    picks.forEach(function(p){
+      var k=p.k;
+      var sw=h('button',{class:'sw on',title:'Pasang komponen ini'});
+      sw.addEventListener('click',function(e){
+        e.stopPropagation();
+        var on=Object.keys(cfg.picks).filter(function(x){return cfg.picks[x]}).length;
+        if(sw.classList.contains('on')&&on<=1)return;
+        sw.classList.toggle('on');
+        cfg.picks[k]=sw.classList.contains('on');
+      });
+      appList.append(h('div',{class:'app-pick'},
+        h('span',{class:'i32',html:p.icon}),
+        h('b',{},p.label),
+        sw));
+    });
+    var rFull=h('div',{class:'rrow on'},
+      h('span',{class:'rad'}),
+      h('div',{},h('b',{},spec.fullLabel),h('span',{},spec.fullSub)));
+    var rCust=h('div',{class:'rrow'},
+      h('span',{class:'rad'}),
+      h('div',{},h('b',{},'Kustom'),h('span',{},spec.customSub)));
+    function setMode(m){
+      cfg.mode=m;
+      rFull.classList.toggle('on',m==='full');
+      rCust.classList.toggle('on',m==='custom');
+      appList.style.display=m==='custom'?'block':'none';
+    }
+    rFull.addEventListener('click',function(){setMode('full')});
+    rCust.addEventListener('click',function(){setMode('custom')});
+    pane.append(h('div',{class:'field'},
+      h('label',{},'Jenis pemasangan'),rFull,rCust,appList));
+  });
+
+  /* --- Langkah: Opsi (isi per produk) --- */
+  addStep('Opsi',function(pane){
+    spec.buildOptions(pane,cfg);
+  });
+
+  /* --- Langkah: Lokasi (bebas dipilih di mana saja) --- */
+  addStep('Lokasi',function(pane){
+    var pathIn=h('input',{value:cfg.path||spec.path});
+    var errEl=h('div',{class:'wz-hint-err'});
+    var freeB=h('b',{},'—');
+    function fmtN(n){return String(n).replace('.',',')}
+    function driveOf(p){
+      var m=String(p).match(/^([A-Za-z]):\\/);
+      return m?m[1].toUpperCase()+':':null;
+    }
+    function validate(){
+      var v=pathIn.value.trim();
+      cfg.path=v;
+      var err='';
+      if(!v)err='Lokasi instalasi tidak boleh kosong.';
+      else if(!/^[A-Za-z]:\\/.test(v))err='Gunakan format yang valid, contoh: C:\\Program Files\\Aplikasi';
+      // else if(/[\\"|:*?<>]/.test(v.slice(3)))err='Lokasi mengandung karakter yang tidak diizinkan ( \\ : * ? " < > | ).';
+      else if(/^C:\\Windows(\\|$)/i.test(v))err='Tidak dapat memasang di dalam folder sistem Windows.';
+      cfg._pathOk=!err;
+      errEl.textContent=err;
+      var d=driveOf(v);
+      freeB.textContent=(d&&DRIVE_FREE[d]!==undefined&&!err)?
+        (fmtN(DRIVE_FREE[d])+' GB bebas di '+d):'—';
+      refreshNav();
+    }
+    pathIn.addEventListener('input',validate);
+    var btnBrowse=h('button',{class:'btn',onclick:function(){
+      var host=pane.closest('.wbody')||document.body;
+      browseFolder(host,pathIn.value,function(p){
+        pathIn.value=p;
+        validate();
+      });
+    }},'Telusuri…');
+    pane.append(h('div',{class:'field'},h('label',{},'Folder tujuan'),
+      h('div',{class:'inrow'},pathIn,btnBrowse),errEl));
+    pane.append(h('p',{class:'wz-lead',style:{marginBottom:'10px'}},
+      'Ketik lokasi secara langsung, atau telusuri dan buat folder baru di mana saja — termasuk di drive lain.'));
+    pane.append(h('div',{class:'sumcard',style:{marginTop:'0'}},
+      h('div',{class:'row'},h('span',{},'Dibutuhkan'),'± '+fmtN(spec.reqGB)+' GB'),
+      h('div',{class:'row'},h('span',{},'Ruang disk'),freeB)));
+    validate();
+  },function(){return cfg._pathOk===true});
+
+  /* --- Langkah: Ringkasan (tombol jadi Instal) --- */
+  addStep('Ringkasan',function(pane){
+    var picked=picks.filter(function(p){return cfg.mode==='full'||cfg.picks[p.k]});
+    var chips=h('div',{class:'chips',style:{justifyContent:'flex-start',marginTop:'0',marginBottom:'16px'}},
+      picked.map(function(p){
+        return h('span',{class:'chip'},h('span',{class:'i18',html:p.icon}),p.label);
+      }));
+    var rows=[['Jenis',cfg.mode==='full'?spec.fullLabel:'Kustom']];
+    rows.push(['Komponen',picked.length+' dari '+picks.length]);
+    if(spec.hasSerial)rows.push(['Lisensi',cfg.license==='trial'?'Uji coba 30 hari':'Nomor seri']);
+    if(spec.summaryExtras)rows=rows.concat(spec.summaryExtras(cfg));
+    rows.push(['Lokasi',cfg.path||spec.path]);
+    pane.append(h('p',{class:'wz-lead'},'Tinjau pilihan Anda sebelum memulai:'));
+    pane.append(chips);
+    pane.append(h('div',{class:'sumcard',style:{marginTop:'0'}},rows.map(function(r){
+      return h('div',{class:'row'},h('span',{},r[0]),h('b',{},r[1]));
+    })));
+    pane.append(h('div',{class:'wz-hint',style:{marginTop:'14px'}},'Klik Instal untuk mulai menyalin berkas. Proses berjalan otomatis setelahnya.'));
+  });
+
+  /* --- Kerangka navigasi --- */
+  var stepsBar=h('div',{class:'wz-steps'});
+  var paneHost=h('div',{class:'iz-body'});
+  var stepLab=h('span',{},'');
+  var btnBack=h('button',{class:'btn',onclick:function(){go(-1)}},'Kembali');
+  var btnNext=h('button',{class:'btn primary',onclick:function(){go(1)}},'Berikutnya');
+  var btnCancel=h('button',{class:'btn',onclick:function(){win.close()}},'Batal');
+  function refreshNav(){
+    btnBack.disabled=stepIdx===0;
+    var last=stepIdx===steps.length-1;
+    btnNext.textContent=last?'Instal':'Berikutnya';
+    btnNext.disabled=!steps[stepIdx].valid();
+    stepLab.textContent='Langkah '+(stepIdx+1)+' dari '+steps.length;
+  }
+  function go(d){
+    if(d>0){
+      if(!steps[stepIdx].valid())return;
+      if(stepIdx===steps.length-1){startInstall(spec,body,win,'install',cfg);return}
+    }
+    var ni=stepIdx+d;
+    if(ni<0||ni>=steps.length)return;
+    dir=d;
+    stepIdx=ni;
+    renderPane();
+  }
+  function renderBar(){
+    stepsBar.innerHTML='';
+    steps.forEach(function(s,i){
+      var dotContent=i<stepIdx?h('span',{class:'i16',html:IC.check()}):document.createTextNode(String(i+1));
+      stepsBar.append(h('div',{class:'wz-step'+(i<stepIdx?' done':i===stepIdx?' cur':'')},
+        h('span',{class:'dot'},dotContent),
+        h('span',{class:'sl'},s.label)));
+    });
+  }
+  function renderPane(){
+    paneHost.innerHTML='';
+    var pane=h('div',{class:'wz-pane'+(dir<0?' back':'')});
+    steps[stepIdx].build(pane);
+    paneHost.append(pane);
+    renderBar();
+    refreshNav();
+  }
+  var head=h('div',{class:'iz-head'},
+    h('span',{class:'i40',html:spec.icon}),
+    h('div',{},
+      h('h2',{},spec.winTitle),
+      h('div',{class:'sub'},'Penginstal akan memandu Anda langkah demi langkah.')));
+  var foot=h('div',{class:'iz-foot'},
+    h('div',{class:'l'},stepLab),
+    h('div',{class:'r'},btnCancel,btnBack,btnNext));
+  body.append(h('div',{class:'iz'},head,stepsBar,paneHost,foot));
+  renderPane();
+}
+function phaseMaintain(spec,body,win){
+  var head=h('div',{class:'iz-head'},
+    h('span',{class:'i40',html:spec.icon}),
+    h('div',{},
+      h('h2',{},spec.installedTitle),
+      h('div',{class:'sub'},spec.maintainLine)));
+  var sum=h('div',{class:'sumcard'},spec.maintRows().map(function(r){
+    return h('div',{class:'row'},h('span',{},r[0]),h('b',{},r[1]));
+  }));
+  var btnUn=h('button',{class:'btn',onclick:function(){startInstall(spec,body,win,'uninstall',{})}},'Copot pemasangan');
+  var btnRep=h('button',{class:'btn',onclick:function(){startInstall(spec,body,win,'repair',{})}},'Perbaiki');
+  var btnTutup=h('button',{class:'btn primary',onclick:function(){win.close()}},'Tutup');
+  var foot=h('div',{class:'iz-foot'},
+    h('div',{class:'l'},'Pilih tindakan pemeliharaan'),
+    h('div',{class:'r'},btnUn,btnRep,btnTutup));
+  body.append(h('div',{class:'iz'},head,h('div',{class:'iz-body'},sum),foot));
+}
+function startInstall(spec,body,win,mode,cfg){
+  cfg=cfg||{};
+  if(!cfg.mode)cfg.mode='full';
+  if(!cfg.picks){cfg.picks={};spec.pickList().forEach(function(p){cfg.picks[p.k]=true})}
+  if(!cfg.license)cfg.license=S.corelLicense||'key';
+  if(!cfg.lang)cfg.lang='id-ID';
+  if(!cfg.arch)cfg.arch='64';
+  if(!cfg.path)cfg.path=S[spec.key+'Path']||spec.path;
+  if(cfg.path.length>3)cfg.path=cfg.path.replace(/\\+$/,'');
+  body.innerHTML='';
+  var comps=spec.comps(mode,cfg);
+  var logs=spec.logs(mode,cfg);
+  var titles=spec.progTitles;
+  var pct=h('div',{class:'pg-pct'},'0%');
+  var fillEl=h('div',{class:'pg-fill'});
+  var eta=h('span',{},'menghitung…');
+  var spd=h('b',{},'');
+  var log=h('div',{class:'logbox'});
+  comps.forEach(function(c){
+    c.state='w';
+    c.st=h('span',{class:'cst w'});
+    c.el=h('div',{class:'comp'},c.st,h('b',{},c.name));
+  });
+  var compEls=comps.map(function(c){return c.el});
+  var compsBox=h('div',{class:'comps'},compEls);
+  var logwrap=h('div',{class:'logwrap'});
+  var loghead=h('div',{class:'loghead',onclick:function(){logwrap.classList.toggle('collapsed')}},
+    h('span',{class:'i16',html:IC.chevD()}),
+    h('span',{class:'lg'},'Log penginstalan'));
+  logwrap.append(loghead,log);
+  function addLog(t,err){
+    log.append(h('div',{class:err?'errl':'',
+      html:'<span class="ts">'+new Date().toLocaleTimeString('id-ID')+'</span>'+(t||'')}));
+    log.scrollTop=log.scrollHeight;
+  }
+  var btnCancel=h('button',{class:'btn'},mode==='uninstall'?'Batalkan':'Batal');
+  var head=h('div',{class:'iz-head'},
+    h('span',{class:'i40',html:spec.icon}),
+    h('div',{},
+      h('h2',{},titles[mode]),
+      h('div',{class:'sub'},mode==='uninstall'?'Menghapus semua komponen perangkat lunak dari komputer ini.':'Ini mungkin memerlukan beberapa menit. Jangan matikan komputer Anda.')));
+  var mid=h('div',{class:'iz-body'},
+    h('div',{class:'pg-top'},h('h3',{},titles[mode]+'…'),pct),
+    h('div',{class:'pg-meta'},'Perkiraan waktu tersisa: ',eta,h('span',{},' • '),spd),
+    h('div',{class:'pg-bar'},fillEl),
+    compsBox,logwrap);
+  var foot=h('div',{class:'iz-foot'},
+    h('div',{class:'l'},'Microsoft Corporation / Corel Corporation — Semua hak dilindungi'),
+    h('div',{class:'r'},btnCancel));
+  body.append(h('div',{class:'iz'},head,mid,foot));
+  var ended=false,p=0,stall=0,li=0;
+  var dur=mode==='install'?spec.dur:mode==='repair'?spec.repairDur:spec.uninstDur;
+  var base=100/(dur/90);
+  var iv=null;
+  function confirmCancel(){
+    if(body.querySelector('.iw-modal'))return;
+    var btnGo=h('button',{class:'btn',onclick:function(ev){
+      var x=ev.target.closest('.iw-modal');
+      if(x)x.remove();
+    }},'Lanjutkan');
+    var btnStop=h('button',{class:'btn primary',onclick:function(ev){
+      var x=ev.target.closest('.iw-modal');
+      if(x)x.remove();
+      rollback();
+    }},'Ya, batalkan');
+    var card=h('div',{class:'iw-card'},
+      h('h3',{},'Hentikan '+({install:'penginstalan',repair:'perbaikan',uninstall:'penghapusan'})[mode]+'?'),
+      h('p',{},'Jika Anda membatalkan sekarang, komputer akan dikembalikan ke kondisi semula.'),
+      h('div',{class:'acts'},btnGo,btnStop));
+    body.append(h('div',{class:'iw-modal'},card));
+  }
+  function rollback(){
+    if(ended)return;
+    ended=true;win.onBeforeClose=null;
+    if(iv)clearInterval(iv);
+    var iv2=setInterval(function(){
+      p-=2.6;
+      addLog(randomOf(['[undo] Membatalkan perubahan …','[fs] Menghapus berkas yang baru saja ditulis …','[reg] Memulihkan registri …']),true);
+      pct.textContent=Math.max(0,Math.floor(p))+'%';
+      fillEl.style.width=Math.max(0,p)+'%';
+      comps.forEach(function(c){
+        if(c.state!=='w'&&p<c.at-15){
+          c.state='w';c.el.className='comp';c.st.className='cst w';c.st.innerHTML='';
+        }
+      });
+      if(p<=0){
+        clearInterval(iv2);
+        win.close(true);
+        chErr();
+        toast({title:'Proses dibatalkan',msg:'Tidak ada perubahan yang diterapkan pada sistem.',icon:IC.info(),sound:false});
+      }
+    },45);
+  }
+  function tick(){
+    if(ended)return;
+    if(stall>0)stall--;
+    else{
+      var f=1+.55*Math.sin(p*.11)+(Math.random()-.5)*.5;
+      if(Math.random()<.02)stall=3+Math.floor(Math.random()*5);
+      p=Math.min(100,p+base*Math.max(.25,f));
+    }
+    while(li<logs.length&&logs[li][0]<=p){addLog(logs[li][1]);li++}
+    if(Math.random()<.11)addLog(spec.randLine(mode,cfg.path));
+    comps.forEach(function(c){
+      var st=p>=c.at?'d':(p>=c.at-15?'r':'w');
+      if(c.state!==st){
+        c.state=st;
+        c.el.className='comp'+(st==='r'?' run':st==='d'?' done':'');
+        c.st.className='cst '+st;
+        c.st.innerHTML=st==='d'?IC.check():'';
+      }
+    });
+    pct.textContent=Math.floor(p)+'%';
+    fillEl.style.width=p+'%';
+    var rem=Math.max(0,(100-p)/100*dur/1000);
+    eta.textContent=Math.floor(rem/60)+':'+String(Math.floor(rem%60)).padStart(2,'0');
+    spd.textContent=(8+Math.sin(p*.3)*4+Math.random()*6).toFixed(1).replace('.',',')+' MB/dtk';
+    if(p>=100){
+      ended=true;win.onBeforeClose=null;
+      clearInterval(iv);
+      setTimeout(function(){if(win.el.isConnected)phaseDone(spec,body,win,mode,cfg)},650);
+    }
+  }
+  btnCancel.addEventListener('click',function(){if(!ended)confirmCancel()});
+  win.onBeforeClose=function(){if(!ended){confirmCancel();return false}return true};
+  iv=setInterval(tick,90);
+}
+function phaseDone(spec,body,win,mode,cfg){
+  if(mode==='install')spec.applyInstall(cfg);
+  if(mode==='uninstall')spec.applyUninstall();
+  var t=spec.toastDone(mode);
+  if(t)toast(t);
+  if(mode==='install'&&spec.key==='corel'&&cfg.runAfter){
+    setTimeout(function(){launchApp('corel')},900);
+  }
+  body.innerHTML='';
+  var check=h('svg',{class:'bigcheck',viewBox:'0 0 80 80'},
+    '<circle cx="40" cy="40" r="34"/><path d="M25 41.5l10 10 20-22"/>');
+  var title=spec.doneTitle(mode);
+  var msg=spec.doneMsg(mode);
+  var chipArr=spec.chips(mode);
+  var chipBox=chipArr.length?h('div',{class:'chips'},chipArr):null;
+  var rows=spec.doneRows(mode,cfg);
+  var sum=h('div',{class:'sumcard'},rows.map(function(r){
+    return h('div',{class:'row'},h('span',{},r[0]),h('b',{},r[1]));
+  }));
+  var inner=h('div',{class:'done-c'},check,
+    h('h2',{},title),h('p',{},msg),chipBox,sum);
+  var btnTutup=h('button',{class:'btn primary',onclick:function(){win.close()}},'Tutup');
+  var foot=h('div',{class:'iz-foot'},h('div',{class:'l'},''),h('div',{class:'r'},btnTutup));
+  body.append(h('div',{class:'iz'},inner,foot));
+}
+
+/* ============ File Explorer ============ */
+var FS={
+  desktop:{name:'Desktop',parent:'thispc',items:function(){
+    return desktopItems.map(function(d){return {name:d.name,icon:d.icon,open:d.open}});
+  }},
+  documents:{name:'Dokumen',parent:'thispc',items:function(){return [
+    {name:'Proposal Proyek.docx',icon:OFF.word.icon,open:function(){
+      openWord({title:'Proposal Proyek',html:'<h1>Proposal Proyek 2025</h1><p>Berikut ringkasan ruang lingkup proyek yang kita diskusikan pada rapat terakhir. Dokumen ini dibuat di dalam simulasi dan tidak dikirim ke mana pun.</p><p>Silakan edit teks ini langsung — Anda bisa menebalkan, memiringkan, mengubah ukuran huruf, atau membuat daftar.</p>'});
+    }},
+    {name:'Anggaran 2024.xlsx',icon:OFF.excel.icon,open:function(){
+      openExcel({A1:'Pos',B1:'Anggaran',A2:'Perangkat',B2:'4200',A3:'Lisensi',B3:'1200',A4:'Pelatihan',B4:'800',A5:'Cadangan',B5:'300',A7:'Total',B7:'=B2+B3+B4+B5'});
+    }},
+    {name:'Presentasi Klien.pptx',icon:OFF.powerpoint.icon,open:function(){
+      openPPT({slides:[
+        {html:'<h1>Solusi untuk Klien Kami</h1><p>Disusun oleh tim simulasi — klik untuk mengedit teks ini.</p>'},
+        {html:'<h2>Rencana Kerja</h2><li>Fase 1 — audit</li><li>Fase 2 — implementasi</li><li>Fase 3 — serah terima</li>'}]});
+    }},
+    {name:'Logo Perusahaan.cdr',icon:corelIcon(),open:function(){
+      openCorel([
+        {t:'e',x:120,y:70,w:200,h:200,fill:'#9dc41f',stroke:'#1a1a1a',sw:2.5},
+        {t:'f',pts:[[370,90],[480,150],[440,245],[355,215],[370,90]],fill:'none',stroke:'#185abd',sw:4},
+        {t:'tx',x:130,y:330,fs:42,fill:'#1a1a1a',text:'LOGO PERUSAHAAN'},
+        {t:'r',x:130,y:355,w:340,h:10,fill:'#9dc41f',stroke:'none',sw:1}
+      ]);
+    }},
+    {name:'Catatan Rapat.txt',icon:IC.notepad(),open:function(){
+      openNotepad({text:'Catatan rapat — Senin\n\n- Instalasi Office & CorelDRAW selesai dicoba\n- Tidak ada temuan kendala\n- Nostalgia era wizard instalasi: disetujui'});
+    }}
+  ]}},
+  pictures:{name:'Gambar',parent:'thispc',items:function(){
+    return ['Pantai.jpg','Hutan Kabut.jpg','Kota Malam.jpg','Pegunungan.jpg','Danau.jpg','Jalan Desa.jpg']
+      .map(function(n){
+        return {name:n,img:'https://picsum.photos/seed/'+encodeURIComponent(n)+'/96/76.jpg',
+          open:function(){openPhotos(n)}};
+      });
+  }},
+  downloads:{name:'Unduhan',parent:'thispc',items:function(){return [
+    {name:'OfficeSetup.exe',icon:setupIcon(),open:function(){runSetup('office')}},
+    {name:'CorelDRAW-Setup.exe',icon:corelSetupIcon(),open:function(){runSetup('corel')}},
+    {name:'Laporan-Keuangan-Q4.pdf',icon:IC.doc(),open:function(){
+      toast({title:'Pratinjau tidak tersedia',msg:'Penampil PDF tidak disertakan dalam simulasi ini.',icon:IC.doc(),sound:false});
+    }}
+  ]}},
+  music:{name:'Musik',parent:'thispc',items:function(){return []}},
+  videos:{name:'Video',parent:'thispc',items:function(){return []}},
+  thispc:{name:'PC ini',parent:null,items:function(){return []}}
+};
+function openExplorer(start){
+  start=start||'desktop';
+  createWindow({app:APPS.explorer,title:FS[start].name,w:920,h:580,build:function(body,win){
+    var cur=start;
+    var hist=[],fut=[];
+    var grid=h('div',{class:'ex-grid'});
+    var crumb=h('div',{class:'crumb'});
+    var status=h('div',{class:'ex-status'});
+    var search=h('input',{class:'ex-search',type:'text',placeholder:'Cari'});
+    var side=h('div',{class:'ex-side'});
+    function nav(k){if(k!==cur){hist.push(cur);fut.length=0}cur=k;render()}
+    function exItem(i){
+      var el=h('div',{class:'exi'},
+        i.img?h('img',{src:i.img,alt:i.name}):h('span',{class:'i48',html:i.icon||IC.doc()}),
+        h('span',{class:'lbl'},i.name));
+      el.addEventListener('pointerdown',function(){
+        $$('.exi.sel',grid).forEach(function(x){x.classList.remove('sel')});
+        el.classList.add('sel');
+      });
+      el.addEventListener('dblclick',function(){if(i.open)i.open()});
+      return el;
+    }
+    function render(){
+      $$('.si',side).forEach(function(b){b.classList.toggle('on',b.dataset.k===cur)});
+      var loc=FS[cur];
+      win.titleEl.textContent=loc.name;
+      crumb.innerHTML='';
+      crumb.append(h('span',{class:'i16',html:IC.monitor()}),
+        h('span',{},loc.name),
+        h('span',{class:'i16',html:IC.chevR()}));
+      grid.innerHTML='';
+      grid.style.display='flex';
+      if(cur==='thispc'){
+        var count=0;
+        [['Local Disk (C:)',78],['Data (D:)',41]].forEach(function(d){
+          count++;
+          var driveName=d[0];
+          grid.append(h('div',{class:'drive',ondblclick:function(){
+            toast({title:driveName,msg:'Isi drive tidak disertakan dalam simulasi ini.',icon:IC.disk(),sound:false});
+          }},
+            h('span',{class:'i40',html:IC.disk()}),
+            h('div',{style:{flex:'1'}},
+              h('div',{style:{fontSize:'12.5px',marginBottom:'5px'}},driveName),
+              h('div',{class:'dbar'},h('i',{style:{width:d[1]+'%'}}))),
+            h('div',{style:{fontSize:'11.5px',color:'var(--text-3)'}},d[1]+'% terpakai')));
+        });
+        [['desktop','Desktop'],['documents','Dokumen'],['pictures','Gambar'],['downloads','Unduhan']].forEach(function(f){
+          count++;
+          var fk=f[0];
+          grid.append(exItem({name:f[1],icon:IC.folder(),open:function(){nav(fk)}}));
+        });
+        status.textContent=count+' item';
+        return;
+      }
+      var q=search.value.trim().toLowerCase();
+      var items=loc.items().filter(function(i){return !q||i.name.toLowerCase().indexOf(q)>=0});
+      status.textContent=items.length+' item';
+      if(!items.length){
+        grid.style.display='grid';
+        grid.style.placeItems='center';
+        grid.append(h('div',{class:'ex-empty'},'Folder ini kosong.'));
+        return;
+      }
+      items.forEach(function(i){grid.append(exItem(i))});
+    }
+    search.addEventListener('input',render);
+    [['desktop','Desktop'],['downloads','Unduhan'],['documents','Dokumen'],['pictures','Gambar'],['music','Musik'],['videos','Video'],['thispc','PC ini']]
+      .forEach(function(s){
+        var sk=s[0];
+        side.append(h('button',{class:'si','data-k':sk,onclick:function(){nav(sk)}},
+          h('span',{class:'i16',html:sk==='thispc'?IC.monitor():IC.folder()}),
+          s[1]));
+      });
+    var tools=h('div',{class:'ex-tools'},
+      h('button',{class:'nav',html:IC.arrL(),title:'Kembali',onclick:function(){
+        if(hist.length){fut.push(cur);cur=hist.pop();render()}
+      }}),
+      h('button',{class:'nav',html:IC.arrR(),title:'Maju',onclick:function(){
+        if(fut.length){hist.push(cur);cur=fut.pop();render()}
+      }}),
+      h('button',{class:'nav',html:IC.arrU(),title:'Naik',onclick:function(){
+        if(FS[cur].parent)nav(FS[cur].parent);
+      }}),
+      h('button',{class:'nav',html:IC.refresh(),title:'Segarkan',onclick:render}),
+      crumb,search);
+    var main=h('div',{class:'ex-main'},side,grid);
+    body.append(h('div',{class:'ex'},tools,main,status));
+    render();
+  }});
+}
+
+/* ============ Terminal ============ */
+function openTerminal(){
+  createWindow({app:APPS.terminal,title:'Terminal',w:740,h:440,build:function(body,win){
+    var out=h('div',{class:'o'});
+    var inp=h('input',{spellcheck:'false',autocomplete:'off'});
+    var promptSpan=h('span',{class:'p'},'PS C:\\Users\\Pengguna&gt;');
+    var lineWrap=h('div',{class:'tline'},promptSpan,inp);
+    var scr=h('div',{class:'term'},out,lineWrap);
+    var hist=[],hi=0;
+    var PROMPT='PS C:\\Users\\Pengguna&gt;';
+    function line(t){
+      out.append(h('div',{html:t}));
+      scr.scrollTop=scr.scrollHeight;
+    }
+    body.append(scr);
+    scr.addEventListener('pointerup',function(){
+      var s=window.getSelection();
+      if(!s||!s.toString())inp.focus();
+    });
+    setTimeout(function(){inp.focus()},80);
+    line('Windows PowerShell — Simulasi\n');
+    line('Ketik <span class="p">help</span> untuk daftar perintah.\n');
+    var cmds={
+      help:function(){line('Perintah tersedia: <span class="p">help ver echo dir date whoami cls setup corel exit</span>')},
+      ver:function(){line('Microsoft Windows [Version 10.0.26100.2605] — Simulasi')},
+      dir:function(){
+        line('    Direktori: C:\\Users\\Pengguna\\Desktop\n');
+        desktopItems.forEach(function(i){line('    '+i.name.replace(/</g,'&lt;'))});
+        line('');
+      },
+      date:function(){line(new Date().toLocaleString('id-ID'))},
+      whoami:function(){line('windows-sim\\pengguna')},
+      cls:function(){out.innerHTML=''},
+      exit:function(){win.close()},
+      setup:function(){line('Menjalankan setup.exe …');setTimeout(function(){runSetup('office')},300)},
+      corel:function(){line('Menjalankan CorelDRAW-Setup.exe …');setTimeout(function(){runSetup('corel')},300)}
+    };
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='ArrowUp'&&hist.length){hi=Math.max(0,hi-1);inp.value=hist[hi]||'';e.preventDefault();return}
+      if(e.key==='ArrowDown'){hi=Math.min(hist.length,hi+1);inp.value=hist[hi]||'';e.preventDefault();return}
+      if(e.key!=='Enter')return;
+      var v=inp.value.trim();
+      inp.value='';
+      if(!v)return;
+      hist.push(v);hi=hist.length;
+      line('<span class="p">'+PROMPT+'</span> '+v.replace(/</g,'&lt;'));
+      var sp=v.split(' ');
+      var c=sp[0].toLowerCase();
+      var rest=sp.slice(1).join(' ');
+      if(cmds[c])cmds[c]();
+      else if(c==='echo')line(rest.replace(/</g,'&lt;')||'');
+      else line("istilah '"+c.replace(/</g,'&lt;')+"' tidak dikenali sebagai perintah internal.");
+    });
+  }});
+}
+
+/* ============ Pengaturan ============ */
+function openSettings(){
+  createWindow({app:APPS.settings,title:'Pengaturan',w:760,h:540,build:function(body,win){
+    var ACC=['#4cc2ff','#4de0c8','#6ccb5f','#ffd35c','#ff9248','#ff7ba9'];
+    var swBox=h('div',{class:'swatches'});
+    ACC.forEach(function(c,i){
+      var b=h('button',{class:'swat'+(S.accent===c?' on':''),style:{background:c},title:c});
+      b.addEventListener('click',function(){
+        $$('.swat',swBox).forEach(function(x){x.classList.remove('on')});
+        b.classList.add('on');
+        S.accent=ACC[i];
+        setAccent(ACC[i]);
+      });
+      swBox.append(b);
+    });
+    var wallRow=h('div',{class:'wallrow'});
+    WALLS.forEach(function(w,i){
+      var cv=document.createElement('canvas');
+      var b=h('button',{class:'wallth'+(S.wall===i?' on':'')},cv);
+      b.addEventListener('click',function(){
+        $$('.wallth',wallRow).forEach(function(x){x.classList.remove('on')});
+        b.classList.add('on');
+        S.wall=i;
+        drawWall($('#wallpaper'),i);
+      });
+      wallRow.append(b);
+      requestAnimationFrame(function(){drawWall(cv,i)});
+    });
+    var tr=h('button',{class:'sw'+(document.body.classList.contains('no-trans')?'':' on')});
+    tr.addEventListener('click',function(){
+      tr.classList.toggle('on');
+      document.body.classList.toggle('no-trans');
+    });
+    var se=h('div',{class:'se'},
+      h('h1',{},'Personalisasi'),
+      h('div',{class:'sub2'},'Warna aksen, latar belakang, dan efek transparansi'),
+      h('h4',{},'Warna aksen'),swBox,
+      h('h4',{},'Latar belakang'),wallRow,
+      h('h4',{},'Efek transparansi'),
+      h('div',{class:'togrow'},
+        h('span',{style:{flex:'1'}},'Blur pada taskbar, panel, dan menu'),tr));
+    body.append(se);
+  }});
+}
+function setAccent(c){
+  document.documentElement.style.setProperty('--accent',c);
+  document.documentElement.style.setProperty('--accent-t',hexA(c,.16));
+}
+
+/* ============ Notepad ============ */
+function openNotepad(o){
+  o=o||{};
+  createWindow({app:APPS.notepad,title:(o.name||'Tanpa Judul')+' — Notepad',w:640,h:460,build:function(body,win){
+    var ed=h('div',{contenteditable:'true'},o.text||'');
+    var stat=h('div',{class:'np-stat'},'0 karakter');
+    function upd(){stat.textContent=(ed.textContent||'').length+' karakter'}
+    ed.addEventListener('input',upd);
+    var btnBaru=h('button',{},'Baru');
+    btnBaru.addEventListener('click',function(){
+      var btnCancel=h('button',{class:'btn',onclick:function(ev){
+        var x=ev.target.closest('.iw-modal');
+        if(x)x.remove();
+      }},'Batal');
+      var btnOk=h('button',{class:'btn primary',onclick:function(ev){
+        var x=ev.target.closest('.iw-modal');
+        if(x)x.remove();
+        ed.textContent='';upd();
+      }},'Buat');
+      var card=h('div',{class:'iw-card'},
+        h('h3',{},'Buat dokumen baru?'),
+        h('p',{},'Perubahan yang belum disimpan akan hilang.'),
+        h('div',{class:'acts'},btnCancel,btnOk));
+      body.append(h('div',{class:'iw-modal'},card));
+    });
+    var btnSimpan=h('button',{},'Simpan');
+    btnSimpan.addEventListener('click',function(){
+      toast({title:'Dokumen disimpan',msg:'(Disimpan dalam memori simulasi ini saja.)',icon:IC.save(),sound:false});
+    });
+    var menu=h('div',{class:'np-menu'},btnBaru,btnSimpan);
+    body.append(h('div',{class:'np'},menu,h('div',{class:'np-body'},ed),stat));
+    upd();
+  }});
+}
+
+/* ============ Word ============ */
+function openWord(o){
+  o=o||{};
+  createWindow({app:APPS.word,title:(o.title||'Dokumen1')+' — Word',w:900,h:640,build:function(body,win){
+    var page=h('div',{class:'wd-page',contenteditable:'true'},o.html||'');
+    var cnt=h('span',{},'0 kata');
+    function upd(){
+      cnt.textContent=(((page.textContent||'').trim().match(/\S+/g))||[]).length+' kata';
+    }
+    page.addEventListener('input',upd);
+    function cmd(c,v){
+      return function(){page.focus();document.execCommand(c,false,v)};
+    }
+    function mkBtn(inner,cls,fn,title){
+      return h('button',{class:'rb'+(cls?' '+cls:''),html:inner,title:title||'',
+        onclick:fn,onmousedown:function(e){e.preventDefault()}});
+    }
+    var selFont=h('select',{class:'rb',title:'Jenis huruf'});
+    ['Calibri','Segoe UI','Georgia','Courier New','Arial'].forEach(function(f){
+      selFont.append(h('option',{},f));
+    });
+    selFont.addEventListener('change',function(){cmd('fontName',selFont.value)()});
+    var selSize=h('select',{class:'rb',title:'Ukuran huruf'});
+    [11,12,14,18,24,36,48].forEach(function(s){
+      selSize.append(h('option',{value:String(s)},s));
+    });
+    selSize.addEventListener('change',function(){
+      cmd('fontSize',{11:'1',12:'2',14:'3',18:'4',24:'5',36:'6',48:'7'}[selSize.value])();
+    });
+    var bB=mkBtn('B','b',cmd('bold'),'Tebal');
+    var bI=mkBtn('I','i',cmd('italic'),'Miring');
+    var bU=mkBtn('U','u',cmd('underline'),'Garis bawah');
+    var bS=mkBtn('S','s',cmd('strikeThrough'),'Coret');
+    var cp=h('div',{class:'colorpop'});
+    ['#1a1a1a','#c43e1c','#b7472a','#185abd','#0e6e3a','#7719aa','#d18f00','#767676'].forEach(function(c){
+      cp.append(h('i',{style:{background:c},onclick:function(){
+        cmd('foreColor',c)();
+        cp.classList.remove('open');
+      }}));
+    });
+    var bColor=mkBtn('A<span class="cbar"></span>','',function(){cp.classList.toggle('open')},'Warna teks');
+    var colorWrap=h('div',{style:{position:'relative'}},bColor,cp);
+    var alignDefs=[
+      ['alignL','justifyLeft','Rata kiri'],
+      ['alignC','justifyCenter','Rata tengah'],
+      ['alignR','justifyRight','Rata kanan'],
+      ['alignJ','justifyFull','Rata kiri-kanan']];
+    var alignBtns=alignDefs.map(function(a){
+      return mkBtn(IC[a[0]](),'',cmd(a[1]),a[2]);
+    });
+    var bUL=mkBtn(IC.ulL(),'',cmd('insertUnorderedList'),'Daftar berbutir');
+    var bOL=mkBtn(IC.olL(),'',cmd('insertOrderedList'),'Daftar bernomor');
+    var bUndo=mkBtn(IC.undo(),'',function(){page.focus();document.execCommand('undo')},'Urungkan');
+    var bRedo=mkBtn(IC.redo(),'',function(){page.focus();document.execCommand('redo')},'Ulangi');
+    function selUpd(){
+      try{
+        bB.classList.toggle('act',document.queryCommandState('bold'));
+        bI.classList.toggle('act',document.queryCommandState('italic'));
+        bU.classList.toggle('act',document.queryCommandState('underline'));
+        alignBtns.forEach(function(b,i){
+          b.classList.toggle('act',document.queryCommandState(alignDefs[i][1]));
+        });
+      }catch(e){}
+    }
+    document.addEventListener('selectionchange',function(){
+      var sel=window.getSelection();
+      if(win.el.isConnected&&sel&&page.contains(sel.anchorNode))selUpd();
+    });
+    var btnSave=h('button',{class:'sv',html:IC.save(),title:'Simpan',onclick:function(){
+      toast({title:'Dokumen disimpan',msg:'(Disimpan dalam memori simulasi ini saja.)',icon:IC.save(),sound:false});
+    }});
+    var qa=h('div',{class:'wd-qa'},btnSave,
+      h('span',{},'Otomatis tersimpan — hanya dalam simulasi'));
+    var tab=h('div',{class:'wd-tab'},h('span',{class:'tab'},'Beranda'));
+    var g1=h('div',{class:'rgroup'},bUndo,bRedo);
+    var g2=h('div',{class:'rgroup'},selFont,selSize,bB,bI,bU,bS,colorWrap);
+    var g3=h('div',{class:'rgroup'},alignBtns[0],alignBtns[1],alignBtns[2],alignBtns[3],bUL,bOL);
+    var rib=h('div',{class:'wd-rib'},g1,g2,g3);
+    var wrap=h('div',{class:'wd-wrap'},page);
+    var spSpan=h('span',{class:'sp'});
+    var stat=h('div',{class:'wd-stat'},cnt,spSpan,'Halaman 1 dari 1','Bahasa Indonesia (Indonesia)','100%');
+    body.append(h('div',{class:'wd'},qa,tab,rib,wrap,stat));
+    upd();
+    setTimeout(function(){page.focus()},100);
+  }});
+}
+
+/* ============ Excel ============ */
+function openExcel(seed){
+  createWindow({app:APPS.excel,title:'Buku1 — Excel',w:940,h:620,build:function(body,win){
+    var cells={};
+    if(seed)Object.assign(cells,seed);
+    var COLS='ABCDEFGHIJ'.split(''),ROWS=24;
+    var namebox=h('div',{class:'xl-name'},'A1');
+    var fx=h('input',{spellcheck:'false'});
+    var grid=h('div',{class:'xl-grid',tabindex:'0'});
+    var cur='A1',editKey=null;
+    function disp(raw){
+      if(raw===null||raw===undefined||raw==='')return '';
+      if(raw.charAt(0)==='='){
+        var ex=raw.slice(1).toUpperCase().replace(/\b([A-J])([1-9]|1\d|2[0-4])\b/g,function(m,c,r){
+          var v=disp(cells[c+r]||'');
+          var n=parseFloat(String(v).replace(',','.'));
+          return isNaN(n)?'0':String(n);
+        });
+        if(!ex||/[^0-9+\-*/(). ]/.test(ex))return '#NAME?';
+        try{
+          var v=Function('"use strict";return ('+ex+')')();
+          return(typeof v==='number'&&isFinite(v))?String(Math.round(v*1e10)/1e10):'#DIV/0!';
+        }catch(e){return '#ERROR?'}
+      }
+      return raw;
+    }
+    function cellEl(k){return grid.querySelector('[data-k="'+k+'"]')}
+    function renderCell(k){
+      var el=cellEl(k);
+      if(!el)return;
+      var v=disp(cells[k]);
+      el.textContent=v;
+      el.classList.toggle('num',v!==''&&/^-?[\d.,]+$/.test(v));
+      el.classList.toggle('errc',typeof v==='string'&&v.charAt(0)==='#');
+    }
+    function setCur(k){
+      var old=cellEl(cur);
+      if(old)old.classList.remove('cur');
+      cur=k;
+      var el=cellEl(k);
+      el.classList.add('cur');
+      namebox.textContent=k;
+      if(!editKey)fx.value=cells[k]||'';
+      $$('.xl-h.hl,.xl-rh.hl',grid).forEach(function(x){x.classList.remove('hl')});
+      var ch=grid.querySelector('.xl-h[data-c="'+k.charAt(0)+'"]');
+      var rh=grid.querySelector('.xl-rh[data-r="'+k.slice(1)+'"]');
+      if(ch)ch.classList.add('hl');
+      if(rh)rh.classList.add('hl');
+      el.scrollIntoView({block:'nearest',inline:'nearest'});
+    }
+    var html='<div class="xl-row"><div class="xl-rh" style="height:22px"></div>'+
+      COLS.map(function(c){return '<div class="xl-h" data-c="'+c+'">'+c+'</div>'}).join('')+'</div>';
+    var r;
+    for(r=1;r<=ROWS;r++){
+      html+='<div class="xl-row"><div class="xl-rh" data-r="'+r+'">'+r+'</div>'+
+        COLS.map(function(cc){return '<div class="xl-c" data-k="'+cc+r+'"></div>'}).join('')+'</div>';
+    }
+    grid.innerHTML=html;
+    var k;
+    for(k in cells)renderCell(k);
+    function move(k,d){
+      var ci=COLS.indexOf(k.charAt(0)),ri=parseInt(k.slice(1),10);
+      var nc=clamp(ci+(d==='right'?1:d==='left'?-1:0),0,COLS.length-1);
+      var nr=clamp(ri+(d==='down'?1:d==='up'?-1:0),1,ROWS);
+      return COLS[nc]+nr;
+    }
+    function beginEdit(ch){
+      editKey=cur;
+      fx.value=ch;
+      var el=cellEl(cur);
+      if(el){el.classList.add('edit');el.textContent=ch}
+      fx.focus();
+      fx.setSelectionRange(fx.value.length,fx.value.length);
+    }
+    function commitEdit(d){
+      if(!editKey)return;
+      var kk=editKey;
+      editKey=null;
+      cells[kk]=fx.value||null;
+      var el=cellEl(kk);
+      if(el)el.classList.remove('edit');
+      renderCell(kk);
+      if(d!=='none')setCur(move(kk,d));
+      grid.focus();
+    }
+    grid.addEventListener('pointerdown',function(e){
+      var cell=e.target.closest('.xl-c');
+      if(cell){commitEdit('none');setCur(cell.dataset.k);grid.focus();return}
+      var hh=e.target.closest('.xl-h');
+      if(hh){commitEdit('none');setCur(hh.dataset.c+'1');grid.focus();return}
+      var rh=e.target.closest('.xl-rh');
+      if(rh&&rh.dataset.r){commitEdit('none');setCur('A'+rh.dataset.r);grid.focus()}
+    });
+    grid.addEventListener('keydown',function(e){
+      if(e.ctrlKey||e.metaKey||e.altKey)return;
+      var dirs={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',Enter:'down',Tab:'right'};
+      if(dirs[e.key]){setCur(move(cur,dirs[e.key]));e.preventDefault();return}
+      if(e.key==='Delete'||e.key==='Backspace'){cells[cur]=null;renderCell(cur);e.preventDefault();return}
+      if(e.key.length===1){beginEdit(e.key);e.preventDefault()}
+    });
+    fx.addEventListener('input',function(){
+      if(editKey){var el=cellEl(editKey);if(el)el.textContent=fx.value}
+    });
+    fx.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){commitEdit('down');e.preventDefault()}
+      else if(e.key==='Tab'){commitEdit(e.shiftKey?'left':'right');e.preventDefault()}
+      else if(e.key==='Escape'){
+        var kk=editKey;editKey=null;
+        if(kk){var el=cellEl(kk);if(el)el.classList.remove('edit');renderCell(kk);setCur(kk)}
+        grid.focus();
+      }
+      else if(e.key.indexOf('Arrow')===0){
+        commitEdit({ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'}[e.key]);
+        e.preventDefault();
+      }
+    });
+    var btnSave=h('button',{class:'rb',html:IC.save(),title:'Simpan',onclick:function(){
+      toast({title:'Buku kerja disimpan',msg:'(Disimpan dalam memori simulasi ini saja.)',icon:IC.save(),sound:false});
+    }});
+    var rib=h('div',{class:'xl-rib'},btnSave);
+    var fxRow=h('div',{class:'xl-fx'},namebox,h('span',{class:'fx'},'fx'),fx);
+    var stat=h('div',{class:'xl-stat'},
+      h('span',{},'Siap'),
+      h('div',{class:'xl-sheets'},h('span',{},'Sheet1')),
+      h('span',{},'Coba formula: =B2+B3'));
+    body.append(h('div',{class:'xl'},rib,fxRow,grid,stat));
+    setCur('A1');
+    setTimeout(function(){grid.focus()},100);
+  }});
+}
+
+/* ============ PowerPoint ============ */
+function openPPT(o){
+  o=o||{};
+  createWindow({app:APPS.powerpoint,title:'Presentasi1 — PowerPoint',w:920,h:620,build:function(body,win){
+    var slides=o.slides?o.slides.map(function(s){
+      return {html:s.html||'',notes:s.notes||''};
+    }):[{html:'',notes:''}];
+    var cur=0;
+    var side=h('div',{class:'pp-side'});
+    var slide=h('div',{class:'pp-slide',contenteditable:'true'});
+    var notes=h('span',{contenteditable:'true'});
+    var info=h('span',{style:{fontSize:'12.5px',color:'var(--text-2)'}},'');
+    function renderSlide(){
+      slide.innerHTML=slides[cur].html;
+      notes.textContent=slides[cur].notes;
+      info.textContent='Slide '+(cur+1)+' dari '+slides.length+' — teks bisa diedit langsung';
+    }
+    function renderThumbs(){
+      side.innerHTML='';
+      slides.forEach(function(s,i){
+        var ix=i;
+        side.append(h('button',{class:'pp-th'+(ix===cur?' on':''),onclick:function(){
+          cur=ix;renderSlide();renderThumbs();
+        }},h('div',{class:'in',html:s.html||'<p style="color:#9a9a9a">Slide kosong</p>'})));
+      });
+      side.append(h('button',{class:'pp-add',html:IC.plus(),title:'Slide baru',onclick:function(){
+        slides.push({html:'',notes:''});
+        cur=slides.length-1;
+        renderSlide();renderThumbs();
+        slide.focus();
+      }}));
+    }
+    slide.addEventListener('input',function(){slides[cur].html=slide.innerHTML;renderThumbs()});
+    notes.addEventListener('input',function(){slides[cur].notes=notes.textContent});
+    var rib=h('div',{class:'pp-rib'},info);
+    var stage=h('div',{class:'pp-stage'},slide);
+    var main=h('div',{class:'pp-main'},side,stage);
+    var notesRow=h('div',{class:'pp-notes'},'Catatan: ',notes);
+    body.append(h('div',{class:'pp'},rib,main,notesRow));
+    renderSlide();
+    renderThumbs();
+  }});
+}
+
+/* ============ Outlook ============ */
+function openOutlook(){
+  createWindow({app:APPS.outlook,title:'Kotak Masuk — Outlook',w:940,h:620,build:function(body,win){
+    var mails=[
+      {folder:'inbox',from:'Tim Microsoft 365',tm:'09.12',unread:true,subject:'Selamat datang di Office',
+       body:'Terima kasih telah memasang Microsoft Office (simulasi). Semua aplikasi kini siap digunakan dari desktop atau menu Mulai. Selamat bekerja!'},
+      {folder:'inbox',from:'Rina Andari',tm:'08.47',unread:true,subject:'Proposal kerja sama Q3',
+       body:'Halo,\n\nTerlampir kerangka proposal untuk kuartal tiga. Mohon ditinjau sebelum rapat Jumat — terutama bagian anggaran.\n\nSalam,\nRina'},
+      {folder:'inbox',from:'IT Support',tm:'Kemarin',unread:false,subject:'Pemeliharaan jaringan kantor',
+       body:'Pemeliharaan jaringan dijadwalkan Sabtu pukul 22.00–02.00. Selama periode ini akses berkas internal tidak tersedia.'},
+      {folder:'inbox',from:'Dwi Santoso',tm:'Sen',unread:false,subject:'Undangan rapat evaluasi',
+       body:'Mengundang Bapak/Ibu untuk rapat evaluasi bulanan, Rabu pukul 10.00 di ruang rapat utama. Agenda menyusul.'}
+    ];
+    var folder='inbox',mode='list',selMail=null;
+    var list=h('div',{class:'ol-list'});
+    var read=h('div',{class:'ol-read'});
+    var side=h('div',{class:'ol-side'});
+    function renderSide(){
+      side.innerHTML='';
+      [['inbox','Kotak Masuk',IC.mail()],['sent','Terkirim',IC.send()]].forEach(function(f){
+        var fk=f[0];
+        var unread=fk==='inbox'?mails.filter(function(m){return m.folder==='inbox'&&m.unread}).length:0;
+        side.append(h('button',{class:'ol-fi'+(folder===fk?' on':''),onclick:function(){
+          folder=fk;mode='list';render();
+        }},
+          h('span',{class:'i16',html:f[2]}),f[1],unread?h('b',{},String(unread)):''));
+      });
+    }
+    function renderCompose(){
+      list.innerHTML='';
+      list.append(h('div',{style:{padding:'18px 16px',fontSize:'12.5px',color:'var(--text-3)'}},'Mode tulis pesan'));
+      read.innerHTML='';
+      var to=h('input',{placeholder:'nama@contoh.id'});
+      var su=h('input',{placeholder:'Subjek'});
+      var bd=h('div',{contenteditable:'true'});
+      var btnBuang=h('button',{class:'btn',onclick:function(){mode='list';render()}},'Buang');
+      var btnKirim=h('button',{class:'btn primary',onclick:function(){
+        mails.push({folder:'sent',from:'Pengguna Saya',
+          tm:new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}),
+          subject:su.value||'(tanpa subjek)',body:bd.textContent||'(kosong)',unread:false});
+        mode='list';folder='sent';selMail=null;render();
+        toast({title:'Pesan terkirim',msg:'Email pindah ke folder Terkirim.',icon:IC.send(),sound:false});
+      }},'Kirim');
+      var f1=h('div',{class:'frow2'},h('label',{},'Kepada'),to);
+      var f2=h('div',{class:'frow2'},h('label',{},'Subjek'),su);
+      var acts=h('div',{class:'acts2'},btnBuang,btnKirim);
+      read.append(h('div',{class:'ol-comp'},f1,f2,bd,acts));
+    }
+    function render(){
+      renderSide();
+      if(mode==='compose'){renderCompose();return}
+      var items=mails.filter(function(m){return m.folder===folder});
+      list.innerHTML='';
+      if(!items.length){
+        list.append(h('div',{style:{padding:'18px 16px',fontSize:'12.5px',color:'var(--text-3)'}},'Folder kosong'));
+      }
+      items.forEach(function(m){
+        list.append(h('div',{class:'ol-mail'+(m.unread?' unread':'')+(selMail===m?' sel':''),
+          onclick:function(){m.unread=false;selMail=m;render()}},
+          h('div',{class:'r1'},h('span',{class:'frm'},m.from),h('span',{class:'tm'},m.tm)),
+          h('div',{class:'sj'},m.subject),
+          h('div',{class:'pv'},m.body.slice(0,60)+'…')));
+      });
+      read.innerHTML='';
+      if(selMail&&selMail.folder===folder){
+        read.append(h('h2',{},selMail.subject),
+          h('div',{class:'meta'},
+            h('div',{},h('b',{},selMail.from)),
+            h('div',{},'Kepada: Pengguna — '+selMail.tm)),
+          h('div',{class:'bd'},selMail.body.split('\n\n').map(function(p){
+            return h('p',{style:{marginBottom:'12px'}},p);
+          })));
+      }else{
+        read.append(h('div',{style:{display:'grid',placeItems:'center',height:'100%',color:'var(--text-3)',fontSize:'13px'}},'Pilih email untuk membaca'));
+      }
+    }
+    var btnNew=h('button',{class:'btn primary',onclick:function(){mode='compose';selMail=null;render()}},'+ Email Baru');
+    var rib=h('div',{class:'ol-rib'},btnNew);
+    var main=h('div',{class:'ol-main'},side,list,read);
+    body.append(h('div',{class:'ol'},rib,main));
+    render();
+  }});
+}
+
+/* ============ OneNote & Photos ============ */
+function openOneNote(){
+  createWindow({app:APPS.onenote,title:'Buku Catatan Saya — OneNote',w:800,h:560,build:function(body,win){
+    var side=h('div',{class:'nt-side'},
+      h('span',{class:'i16',html:OFF.onenote.icon}),'Buku Catatan Saya','›',' Bagian baru');
+    var title=h('h2',{contenteditable:'true'},'Halaman tanpa judul');
+    var dt=h('div',{class:'dt'},new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
+    var bd=h('div',{class:'bd',contenteditable:'true'});
+    body.append(h('div',{class:'onenote'},side,title,dt,bd));
+  }});
+}
+var PHOTOS_APP={id:'photos',name:'Foto',icon:IC.imgf(),launch:function(){openPhotos('Pantai.jpg')}};
+function openPhotos(name){
+  var seed=encodeURIComponent(name);
+  createWindow({app:PHOTOS_APP,title:name,w:720,h:520,build:function(body,win){
+    var img=h('img',{src:'https://picsum.photos/seed/'+seed+'/1000/640.jpg',alt:name});
+    var cap=h('div',{class:'ph-cap'},
+      h('span',{},name),
+      h('span',{},'1920 × 1200 · JPEG'));
+    body.append(h('div',{class:'ph'},h('div',{class:'ph-img'},img),cap));
+  }});
+}
+
+/* ============ CorelDRAW (kanvas menggambar) ============ */
+function openCorel(seedShapes){
+  createWindow({app:APPS.corel,title:'Grafik1 — CorelDRAW',w:1000,h:660,build:function(body,win){
+    var NS='http://www.w3.org/2000/svg';
+    var shapes=seedShapes?seedShapes.map(function(s){return s}):[];
+    var sel=-1,tool='pick',drawing=null;
+    var fill='#ffd60a',line='#1a1a1a',sw=2;
+    var PAL=['#1a1a1a','#ffffff','#e63946','#f4a261','#ffd60a','#2a9d8f','#185abd','#7b2cbf'];
+    var toolNames={pick:'Pilih',r:'Persegi panjang',e:'Elips',f:'Gambar bebas',tx:'Teks'};
+    var typeNames={r:'Persegi panjang',e:'Elips',f:'Garis bebas',tx:'Teks'};
+    function hs(tag,attrs){
+      var e=document.createElementNS(NS,tag);
+      if(attrs)for(var k in attrs){
+        if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),attrs[k]);
+        else e.setAttribute(k,attrs[k]);
+      }
+      return e;
+    }
+    var svg=hs('svg');
+    var canvas=h('div',{class:'cd-canvas'},h('div',{class:'cd-page'}),svg);
+    function pt(e){
+      var r=svg.getBoundingClientRect();
+      return [e.clientX-r.left,e.clientY-r.top];
+    }
+    function shapeEl(s){
+      if(s.t==='r')return hs('rect',{x:s.x,y:s.y,width:s.w,height:s.h,fill:s.fill,stroke:s.stroke,'stroke-width':s.sw});
+      if(s.t==='e')return hs('ellipse',{cx:s.x+s.w/2,cy:s.y+s.h/2,rx:Math.max(1,Math.abs(s.w/2)),ry:Math.max(1,Math.abs(s.h/2)),fill:s.fill,stroke:s.stroke,'stroke-width':s.sw});
+      if(s.t==='f')return hs('polyline',{points:s.pts.map(function(p){return p[0]+','+p[1]}).join(' '),fill:'none',stroke:s.stroke,'stroke-width':s.sw,'stroke-linecap':'round','stroke-linejoin':'round'});
+      var t=hs('text',{x:s.x,y:s.y,fill:s.fill,'font-size':s.fs,'font-family':"'Segoe UI',sans-serif"});
+      t.textContent=s.text;
+      return t;
+    }
+    var els=[];
+    function render(){
+      while(svg.firstChild)svg.removeChild(svg.firstChild);
+      els=[];
+      shapes.forEach(function(s,i){
+        var el=shapeEl(s);
+        el.style.pointerEvents=(tool==='pick')?'auto':'none';
+        (function(ix){el.addEventListener('pointerdown',function(ev){onShapeDown(ev,ix)})})(i);
+        svg.append(el);
+        els.push(el);
+      });
+      if(drawing){
+        if(drawing.t==='f'){
+          svg.append(hs('polyline',{points:drawing.pts.map(function(p){return p[0]+','+p[1]}).join(' '),fill:'none',stroke:line,'stroke-width':sw,'stroke-linecap':'round'}));
+        }else{
+          var dx=Math.min(drawing.x,drawing.x+drawing.w),dy=Math.min(drawing.y,drawing.y+drawing.h);
+          var dw=Math.abs(drawing.w),dh=Math.abs(drawing.h);
+          if(drawing.t==='r')svg.append(hs('rect',{x:dx,y:dy,width:dw,height:dh,fill:'none',stroke:line,'stroke-dasharray':'4 3'}));
+          else svg.append(hs('ellipse',{cx:drawing.x+drawing.w/2,cy:drawing.y+drawing.h/2,rx:Math.abs(drawing.w/2),ry:Math.abs(drawing.h/2),fill:'none',stroke:line,'stroke-dasharray':'4 3'}));
+        }
+      }
+      if(sel>=0&&shapes[sel]&&!drawing)drawSel();
+      updStat();
+    }
+    function drawSel(){
+      var b=els[sel].getBBox(),pad=5;
+      svg.append(hs('rect',{x:b.x-pad,y:b.y-pad,width:b.width+pad*2,height:b.height+pad*2,fill:'none',stroke:'#4cc2ff','stroke-width':1,'stroke-dasharray':'5 4','pointer-events':'none'}));
+      var s=shapes[sel];
+      if(s.t!=='f'){
+        var hd=hs('rect',{x:b.x+b.width+pad-4,y:b.y+b.height+pad-4,width:9,height:9,fill:'#fff',stroke:'#4cc2ff','stroke-width':1.4,style:'cursor:nwse-resize'});
+        hd.addEventListener('pointerdown',function(ev){ev.stopPropagation();startResize(ev)});
+        svg.append(hd);
+      }
+    }
+    function startResize(ev){
+      var s=shapes[sel];
+      if(!s)return;
+      var sx=ev.clientX,sy=ev.clientY;
+      var o={w:s.w||0,h:s.h||0,fs:s.fs||0};
+      function mv(e){
+        var dx=e.clientX-sx,dy=e.clientY-sy;
+        if(s.t==='tx')s.fs=Math.max(8,Math.round(o.fs+dy*.4));
+        else{s.w=Math.max(6,o.w+dx);s.h=Math.max(6,o.h+dy)}
+        render();
+      }
+      function up(){
+        window.removeEventListener('pointermove',mv);
+        window.removeEventListener('pointerup',up);
+      }
+      window.addEventListener('pointermove',mv);
+      window.addEventListener('pointerup',up);
+    }
+    function onShapeDown(ev,i){
+      ev.stopPropagation();
+      sel=i;
+      syncFrom(shapes[i]);
+      render();
+      var s=shapes[i];
+      var sx=ev.clientX,sy=ev.clientY;
+      var o={x:s.x,y:s.y,pts:s.pts?s.pts.map(function(p){return p.slice()}):null};
+      function mv(e){
+        var dx=e.clientX-sx,dy=e.clientY-sy;
+        if(s.t==='f')s.pts=o.pts.map(function(p){return [p[0]+dx,p[1]+dy]});
+        else{s.x=o.x+dx;s.y=o.y+dy}
+        render();
+      }
+      function up(){
+        window.removeEventListener('pointermove',mv);
+        window.removeEventListener('pointerup',up);
+      }
+      window.addEventListener('pointermove',mv);
+      window.addEventListener('pointerup',up);
+    }
+    svg.addEventListener('pointerdown',function(e){
+      if(e.button!==0)return;
+      var p=pt(e);
+      if(tool==='pick'){sel=-1;render();return}
+      if(tool==='tx'){placeTextInput(p);return}
+      if(tool==='f')drawing={t:'f',pts:[p]};
+      else drawing={t:tool,x:p[0],y:p[1],w:0,h:0};
+      function mv(e2){
+        var q=pt(e2);
+        if(drawing.t==='f'){
+          var last=drawing.pts[drawing.pts.length-1];
+          if(Math.hypot(q[0]-last[0],q[1]-last[1])>3){drawing.pts.push(q);render()}
+        }else{
+          drawing.w=q[0]-drawing.x;drawing.h=q[1]-drawing.y;render();
+        }
+      }
+      function up(){
+        window.removeEventListener('pointermove',mv);
+        window.removeEventListener('pointerup',up);
+        commitDraw();
+      }
+      window.addEventListener('pointermove',mv);
+      window.addEventListener('pointerup',up);
+      render();
+    });
+    function commitDraw(){
+      if(!drawing)return;
+      if(drawing.t==='f'){
+        if(drawing.pts.length>1){
+          shapes.push({t:'f',pts:drawing.pts,fill:'none',stroke:line,sw:sw});
+          sel=shapes.length-1;
+        }
+      }else{
+        var x=Math.min(drawing.x,drawing.x+drawing.w),y=Math.min(drawing.y,drawing.y+drawing.h);
+        var w=Math.abs(drawing.w),hh=Math.abs(drawing.h);
+        if(w>4&&hh>4){
+          shapes.push({t:drawing.t,x:x,y:y,w:w,h:hh,fill:fill,stroke:line,sw:sw});
+          sel=shapes.length-1;
+        }
+      }
+      drawing=null;
+      render();
+    }
+    function placeTextInput(p){
+      var inp=h('input',{class:'cd-textin',spellcheck:'false'});
+      inp.style.left=p[0]+'px';
+      inp.style.top=Math.max(0,p[1]-16)+'px';
+      canvas.append(inp);
+      setTimeout(function(){inp.focus()},0);
+      var done=false;
+      function commit(){
+        if(done)return;
+        done=true;
+        var v=inp.value.trim();
+        inp.remove();
+        if(v){
+          shapes.push({t:'tx',x:p[0],y:p[1]+8,fs:26,fill:fill,text:v});
+          sel=shapes.length-1;
+          render();
+        }
+      }
+      inp.addEventListener('keydown',function(e){
+        e.stopPropagation();
+        if(e.key==='Enter')commit();
+        else if(e.key==='Escape'){done=true;inp.remove()}
+      });
+      inp.addEventListener('blur',commit);
+    }
+    var toolbox=h('div',{class:'cd-tools'});
+    var toolBtns={};
+    [['pick','Alat pilih',IC.pick()],
+     ['r','Persegi panjang',IC.rectT()],
+     ['e','Elips',IC.ellT()],
+     ['f','Gambar bebas (sketsa)',IC.penT()],
+     ['tx','Teks',IC.textT()]].forEach(function(t){
+      var b=h('button',{class:'cdt',title:t[1],html:t[2],onclick:function(){setTool(t[0])}});
+      toolBtns[t[0]]=b;
+      toolbox.append(b);
+    });
+    function setTool(t){
+      tool=t;
+      var k;
+      for(k in toolBtns)toolBtns[k].classList.toggle('on',k===t);
+      svg.style.cursor=t==='pick'?'default':(t==='tx'?'text':'crosshair');
+      render();
+    }
+    function makeColorCtrl(label,initVal,apply){
+      var pop=h('div',{class:'colorpop'});
+      var btn=h('button',{class:'cd-swatch',title:label});
+      function paint(v){btn.style.background=(v==='none')?'#3a3f45':v}
+      PAL.forEach(function(c){
+        pop.append(h('i',{style:{background:c},onclick:function(){apply(c)}}));
+      });
+      var wrap=h('div',{style:{position:'relative'}},btn,pop);
+      btn.addEventListener('click',function(e){e.stopPropagation();pop.classList.toggle('open')});
+      paint(initVal);
+      return {wrap:wrap,paint:paint};
+    }
+    var fillCtl=makeColorCtrl('Warna isi',fill,function(c){fill=c;fillCtl.paint(c);applySel();});
+    var lineCtl=makeColorCtrl('Warna garis',line,function(c){line=c;lineCtl.paint(c);applySel();});
+    function applySel(){
+      if(sel>=0&&shapes[sel]){
+        var s=shapes[sel];
+        if(s.t!=='f')s.fill=fill;
+        s.stroke=line;
+        if(s.t!=='tx')s.sw=sw;
+        render();
+      }
+    }
+    function syncFrom(s){
+      if(s.t!=='f'&&s.fill)fill=s.fill;
+      if(s.stroke)line=s.stroke;
+      if(s.sw)sw=s.sw;
+      fillCtl.paint(fill);
+      lineCtl.paint(line);
+      widthSel.value=String(sw);
+    }
+    var widthSel=h('select',{class:'rb',title:'Ketebalan garis',onchange:function(){
+      sw=+widthSel.value;
+      applySel();
+    }});
+    [['0.5','0,5 mm'],['1','1 mm'],['2','2 mm'],['3.5','3,5 mm'],['5','5 mm']].forEach(function(o){
+      widthSel.append(h('option',{value:o[0]},o[1]));
+    });
+    widthSel.value='2';
+    function order(d){
+      if(sel<0)return;
+      var j=sel+d;
+      if(j<0||j>=shapes.length)return;
+      var t=shapes[j];shapes[j]=shapes[sel];shapes[sel]=t;sel=j;render();
+    }
+    var btnFront=h('button',{class:'cdtb',title:'Bawa ke depan',html:IC.front(),onclick:function(){order(1)}});
+    var btnBack=h('button',{class:'cdtb',title:'Kirim ke belakang',html:IC.back(),onclick:function(){order(-1)}});
+    var btnDup=h('button',{class:'cdtb',title:'Duplikat objek terpilih',html:IC.copy(),onclick:function(){
+      if(sel<0)return;
+      var c=JSON.parse(JSON.stringify(shapes[sel]));
+      c.x=(c.x||0)+16;c.y=(c.y||0)+16;
+      if(c.pts)c.pts=c.pts.map(function(p){return [p[0]+16,p[1]+16]});
+      shapes.push(c);sel=shapes.length-1;render();
+    }});
+    var btnDel=h('button',{class:'cdtb',title:'Hapus objek terpilih',html:IC.trash(),onclick:function(){
+      if(sel<0)return;
+      shapes.splice(sel,1);sel=-1;render();
+    }});
+    var statL=h('span',{},'');
+    var statM=h('span',{class:'cd-spm'},'');
+    var statR=h('span',{},'');
+    function updStat(){
+      statL.textContent='Alat: '+toolNames[tool];
+      statR.textContent=shapes.length+' objek'+(sel>=0?' • Terpilih: '+typeNames[shapes[sel].t]:'');
+      statM.textContent='Dokumen warna: RGB • Halaman: A4 lanskap';
+    }
+    function onKey(e){
+      if(!win.el.isConnected){document.removeEventListener('keydown',onKey);return}
+      if(WM.active!==win)return;
+      if(e.target&&e.target.closest&&e.target.closest('input,select,textarea,[contenteditable]'))return;
+      if((e.key==='Delete'||e.key==='Backspace')&&sel>=0){shapes.splice(sel,1);sel=-1;render();e.preventDefault()}
+      else if(e.key==='Escape'){sel=-1;render()}
+    }
+    document.addEventListener('keydown',onKey);
+    var top=h('div',{class:'cd-top'},
+      h('span',{class:'cd-lab'},'Isi'),fillCtl.wrap,
+      h('span',{class:'cd-lab'},'Garis'),lineCtl.wrap,widthSel,
+      h('span',{class:'cd-vsep'}),
+      btnFront,btnBack,btnDup,btnDel,
+      h('span',{class:'cd-hint'},'Pilih alat di kiri, lalu seret di halaman putih'));
+    var main=h('div',{class:'cd-main'},toolbox,canvas);
+    var stat=h('div',{class:'cd-stat'},statL,statM,statR);
+    body.append(h('div',{class:'cd'},top,main,stat));
+    setTool('pick');
+  }});
+}
+
+/* ============ Daya ============ */
+function veilShow(node){
+  var v=$('#veil');
+  v.innerHTML='';
+  v.hidden=false;
+  v.className='';
+  v.append(node);
+  requestAnimationFrame(function(){v.classList.add('show')});
+}
+function veilHide(){
+  var v=$('#veil');
+  v.classList.remove('show');
+  setTimeout(function(){v.hidden=true;v.innerHTML=''},320);
+}
+function bootSeq(fn){
+  closePanels();
+  var c=h('div',{class:'veil-c'},
+    h('span',{class:'vlogo',html:IC.win()}),
+    h('div',{class:'dots'},h('i'),h('i'),h('i'),h('i'),h('i')),
+    h('div',{class:'vmsg'},'Selamat datang'));
+  veilShow(c);
+  setTimeout(function(){veilHide();if(fn)fn()},2700);
+}
+function sleepPC(){
+  closePanels();
+  veilShow(h('div',{class:'veil-c'}));
+  var v=$('#veil');
+  v.classList.add('sleep');
+  function wake(){
+    v.classList.remove('sleep');
+    veilHide();
+    v.removeEventListener('pointerup',wake);
+  }
+  setTimeout(function(){v.addEventListener('pointerup',wake)},350);
+}
+function shutdownPC(){
+  closeAllWins();closePanels();
+  var btn=h('button',{class:'pwr-big',title:'Nyalakan',html:IC.power(),onclick:function(){bootSeq()}});
+  var c=h('div',{class:'veil-c'},
+    h('div',{class:'vmsg'},'Komputer telah dimatikan'),
+    btn,
+    h('div',{class:'vmsg',style:{fontSize:'12px',color:'#8a8a8a'}},'Tekan tombol daya untuk menyalakan kembali'));
+  veilShow(c);
+}
+function restartPC(){
+  closeAllWins();
+  bootSeq();
+}
+
+/* ============ Init ============ */
+ $('#btn-start').innerHTML=IC.win();
+ $('#btn-search').innerHTML=IC.search();
+ $('#uac-capic').innerHTML=IC.shield();
+ $('#uac-ic').innerHTML=setupIcon();
+ $('#uac-pn').textContent=INSTALL_SPECS.office.uacName;
+ $('#uac-pp').textContent='Penerbit: '+INSTALL_SPECS.office.uacPub;
+ $('#btn-start').addEventListener('click',function(e){e.stopPropagation();togglePanel('#panel-start')});
+ $('#btn-search').addEventListener('click',function(e){e.stopPropagation();togglePanel('#panel-start')});
+ $('#btn-clock').addEventListener('click',function(e){e.stopPropagation();togglePanel('#panel-cal')});
+ $('#btn-tray').addEventListener('click',function(e){e.stopPropagation();togglePanel('#panel-quick')});
+tbGet(APPS.explorer);
+syncTray();
+buildStart();
+buildCal();
+buildQuick();
+renderDesktop();
+tickClock();
+drawWall($('#wallpaper'),S.wall);
+setTimeout(function(){
+  toast({title:'Selamat datang di Windows 11 (simulasi)',
+    msg:'Klik dua kali setup.exe (Office) atau CorelDRAW-Setup.exe di desktop untuk memulai instalasi.',
+    icon:IC.win(),sound:false,dur:9000});
+},900);
+</script>
+</body>
+</html>
