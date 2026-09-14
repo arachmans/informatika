@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PATCHBAY/93 — Colok Ekstensinya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0e0b; --panel:#181712; --panel2:#1f1d16; --line:#2e2b22; --line2:#403c2f;
+  --ink:#e9e3d2; --dim:#948c77; --faint:#5c5747;
+  --amber:#f2b23e; --amber2:#ffd479;
+  --good:#8fd07f; --bad:#e05c50;
+  --mono:'IBM Plex Mono',monospace; --disp:'Chakra Petch',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--mono); font-size:14px;
+  overflow:hidden; -webkit-user-select:none; user-select:none;
+}
+/* tekstur CRT halus */
+body::before{content:"";position:fixed;inset:0;z-index:200;pointer-events:none;opacity:.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+body::after{content:"";position:fixed;inset:0;z-index:201;pointer-events:none;opacity:.45;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 4px);}
+
+svg.icn{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+  width:16px;height:16px;display:inline-block;vertical-align:middle;flex:none}
+.mi{display:inline-flex}
+
+#app{height:100%;display:flex;flex-direction:column}
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.on{display:flex}
+
+/* ---------- HUD ---------- */
+.hud{display:flex;align-items:center;gap:14px;padding:9px 16px;background:var(--panel);
+  border-bottom:1px solid var(--line);flex-wrap:wrap;position:relative;z-index:10}
+.hbtn{width:34px;height:34px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:.15s}
+.hbtn:hover{border-color:var(--amber);color:var(--amber)}
+.hpip{display:flex;flex-direction:column;line-height:1.15;min-width:52px}
+.hlab{font-size:8.5px;letter-spacing:.22em;color:var(--faint)}
+.hval{font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:.05em}
+.hval.am{color:var(--amber)}
+.hval.pop{animation:pop .3s}
+@keyframes pop{40%{transform:scale(1.3);color:var(--amber2)}}
+.leds{display:flex;gap:5px;padding-top:4px}
+.led{width:11px;height:11px;border-radius:50%;background:#26231c;border:1px solid var(--line2);
+  box-shadow:inset 0 0 3px #000;transition:.2s}
+.led.on{background:var(--amber);border-color:var(--amber2)}
+.streakpip{display:none}
+.streakpip.show{display:flex}
+.streakpip .hval{color:var(--amber)}
+.htime{flex:1;min-width:130px;height:14px;background:#12110d;border:1px solid var(--line);
+  border-radius:3px;position:relative;overflow:hidden}
+.hfill{position:absolute;inset:0;width:100%;background:var(--amber);transition:width .2s linear}
+.hfill.low{background:var(--bad)}
+.htnum{position:absolute;right:7px;top:0;line-height:13px;font-size:10px;color:var(--bg);
+  font-weight:600;mix-blend-mode:difference}
+
+/* ---------- BOARD ---------- */
+.board{flex:1;min-height:0;position:relative;display:grid;
+  grid-template-columns:clamp(122px,15vw,172px) 1fr clamp(146px,21vw,218px);
+  padding:12px 8px;touch-action:none}
+#cab{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:visible;width:100%;height:100%}
+.col{display:flex;flex-direction:column;justify-content:center;gap:9px;min-height:0;position:relative;z-index:6}
+.chead{font-size:9px;letter-spacing:.28em;color:var(--faint);text-align:center;margin-bottom:2px;
+  font-weight:600;white-space:nowrap;overflow:hidden}
+.mid{display:flex;align-items:center;justify-content:center}
+.mid span{writing-mode:vertical-rl;color:var(--faint);font-family:var(--disp);font-weight:600;
+  font-size:10px;letter-spacing:.6em;user-select:none}
+.row{display:flex;align-items:stretch;width:100%}
+
+/* port / colokan */
+.port{width:30px;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  position:relative;touch-action:none}
+.port .jack{width:16px;height:16px;border-radius:50%;border:2px solid var(--dim);background:#0b0a08;
+  position:relative;transition:transform .12s,border-color .12s}
+.port .jack::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--faint);transition:.12s}
+.port:hover .jack{border-color:var(--amber);transform:scale(1.18)}
+.port.hot .jack{border-color:var(--amber2);transform:scale(1.35);background:#1c160b}
+.port.sel .jack{border-color:var(--amber2);transform:scale(1.22)}
+.port.lit .jack{border-color:var(--cc,var(--amber))}
+.port.lit .jack::after{background:var(--cc,var(--amber))}
+.port.deny .jack{border-color:var(--bad)}
+.port.deny{animation:pshake .3s}
+@keyframes pshake{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+
+/* kartu file */
+.fcard{flex:1;min-width:0;height:44px;background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;padding:0 9px;display:flex;align-items:center;gap:7px;font-weight:600;font-size:14.5px}
+.fcard .icn{color:var(--cc);width:15px;height:15px}
+.fcard .ext{color:var(--ink)}
+.fcard .fc-cat{margin-left:auto;font-size:8px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;text-align:right}
+.fcard .fok{display:none;color:var(--cc);margin-left:auto}
+.fcard .fok .icn{width:14px;height:14px}
+.fcard.done{border-color:var(--cc);background:var(--panel2)}
+.fcard.done .ext{color:var(--cc)}
+.fcard.done .fc-cat{display:none}
+.fcard.done .fok{display:inline-flex}
+.fcard.miss{border-color:var(--bad)}
+.fcard.miss .fc-cat{color:var(--bad);display:block}
+.fcard.miss .ext{color:var(--bad)}
+
+/* kartu aplikasi */
+.acard{flex:1;min-width:0;min-height:48px;background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;padding:6px 9px;display:flex;align-items:center;gap:9px}
+.acard .icn{width:18px;height:18px;color:var(--cc)}
+.acard .meta{min-width:0}
+.acard .nm{font-family:var(--disp);font-weight:600;font-size:12.5px;line-height:1.2;letter-spacing:.02em}
+.acard .sub{display:flex;gap:9px;margin-top:2px;font-size:9.5px;color:var(--dim);letter-spacing:.08em;flex-wrap:wrap}
+.acard .cnt{color:var(--faint)}
+.acard.hit{border-color:var(--cc);background:var(--panel2)}
+.acard.hit .cnt{color:var(--cc)}
+
+/* kabel */
+.wire path{fill:none;stroke-linecap:round}
+.wire .w-dark{stroke-width:7}
+.wire .w-core{stroke-width:2.1}
+.wire .w-sig{stroke-width:2.6;stroke-dasharray:3 130;opacity:0}
+.wire.ok .w-sig{opacity:1;animation:flow 1.5s linear infinite}
+#cab.celebrate .w-sig{animation-duration:.45s}
+@keyframes flow{to{stroke-dashoffset:-133}}
+.wire.err{animation:wshake .45s}
+@keyframes wshake{20%{transform:translate(-5px,1px)}40%{transform:translate(5px,-1px)}60%{transform:translate(-3px,0)}80%{transform:translate(3px,0)}}
+.wire circle{stroke:none}
+
+/* log */
+.clog{height:78px;overflow:hidden;background:var(--panel);border-top:1px solid var(--line);
+  padding:8px 16px;display:flex;flex-direction:column;gap:3px;position:relative;z-index:10}
+.lg{font-size:11px;color:var(--dim);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:lgin .3s}
+.lg b{color:var(--ink);font-weight:600}
+.lg.ok{color:var(--good)} .lg.ok b{color:var(--good)}
+.lg.no{color:var(--bad)} .lg.no b{color:var(--bad)}
+@keyframes lgin{from{opacity:0;transform:translateY(-4px)}}
+
+/* announce */
+.ann{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:30;pointer-events:none;opacity:0;transition:opacity .25s}
+.ann.show{opacity:1}
+.ann-in{background:rgba(15,14,11,.94);border:1px solid var(--line2);border-left:3px solid var(--amber);
+  padding:16px 30px;font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:.12em;text-align:center}
+.ann-in em{display:block;font-style:normal;font-family:var(--mono);font-weight:400;color:var(--amber);
+  font-size:11.5px;letter-spacing:.2em;margin-top:6px}
+
+/* ---------- HOME ---------- */
+#home{overflow-y:auto;align-items:flex-start}
+.hero{width:100%;max-width:860px;margin:auto;padding:4vh 20px 6vh;text-align:center}
+.rail{height:12px;max-width:740px;margin:0 auto;
+  background-image:radial-gradient(var(--line2) 1.1px,transparent 1.6px);background-size:14px 14px}
+.kicker{margin:26px 0 10px;font-size:10.5px;letter-spacing:.42em;color:var(--amber)}
+.title{font-family:var(--disp);font-weight:700;font-size:clamp(54px,12vw,108px);line-height:.95;letter-spacing:.01em}
+.title span{color:var(--amber)}
+.lede{color:var(--dim);max-width:560px;margin:18px auto 0;line-height:1.75;font-size:13.5px}
+.marq-wrap{margin:30px 0 0}
+.marq{overflow:hidden;padding:4px 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.track{display:flex;gap:8px;width:max-content;animation:mq 55s linear infinite}
+.marq.rev .track{animation-direction:reverse;animation-duration:78s}
+.marq-wrap:hover .track{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
+.chip{font-size:11px;border:1px solid var(--line);background:var(--panel);padding:5px 9px;
+  border-radius:4px;display:flex;align-items:center;gap:6px;white-space:nowrap;cursor:default;transition:border-color .15s}
+.chip:hover{border-color:var(--cc)}
+.chip i{width:6px;height:6px;border-radius:50%;background:var(--cc)}
+.marq-hint{margin-top:11px;font-size:10px;letter-spacing:.22em;color:var(--faint)}
+.marq-hint.lit{color:var(--amber)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:740px;margin:30px auto 0;text-align:left}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px 20px 16px;
+  cursor:pointer;color:var(--ink);font-family:var(--mono);transition:transform .18s,border-color .18s;display:flex;flex-direction:column}
+.mode:hover{transform:translateY(-3px);border-color:var(--amber)}
+.m-top{display:flex;align-items:center;gap:8px;font-size:9.5px;letter-spacing:.3em;color:var(--amber)}
+.m-top .icn{width:17px;height:17px}
+.m-name{font-family:var(--disp);font-weight:700;font-size:23px;letter-spacing:.06em;margin:10px 0 8px}
+.m-desc{color:var(--dim);font-size:11.5px;line-height:1.7;flex:1}
+.m-meta{display:flex;gap:16px;margin-top:14px;font-size:9.5px;letter-spacing:.14em;color:var(--faint);flex-wrap:wrap}
+.m-meta .bst{color:var(--amber)}
+.foot{margin:26px 0 0;font-size:10px;letter-spacing:.3em;color:var(--faint)}
+
+/* ---------- QUIZ ---------- */
+.qwrap{flex:1;min-height:0;overflow-y:auto;width:100%;max-width:640px;margin:0 auto;
+  padding:24px 20px;display:flex;flex-direction:column;justify-content:center}
+.qtimer{height:6px;background:#12110d;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-bottom:22px}
+#qFill{height:100%;width:100%;background:var(--amber)}
+#qFill.low{background:var(--bad)}
+.qkicker{font-size:10px;letter-spacing:.34em;color:var(--faint);text-align:center}
+.qext{font-family:var(--disp);font-weight:700;font-size:clamp(46px,9vw,78px);text-align:center;
+  color:var(--cc);letter-spacing:.02em;line-height:1.05;margin:6px 0 2px}
+.qcat{text-align:center;font-size:10.5px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:26px}
+.qopt{display:flex;align-items:center;gap:11px;padding:15px 15px;background:var(--panel);
+  border:1px solid var(--line);border-radius:7px;color:var(--ink);cursor:pointer;font-family:var(--disp);
+  font-weight:600;font-size:14.5px;letter-spacing:.02em;text-align:left;transition:transform .12s,border-color .12s}
+.qopt .icn{color:var(--cc);width:19px;height:19px}
+.qopt:hover:not(:disabled){border-color:var(--amber);transform:translateY(-2px)}
+.qopt:disabled{cursor:default;opacity:.45}
+.qopt.good{border-color:var(--good);background:rgba(143,208,127,.09);opacity:1}
+.qopt.bad{border-color:var(--bad);background:rgba(224,92,80,.09);opacity:1}
+.qfb{min-height:22px;margin-top:16px;text-align:center;font-size:12.5px;letter-spacing:.04em}
+.qfb.good{color:var(--good)} .qfb.bad{color:var(--bad)}
+
+/* ---------- OVER ---------- */
+#over{align-items:center;justify-content:center;overflow-y:auto}
+.ov{text-align:center;padding:30px 20px;max-width:460px;width:100%}
+.ov-kick{font-size:10px;letter-spacing:.4em;color:var(--faint)}
+.ov-title{font-family:var(--disp);font-weight:700;font-size:clamp(26px,6vw,38px);letter-spacing:.08em;margin:10px 0 4px}
+.ov-score{font-family:var(--disp);font-weight:700;font-size:clamp(52px,11vw,72px);color:var(--amber);line-height:1.1}
+.ov-new{display:none;margin:6px auto 0;width:max-content;border:1px solid var(--amber);color:var(--amber);
+  font-size:9.5px;letter-spacing:.28em;padding:5px 12px;border-radius:3px}
+.ov-new.show{display:block}
+.ov-stats{max-width:290px;margin:26px auto 0}
+.st{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);
+  padding:8px 2px;font-size:12px;color:var(--dim)}
+.st b{color:var(--ink);font-family:var(--disp);letter-spacing:.05em}
+.ov-rank{margin-top:24px}
+.ov-rank b{display:block;font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:.14em;color:var(--amber)}
+.ov-rank span{display:block;margin-top:4px;font-size:11.5px;color:var(--dim)}
+.ov-btns{display:flex;gap:12px;justify-content:center;margin-top:30px;flex-wrap:wrap}
+.btn{font-family:var(--disp);font-weight:700;letter-spacing:.14em;font-size:13px;padding:13px 26px;
+  border-radius:5px;cursor:pointer;transition:.15s}
+.btn.solid{background:var(--amber);border:1px solid var(--amber);color:#171410}
+.btn.solid:hover{background:var(--amber2)}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--amber);color:var(--amber2)}
+
+@media (max-width:640px){
+  .modes{grid-template-columns:1fr}
+  .qopts{grid-template-columns:1fr}
+  .fcard{font-size:12px;height:40px;padding:0 7px}
+  .fcard .fc-cat{display:none}
+  .acard{min-height:42px;padding:4px 7px}
+  .acard .nm{font-size:10.5px}
+  .acard .sub{font-size:8.5px}
+  .col{gap:6px}
+  .hud{gap:10px}
+  .htime{order:9;flex-basis:100%}
+}
+@media (max-height:640px){
+  .fcard{height:38px}.col{gap:6px}.acard{min-height:40px}
+  .clog{height:56px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ HOME ============ -->
+  <section id="home" class="screen on">
+    <div class="hero">
+      <div class="rail"></div>
+      <div class="kicker">PANEL PENYAMBUNG EKSTENSI FILE · 93 PORT AKTIF</div>
+      <h1 class="title">PATCHBAY<span>/93</span></h1>
+      <p class="lede">Setiap file punya satu aplikasi yang bisa membukanya. Tugas kamu:
+        colok kabel dari port file di kiri ke port aplikasi di kanan — persis seperti operator
+        sentral telepon zaman dulu. Salah colok, kabelnya putus dan nyawa berkurang.</p>
+
+      <div class="marq-wrap">
+        <div class="marq"><div class="track" id="mq1"></div></div>
+        <div class="marq rev"><div class="track" id="mq2"></div></div>
+        <div class="marq-hint" id="mqHint">ARAHKAN KURSOR KE FILE — APLIKASI PEMBUKANYA MUNCUL DI SINI</div>
+      </div>
+
+      <div class="modes">
+        <button class="mode" id="mPatch">
+          <div class="m-top"><span class="mi" data-ic="plug"></span><span>MODE 01</span></div>
+          <div class="m-name">SWITCHBOARD</div>
+          <div class="m-desc">Tarik kabel dari port file ke port aplikasi. Satu aplikasi boleh menerima
+            banyak kabel sekaligus. Level terus naik, file makin aneh, waktu makin ketat. Nyawa cuma tiga.</div>
+          <div class="m-meta"><span>LEVEL ∞</span><span>93 EKSTENSI</span><span class="bst" id="bestPatch">REKOR 0</span></div>
+        </button>
+        <button class="mode" id="mQuiz">
+          <div class="m-top"><span class="mi" data-ic="zap"></span><span>MODE 02</span></div>
+          <div class="m-name">TES KECEPATAN</div>
+          <div class="m-desc">Dua belas soal, tujuh detik per soal. Empat pilihan aplikasi, satu jawaban
+            benar. Refleks otak file-association kamu diuji di sini.</div>
+          <div class="m-meta"><span>12 SOAL</span><span>7 DETIK</span><span class="bst" id="bestQuiz">REKOR 0</span></div>
+        </button>
+      </div>
+
+      <div class="foot">PATCHBAY/93 · SEMUA KABEL DIGAMBAR LANGSUNG DI PANEL</div>
+      <div class="rail" style="margin-top:30px"></div>
+    </div>
+  </section>
+
+  <!-- ============ GAME SWITCHBOARD ============ -->
+  <section id="game" class="screen">
+    <div class="hud">
+      <button class="hbtn" id="gHome" title="Kembali ke menu"><span class="mi" data-ic="home"></span></button>
+      <div class="hpip"><span class="hlab">PATCH</span><b class="hval" id="lvNum">01</b></div>
+      <div class="hpip"><span class="hlab">SKOR</span><b class="hval am" id="scNum">0</b></div>
+      <div class="hpip"><span class="hlab">NYAWA</span><span class="leds" id="leds"></span></div>
+      <div class="hpip streakpip" id="stPip"><span class="hlab">STREAK</span><b class="hval" id="stVal">×2</b></div>
+      <div class="htime"><div class="hfill" id="tFill"></div><span class="htnum" id="tNum">0</span></div>
+      <button class="hbtn" id="muteBtn" title="Suara"><span class="mi" data-ic="sound"></span></button>
+    </div>
+    <div class="board" id="board">
+      <svg id="cab"></svg>
+      <div class="col" id="colL">
+        <div class="chead">FILE · SOURCE</div>
+      </div>
+      <div class="mid"><span>PATCH FIELD — PATCHBAY/93</span></div>
+      <div class="col" id="colR">
+        <div class="chead">APLIKASI · BUS</div>
+      </div>
+      <div class="ann" id="ann"><div class="ann-in" id="annIn"></div></div>
+    </div>
+    <div class="clog" id="clog"></div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="quiz" class="screen">
+    <div class="hud">
+      <button class="hbtn" id="qHome" title="Kembali ke menu"><span class="mi" data-ic="home"></span></button>
+      <div class="hpip"><span class="hlab">SOAL</span><b class="hval" id="qN">01/12</b></div>
+      <div class="hpip"><span class="hlab">SKOR</span><b class="hval am" id="scNum2">0</b></div>
+      <div class="hpip"><span class="hlab">STREAK</span><b class="hval" id="qStk">—</b></div>
+      <button class="hbtn" id="muteBtn2" title="Suara"><span class="mi" data-ic="sound"></span></button>
+    </div>
+    <div class="qwrap">
+      <div class="qtimer"><div id="qFill"></div></div>
+      <div class="qkicker">FILE INI DIBUKA DENGAN…</div>
+      <div class="qext" id="qExt">.pdf</div>
+      <div class="qcat" id="qCat">Dokumen</div>
+      <div class="qopts" id="qOpts"></div>
+      <div class="qfb" id="qFb"></div>
+    </div>
+  </section>
+
+  <!-- ============ GAME OVER ============ -->
+  <section id="over" class="screen">
+    <div class="ov">
+      <div class="ov-kick" id="ovKick">TRANSMISI AKHIR</div>
+      <h2 class="ov-title" id="ovTitle">KONEKSI TERPUTUS</h2>
+      <div class="ov-score" id="ovScore">0</div>
+      <div class="ov-new" id="ovNew">REKOR BARU TERCATAT</div>
+      <div class="ov-stats" id="ovStats"></div>
+      <div class="ov-rank"><b id="ovRankT"></b><span id="ovRankS"></span></div>
+      <div class="ov-btns">
+        <button class="btn solid" id="ovAgain">MAIN LAGI</button>
+        <button class="btn ghost" id="ovHome">GANTI MODE</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+'use strict';
+/* ================= DATA ================= */
+const CAT = {
+  dokumen:{label:'Dokumen',ic:'dokumen',c:'#e8c46a'},
+  sheet:{label:'Spreadsheet',ic:'sheet',c:'#8fd07f'},
+  presentasi:{label:'Presentasi',ic:'presentasi',c:'#f0905f'},
+  ebook:{label:'E-Book',ic:'ebook',c:'#d98d6b'},
+  audio:{label:'Audio',ic:'audio',c:'#5fd0c4'},
+  video:{label:'Video',ic:'video',c:'#e8798b'},
+  gambar:{label:'Gambar',ic:'gambar',c:'#cfa0e8'},
+  arsip:{label:'Arsip',ic:'arsip',c:'#b0bcc8'},
+  kode:{label:'Kode',ic:'kode',c:'#7cc3e8'},
+  database:{label:'Database',ic:'database',c:'#e89a5f'},
+  font:{label:'Font',ic:'font',c:'#ecd977'},
+  cad:{label:'CAD',ic:'cad',c:'#c9826b'},
+  tiga:{label:'3D',ic:'tiga',c:'#a2b0e8'},
+  sistem:{label:'Sistem',ic:'sistem',c:'#e8e0d0'},
+};
+const APPS = {
+  word:{n:'Microsoft Word',c:'dokumen'}, pages:{n:'Apple Pages',c:'dokumen'},
+  notepad:{n:'Notepad',c:'dokumen'}, acrobat:{n:'Adobe Acrobat Reader',c:'dokumen'},
+  kindle:{n:'Amazon Kindle',c:'ebook'}, excel:{n:'Microsoft Excel',c:'sheet'},
+  ppt:{n:'PowerPoint',c:'presentasi'}, keynote:{n:'Keynote',c:'presentasi'},
+  vlc:{n:'VLC Media Player',c:'video'}, photos:{n:'Photos',c:'gambar'},
+  photoshop:{n:'Adobe Photoshop',c:'gambar'}, illustrator:{n:'Adobe Illustrator',c:'gambar'},
+  coreldraw:{n:'CorelDRAW',c:'gambar'}, sevenzip:{n:'7-Zip / WinRAR',c:'arsip'},
+  vscode:{n:'Visual Studio Code',c:'kode'}, access:{n:'Microsoft Access',c:'database'},
+  dbbrowser:{n:'DB Browser (SQLite)',c:'database'}, fontbook:{n:'Font Viewer',c:'font'},
+  autocad:{n:'AutoCAD',c:'cad'}, blender:{n:'Blender',c:'tiga'},
+  windows:{n:'Windows',c:'sistem'}, macos:{n:'macOS',c:'sistem'},
+  linux:{n:'Linux',c:'sistem'}, android:{n:'Android',c:'sistem'}, ios:{n:'Apple iOS',c:'sistem'},
+};
+/* ext: [aplikasi, kategori, tier(1 umum / 2 menengah / 3 niche)] — 93 port */
+const EXT = {
+  doc:['word','dokumen',1], docx:['word','dokumen',1], rtf:['word','dokumen',2], odt:['word','dokumen',2],
+  pages:['pages','dokumen',2], pdf:['acrobat','dokumen',1], txt:['notepad','dokumen',1],
+  xls:['excel','sheet',1], xlsx:['excel','sheet',1], csv:['excel','sheet',2], ods:['excel','sheet',2],
+  ppt:['ppt','presentasi',1], pptx:['ppt','presentasi',1], odp:['ppt','presentasi',2], key:['keynote','presentasi',2],
+  epub:['kindle','ebook',2], mobi:['kindle','ebook',2], azw:['kindle','ebook',3], azw3:['kindle','ebook',3],
+  jpg:['photos','gambar',1], jpeg:['photos','gambar',1], png:['photos','gambar',1], gif:['photos','gambar',1],
+  bmp:['photos','gambar',2], tif:['photos','gambar',2], tiff:['photos','gambar',2], webp:['photos','gambar',2],
+  heic:['photos','gambar',3], svg:['illustrator','gambar',2], ai:['illustrator','gambar',2],
+  psd:['photoshop','gambar',2], raw:['photoshop','gambar',3], cdr:['coreldraw','gambar',3],
+  mp3:['vlc','audio',1], wav:['vlc','audio',1], flac:['vlc','audio',2], aac:['vlc','audio',2],
+  ogg:['vlc','audio',2], m4a:['vlc','audio',2], wma:['vlc','audio',2], mid:['vlc','audio',3], midi:['vlc','audio',3],
+  mp4:['vlc','video',1], avi:['vlc','video',1], mov:['vlc','video',1], mkv:['vlc','video',2],
+  wmv:['vlc','video',2], mpg:['vlc','video',2], mpeg:['vlc','video',2],
+  flv:['vlc','video',3], webm:['vlc','video',3], m4v:['vlc','video',3], '3gp':['vlc','video',3],
+  zip:['sevenzip','arsip',1], rar:['sevenzip','arsip',1], '7z':['sevenzip','arsip',2],
+  tar:['sevenzip','arsip',2], gz:['sevenzip','arsip',2], iso:['sevenzip','arsip',3],
+  exe:['windows','sistem',1], msi:['windows','sistem',2], bat:['windows','sistem',2],
+  dmg:['macos','sistem',2], app:['macos','sistem',3],
+  deb:['linux','sistem',2], rpm:['linux','sistem',3], sh:['linux','sistem',2],
+  apk:['android','sistem',1], ipa:['ios','sistem',3],
+  html:['vscode','kode',1], htm:['vscode','kode',2], css:['vscode','kode',1], js:['vscode','kode',1],
+  json:['vscode','kode',2], xml:['vscode','kode',2], php:['vscode','kode',2], py:['vscode','kode',2],
+  java:['vscode','kode',2], c:['vscode','kode',2], cpp:['vscode','kode',2], sql:['vscode','kode',2],
+  ttf:['fontbook','font',2], otf:['fontbook','font',2], woff:['fontbook','font',3], woff2:['fontbook','font',3],
+  mdb:['access','database',2], accdb:['access','database',3], sqlite:['dbbrowser','database',2],
+  dwg:['autocad','cad',2], dxf:['autocad','cad',3],
+  stl:['blender','tiga',2], obj:['blender','tiga',2], blend:['blender','tiga',2],
+};
+const T1=[],T2=[],T3=[];
+for(const [k,v] of Object.entries(EXT)) [T1,T2,T3][v[2]-1].push(k);
+
+/* ================= IKON SVG ================= */
+const IC = {
+  dokumen:'M7 2h7l4 4v16H7z M13 2v5h5 M10 12h5 M10 16h5',
+  ebook:'M4 5c3-1.6 5-1.6 8 0 3-1.6 5-1.6 8 0v14c-3-1.6-5-1.6-8 0-3-1.6-5-1.6-8 0z M12 5.6v13.8',
+  sheet:'M4 4h16v16H4z M4 9.3h16 M4 14.7h16 M9.3 4v16 M14.7 4v16',
+  presentasi:'M4 4h16v10H4z M12 14v4 M8 21l4-3.5L16 21 M7.5 10.2l2-2.6 2 2 3.2-3.9',
+  audio:'M9 17.5V6l10-2v12 M6.5 20a2.5 2.5 0 1 0 0-5 2.5 2.5 0 1 0 0 5z M16.5 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 1 0 0 5z',
+  video:'M3 5h18v14H3z M3 9.5h18 M3 14.5h18 M7.5 5v14 M16.5 5v14',
+  gambar:'M3 5h18v14H3z M6.5 17.5l4.5-5.5 3.5 3.5 2.5-3 4 5 M8.5 10.9a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 1 0 0 3.4z',
+  arsip:'M3 5h18v4H3z M5 9v10h14V9 M12 9v3 M10 12h4v3h-4z',
+  kode:'M8.5 6L3 12l5.5 6 M15.5 6L21 12l-5.5 6',
+  database:'M5 5.2c0-1.3 3.1-2.2 7-2.2s7 .9 7 2.2-3.1 2.2-7 2.2-7-.9-7-2.2z M5 5.2v13.6c0 1.3 3.1 2.2 7 2.2s7-.9 7-2.2V5.2 M5 12c0 1.3 3.1 2.2 7 2.2s7-.9 7-2.2',
+  font:'M5 19.5L11 4.5l6 15 M7.2 14h7.6',
+  tiga:'M12 2.5l9 5v9l-9 5-9-5v-9z M12 12.5l9-5 M12 12.5L3 7.5 M12 12.5v9',
+  cad:'M12 3.5a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 1 0 0-4.4z M12 7.9L6.2 20.5 M12 7.9l5.8 12.6 M8.6 14.6h6.8',
+  sistem:'M3 4.5h18v15H3z M7 9l3.2 3L7 15 M13 15.2h4.5',
+  plug:'M9 3v4.5 M15 3v4.5 M6.5 7.5h11V12a5.5 5.5 0 0 1-11 0z M12 17.5V21',
+  play:'M8 5.5l10.5 6.5L8 18.5z',
+  home:'M4.5 11L12 4.2 19.5 11v8.8h-5.2v-5.4h-4.6v5.4H4.5z',
+  sound:'M4 9.5v5h3.5l4.5 4V5.5l-4.5 4z M15 9a4.5 4.5 0 0 1 0 6 M17.5 6.8a8 8 0 0 1 0 10.4',
+  mute:'M4 9.5v5h3.5l4.5 4V5.5l-4.5 4z M16 9.5l5 5 M21 9.5l-5 5',
+  zap:'M13 2.5L5 13.5h5.5L11 21.5l8-11h-5.5z',
+  check:'M5 12.5l4.5 4.5L19 7.5',
+};
+const icon=(n)=>`<svg class="icn" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
+
+/* ================= UTIL ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const NS='http://www.w3.org/2000/svg';
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=(a,n)=>shuffle(a).slice(0,n);
+const pad=n=>String(n).padStart(2,'0');
+function shade(hex,f){
+  const v=parseInt(hex.slice(1),16); let r=v>>16,g=v>>8&255,b=v&255;
+  if(f<1){r*=f;g*=f;b*=f}else{const t=Math.min(f-1,1);r+=(255-r)*t;g+=(255-g)*t;b+=(255-b)*t}
+  return `rgb(${r|0},${g|0},${b|0})`;
+}
+
+/* ================= AUDIO ================= */
+let AC=null,muted=false;
+function ensureAudio(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+  if(AC&&AC.state==='suspended')AC.resume();
+}
+function tone(f,d,type,g,slide){
+  if(!AC||muted)return;
+  const t=AC.currentTime,o=AC.createOscillator(),v=AC.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(40,f+slide),t+d);
+  v.gain.setValueAtTime(g||.1,t); v.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(v).connect(AC.destination); o.start(t); o.stop(t+d+.02);
+}
+function sfx(k,st){
+  switch(k){
+    case 'jack': tone(340,.05,'square',.045); break;
+    case 'ok': tone(520+Math.min(st,12)*28,.09,'sine',.13);
+               setTimeout(()=>tone(780+Math.min(st,12)*30,.12,'sine',.11),70); break;
+    case 'err': tone(170,.22,'sawtooth',.09,-95); break;
+    case 'deny': tone(120,.08,'square',.07); break;
+    case 'clear': [660,880,1100,1320].forEach((f,i)=>setTimeout(()=>tone(f,.12,'triangle',.09),i*90)); break;
+    case 'over': [440,330,220].forEach((f,i)=>setTimeout(()=>tone(f,.25,'triangle',.09),i*160)); break;
+  }
+}
+
+/* ================= STATE ================= */
+const G={mode:null,level:1,score:0,lives:3,streak:0,bestStreak:0,correct:0,wrong:0,
+  exts:[],lvl:null,done:0,running:false,tok:0,tm:null,tLeft:0};
+const QZ={list:[],i:0,t:0,timer:null,lock:false};
+let curScreen='home';
+function later(fn,ms){const tok=G.tok;setTimeout(()=>{if(tok===G.tok)fn()},ms)}
+function show(n){
+  ['home','game','quiz','over'].forEach(k=>$('#'+k).classList.toggle('on',k===n));
+  curScreen=n; if(n!=='game'){G.running=false;clearInterval(G.tm)}
+}
+function stopAll(){G.running=false;clearInterval(G.tm);clearInterval(QZ.timer);clearWires();cancelSticky()}
+
+/* ================= ENGINE KABEL ================= */
+const cab=$('#cab'), boardEl=$('#board'), colL=$('#colL'), colR=$('#colR');
+let wires=[], boardRect=null, posCache=new Map();
+function measure(){ boardRect=cab.getBoundingClientRect(); posCache.clear(); }
+function pp(el){
+  let p=posCache.get(el);
+  if(!p){const r=el.getBoundingClientRect();
+    p={x:r.left+r.width/2-boardRect.left,y:r.top+r.height/2-boardRect.top};
+    posCache.set(el,p);}
+  return p;
+}
+function boardPoint(e){return {x:e.clientX-boardRect.left,y:e.clientY-boardRect.top}}
+function portColor(port){
+  return port.dataset.side==='L'
+    ? CAT[EXT[port.dataset.ext][1]].c
+    : CAT[APPS[port.dataset.app].c].c;
+}
+function addWire(col){
+  const g=document.createElementNS(NS,'g'); g.setAttribute('class','wire');
+  const mk=cls=>{const p=document.createElementNS(NS,'path');p.setAttribute('class',cls);return p};
+  const pd=mk('w-dark'),pc=mk('w-core'),ps=mk('w-sig');
+  pd.setAttribute('stroke',shade(col,.3)); pc.setAttribute('stroke',col); ps.setAttribute('stroke',shade(col,1.7));
+  const ca=document.createElementNS(NS,'circle'),cb=document.createElementNS(NS,'circle');
+  [ca,cb].forEach(c=>{c.setAttribute('r','3.4');c.setAttribute('fill',col);c.setAttribute('stroke',shade(col,.3));c.setAttribute('stroke-width','1')});
+  g.append(pd,pc,ps,ca,cb); cab.append(g);
+  const w={g,pd,pc,ps,ca,cb,a:null,b:null,tx:0,ty:0,state:'drag',
+    ph:Math.random()*7,sp:.6+Math.random()*.7,t0:0};
+  wires.push(w); return w;
+}
+function kill(w){ w.g.remove(); const i=wires.indexOf(w); if(i>=0)wires.splice(i,1); }
+function clearWires(){ wires.forEach(w=>w.g.remove()); wires=[]; }
+function updWire(w,now){
+  const A=(w.a&&w.a.el)?pp(w.a.el):(w.a||{x:w.tx,y:w.ty});
+  const B=(w.b&&w.b.el)?pp(w.b.el):(w.b||{x:w.tx,y:w.ty});
+  const dist=Math.hypot(B.x-A.x,B.y-A.y);
+  let sag=Math.min(85,16+dist*.13), op=1;
+  if(w.state==='ok') sag+=Math.sin(now*.001*w.sp+w.ph)*4;
+  if(w.state==='drop'){
+    const t=(now-w.t0)/420;
+    if(t>=1){kill(w);return}
+    sag+=t*t*90; op=1-t;
+  }
+  const cx=(A.x+B.x)/2, cy=(A.y+B.y)/2+sag;
+  const d=`M${A.x.toFixed(1)} ${A.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${B.x.toFixed(1)} ${B.y.toFixed(1)}`;
+  w.pd.setAttribute('d',d); w.pc.setAttribute('d',d); w.ps.setAttribute('d',d);
+  w.ca.setAttribute('cx',A.x); w.ca.setAttribute('cy',A.y);
+  w.cb.setAttribute('cx',B.x); w.cb.setAttribute('cy',B.y);
+  if(op<1)w.g.setAttribute('opacity',op.toFixed(2));
+  else if(w.g.hasAttribute('opacity'))w.g.removeAttribute('opacity');
+}
+(function loop(){
+  if(curScreen==='game'&&wires.length){
+    const now=performance.now();
+    for(let i=wires.length-1;i>=0;i--)updWire(wires[i],now);
+  }
+  requestAnimationFrame(loop);
+})();
+
+/* ================= INTERAKSI KABEL ================= */
+let drag=null, sticky=null, hotEl=null;
+function setHot(e,side){
+  const t=hotPort(e, side==='L'?'R':'L');
+  if(t!==hotEl){ if(hotEl)hotEl.classList.remove('hot'); hotEl=t; if(t)t.classList.add('hot'); }
+}
+function hotPort(e,want){
+  let best=null,bd=34;
+  $$('#board .port').forEach(p=>{
+    if(p.dataset.side!==want)return;
+    if(want==='L'&&p.dataset.locked)return;
+    const r=p.getBoundingClientRect();
+    const d=Math.hypot(e.clientX-(r.left+r.width/2),e.clientY-(r.top+r.height/2));
+    if(d<bd){bd=d;best=p}
+  });
+  return best;
+}
+function clearHot(){const t=hotEl;if(t)t.classList.remove('hot');hotEl=null;return t}
+function denyP(p){ p.classList.add('deny'); sfx('deny'); setTimeout(()=>p.classList.remove('deny'),350); }
+function cancelSticky(){
+  if(!sticky)return;
+  sticky.port.classList.remove('sel');
+  const w=sticky.wire; sticky=null;
+  w.state='drop'; w.t0=performance.now();
+}
+boardEl.addEventListener('pointerdown',e=>{
+  ensureAudio();
+  const port=e.target.closest('.port');
+  if(!port){ if(sticky)cancelSticky(); return; }
+  if(!G.running)return;
+  const side=port.dataset.side;
+  if(sticky){
+    if(sticky.port===port){cancelSticky();return}
+    if(sticky.side!==side){
+      const pL=side==='L'?port:sticky.port, pR=side==='R'?port:sticky.port;
+      kill(sticky.wire); sticky.port.classList.remove('sel'); sticky=null; clearHot();
+      if(pL.dataset.locked){denyP(pL)}else tryConnect(pL,pR);
+      return;
+    }
+    kill(sticky.wire); sticky.port.classList.remove('sel'); sticky=null;
+  }
+  if(side==='L'&&port.dataset.locked){denyP(port);return}
+  sfx('jack');
+  const w=addWire(portColor(port));
+  w.a={el:port}; w.b=null;
+  const p=boardPoint(e); w.tx=p.x; w.ty=p.y;
+  drag={port,side,wire:w,sx:e.clientX,sy:e.clientY,live:false};
+});
+window.addEventListener('pointermove',e=>{
+  if(drag){
+    if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>7)drag.live=true;
+    const p=boardPoint(e); drag.wire.tx=p.x; drag.wire.ty=p.y; setHot(e,drag.side);
+  }else if(sticky){
+    const p=boardPoint(e); sticky.wire.tx=p.x; sticky.wire.ty=p.y; setHot(e,sticky.side);
+  }
+});
+window.addEventListener('pointerup',()=>{
+  if(!drag)return;
+  const d=drag; drag=null;
+  if(!d.live){
+    clearHot();
+    sticky={port:d.port,side:d.side,wire:d.wire};
+    d.port.classList.add('sel');
+    return;
+  }
+  const t=clearHot();
+  if(t){
+    kill(d.wire);
+    const pL=d.side==='L'?d.port:t, pR=d.side==='R'?d.port:t;
+    tryConnect(pL,pR);
+  }else{
+    d.wire.state='drop'; d.wire.t0=performance.now();
+  }
+});
+window.addEventListener('pointercancel',()=>{
+  if(drag){drag.wire.state='drop';drag.wire.t0=performance.now();drag=null;clearHot()}
+  cancelSticky();
+});
+window.addEventListener('keydown',e=>{if(e.key==='Escape')cancelSticky()});
+
+/* ================= LEVEL ================= */
+function tierPool(lv){
+  if(lv<=2)return T1;
+  if(lv<=4)return T1.concat(T2);
+  return T1.concat(T2,T3);
+}
+function buildLevel(lv){
+  const n=Math.min(3+lv,10);
+  const exts=pick(tierPool(lv),n);
+  let apps=[...new Set(exts.map(e=>EXT[e][0]))];
+  const extra=lv>=5?2:(lv>=2?1:0);
+  const cand=shuffle(Object.keys(APPS).filter(a=>!apps.includes(a)));
+  for(let i=0;i<extra&&i<cand.length;i++)apps.push(cand[i]);
+  return {exts:shuffle(exts),apps:shuffle(apps)};
+}
+function renderLevel(){
+  const {exts,apps}=G.lvl;
+  exts.forEach(e=>{
+    const cat=EXT[e][1],C=CAT[cat];
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`
+      <div class="fcard" style="--cc:${C.c}">
+        ${icon(C.ic)}<span class="ext">.${e}</span>
+        <span class="fc-cat">${C.label}</span>
+        <span class="fok">${icon('check')}</span>
+      </div>
+      <div class="port" data-side="L" data-ext="${e}" style="--cc:${C.c}"><span class="jack"></span></div>`;
+    colL.append(row);
+  });
+  apps.forEach(a=>{
+    const A=APPS[a],C=CAT[A.c];
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`
+      <div class="port" data-side="R" data-app="${a}" style="--cc:${C.c}"><span class="jack"></span></div>
+      <div class="acard" data-app="${a}" style="--cc:${C.c}">
+        ${icon(C.ic)}
+        <div class="meta">
+          <div class="nm">${A.n}</div>
+          <div class="sub"><span>${C.label}</span><span class="cnt">0 kabel</span></div>
+        </div>
+      </div>`;
+    colR.append(row);
+  });
+  requestAnimationFrame(measure);
+}
+function bumpCnt(appId){
+  const card=$(`.acard[data-app="${appId}"]`); if(!card)return;
+  const k=+(card.dataset.k||0)+1; card.dataset.k=k;
+  card.classList.add('hit');
+  card.querySelector('.cnt').textContent=`${k} kabel`;
+}
+function log(html,cls){
+  const d=document.createElement('div');
+  d.className='lg'+(cls?' '+cls:''); d.innerHTML=html;
+  clog.prepend(d);
+  while(clog.children.length>6)clog.lastChild.remove();
+}
+function announce(html,dur){
+  annIn.innerHTML=html; ann.classList.add('show');
+  clearTimeout(announce._t);
+  announce._t=setTimeout(()=>ann.classList.remove('show'),dur||1500);
+}
+function renderLeds(){
+  leds.innerHTML='';
+  for(let i=0;i<3;i++){const s=document.createElement('span');
+    s.className='led'+(i<G.lives?' on':'');leds.append(s)}
+}
+function updScore(){
+  scNum.textContent=G.score; scNum2.textContent=G.score;
+  scNum.classList.remove('pop'); void scNum.offsetWidth; scNum.classList.add('pop');
+}
+function addScore(v){ G.score=Math.max(0,G.score+v); updScore(); }
+function showStreak(){
+  if(G.streak>=2){stPip.classList.add('show');stVal.textContent='×'+G.streak}
+  else stPip.classList.remove('show');
+}
+function startTimer(sec){
+  clearInterval(G.tm); G.tLeft=sec; renderTimer();
+  G.tm=setInterval(()=>{
+    G.tLeft-=.2; renderTimer();
+    if(G.tLeft<=0){clearInterval(G.tm); timeUp();}
+  },200);
+}
+function renderTimer(){
+  const p=Math.max(0,G.tLeft/(10+G.exts.length*5));
+  tFill.style.width=(p*100)+'%';
+  tFill.classList.toggle('low',G.tLeft<6);
+  tNum.textContent=Math.max(0,Math.ceil(G.tLeft));
+}
+function startLevel(){
+  clearWires(); cancelSticky(); posCache.clear();
+  G.lvl=buildLevel(G.level); G.exts=G.lvl.exts; G.done=0;
+  colL.querySelectorAll('.row').forEach(r=>r.remove());
+  colR.querySelectorAll('.row').forEach(r=>r.remove());
+  renderLevel();
+  lvNum.textContent=pad(G.level); renderLeds();
+  log(`— PATCH ${pad(G.level)} · ${G.exts.length} file · ${G.lvl.apps.length} aplikasi`);
+  announce(`PATCH ${pad(G.level)}<br><em>${G.exts.length} file · ${G.lvl.apps.length} aplikasi · colok kabelnya</em>`,1400);
+  G.running=false;
+  later(()=>{measure();G.running=true;startTimer(10+G.exts.length*5)},1300);
+}
+function tryConnect(pL,pR){
+  if(pL.dataset.locked){denyP(pL);return}
+  const ext=pL.dataset.ext, appId=pR.dataset.app;
+  const col=CAT[EXT[ext][1]].c;
+  if(EXT[ext][0]===appId){
+    const w=addWire(col); w.state='ok'; w.a={el:pL}; w.b={el:pR}; w.g.classList.add('ok');
+    pL.dataset.locked='1'; pL.classList.remove('sel'); pL.classList.add('lit');
+    pR.classList.add('lit');
+    pL.closest('.row').querySelector('.fcard').classList.add('done');
+    bumpCnt(appId);
+    G.done++; G.streak++; G.correct++;
+    if(G.streak>G.bestStreak)G.bestStreak=G.streak;
+    addScore(100+Math.min(G.streak,10)*10);
+    showStreak(); sfx('ok',G.streak);
+    log(`✓ <b>.${ext}</b> ⇢ ${APPS[appId].n}`,'ok');
+    if(G.done>=G.exts.length)levelClear();
+  }else{
+    const w=addWire('#e05c50'); w.state='err'; w.a={el:pL}; w.b={el:pR}; w.g.classList.add('err');
+    sfx('err');
+    G.streak=0; showStreak(); G.wrong++;
+    addScore(-60);
+    log(`✗ <b>.${ext}</b> ⇢ ${APPS[appId].n} · seharusnya <b>${APPS[EXT[ext][0]].n}</b>`,'no');
+    setTimeout(()=>{if(w.state==='err'){w.state='drop';w.t0=performance.now()}},480);
+    loseLife();
+  }
+}
+function loseLife(){
+  G.lives--; renderLeds();
+  if(G.lives<=0){
+    G.running=false; clearInterval(G.tm);
+    later(()=>gameOver('patch'),900);
+  }
+}
+function levelClear(){
+  G.running=false; clearInterval(G.tm);
+  cab.classList.add('celebrate');
+  const bonus=Math.round(Math.max(0,G.tLeft)*8);
+  G.lives=Math.min(3,G.lives+1); renderLeds();
+  sfx('clear');
+  announce(`PATCH ${pad(G.level)} TERSAMBUNG<br><em>bonus waktu +${bonus} · nyawa pulih</em>`,2100);
+  later(()=>addScore(bonus),300);
+  later(()=>{cab.classList.remove('celebrate');G.level++;startLevel()},2300);
+}
+function timeUp(){
+  if(!G.running)return;
+  G.running=false; clearInterval(G.tm); cancelSticky();
+  sfx('over');
+  G.exts.forEach(e=>{
+    const port=$(`#colL .port[data-ext="${e}"]`);
+    if(port&&!port.dataset.locked){
+      const fc=port.closest('.row').querySelector('.fcard');
+      fc.classList.add('miss');
+      fc.querySelector('.fc-cat').style.display='block';
+      fc.querySelector('.fc-cat').textContent='= '+APPS[EXT[e][0]].n;
+    }
+  });
+  log(`! waktu habis — file yang belum tersambung ditandai dengan jawabannya`,'no');
+  loseLife();
+  if(G.lives>0)later(()=>{G.level++;startLevel()},1900);
+}
+function startPatch(){
+  ensureAudio(); G.tok++;
+  G.mode='patch'; G.level=1; G.score=0; G.lives=3; G.streak=0;
+  G.correct=0; G.wrong=0; G.bestStreak=0;
+  colL.querySelectorAll('.row').forEach(r=>r.remove());
+  colR.querySelectorAll('.row').forEach(r=>r.remove());
+  clearWires(); clog.innerHTML='';
+  renderLeds(); updScore(); showStreak(); scNum.textContent='0';
+  show('game'); requestAnimationFrame(measure);
+  startLevel();
+}
+
+/* ================= QUIZ ================= */
+function startQuiz(){
+  ensureAudio(); G.tok++;
+  G.mode='quiz'; G.score=0; G.streak=0; G.correct=0; G.wrong=0; G.bestStreak=0;
+  QZ.list=shuffle([...pick(T1,4),...pick(T2,4),...pick(T3,4)]);
+  QZ.i=0;
+  scNum2.textContent='0'; qStk.textContent='—';
+  show('quiz'); nextQ();
+}
+function nextQ(){
+  if(QZ.i>=QZ.list.length){gameOver('quiz');return}
+  QZ.lock=false;
+  const e=QZ.list[QZ.i], cat=EXT[e][1], C=CAT[cat];
+  qExt.textContent='.'+e; qExt.style.setProperty('--cc',C.c);
+  qCat.textContent=C.label;
+  const right=EXT[e][0];
+  const others=shuffle(Object.keys(APPS).filter(a=>a!==right)).slice(0,3);
+  qOpts.innerHTML=shuffle([right,...others]).map(a=>`
+    <button class="qopt" data-a="${a}" style="--cc:${CAT[APPS[a].c].c}">
+      ${icon(CAT[APPS[a].c].ic)}<span>${APPS[a].n}</span>
+    </button>`).join('');
+  qFb.textContent=''; qFb.className='qfb';
+  qN.textContent=`${pad(QZ.i+1)}/${QZ.list.length}`;
+  clearInterval(QZ.timer); QZ.t=7; qFill.style.width='100%';
+  QZ.timer=setInterval(()=>{
+    QZ.t-=.05;
+    const p=Math.max(0,QZ.t/7);
+    qFill.style.width=(p*100)+'%'; qFill.classList.toggle('low',p<.3);
+    if(QZ.t<=0){clearInterval(QZ.timer); if(!QZ.lock)answer(null)}
+  },50);
+}
+function answer(btn){
+  if(QZ.lock)return; QZ.lock=true; clearInterval(QZ.timer);
+  const e=QZ.list[QZ.i], right=EXT[e][0];
+  $$('#qOpts .qopt').forEach(b=>{b.disabled=true;if(b.dataset.a===right)b.classList.add('good')});
+  const good=btn&&btn.dataset.a===right;
+  if(good){
+    G.streak++; G.correct++;
+    if(G.streak>G.bestStreak)G.bestStreak=G.streak;
+    const pts=100+Math.round(Math.max(0,QZ.t)*15)+Math.min(G.streak,10)*10;
+    addScore(pts); sfx('ok',G.streak);
+    qStk.textContent=G.streak>=2?'×'+G.streak:'—';
+    qFb.textContent=`BENAR · +${pts} poin`; qFb.className='qfb good';
+  }else{
+    G.streak=0; G.wrong++; if(btn)btn.classList.add('bad');
+    qStk.textContent='—'; sfx('err');
+    qFb.textContent=`${btn?'SALAH':'WAKTU HABIS'} — .${e} dibuka dengan ${APPS[right].n}`;
+    qFb.className='qfb bad';
+  }
+  later(()=>{QZ.i++;nextQ()}, good?800:1500);
+}
+qOpts.addEventListener('click',e=>{
+  const b=e.target.closest('.qopt'); if(b&&!b.disabled){ensureAudio();answer(b)}
+});
+
+/* ================= GAME OVER ================= */
+function rank(sc){
+  if(sc<1200)return['PRA-PENGGUNA','masih tersesat di folder Downloads'];
+  if(sc<3000)return['STAJIR IT','.docx? itu dibuka Word, ingat'];
+  if(sc<6500)return['TEKNISI FILE','kabel-kabelnya mulai tersambung rapi'];
+  if(sc<12000)return['ADMIN SISTEM','nyaris tanpa salah colok'];
+  return['ROOT ACCESS','otak manusia berbentuk file-association'];
+}
+function gameOver(mode){
+  stopAll(); sfx('over');
+  const sc=G.score, key='pb92_'+mode;
+  const best=+localStorage.getItem(key)||0, nb=sc>best;
+  if(nb)localStorage.setItem(key,sc);
+  ovKick.textContent=mode==='patch'?'TRANSMISI AKHIR':'HASIL TES';
+  ovTitle.textContent=mode==='patch'?'KONEKSI TERPUTUS':'TES KECEPATAN SELESAI';
+  ovScore.textContent=sc;
+  ovNew.classList.toggle('show',nb&&sc>0);
+  const rows=mode==='patch'
+    ?[['PATCH TERCAPAI',pad(G.level)],['SAMBUNGAN BENAR',G.correct],['SALAH COLOK',G.wrong],['STREAK TERBAIK','×'+G.bestStreak]]
+    :[['SOAL BENAR',G.correct],['SOAL SALAH',QZ.list.length-G.correct],['STREAK TERBAIK','×'+G.bestStreak]];
+  ovStats.innerHTML=rows.map(r=>`<div class="st"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+  const [t,s]=rank(sc);
+  ovRankT.textContent=t; ovRankS.textContent=s;
+  ovAgain.onclick=()=>mode==='patch'?startPatch():startQuiz();
+  show('over');
+}
+
+/* ================= HOME ================= */
+const chipHTML=e=>{
+  const C=CAT[EXT[e][1]];
+  return `<span class="chip" style="--cc:${C.c}" data-ext="${e}" data-app="${APPS[EXT[e][0]].n}"><i></i>.${e}</span>`;
+};
+function buildMarquee(){
+  const all=Object.keys(EXT);
+  [[mq1,44],[mq2,44]].forEach(([el,n])=>{
+    const items=pick(all,n).map(chipHTML).join('');
+    el.innerHTML=items+items;
+  });
+}
+const HINT_DEF='ARAHKAN KURSOR KE FILE — APLIKASI PEMBUKANYA MUNCUL DI SINI';
+document.addEventListener('mouseover',e=>{
+  const c=e.target.closest('.chip');
+  if(c){mqHint.textContent=`.${c.dataset.ext}  ⇢  ${c.dataset.app}`;mqHint.classList.add('lit')}
+});
+document.addEventListener('mouseout',e=>{
+  if(e.target.closest('.chip')){mqHint.textContent=HINT_DEF;mqHint.classList.remove('lit')}
+});
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.chip');
+  if(c){mqHint.textContent=`.${c.dataset.ext}  ⇢  ${c.dataset.app}`;mqHint.classList.add('lit')}
+});
+function refreshBests(){
+  bestPatch.textContent='REKOR '+(+localStorage.getItem('pb92_patch')||0);
+  bestQuiz.textContent='REKOR '+(+localStorage.getItem('pb92_quiz')||0);
+}
+mPatch.addEventListener('click',startPatch);
+mQuiz.addEventListener('click',startQuiz);
+gHome.addEventListener('click',()=>{G.tok++;stopAll();refreshBests();show('home')});
+qHome.addEventListener('click',()=>{G.tok++;stopAll();refreshBests();show('home')});
+ovHome.addEventListener('click',()=>{G.tok++;refreshBests();show('home')});
+
+function setMuted(m){
+  muted=m;
+  muteBtn.innerHTML=icon(m?'mute':'sound');
+  muteBtn2.innerHTML=icon(m?'mute':'sound');
+}
+muteBtn.addEventListener('click',()=>{ensureAudio();setMuted(!muted)});
+muteBtn2.addEventListener('click',()=>{ensureAudio();setMuted(!muted)});
+
+/* ================= INIT ================= */
+ $$('[data-ic]').forEach(el=>el.innerHTML=icon(el.dataset.ic));
+buildMarquee(); refreshBests();
+window.addEventListener('resize',measure);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
+measure();
+</script>
+</body>
+</html>
