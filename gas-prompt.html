@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Tutorial Web App GAS</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        accent: '#8b5cf6'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar elegan */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Background pattern tipis */
+        .bg-pattern {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-pattern text-slate-800 font-sans antialiased flex h-screen overflow-hidden selection:bg-brand-200 selection:text-brand-900">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-72 bg-white/80 backdrop-blur-xl border-r border-slate-200 flex-shrink-0 hidden md:flex flex-col h-full z-20 shadow-sm relative">
+        <div class="h-20 flex items-center px-8 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-accent flex items-center justify-center shadow-lg shadow-brand-500/30 text-white mr-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">GAS<span class="text-brand-600">Docs</span></h1>
+        </div>
+        <div class="overflow-y-auto flex-1 p-5">
+            <p class="px-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Navigasi Tutorial</p>
+            <nav class="space-y-1.5">
+                <a href="#prompt-pertama" class="group flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all duration-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-brand-500 mr-3 transition-colors"></span>
+                    Master Prompt
+                </a>
+                <a href="#tahap-1" class="group flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all duration-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-brand-500 mr-3 transition-colors"></span>
+                    Tahap 1: Setup Dasar
+                </a>
+                <a href="#tahap-2" class="group flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all duration-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-brand-500 mr-3 transition-colors"></span>
+                    Tahap 2: Presensi
+                </a>
+                <a href="#tahap-3" class="group flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all duration-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-brand-500 mr-3 transition-colors"></span>
+                    Tahap 3: Modul Nilai
+                </a>
+                <a href="#tahap-4" class="group flex items-center px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all duration-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-brand-500 mr-3 transition-colors"></span>
+                    Tahap 4: Dashboard
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto scroll-smooth relative">
+        <!-- Decorative Glow -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+
+        <!-- Header Mobile -->
+        <header class="md:hidden bg-white/80 backdrop-blur-md h-16 border-b border-slate-200 flex items-center px-6 sticky top-0 z-30">
+            <h1 class="text-lg font-extrabold text-slate-800">GAS<span class="text-brand-600">Docs</span></h1>
+        </header>
+
+        <div class="max-w-4xl mx-auto p-6 md:p-12 relative z-10 pb-32">
+            
+            <!-- Page Header -->
+            <div class="mb-16 text-center md:text-left mt-8">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-600 border border-brand-100 text-xs font-bold tracking-wide uppercase mb-4">
+                    <span>✨ Tutorial Apps Script</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+                    Sistem Akademik <br />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent">Berbasis Web App</span>
+                </h1>
+                <p class="text-slate-500 text-lg max-w-2xl">
+                    Dokumentasi lengkap pengembangan sistem presensi dan pengelolaan nilai sekolah menggunakan Google Apps Script & Google Sheets.
+                </p>
+            </div>
+
+            <!-- PROMPT PERTAMA -->
+            <section id="prompt-pertama" class="mb-12 scroll-mt-24">
+                <div class="bg-slate-900 rounded-2xl shadow-xl shadow-slate-900/20 overflow-hidden border border-slate-700/50">
+                    <!-- Mac OS Window Header -->
+                    <div class="bg-slate-800/80 px-4 py-3 flex items-center border-b border-slate-700/50">
+                        <div class="flex gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <p class="text-slate-400 text-xs font-mono ml-4">master_prompt.txt</p>
+                    </div>
+                    <!-- Code Content -->
+                    <div class="p-6 overflow-x-auto">
+<pre class="font-mono text-sm text-slate-300 leading-relaxed">Buatkan aplikasi Google Apps Script lengkap untuk SISTEM PRESENSI DAN PENGELOLAAN NILAI SISWA berbasis Web App.
+
+<span class="text-brand-400 font-bold">## KONTEKS</span>
+Aplikasi digunakan sekolah untuk mencatat kehadiran siswa dan mengelola nilai akademik. Database menggunakan Google Sheets, antarmuka berupa Web App (HTML/CSS/JS) yang diakses guru dan admin.
+
+<span class="text-brand-400 font-bold">## STRUKTUR DATABASE (Google Sheets)</span>
+Buat spreadsheet dengan sheet berikut:
+1. <span class="text-accent">Users</span>    : username, password, nama, role (admin/guru), mapel yang diampu
+2. <span class="text-accent">Siswa</span>    : NIS, nama, kelas, jenis kelamin, wali murid (nama & no HP)
+3. <span class="text-accent">Kelas</span>    : kode kelas, nama kelas, wali kelas
+4. <span class="text-accent">Mapel</span>    : kode mapel, nama mapel
+5. <span class="text-accent">Presensi</span> : tanggal, NIS, nama, kelas, status (H/S/I/A), keterangan, dicatat oleh
+6. <span class="text-accent">Nilai</span>    : NIS, nama, kelas, mapel, jenis penilaian (Tugas/UH/UTS/UAS), skor, semester, tahun ajaran
+
+<span class="text-brand-400 font-bold">## ROLE PENGGUNA</span>
+1. <span class="text-yellow-400">Admin</span> : kelola data master (siswa, kelas, mapel, users), lihat semua rekap
+2. <span class="text-yellow-400">Guru</span>  : input presensi per kelas, input nilai sesuai mapel yang diampu
+
+<span class="text-brand-400 font-bold">## FITUR UTAMA</span>
+
+<span class="text-green-400">### A. Autentikasi</span>
+- Halaman login dengan validasi username & password
+- Manajemen session, redirect sesuai role setelah login
+- Tombol logout
+
+<span class="text-green-400">### B. Modul Presensi</span>
+- Input presensi harian: pilih kelas → tampil daftar siswa → set status Hadir/Sakit/Izin/Alpa per siswa
+- Riwayat presensi dengan filter tanggal & kelas
+- Rekap kehadiran per siswa (persentase kehadiran) per bulan/semester
+
+<span class="text-green-400">### C. Modul Nilai</span>
+- Input nilai per kelas & mapel (bentuk grid: daftar siswa × jenis penilaian)
+- Edit dan hapus nilai
+- Perhitungan nilai akhir otomatis: Tugas 30% + UH 30% + UTS 15% + UAS 25% (simpan bobot ini sebagai konfigurasi agar mudah diubah)
+- Ranking nilai per kelas
+
+<span class="text-green-400">### D. Dashboard & Laporan</span>
+- Dashboard: total siswa, rekap kehadiran hari ini, rata-rata nilai per mapel
+- Laporan presensi per kelas/siswa
+- Laporan rapor mini per siswa (semua nilai + kehadiran)
+
+<span class="text-brand-400 font-bold">## ANTARMUKA</span>
+- Responsive (desktop & mobile-friendly, guru sering akses via HP)
+- Desain bersih & modern, sidebar navigasi: Dashboard, Presensi, Nilai, Data Master (admin), Laporan
+- Tabel dilengkapi pencarian & filter
+
+<span class="text-brand-400 font-bold">## SPESIFIKASI TEKNIS</span>
+- Backend: pisah beberapa file .gs (Auth.gs, Presensi.gs, Nilai.gs, MasterData.gs, Laporan.gs, Code.gs sebagai router)
+- Frontend: file HTML terpisah (Login.html, Dashboard.html, Presensi.html, Nilai.html, MasterData.html, Laporan.html) + fungsi include()
+- Komunikasi frontend-backend via google.script.run
+- Validasi input di sisi client dan server
+- Error handling dengan try-catch dan pesan informatif
+- appsscript.json dengan OAuth scopes minimal
+
+<span class="text-brand-400 font-bold">## OUTPUT YANG DIHARAPKAN</span>
+1. Kode lengkap setiap file (sebutkan nama file dengan jelas)
+2. Struktur spreadsheet yang harus dibuat (nama sheet & kolom)
+3. Langkah deploy: Deploy as Web App, pengaturan Execute as & Who has access
+4. Panduan penggunaan singkat
+
+Karena aplikasi ini kompleks, bangun secara bertahap:
+TAHAP 1: setup database + autentikasi + framework UI
+Setelah selesai, saya akan minta TAHAP 2 (modul presensi), TAHAP 3 (modul nilai), TAHAP 4 (laporan & dashboard).
+Tampilkan kode lengkap tanpa dipangkas.</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAHAP 1 -->
+            <section id="tahap-1" class="mb-10 scroll-mt-24 group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide">TAHAP 1</span>
+                        <h2 class="text-2xl font-bold text-slate-800">Setup Dasar & UI</h2>
+                    </div>
+                    <p class="text-slate-600 mb-6 leading-relaxed">Pada tahap ini, kita menyiapkan struktur database di Google Sheets dan membuat kerangka utama aplikasi web, termasuk sistem login dan *routing* halaman.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z" clip-rule="evenodd"></path></svg>
+                                Database (Sheets)
+                            </h3>
+                            <ul class="space-y-2 text-sm text-slate-600">
+                                <li><strong class="text-slate-800">Users:</strong> Username, Password, Role, Nama, Mapel</li>
+                                <li><strong class="text-slate-800">Siswa:</strong> NIS, Nama, Kelas, dll.</li>
+                                <li><strong class="text-slate-800">Kelas:</strong> Kode Kelas, Nama Kelas</li>
+                                <li><strong class="text-slate-800">Mapel:</strong> Kode Mapel, Nama Mapel</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                File Code Utama
+                            </h3>
+                            <ul class="space-y-2 text-sm text-slate-600">
+                                <li><code class="text-brand-600 bg-brand-50 px-1 rounded">Code.gs</code> Router sistem (doGet)</li>
+                                <li><code class="text-brand-600 bg-brand-50 px-1 rounded">Auth.gs</code> Validasi login</li>
+                                <li><code class="text-brand-600 bg-brand-50 px-1 rounded">Index.html</code> Kerangka layout & Sidebar</li>
+                                <li><code class="text-brand-600 bg-brand-50 px-1 rounded">Login.html</code> Form Login</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAHAP 2 -->
+            <section id="tahap-2" class="mb-10 scroll-mt-24 group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide">TAHAP 2</span>
+                        <h2 class="text-2xl font-bold text-slate-800">Modul Presensi</h2>
+                    </div>
+                    <p class="text-slate-600 mb-4 leading-relaxed">Fokus pada pencatatan kehadiran siswa. Data disimpan ke dalam sheet <strong class="text-slate-800">Presensi</strong>.</p>
+                    
+                    <div class="border-l-4 border-blue-500 pl-4 py-1 mt-4">
+                        <h4 class="font-bold text-slate-800">Komponen yang dibuat:</h4>
+                        <ul class="mt-2 space-y-3 text-sm text-slate-600 list-disc list-inside">
+                            <li><strong class="text-slate-800">Presensi.gs</strong>: Backend untuk mengambil daftar siswa berdasarkan kelas dan menyimpan array presensi secara *batch*.</li>
+                            <li><strong class="text-slate-800">Presensi.html</strong>: Antarmuka form presensi dengan UI radio button (Hadir, Sakit, Izin, Alpa) dan tombol submit asinkronus via <code class="bg-slate-100 px-1 rounded text-pink-600">google.script.run</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAHAP 3 -->
+            <section id="tahap-3" class="mb-10 scroll-mt-24 group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide">TAHAP 3</span>
+                        <h2 class="text-2xl font-bold text-slate-800">Modul Nilai Akademik</h2>
+                    </div>
+                    <p class="text-slate-600 mb-4 leading-relaxed">Menambahkan fitur input nilai (Tugas, UH, UTS, UAS). Data ini akan masuk dan tersimpan pada sheet <strong class="text-slate-800">Nilai</strong>.</p>
+                    
+                    <div class="border-l-4 border-emerald-500 pl-4 py-1 mt-4">
+                        <h4 class="font-bold text-slate-800">Komponen yang dibuat:</h4>
+                        <ul class="mt-2 space-y-3 text-sm text-slate-600 list-disc list-inside">
+                            <li><strong class="text-slate-800">Nilai.gs</strong>: Logic backend untuk menerima dan menyimpan data nilai ujian siswa ke database.</li>
+                            <li><strong class="text-slate-800">Nilai.html</strong>: Form UI dinamis yang menyediakan dropdown Kelas, Mata Pelajaran, Jenis Penilaian, Semester, dan Tahun Ajaran.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAHAP 4 -->
+            <section id="tahap-4" class="mb-10 scroll-mt-24 group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide">TAHAP 4</span>
+                        <h2 class="text-2xl font-bold text-slate-800">Dashboard & Master Data</h2>
+                    </div>
+                    <p class="text-slate-600 mb-6 leading-relaxed">Tahap penyempurnaan yang menggabungkan seluruh fitur menjadi satu kesatuan utuh. Menambahkan visualisasi data di Dashboard dan fitur cetak rapor.</p>
+                    
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-1">Dashboard Dinamis</h4>
+                            <p class="text-xs text-slate-500">Menampilkan statistik total siswa, kelas, dan kehadiran *real-time*.</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-1">Cetak Rapor</h4>
+                            <p class="text-xs text-slate-500">Mengkalkulasi Nilai Akhir (NA) dan menampilkan PDF Rapor Mini.</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                            <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                            </div>
+                            <h4 class="font-bold text-slate-800 mb-1">Master Data</h4>
+                            <p class="text-xs text-slate-500">Fitur khusus Admin untuk memantau *raw data* dari Google Sheets secara langsung.</p>
+                        </div>
+                    </div>
+
+                    <!-- Finalize Notice -->
+                    <div class="mt-6 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl p-5 text-white flex items-start gap-4 shadow-lg shadow-brand-500/20">
+                        <svg class="w-8 h-8 flex-shrink-0 text-brand-200 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <div>
+                            <h4 class="font-bold text-lg">Proses Finalisasi</h4>
+                            <p class="text-brand-100 text-sm mt-1 leading-relaxed">
+                                Pastikan semua modul HTML sudah di-*include* di dalam <code class="bg-black/20 px-1.5 py-0.5 rounded text-white font-mono">Index.html</code>. Lakukan proses <strong class="text-white">Deploy &gt; Manage Deployments &gt; New version</strong> di menu Google Apps Script untuk menerapkan hasil akhir aplikasi ke versi Live.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <footer class="mt-20 border-t border-slate-200 pt-8 text-center">
+                <p class="text-slate-400 text-sm font-medium">Selesai &mdash; Dokumentasi Web App Sistem Akademik (Google Apps Script).</p>
+            </footer>
+
+        </div>
+    </main>
+
+</body>
+</html>
