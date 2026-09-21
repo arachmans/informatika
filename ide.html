@@ -1,0 +1,2707 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>Kompiler ≠ Interpreter — Simulator IDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#efeade; --panel:#faf8f1; --panel2:#f0ebde; --inset:#f5f1e6;
+  --line:#ddd5c3; --line2:#c9c0aa;
+  --ink:#26221a; --dim:#6f6757; --faint:#a39b88; --pre:#4c473a;
+  --cpp:#c93c17; --py:#0c7a4b; --err:#b3261e; --amber:#9a6700;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --disp:'Space Grotesk',sans-serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--mono);margin:0;
+  background-image:radial-gradient(rgba(70,55,20,.09) 1px,transparent 1.4px);background-size:26px 26px;}
+
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding:18px 22px 14px;border-bottom:1px solid var(--line);}
+.brand{display:flex;align-items:center;gap:16px;}
+.mark{display:flex;gap:4px;padding-bottom:6px}
+.mark i{display:block;width:7px;height:34px;border-radius:2px}
+.mark i:first-child{background:var(--cpp)} .mark i:last-child{background:var(--py)}
+h1{font-family:var(--disp);font-weight:700;font-size:25px;margin:0;letter-spacing:.5px;line-height:1}
+h1 .c{color:var(--cpp)} h1 .n{color:var(--ink);margin:0 6px} h1 .p{color:var(--py)}
+.sub{margin:5px 0 0;color:var(--dim);font-size:11.5px;max-width:640px;line-height:1.5}
+.hctrl{display:flex;align-items:center;gap:14px}
+.speed{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
+.speed input{width:130px;accent-color:var(--ink)}
+.speed b{color:var(--ink);width:34px}
+
+#duel{display:grid;grid-template-columns:minmax(0,1fr) 330px minmax(0,1fr);gap:14px;
+  padding:16px 22px 34px;max-width:1760px;margin:0 auto;}
+@media(max-width:1240px){#duel{grid-template-columns:1fr}#spine{order:-1}}
+
+.side{display:flex;flex-direction:column;gap:10px;min-width:0;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:12px;}
+.side[data-lang=cpp]{--acc:var(--cpp);--accbg:rgba(201,60,23,.10)}
+.side[data-lang=py]{--acc:var(--py);--accbg:rgba(12,122,75,.10)}
+.side-head{display:flex;align-items:center;gap:10px}
+.lang-badge{font-family:var(--disp);font-weight:700;font-size:16px;color:#fff;
+  background:var(--acc);padding:3px 11px;border-radius:4px;letter-spacing:.5px}
+.meta{font-size:11px;color:var(--dim);line-height:1.4}
+.meta b{color:var(--acc)}
+.chipfile{margin-left:auto;font-size:10px;color:var(--dim);border:1px solid var(--line2);
+  padding:3px 8px;border-radius:4px;max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chipfile.warn{color:var(--amber);border-color:#cfa94e;background:rgba(154,103,0,.07)}
+
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-weight:600;font-size:12px;
+  padding:7px 13px;border-radius:5px;border:1px solid transparent;cursor:pointer;background:transparent;color:var(--ink);
+  transition:transform .12s,box-shadow .12s}
+.btn svg{width:12px;height:12px;fill:currentColor;flex:none}
+.btn.run{background:var(--acc);color:#fff}
+.btn.run:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 14px -6px var(--acc)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.ghost{border-color:var(--line2);color:var(--dim)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--faint)}
+.btn.re{border:1px solid var(--acc);color:var(--acc)}
+.btn.re:hover:not(:disabled){background:var(--accbg)}
+.srcstat{margin-left:auto;font-size:11px;color:var(--faint)}
+
+.editor{display:flex;position:relative;height:250px;background:#fffef9;border:1px solid var(--line);
+  border-radius:6px;overflow:hidden}
+.editor:focus-within{border-color:var(--line2)}
+.gutter{width:46px;flex:none;overflow:hidden;text-align:right;padding:10px 10px 10px 0;
+  background:#f4efe1;border-right:1px solid var(--line);
+  color:var(--faint);font:500 13px/20px var(--mono);user-select:none}
+.gut-in{will-change:transform}
+.cwrap{position:relative;flex:1;overflow:hidden}
+.cwrap .hll,.cwrap .syn{position:absolute;inset:0;margin:0;pointer-events:none;will-change:transform}
+.hll{z-index:1} .syn{z-index:2;overflow:hidden}
+.syn code,.cwrap textarea{display:block;padding:10px 12px;font:500 13px/20px var(--mono);
+  white-space:pre;tab-size:4;letter-spacing:0}
+.cwrap textarea{position:absolute;inset:0;z-index:3;background:transparent;color:transparent;
+  caret-color:var(--ink);border:0;outline:0;resize:none;overflow:auto}
+.cwrap textarea::selection{background:rgba(80,60,20,.18)}
+.hl-cur{position:absolute;left:0;right:0;height:20px;top:10px;background:var(--accbg);
+  border-left:2px solid var(--acc);opacity:0;transition:top .1s linear,opacity .25s}
+.kw{color:#9a6700} .st{color:#3e7b1f} .fs{color:#0f766e} .nm{color:#8250af}
+.pp{color:#0f766e} .bi{color:#b1543c} .cm{color:#a39c8c;font-style:italic} .op{color:#8d8574}
+
+.stages{display:flex;gap:4px}
+.chip{position:relative;flex:1;border:1px solid var(--line);border-radius:4px;padding:5px 6px 4px;
+  font-size:9px;letter-spacing:.5px;color:var(--faint);overflow:hidden;background:var(--panel2)}
+.chip b{display:block;font-weight:600;font-size:9px}
+.chip .ct{display:block;margin-top:2px;font-size:8.5px;color:var(--dim);min-height:10px}
+.chip .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--acc);opacity:.16}
+.chip.active{border-color:var(--acc);color:var(--ink);background:#fff}
+.chip.active .fill{animation:chfill var(--d,600ms) linear forwards}
+.chip.done{border-color:var(--line2);color:var(--dim);background:var(--panel)}
+.chip.done .ct{color:var(--acc)}
+.chip.err{border-color:var(--err);color:var(--err);background:rgba(179,38,30,.05)}
+@keyframes chfill{from{width:0}to{width:100%}}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line)}
+.tabs button{font-family:var(--mono);font-size:10.5px;color:var(--faint);background:none;border:none;
+  padding:6px 9px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--acc);border-bottom-color:var(--acc)}
+.panels{position:relative;background:var(--inset);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 6px 6px;height:295px}
+.panel{position:absolute;inset:0;overflow:auto;padding:10px 12px;display:none}
+.panel.on{display:block}
+.panel pre{margin:0;font-size:11px;line-height:16.5px;white-space:pre;color:var(--pre)}
+.panel[data-panel=stdout]{background:#fffefb;
+  background-image:repeating-linear-gradient(0deg,transparent 0 3px,rgba(70,55,20,.03) 3px 4px)}
+.con-h{color:var(--faint);font-size:9.5px;text-transform:uppercase;letter-spacing:2px;margin:0 0 7px}
+.con-ln{font-size:12px;line-height:19px;color:#33302a;white-space:pre-wrap;word-break:break-word}
+.con-ln.err{color:var(--err);font-weight:600} .con-ln.note{color:var(--amber)} .con-ln.ok{color:#8f887a}
+.tkwrap{line-height:1.9}
+.tkrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:3px 0 7px}
+.tkln{color:var(--faint);font-size:9px;width:20px;flex:none}
+.tk{background:#fff;border:1px solid var(--line2);border-radius:3px;padding:1px 5px;font-size:9.5px;color:var(--dim)}
+.tk b{color:var(--ink);font-weight:500;margin-left:4px}
+.tk.k{border-color:#d9bd8c} .tk.k b{color:#9a6700}
+.tk.s{border-color:#b9d2a2} .tk.s b{color:#3e7b1f}
+.tk.i b{color:var(--dim)}
+
+.statusbar{display:flex;justify-content:space-between;gap:12px;font-size:10.5px;color:var(--dim);
+  border-top:1px dashed var(--line);padding-top:8px}
+.live{color:var(--acc);min-height:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#spine{display:flex;flex-direction:column;gap:13px;background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:14px}
+.spine-title{font-family:var(--disp);font-weight:700;font-size:16px}
+.spine-sub{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.5}
+#runBoth{width:100%;justify-content:center;background:var(--ink);color:#f7f3e8;font-size:13px;padding:11px;
+  border-left:4px solid var(--cpp);border-right:4px solid var(--py)}
+#runBoth:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 5px 16px -7px rgba(0,0,0,.4)}
+.presets{display:flex;gap:6px}
+.presets button{flex:1;font-family:var(--mono);font-size:10px;color:var(--dim);background:none;
+  border:1px solid var(--line2);border-radius:4px;padding:6px 4px;cursor:pointer;line-height:1.4}
+.presets button.on{border-color:var(--ink);color:var(--ink);background:#fff}
+.ledger{border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:10.5px}
+.ledger .row{display:grid;grid-template-columns:88px 1fr 1fr;border-top:1px solid var(--line)}
+.ledger .row:first-child{border-top:0}
+.ledger .a{padding:7px 8px;color:var(--faint);background:var(--panel2);font-size:9px;letter-spacing:.4px;text-transform:uppercase}
+.ledger .c{padding:7px 9px;border-left:1px solid var(--line);color:var(--dim);line-height:1.5}
+.ledger .c b{color:var(--ink);font-weight:600}
+.ledger .c.xcpp{box-shadow:inset 2px 0 0 var(--cpp)}
+.ledger .c.xpy{box-shadow:inset 2px 0 0 var(--py)}
+.runlog{border:1px solid var(--line);border-radius:6px;padding:11px 12px}
+.rl-title{font-size:9.5px;text-transform:uppercase;letter-spacing:2px;color:var(--faint);margin-bottom:9px}
+.rl-row{display:grid;grid-template-columns:24px 1fr;gap:8px;margin-bottom:9px;align-items:center}
+.rl-i{color:var(--faint);font-size:10px}
+.rl-line{display:flex;align-items:center;gap:7px;margin:3px 0}
+.rl-line.cpp{--c:var(--cpp)} .rl-line.py{--c:var(--py)}
+.who{width:24px;font-size:9px;color:var(--dim)}
+.track{flex:1;height:9px;background:#e5dfcd;border-radius:2px;position:relative;overflow:hidden}
+.track i{position:absolute;top:0;bottom:0}
+.track i.a{background:var(--c);opacity:.4}
+.track i.e{background:var(--c)}
+.tt{font-size:8.5px;color:var(--dim);white-space:nowrap}
+.rl-empty{color:var(--faint);font-size:10.5px;line-height:1.6}
+.legend{display:flex;gap:14px;font-size:9px;color:var(--faint);margin-top:6px}
+.legend i{display:inline-block;width:14px;height:7px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+.rl-cap{font-size:9.5px;color:var(--faint);line-height:1.6;margin-top:9px}
+.footnote{font-size:10px;color:var(--faint);line-height:1.6;border-top:1px dashed var(--line);padding-top:10px}
+
+#crash{position:fixed;left:0;right:0;bottom:0;background:var(--err);color:#fff;
+  font:600 11px/1.6 var(--mono);padding:8px 16px;display:none;z-index:99}
+#crash.on{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="mark"><i></i><i></i></div>
+    <div>
+      <h1><span class="c">KOMPILER</span><span class="n">≠</span><span class="p">INTERPRETER</span></h1>
+      <p class="sub">Simulator IDE — satu logika program yang sama dibangun oleh g++ dan ditafsirkan oleh CPython, berdampingan. Bandingkan keduanya berjalan.</p>
+    </div>
+  </div>
+  <div class="hctrl">
+    <label class="speed"><span>kecepatan simulasi</span>
+      <input type="range" id="speed" min="0.25" max="6" step="0.25" value="1"><b id="speedVal">1×</b></label>
+    <button class="btn ghost" id="resetAll"></button>
+  </div>
+</header>
+
+<main id="duel">
+  <section class="side" id="sideCpp" data-lang="cpp"></section>
+  <aside id="spine"></aside>
+  <section class="side" id="sidePy" data-lang="py"></section>
+</main>
+<div id="crash"></div>
+
+<script>
+/* ============================================================
+   UTIL
+============================================================ */
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmtMs=ms=>{ if(ms==null||isNaN(ms))return '—';
+  if(ms<0.05)return '0 ms';
+  if(ms<1)return (Math.round(ms*100)/100)+' ms';
+  if(ms<1000)return Math.round(ms)+' ms';
+  return (ms/1000).toFixed(2)+' s'; };
+const fmtBytes=b=>b<1024?b+' B':(b/1024).toFixed(1)+' KB';
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0);};}
+let SPEED=1;
+const dslay=ms=>new Promise(r=>setTimeout(r,Math.max(1,ms/SPEED)));
+const hex12=n=>n.toString(16).padStart(12,'0');
+
+/* batas pengaman simulasi — loop/output tak terbatas tidak boleh membekukan browser */
+const CXX_ITER_CAP=200000;   /* maksimum total iterasi loop per eksekusi C++  */
+const CXX_OPS_CAP=3000000;   /* maksimum total statement per eksekusi C++    */
+const PY_ITER_CAP=200000;    /* maksimum total iterasi loop Python           */
+const PY_RANGE_CAP=100000;   /* maksimum item per range()                    */
+const OUT_CHAR_CAP=60000;    /* maksimum karakter output per eksekusi        */
+const SHOW_LINE_CAP=400;     /* maksimum baris stdout yang dianimasikan      */
+
+const ICONS={
+  play:'<svg viewBox="0 0 24 24"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.88l10.9-6.86a1.04 1.04 0 0 0 0-1.76L9.56 4.26A1.04 1.04 0 0 0 8 5.14z"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+  undo:'<svg viewBox="0 0 24 24"><path d="M3 4v6h6M3.5 10A9 9 0 1 1 6 18.5"/></svg>',
+  both:'<svg viewBox="0 0 24 24"><path d="M2 5.14v13.72c0 .8.87 1.3 1.56.88L14.5 13 3.56 4.26A1.04 1.04 0 0 0 2 5.14z"/><path d="M10 5.14v13.72c0 .8.87 1.3 1.56.88L22.5 13 11.56 4.26A1.04 1.04 0 0 0 10 5.14z" opacity=".45"/></svg>'
+};
+
+function showCrash(msg){
+  const b=document.getElementById('crash');
+  b.textContent='KESALAHAN INTERNAL SIMULATOR: '+msg+' — (tolong laporkan teks ini bila muncul)';
+  b.classList.add('on');
+}
+window.addEventListener('error',e=>showCrash(e.message||'unknown error'));
+window.addEventListener('unhandledrejection',e=>showCrash((e.reason&&e.reason.message)||String(e.reason)||'unknown rejection'));
+
+/* ============================================================
+   SYNTAX HIGHLIGHTER (per-baris)
+============================================================ */
+const CPP_KW=new Set(['int','double','float','bool','char','void','auto','const','unsigned','long','short','signed','using','namespace','return','if','else','for','while','do','break','continue','true','false','struct','class','new','delete','switch','case','default']);
+const CPP_BI=new Set(['cout','cin','endl','std','main','string','vector','push_back','size','length']);
+const PY_KW=new Set(['def','return','if','elif','else','for','while','break','continue','pass','import','from','as','True','False','None','and','or','not','in','lambda','global','with','try','except','raise','del','assert','yield']);
+const PY_BI=new Set(['print','range','len','int','float','str','abs','min','max','sum','round','list','dict','enumerate','zip','type','input','append']);
+
+const HL_CPP_RX=/\/\/.*|\/\*|"(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?|#[^\n]*|\b\d+(?:\.\d+)?[fF]?\b|\b[A-Za-z_]\w*\b|<<|>>|==|!=|<=|>=|&&|\|\||[+\-*/%=<>!&|^~?:;,{}()\[\]]/g;
+const HL_PY_RX=/#[^\n]*|[fFrRbB]{0,2}(?:"(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?)|\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b|\b[A-Za-z_]\w*\b|==|!=|<=|>=|\*\*|\/\/|[+\-*/%<>=!,.:;()\[\]]/g;
+
+function classify(tok,lang){
+  const KW=lang==='cpp'?CPP_KW:PY_KW, BI=lang==='cpp'?CPP_BI:PY_BI;
+  if(tok.startsWith('//')||(tok.startsWith('#')&&lang==='py'))return `<span class="cm">${esc(tok)}</span>`;
+  if(tok.startsWith('#'))return `<span class="pp">${esc(tok)}</span>`;
+  if(/^[fFrRbB]{1,2}["']/.test(tok))return `<span class="fs">${esc(tok)}</span>`;
+  if(tok[0]==='"'||tok[0]==="'")return `<span class="st">${esc(tok)}</span>`;
+  if(/^\d/.test(tok))return `<span class="nm">${esc(tok)}</span>`;
+  if(/^[A-Za-z_]/.test(tok)){
+    if(KW.has(tok))return `<span class="kw">${esc(tok)}</span>`;
+    if(BI.has(tok))return `<span class="bi">${esc(tok)}</span>`;
+    return esc(tok); }
+  return `<span class="op">${esc(tok)}</span>`;
+}
+function hlLine(line,lang,st){
+  if(st.block){ const end=line.indexOf('*/');
+    if(end<0)return `<span class="cm">${esc(line)}</span>`;
+    return `<span class="cm">${esc(line.slice(0,end+2))}</span>`+hlLine(line.slice(end+2),lang,st); }
+  const RX=(lang==='cpp'?HL_CPP_RX:HL_PY_RX); RX.lastIndex=0;
+  let out='',pos=0,m;
+  while((m=RX.exec(line))!==null){
+    if(m.index>pos)out+=esc(line.slice(pos,m.index));
+    const tok=m[0];
+    if(tok==='/*'){ out+=`<span class="cm">${esc(line.slice(m.index))}</span>`; st.block=true; return out; }
+    out+=classify(tok,lang);
+    pos=m.index+tok.length;
+  }
+  if(pos<line.length)out+=esc(line.slice(pos));
+  return out;
+}
+
+/* ============================================================
+   EDITOR (textarea transparan + pre highlight)
+============================================================ */
+class Editor{
+  constructor(root,lang){
+    this.lang=lang;
+    root.innerHTML=`<div class="gutter"><div class="gut-in"></div></div>
+      <div class="cwrap"><div class="hll"></div><pre class="syn"><code></code></pre>
+      <textarea spellcheck="false" wrap="off" autocapitalize="off" autocomplete="off"></textarea></div>`;
+    this.gut=root.querySelector('.gut-in');
+    this.codeEl=root.querySelector('code');
+    this.preEl=root.querySelector('.syn');
+    this.hll=root.querySelector('.hll');
+    this.ta=root.querySelector('textarea');
+    const cur=document.createElement('div'); cur.className='hl-cur';
+    this.hll.appendChild(cur); this.cur=cur;
+    this.onChange=null;
+    this.ta.addEventListener('input',()=>{this.render(); this.onChange&&this.onChange();});
+    this.ta.addEventListener('scroll',()=>this.sync());
+    this.ta.addEventListener('keydown',e=>{
+      if(e.key==='Tab'){e.preventDefault();
+        const s=this.ta.selectionStart,ep=this.ta.selectionEnd;
+        this.setVal(this.ta.value.slice(0,s)+'    '+this.ta.value.slice(ep),s+4);}
+    });
+  }
+  setVal(v,caret){ this.ta.value=v; this.render();
+    if(caret!=null){this.ta.selectionStart=this.ta.selectionEnd=caret; this.ta.focus();}
+    this.onChange&&this.onChange(); }
+  get value(){return this.ta.value;}
+  render(){
+    const lines=this.ta.value.split('\n'); const st={block:false};
+    this.codeEl.innerHTML=lines.map(l=>hlLine(l,this.lang,st)).join('\n');
+    this.gut.innerHTML=lines.map((_,i)=>`<div>${i+1}</div>`).join('');
+    this.sync();
+  }
+  sync(){ const x=this.ta.scrollLeft,y=this.ta.scrollTop;
+    this.preEl.style.transform=`translate(${-x}px,${-y}px)`;
+    this.hll.style.transform=`translate(${-x}px,${-y}px)`;
+    this.gut.style.transform=`translateY(${-y}px)`; }
+  setActiveLine(n){ this.cur.style.top=(10+(n-1)*20)+'px'; this.cur.style.opacity=1; }
+  clearActive(){ this.cur.style.opacity=0; }
+}
+
+/* ============================================================
+   PYTHON — tokenizer (indentasi dihitung SEBELUM spasi dibuang)
+============================================================ */
+const PY_KWSET=new Set(['def','return','if','elif','else','for','while','break','continue','pass','import','from','as','True','False','None','and','or','not','in','lambda','global','with','try','except','raise','del','assert','yield']);
+function pyTokenize(src){
+  const T=[]; let i=0,ln=1,paren=0,atStart=true; const stack=[0];
+  const isN=c=>/[A-Za-z_]/.test(c), isD=c=>/[0-9]/.test(c);
+  while(i<src.length){
+    const c=src[i];
+    if(c==='\r'){ i++; continue; }
+    if(c==='\n'){ if(paren===0){T.push({t:'NL',ln}); atStart=true;} ln++; i++; continue; }
+    if(atStart&&paren===0){
+      let j=i,ind=0;
+      while(j<src.length&&(src[j]===' '||src[j]==='\t')){ ind+=(src[j]==='\t'?8:1); j++; }
+      if(j>=src.length||src[j]==='\n'){ i=j; continue; }
+      if(src[j]==='#'){ while(j<src.length&&src[j]!=='\n')j++; i=j; continue; }
+      if(ind>stack[stack.length-1]){ stack.push(ind); T.push({t:'INDENT',ln}); }
+      else while(ind<stack[stack.length-1]){ stack.pop(); T.push({t:'DEDENT',ln}); }
+      atStart=false; i=j; continue;
+    }
+    if(c===' '||c==='\t'){ i++; continue; }
+    if(c==='#'){ while(i<src.length&&src[i]!=='\n')i++; continue; }
+    if(c==='"'||c==="'"||((c==='f'||c==='F'||c==='r'||c==='R')&&(src[i+1]==='"'||src[i+1]==="'"))){
+      let j=i,isF=false;
+      if(c!=='"'&&c!=="'"){ isF=(c==='f'||c==='F'); j=i+1; }
+      const q=src[j]; j++; let s='';
+      while(j<src.length&&src[j]!==q&&src[j]!=='\n'){
+        if(src[j]==='\\'){ const n=src[j+1];
+          s+= n==='n'?'\n': n==='t'?'\t': n==='\\'?'\\': n==="'"?"'": n==='"'?'"': n; j+=2; }
+        else{ s+=src[j]; j++; }
+      }
+      j++;
+      T.push({t:'STR',v:s,f:isF,ln}); i=j; continue; }
+    if(isD(c)||(c==='.'&&isD(src[i+1]))){
+      let j=i;
+      while(j<src.length&&/[0-9_.]/.test(src[j]))j++;
+      if((src[j]==='e'||src[j]==='E')&&(isD(src[j+1]||'')||((src[j+1]==='+'||src[j+1]==='-')&&isD(src[j+2]||'')))){
+        j++; if(src[j]==='+'||src[j]==='-')j++;
+        while(j<src.length&&isD(src[j]))j++;
+      }
+      const raw=src.slice(i,j).replace(/_/g,'');
+      T.push({t:'NUM',v:parseFloat(raw),f:raw.includes('.')||/[eE]/.test(raw),ln});
+      i=j; continue; }
+    if(isN(c)){ let j=i; while(j<src.length&&/[A-Za-z0-9_]/.test(src[j]))j++;
+      const w=src.slice(i,j);
+      T.push({t:PY_KWSET.has(w)?'KW':'NAME',v:w,ln}); i=j; continue; }
+    const two=['**','//','==','!=','<=','>=','+=','-=','*=','/=','%='];
+    const one='+-*/%<>=(),:[].!;';
+    let m=null;
+    for(const o of two){ if(src.startsWith(o,i)){m=o;break;} }
+    if(!m&&one.includes(c))m=c;
+    if(m){ if(m==='('||m==='[')paren++; else if(m===')'||m===']')paren=Math.max(0,paren-1);
+      T.push({t:'OP',v:m,ln}); i+=m.length; continue; }
+    i++;
+  }
+  T.push({t:'NL',ln});
+  while(stack.length>1){ stack.pop(); T.push({t:'DEDENT',ln}); }
+  T.push({t:'EOF',ln});
+  return T;
+}
+
+/* ============================================================
+   PYTHON — parser
+============================================================ */
+class PySyntaxError extends Error{ constructor(msg,line){super(msg);this.line=line;} }
+class PyParser{
+  constructor(toks){this.toks=toks;this.p=0;}
+  peek(k=0){ return this.toks[Math.min(this.p+(k||0),this.toks.length-1)]; }
+  next(){ return this.toks[this.p++]||{t:'EOF',ln:0}; }
+  is(t,v){ const tk=this.peek(); return tk.t===t&&(v===undefined||tk.v===v); }
+  eat(t,v){ if(this.is(t,v))return this.next(); return null; }
+  expect(t,v){ if(this.is(t,v))return this.next();
+    const tk=this.peek(), prev=this.toks[this.p-1]||{ln:1};
+    throw new PySyntaxError(`invalid syntax — ditemukan '${tk.v!==undefined?tk.v:tk.t}'`,tk.ln||prev.ln||1); }
+  parseModule(){ const body=[];
+    while(!this.is('EOF')){ if(this.eat('NL'))continue; if(this.eat('DEDENT'))continue;
+      body.push(this.parseStmt()); }
+    return {type:'Module',body}; }
+  parseStmt(){
+    const tk=this.peek();
+    if(tk.t==='KW')switch(tk.v){
+      case 'def':return this.parseDef();
+      case 'if':return this.parseIf();
+      case 'while':return this.parseWhile();
+      case 'for':return this.parseFor();
+      case 'return':{ this.next(); let value=null;
+        if(!this.is('NL')&&!this.is('EOF')&&!this.is('DEDENT'))value=this.parseExpr();
+        this.endStmt(); return {type:'Return',value,line:tk.ln}; }
+      case 'break': this.next(); this.endStmt(); return {type:'Break',line:tk.ln};
+      case 'continue': this.next(); this.endStmt(); return {type:'Continue',line:tk.ln};
+      case 'pass': this.next(); this.endStmt(); return {type:'Pass',line:tk.ln};
+      case 'import': case 'from':{ const ln=tk.ln;
+        while(!this.is('NL')&&!this.is('EOF'))this.next();
+        return {type:'Import',line:ln}; }
+    }
+    const target=this.parseExpr();
+    if(this.is('OP','=')){ this.next(); const value=this.parseExpr(); this.endStmt();
+      return {type:'Assign',target,value,line:tk.ln}; }
+    if(this.peek().t==='OP'&&['+=','-=','*=','/=','%='].includes(this.peek().v)){
+      const op=this.next().v; const value=this.parseExpr(); this.endStmt();
+      return {type:'AugAssign',target,op,value,line:tk.ln}; }
+    this.endStmt();
+    return {type:'ExprStmt',value:target,line:tk.ln};
+  }
+  endStmt(){ while(this.is('OP',';'))this.next();
+    if(!this.is('EOF')&&!this.is('DEDENT'))this.expect('NL'); }
+  parseBlock(){ this.expect('OP',':');
+    if(this.eat('NL')){ this.expect('INDENT'); const body=[];
+      while(!this.is('DEDENT')&&!this.is('EOF')){ if(this.eat('NL'))continue; body.push(this.parseStmt()); }
+      this.eat('DEDENT'); return body; }
+    return [this.parseStmt()]; }
+  parseDef(){ const tk=this.next(); const name=this.expect('NAME').v;
+    this.expect('OP','('); const params=[];
+    while(this.is('NAME')){ params.push(this.next().v); if(!this.eat('OP',','))break; }
+    this.expect('OP',')'); const body=this.parseBlock();
+    return {type:'Def',name,params,body,line:tk.ln}; }
+  parseIf(){ const tk=this.next(); const cond=this.parseExpr(); const body=this.parseBlock();
+    let orelse=null;
+    if(this.is('KW','elif'))orelse=[this.parseIf()];
+    else if(this.is('KW','else')){ this.next(); orelse=this.parseBlock(); }
+    return {type:'If',cond,body,orelse,line:tk.ln}; }
+  parseWhile(){ const tk=this.next(); const cond=this.parseExpr(); const body=this.parseBlock();
+    return {type:'While',cond,body,line:tk.ln}; }
+  parseFor(){ const tk=this.next(); const varn=this.expect('NAME').v;
+    this.expect('KW','in'); const iter=this.parseExpr(); const body=this.parseBlock();
+    return {type:'For',var:varn,iter,body,line:tk.ln}; }
+  parseExpr(){return this.parseOr();}
+  parseOr(){ let l=this.parseAnd();
+    while(this.is('KW','or')){ this.next(); l={type:'BoolOp',op:'or',l,r:this.parseAnd()}; }
+    return l; }
+  parseAnd(){ let l=this.parseNot();
+    while(this.is('KW','and')){ this.next(); l={type:'BoolOp',op:'and',l,r:this.parseNot()}; }
+    return l; }
+  parseNot(){ if(this.is('KW','not')){ const tk=this.next(); return {type:'Not',v:this.parseNot(),line:tk.ln}; }
+    return this.parseCmp(); }
+  parseCmp(){ let l=this.parseArith();
+    while(true){
+      let op=null;
+      if(this.peek().t==='OP'&&['==','!=','<','<=','>','>='].includes(this.peek().v))op=this.next().v;
+      else if(this.is('KW','in')){ this.next(); op='in'; }
+      else if(this.is('KW','not')&&this.peek(1).v==='in'){ this.next(); this.next(); op='not in'; }
+      if(!op)break;
+      l={type:'Cmp',op,l,r:this.parseArith()};
+    }
+    return l; }
+  parseArith(){ let l=this.parseTerm();
+    while(this.peek().t==='OP'&&['+','-'].includes(this.peek().v)){
+      const tk=this.next(); l={type:'Bin',op:tk.v,l,r:this.parseTerm(),line:tk.ln}; }
+    return l; }
+  parseTerm(){ let l=this.parseUnary();
+    while(this.peek().t==='OP'&&['*','/','//','%','**'].includes(this.peek().v)){
+      const tk=this.next(); l={type:'Bin',op:tk.v,l,r:this.parseUnary(),line:tk.ln}; }
+    return l; }
+  parseUnary(){ if(this.is('OP','-')){ const tk=this.next();
+      return {type:'Unary',op:'-',v:this.parseUnary(),line:tk.ln}; }
+    return this.parsePostfix(); }
+  parsePostfix(){ let e=this.parseAtom();
+    while(true){
+      if(this.is('OP','(')){ this.next(); const args=[],kwargs=[];
+        while(!this.is('OP',')')){
+          if(this.is('NAME')&&this.peek(1).t==='OP'&&this.peek(1).v==='='){
+            const kw=this.next().v; this.next(); kwargs.push({name:kw,value:this.parseExpr()}); }
+          else args.push(this.parseExpr());
+          if(!this.eat('OP',','))break; }
+        this.expect('OP',')'); e={type:'Call',callee:e,args,kwargs}; }
+      else if(this.is('OP','[')){ this.next(); const k=this.parseExpr(); this.expect('OP',']');
+        e={type:'Index',obj:e,key:k}; }
+      else if(this.is('OP','.')){ this.next(); const n=this.expect('NAME').v;
+        e={type:'Method',obj:e,name:n}; }
+      else break;
+    }
+    return e; }
+  parseAtom(){ const tk=this.peek();
+    if(tk.t==='NUM'){this.next();return {type:'Num',v:tk.v,f:tk.f};}
+    if(tk.t==='STR'){this.next(); if(tk.f)return parseFString(tk.v,tk.ln); return {type:'Str',v:tk.v};}
+    if(tk.t==='KW'&&tk.v==='True'){this.next();return {type:'Bool',v:true};}
+    if(tk.t==='KW'&&tk.v==='False'){this.next();return {type:'Bool',v:false};}
+    if(tk.t==='KW'&&tk.v==='None'){this.next();return {type:'NoneLit'};}
+    if(tk.t==='NAME'){this.next();return {type:'Name',name:tk.v};}
+    if(this.is('OP','(')){this.next();const e=this.parseExpr();this.expect('OP',')');return e;}
+    if(this.is('OP','[')){this.next();const items=[];
+      while(!this.is('OP',']')){ items.push(this.parseExpr()); if(!this.eat('OP',','))break; }
+      this.expect('OP',']'); return {type:'List',items}; }
+    throw new PySyntaxError(`invalid syntax — ditemukan '${tk.v!==undefined?tk.v:tk.t}'`,tk.ln);
+  }
+}
+function parseFString(text,ln){
+  const parts=[]; let buf='',i=0;
+  while(i<text.length){
+    const c=text[i];
+    if(c==='{'&&text[i+1]==='{'){buf+='{';i+=2;continue;}
+    if(c==='}'&&text[i+1]==='}'){buf+='}';i+=2;continue;}
+    if(c==='{'){ let d=1,j=i+1;
+      while(j<text.length&&d>0){ if(text[j]==='{')d++; else if(text[j]==='}')d--; if(d>0)j++; }
+      if(buf){parts.push({s:buf});buf='';}
+      parts.push({e:new PyParser(pyTokenize(text.slice(i+1,j))).parseExpr()});
+      i=j+1; continue; }
+    buf+=c; i++;
+  }
+  if(buf)parts.push({s:buf});
+  return {type:'FString',parts,line:ln};
+}
+
+/* ============================================================
+   PYTHON — runtime (evaluator generator: baris demi baris)
+============================================================ */
+class PyFloat extends Number{ constructor(v){super(v);this._v=v;} valueOf(){return this._v;} }
+class PyReturn{constructor(v){this.v=v;}}
+class PyBreak{} class PyContinue{}
+const pyExc=(type,msg)=>{const e=new Error(msg);e.pyType=type;return e;};
+const PRINT={__print:1};
+
+function truthy(v){
+  if(v===null||v===false)return false; if(v===true)return true;
+  if(v instanceof PyFloat)return +v!==0;
+  if(v&&v.__range)return v.items.length>0;
+  if(typeof v==='number')return v!==0;
+  if(typeof v==='string')return v.length>0;
+  if(Array.isArray(v))return v.length>0;
+  return true;
+}
+function fmtPyFloat(x){ let s=String(x);
+  if(!s.includes('.')&&!s.includes('e'))s+='.0'; return s; }
+function pyStr(v){
+  if(v===null)return 'None'; if(v===true)return 'True'; if(v===false)return 'False';
+  if(v instanceof PyFloat)return fmtPyFloat(+v);
+  if(typeof v==='number')return String(v);
+  if(typeof v==='string')return v;
+  if(Array.isArray(v))return '['+v.map(pyRepr).join(', ')+']';
+  if(v&&v.__range)return 'range('+v.a+', '+v.b+(v.step!==1?', '+v.step:'')+')';
+  return String(v);
+}
+const pyRepr=v=>typeof v==='string'?`'${v}'`:pyStr(v);
+
+function pyBinop(op,a,b){
+  const isF=(a instanceof PyFloat)||(b instanceof PyFloat);
+  switch(op){
+    case '+':
+      if(typeof a==='string'||typeof b==='string')return String(a)+String(b);
+      if(Array.isArray(a)&&Array.isArray(b))return [...a,...b];
+      return isF?new PyFloat(+a+ +b):(+a+ +b);
+    case '-': return isF?new PyFloat(+a-+b):(+a-+b);
+    case '*':
+      if(typeof a==='string'&&typeof b==='number'){
+        if(Math.abs(b)>PY_RANGE_CAP)throw pyExc('ValueError','perkalian string terlalu besar untuk simulasi');
+        return a.repeat(Math.max(0,b|0));
+      }
+      return isF?new PyFloat(+a*+b):(+a*+b);
+    case '/': if(+b===0)throw pyExc('ZeroDivisionError','division by zero');
+      return new PyFloat((+a)/(+b));
+    case '//': if(+b===0)throw pyExc('ZeroDivisionError','integer division or modulo by zero');
+      { const r=Math.floor((+a)/(+b)); return isF?new PyFloat(r):r; }
+    case '%': if(+b===0)throw pyExc('ZeroDivisionError','integer division or modulo by zero');
+      { const r=((+a%+b)+ +b)%+b; return isF?new PyFloat(r):r; }
+    case '**': { const r=Math.pow(+a,+b); return isF?new PyFloat(r):r; }
+  }
+  throw pyExc('TypeError',`unsupported operand type(s) for ${op}`);
+}
+function pyCmpOp(op,a,b){
+  switch(op){
+    case '==': return (typeof a==='string'||typeof b==='string')?a===b:+a===+b;
+    case '!=': return !pyCmpOp('==',a,b);
+    case '<': case '<=': case '>': case '>=':
+      { const sa=typeof a==='string',sb=typeof b==='string';
+        const x=(sa&&sb)?a:+a, y=(sa&&sb)?b:+b;
+        return op==='<'?x<y:op==='<='?x<=y:op==='>'?x>y:x>=y; }
+    case 'in': case 'not in':
+      { let has=false;
+        if(b&&b.__range)has=b.items.some(x=>+x===+a);
+        else if(Array.isArray(b))has=b.includes(a);
+        else if(typeof b==='string')has=b.includes(String(a));
+        return op==='in'?has:!has; }
+  }
+  throw pyExc('TypeError',`perbandingan '${op}' tidak didukung`);
+}
+function makeRange(args){
+  let a=0,b=0,step=1;
+  if(args.length===1){b=+args[0];}
+  else if(args.length>=2){a=+args[0];b=+args[1];if(args.length>2)step=+args[2];}
+  if(step===0)throw pyExc('ValueError','range() arg 3 must not be zero');
+  const count=step>0?Math.ceil((b-a)/step):Math.ceil((a-b)/(-step));
+  if(count>PY_RANGE_CAP)
+    throw pyExc('ValueError','range terlalu besar untuk simulasi (maks 100.000 item) — kurangi rentangnya');
+  const items=[];
+  if(step>0){for(let v=a;v<b;v+=step)items.push(v);}
+  else{for(let v=a;v>b;v+=step)items.push(v);}
+  return {__range:true,items,a,b,step};
+}
+function callBuiltin(f,args,kw,ctx){
+  if(f===PRINT){ const sep=kw.sep!==undefined?kw.sep:' ', end=kw.end!==undefined?kw.end:'\n';
+    const s=args.map(pyStr).join(sep)+end;
+    if(!ctx.truncOut){
+      ctx.outChars=(ctx.outChars||0)+s.length;
+      if(ctx.outChars>OUT_CHAR_CAP){ ctx.truncOut=true; return null; }
+      ctx.buf+=s;
+    }
+    return null; }
+  if(f&&f.__range)return makeRange(args);
+  if(f&&f.__len){ const x=args[0];
+    if(x&&x.__range)return x.items.length;
+    if(Array.isArray(x))return x.length;
+    if(typeof x==='string')return x.length;
+    throw pyExc('TypeError','object has no len()'); }
+  if(f&&f.__int)return Math.trunc(+args[0]);
+  if(f&&f.__float)return new PyFloat(+args[0]);
+  if(f&&f.__str)return pyStr(args[0]);
+  if(f&&f.__abs)return Math.abs(+args[0]);
+  if(f&&f.__min)return Math.min(...args.map(x=>+x));
+  if(f&&f.__max)return Math.max(...args.map(x=>+x));
+  if(f&&f.__sum)return args[0].reduce((s,x)=>s+ +x,0);
+  if(f&&f.__round)return Math.round(+args[0]);
+  throw pyExc('NameError','fungsi bawaan tidak dikenal');
+}
+const PY_BUILTINS={
+  print:PRINT, range:{__range:1}, len:{__len:1}, int:{__int:1}, float:{__float:1},
+  str:{__str:1}, abs:{__abs:1}, min:{__min:1}, max:{__max:1}, sum:{__sum:1}, round:{__round:1}
+};
+function envGet(env,n){
+  let e=env;
+  while(e){ if(e.vars.has(n))return e.vars.get(n); e=e.parent; }
+  throw pyExc('NameError',`name '${n}' is not defined`);
+}
+function envHas(env,n){
+  let e=env;
+  while(e){ if(e.vars.has(n))return true; e=e.parent; }
+  return false;
+}
+
+function* pyRun(body,env,ctx){ for(const s of body)yield* pyStmt(s,env,ctx); }
+
+function* pyStmt(s,env,ctx){
+  ctx.steps++;
+  switch(s.type){
+    case 'Def': env.vars.set(s.name,{__func:s,env}); yield {line:s.line,note:'def '+s.name}; break;
+    case 'Assign':{
+      yield {line:s.line,note:'set '+stmtNote(s)};
+      const v=yield* pyEvalG(s.value,env,ctx);
+      if(s.target.type==='Name')env.vars.set(s.target.name,v);
+      else if(s.target.type==='Index'){
+        const o=yield* pyEvalG(s.target.obj,env,ctx);
+        const k=yield* pyEvalG(s.target.key,env,ctx);
+        o[k]=v; }
+      break; }
+    case 'AugAssign':{
+      yield {line:s.line,note:stmtNote(s)};
+      const cur=envGet(env,s.target.name);
+      const r=yield* pyEvalG(s.value,env,ctx);
+      env.vars.set(s.target.name,pyBinop(s.op[0],cur,r));
+      break; }
+    case 'ExprStmt':{
+      yield {line:s.line,note:exprNote(s.value)};
+      yield* pyEvalG(s.value,env,ctx); break; }
+    case 'Return':{
+      yield {line:s.line,note:'return'+(s.value?' '+exprShort(s.value):'')};
+      let v=null; if(s.value)v=yield* pyEvalG(s.value,env,ctx);
+      throw new PyReturn(v); }
+    case 'If':{
+      yield {line:s.line,note:'if '+exprShort(s.cond)};
+      const c=truthy(yield* pyEvalG(s.cond,env,ctx));
+      if(c)yield* pyRun(s.body,env,ctx);
+      else if(s.orelse)yield* pyRun(s.orelse,env,ctx);
+      break; }
+    case 'While':{
+      while(true){
+        if(++ctx.iters>PY_ITER_CAP)
+          throw pyExc('RuntimeError','loop melewati 200.000 iterasi — kemungkinan infinite loop (periksa pembaruan variabel kondisi)');
+        yield {line:s.line,note:'while '+exprShort(s.cond)};
+        const c=truthy(yield* pyEvalG(s.cond,env,ctx));
+        if(!c)break;
+        try{ yield* pyRun(s.body,env,ctx); }
+        catch(e){ if(e instanceof PyBreak)break; if(e instanceof PyContinue)continue; throw e; }
+      }
+      break; }
+    case 'For':{
+      const it=yield* pyEvalG(s.iter,env,ctx);
+      const arr=(it&&it.__range)?it.items:(Array.isArray(it)?it:(typeof it==='string'?[...it]:null));
+      if(!arr)throw pyExc('TypeError',`'${pyStr(it).slice(0,12)}' object is not iterable`);
+      for(const v of arr){
+        if(++ctx.iters>PY_ITER_CAP)
+          throw pyExc('RuntimeError','loop melewati 200.000 iterasi — kemungkinan infinite loop');
+        env.vars.set(s.var,v);
+        yield {line:s.line,note:`for ${s.var} = ${pyStr(v)}`};
+        try{ yield* pyRun(s.body,env,ctx); }
+        catch(e){ if(e instanceof PyBreak)break; if(e instanceof PyContinue)continue; throw e; }
+      }
+      break; }
+    case 'Break': throw new PyBreak();
+    case 'Continue': throw new PyContinue();
+    case 'Pass': break;
+    case 'Import': break;
+  }
+}
+
+function* pyEvalG(e,env,ctx){
+  switch(e.type){
+    case 'Num': return e.f?new PyFloat(e.v):e.v;
+    case 'Str': return e.v;
+    case 'Bool': return e.v;
+    case 'NoneLit': return null;
+    case 'Name':{ const v=envGet(env,e.name); return v===undefined?(PY_BUILTINS[e.name]||null):v; }
+    case 'List':{ const a=[]; for(const it of e.items)a.push(yield* pyEvalG(it,env,ctx)); return a; }
+    case 'FString':{ let s='';
+      for(const p of e.parts){ if(p.s!==undefined)s+=p.s; else s+=pyStr(yield* pyEvalG(p.e,env,ctx)); }
+      return s; }
+    case 'Unary': return -(+ (yield* pyEvalG(e.v,env,ctx)));
+    case 'Not': return !truthy(yield* pyEvalG(e.v,env,ctx));
+    case 'Bin':{
+      const a=yield* pyEvalG(e.l,env,ctx);
+      const b=yield* pyEvalG(e.r,env,ctx);
+      return pyBinop(e.op,a,b); }
+    case 'Cmp':{
+      const a=yield* pyEvalG(e.l,env,ctx);
+      const b=yield* pyEvalG(e.r,env,ctx);
+      return pyCmpOp(e.op,a,b); }
+    case 'BoolOp':{
+      const a=yield* pyEvalG(e.l,env,ctx);
+      if(e.op==='or'&&truthy(a))return a;
+      if(e.op==='and'&&!truthy(a))return a;
+      return yield* pyEvalG(e.r,env,ctx); }
+    case 'Index':{
+      const o=yield* pyEvalG(e.obj,env,ctx);
+      let k=yield* pyEvalG(e.key,env,ctx);
+      if(o&&o.__range)return o.items[k];
+      if(typeof k==='number'&&k<0)k=(o.length||0)+k;
+      if(o===null||o===undefined)throw pyExc('TypeError',"'NoneType' object is not subscriptable");
+      return o[k]; }
+    case 'Call':{
+      if(e.callee.type==='Method'){
+        const obj=yield* pyEvalG(e.callee.obj,env,ctx);
+        const args=[]; for(const a of e.args)args.push(yield* pyEvalG(a,env,ctx));
+        if(Array.isArray(obj)&&e.callee.name==='append'){ obj.push(args[0]); return null; }
+        if(typeof obj==='string'&&e.callee.name==='upper')return obj.toUpperCase();
+        if(typeof obj==='string'&&e.callee.name==='lower')return obj.toLowerCase();
+        throw pyExc('AttributeError',`object has no attribute '${e.callee.name}'`);
+      }
+      let f;
+      if(e.callee.type==='Name'&&!envHas(env,e.callee.name))f=PY_BUILTINS[e.callee.name];
+      else f=yield* pyEvalG(e.callee,env,ctx);
+      const args=[]; for(const a of e.args)args.push(yield* pyEvalG(a,env,ctx));
+      const kw={}; for(const k of e.kwargs||[])kw[k.name]=yield* pyEvalG(k.value,env,ctx);
+      if(f&&f.__func){
+        const fenv={vars:new Map(),parent:f.env};
+        f.__func.params.forEach((p,i)=>fenv.vars.set(p,args[i]!==undefined?args[i]:null));
+        ctx.frames++;
+        yield {line:f.__func.line,note:`→ masuk ${f.__func.name}(${args.map(pyStr).join(', ')})`};
+        try{ yield* pyRun(f.__func.body,fenv,ctx); }
+        catch(exc){ if(exc instanceof PyReturn)return exc.v; throw exc; }
+        finally{ ctx.frames--; }
+        return null;
+      }
+      return callBuiltin(f,args,kw,ctx); }
+  }
+  throw pyExc('TypeError','ekspresi tidak didukung: '+e.type);
+}
+
+function exprShort(e){
+  if(!e)return '';
+  switch(e.type){
+    case 'Num':return String(e.v);
+    case 'Str':return "'"+(e.v.length>12?e.v.slice(0,10)+'…':e.v)+"'";
+    case 'Name':return e.name;
+    case 'Bool':return String(e.v);
+    case 'NoneLit':return 'None';
+    case 'Bin':return exprShort(e.l)+' '+e.op+' '+exprShort(e.r);
+    case 'Cmp':return exprShort(e.l)+' '+e.op+' '+exprShort(e.r);
+    case 'BoolOp':return exprShort(e.l)+' '+e.op+' '+exprShort(e.r);
+    case 'Call':return (e.callee.name||'f')+'(…)';
+    case 'Method':return exprShort(e.obj)+'.'+e.name+'(…)';
+    case 'FString':return 'f"…"';
+    case 'List':return '[…]';
+    case 'Index':return exprShort(e.obj)+'[…]';
+    case 'Unary':return '-'+exprShort(e.v);
+    case 'Not':return 'not '+exprShort(e.v);
+    default:return e.type.toLowerCase();
+  }
+}
+function exprNote(e){
+  if(e&&e.type==='Call'){
+    if(e.callee.type==='Name')return 'panggil '+e.callee.name+'()';
+    if(e.callee.type==='Method')return e.callee.name+'()';
+  }
+  return exprShort(e);
+}
+function stmtNote(s){
+  switch(s.type){
+    case 'Def':return 'def '+s.name;
+    case 'Assign':return s.target.name||'[i]';
+    case 'AugAssign':return (s.target.name||'…')+' '+s.op;
+    case 'ExprStmt':return exprNote(s.value);
+    case 'If':return 'if '+exprShort(s.cond);
+    case 'While':return 'while '+exprShort(s.cond);
+    case 'For':return 'for '+s.var;
+    case 'Return':return 'return'+(s.value?' '+exprShort(s.value):'');
+    default:return s.type.toLowerCase();
+  }
+}
+function astKids(n){
+  if(n.type==='Def')return n.body||[];
+  if(n.type==='If')return [...(n.body||[]),...(n.orelse||[])];
+  if(n.type==='While'||n.type==='For')return n.body||[];
+  return [];
+}
+function astLabel(n){
+  switch(n.type){
+    case 'Def':return `def ${n.name}(${n.params.join(', ')})`;
+    case 'Assign':return `${n.target.name||'[i]'} = ${exprShort(n.value)}`;
+    case 'AugAssign':return `${n.target.name||'…'} ${n.op} ${exprShort(n.value)}`;
+    case 'ExprStmt':return exprShort(n.value);
+    case 'If':return `if ${exprShort(n.cond)}`;
+    case 'While':return `while ${exprShort(n.cond)}`;
+    case 'For':return `for ${n.var} in ${exprShort(n.iter)}`;
+    case 'Return':return `return${n.value?' '+exprShort(n.value):''}`;
+    case 'Import':return 'import';
+    default:return n.type.toLowerCase();
+  }
+}
+function pyAstTree(mod){
+  const out=['Module'];
+  const rec=(n,pre,isLast)=>{
+    out.push(pre+(isLast?'└─ ':'├─ ')+astLabel(n));
+    const kids=astKids(n);
+    kids.forEach((k,i)=>rec(k,pre+(isLast?'   ':'│  '),i===kids.length-1));
+  };
+  mod.body.forEach((s,i)=>rec(s,'',i===mod.body.length-1));
+  return out.join('\n');
+}
+function pyTokenChips(tokens){
+  let html='<div class="tkwrap">',cur=null,rowOpen=false;
+  for(const t of tokens){
+    if(t.t==='NL'||t.t==='EOF')continue;
+    if(t.ln!==cur){ if(rowOpen)html+='</div>';
+      html+=`<div class="tkrow"><span class="tkln">${t.ln}</span>`; rowOpen=true; cur=t.ln; }
+    let cls,label,val;
+    if(t.t==='INDENT'){cls='i';label='indent';val='⇥';}
+    else if(t.t==='DEDENT'){cls='i';label='dedent';val='⇤';}
+    else{cls=t.t.toLowerCase();label=cls;val=(t.v!==undefined?String(t.v):'');}
+    html+=`<span class="tk ${cls}">${label}<b>${esc(val)}</b></span>`;
+  }
+  if(rowOpen)html+='</div>';
+  return html+'</div>';
+}
+
+function pyDisasmText(mod){
+  const out=[]; let totalOps=0;
+  const disBlock=(title,body)=>{
+    const consts=[];
+    const ci=v=>{const i=consts.findIndex(x=>x===v);if(i<0){consts.push(v);return consts.length-1;}return i;};
+    const code=[]; let nLab=0; const Lbl=()=>({l:'L'+(++nLab)});
+    const E=(op,arg)=>code.push({op,arg});
+    const locals=new Set();
+    const scanLoc=sts=>{ for(const s of sts||[]){ if(!s)continue;
+      if(s.type==='Assign'&&s.target.type==='Name')locals.add(s.target.name);
+      if(s.type==='AugAssign'&&s.target.type==='Name')locals.add(s.target.name);
+      if(s.type==='For')locals.add(s.var);
+      if(s.body)scanLoc(s.body); if(s.orelse)scanLoc(s.orelse); } };
+    scanLoc(body);
+    const load=n=>E(locals.has(n)?'LOAD_FAST':'LOAD_NAME',n);
+    const store=n=>E(locals.has(n)?'STORE_FAST':'STORE_NAME',n);
+    const expr=e=>{
+      switch(e.type){
+        case 'Num': case 'Str': E('LOAD_CONST',ci(e.v)); break;
+        case 'Bool': E('LOAD_CONST',ci(e.v?'True':'False')); break;
+        case 'NoneLit': E('LOAD_CONST',ci('None')); break;
+        case 'Name': load(e.name); break;
+        case 'List': e.items.forEach(expr); E('BUILD_LIST',e.items.length); break;
+        case 'FString': e.parts.forEach(p=>{
+            if(p.s!==undefined)E('LOAD_CONST',ci(p.s));
+            else{expr(p.e);E('FORMAT_VALUE',0);} });
+          E('BUILD_STRING',e.parts.length); break;
+        case 'Unary': expr(e.v); E('UNARY_NEGATIVE'); break;
+        case 'Not': expr(e.v); E('TO_BOOL'); E('UNARY_NOT'); break;
+        case 'Bin': expr(e.l); expr(e.r); E('BINARY_OP',e.op); break;
+        case 'Cmp': expr(e.l); expr(e.r); E('COMPARE_OP',e.op); break;
+        case 'BoolOp': expr(e.l);
+          E(e.op==='and'?'JUMP_IF_FALSE_OR_POP':'JUMP_IF_TRUE_OR_POP');
+          expr(e.r); break;
+        case 'Call':
+          if(e.callee.type==='Method'){ expr(e.callee.obj); E('LOAD_METHOD',e.callee.name);
+            e.args.forEach(expr); E('CALL_METHOD',e.args.length); }
+          else{ expr(e.callee); e.args.forEach(expr); E('CALL',e.args.length); }
+          break;
+        case 'Index': expr(e.obj); expr(e.key); E('BINARY_SUBSCR'); break;
+      }
+    };
+    const stmt=s=>{
+      switch(s.type){
+        case 'Def': E('LOAD_CONST',ci(`<code ${s.name}>`)); E('MAKE_FUNCTION',0); store(s.name); break;
+        case 'Assign':
+          if(s.target.type==='Index'){ expr(s.target.obj); expr(s.target.key); expr(s.value); E('STORE_SUBSCR'); }
+          else{ expr(s.value); store(s.target.name); }
+          break;
+        case 'AugAssign': load(s.target.name); expr(s.value); E('BINARY_OP',s.op[0]+'='); store(s.target.name); break;
+        case 'ExprStmt': expr(s.value); E('POP_TOP'); break;
+        case 'Return':
+          if(s.value){expr(s.value);}else E('LOAD_CONST',ci('None'));
+          E('RETURN_VALUE'); break;
+        case 'If':{ const lE=Lbl(),lN=Lbl();
+          expr(s.cond); E('POP_JUMP_FORWARD_IF_FALSE',lE);
+          (s.body||[]).forEach(stmt); E('JUMP_FORWARD',lN);
+          E('LABEL',lE); (s.orelse||[]).forEach(stmt); E('LABEL',lN); break; }
+        case 'While':{ const lT=Lbl(),lX=Lbl();
+          E('LABEL',lT); expr(s.cond); E('POP_JUMP_IF_FALSE',lX);
+          (s.body||[]).forEach(stmt); E('JUMP_BACKWARD',lT); E('LABEL',lX); break; }
+        case 'For':{ const lT=Lbl(),lX=Lbl();
+          expr(s.iter); E('GET_ITER'); E('LABEL',lT); E('FOR_ITER',lX);
+          store(s.var); (s.body||[]).forEach(stmt); E('JUMP_BACKWARD',lT); E('LABEL',lX); break; }
+        case 'Break': E('BREAK_LOOP'); break;
+        case 'Continue': E('CONTINUE_LOOP'); break;
+        case 'Pass': case 'Import': E('NOP'); break;
+      }
+    };
+    (body||[]).forEach(stmt);
+    if(title==='<module>'){ E('LOAD_CONST',ci('None')); E('RETURN_VALUE'); }
+    const labMap={}; let off=0;
+    for(const c of code){ if(c.op==='LABEL')labMap[c.arg.l]=off; else{c._off=off;off+=2;} }
+    out.push(`Disassembly of ${title}:`);
+    for(const c of code){
+      if(c.op==='LABEL')continue; totalOps++;
+      let arg='',suffix='';
+      if(c.arg!==undefined&&c.arg!==null){
+        if(c.arg.l!==undefined)arg=String(labMap[c.arg.l]);
+        else arg=String(c.arg);
+      }
+      if(['LOAD_FAST','STORE_FAST','LOAD_NAME','STORE_NAME','LOAD_METHOD'].includes(c.op))suffix=` (${c.arg})`;
+      if(c.op==='LOAD_CONST'){ const v=consts[c.arg];
+        suffix=` (${typeof v==='string'?(v.length>22?`'${v.slice(0,19)}…'`:`'${v}'`):v})`; }
+      if(c.op==='BINARY_OP'||c.op==='COMPARE_OP')suffix=` (${arg})`;
+      out.push(String(c._off).padStart(5)+'  '+c.op.padEnd(26)+
+        (['LOAD_FAST','STORE_FAST','LOAD_NAME','STORE_NAME','LOAD_METHOD','LOAD_CONST','BINARY_OP','COMPARE_OP'].includes(c.op)?'':arg)+suffix);
+    }
+    out.push('');
+  };
+  disBlock('<module>',mod.body);
+  const walk=sts=>{ for(const s of sts||[]){ if(!s)continue;
+    if(s.type==='Def')disBlock(s.name,s.body);
+    walk(s.body); walk(s.orelse); } };
+  walk(mod.body);
+  return {text:out.join('\n'),ops:totalOps};
+}
+
+/* ============================================================
+   C++ — tokenizer
+============================================================ */
+const CXX_KWSET=new Set(['int','double','float','bool','char','void','auto','const','unsigned','long','short','signed','using','namespace','return','if','else','for','while','do','break','continue','true','false','struct','class','new','delete','switch','case','default']);
+function cxxTokenize(src){
+  const T=[]; let i=0,ln=1;
+  const isN=c=>/[A-Za-z_]/.test(c), isD=c=>/[0-9]/.test(c);
+  while(i<src.length){
+    const c=src[i];
+    if(c==='\n'){ln++;i++;continue;}
+    if(c===' '||c==='\t'||c==='\r'){i++;continue;}
+    if(c==='/'&&src[i+1]==='/'){ while(i<src.length&&src[i]!=='\n')i++; continue; }
+    if(c==='/'&&src[i+1]==='*'){ i+=2;
+      while(i<src.length&&!(src[i]==='*'&&src[i+1]==='/')){ if(src[i]==='\n')ln++; i++; }
+      i+=2; continue; }
+    if(c==='#'){ let j=i; while(j<src.length&&src[j]!=='\n')j++;
+      T.push({t:'PP',v:src.slice(i,j),ln}); i=j; continue; }
+    if(c==='"'){ let j=i+1,s='';
+      while(j<src.length&&src[j]!=='"'&&src[j]!=='\n'){
+        if(src[j]==='\\'){const n=src[j+1];s+= n==='n'?'\n':n==='t'?'\t':n;j+=2;}
+        else s+=src[j++]; }
+      j++; T.push({t:'STR',v:s,ln}); i=j; continue; }
+    if(c==="'"){ let j=i+1,s='';
+      while(j<src.length&&src[j]!=="'"&&src[j]!=='\n'){
+        if(src[j]==='\\'){const n=src[j+1];s+= n==='n'?'\n':n==='t'?'\t':n;j+=2;}
+        else s+=src[j++]; }
+      j++; T.push({t:'CH',v:s,code:s.charCodeAt(0)||0,ln}); i=j; continue; }
+    if(isD(c)){ let j=i,f=false;
+      while(j<src.length&&isD(src[j]))j++;
+      if(src[j]==='.'&&isD(src[j+1])){f=true;j++;while(j<src.length&&isD(src[j]))j++;}
+      if(src[j]==='f'||src[j]==='F'){f=true;j++;}
+      T.push({t:'NUM',v:parseFloat(src.slice(i,j)),f,ln}); i=j; continue; }
+    if(isN(c)){ let j=i; while(j<src.length&&/[A-Za-z0-9_]/.test(src[j]))j++;
+      const w=src.slice(i,j);
+      T.push({t:CXX_KWSET.has(w)?'KW':'NAME',v:w,ln}); i=j; continue; }
+    const two=['<<=','>>=','<<','>>','<=','>=','==','!=','&&','||','++','--','+=','-=','*=','/=','%=','->','::'];
+    let m=null;
+    for(const o of two){ if(src.startsWith(o,i)){m=o;break;} }
+    if(!m){ const one='+-*/%<>=!&|?:;,{}()[]'; if(one.includes(c))m=c; }
+    if(m){ T.push({t:'OP',v:m,ln}); i+=m.length; continue; }
+    i++;
+  }
+  T.push({t:'EOF',ln});
+  return T;
+}
+
+/* ============================================================
+   C++ — parser
+============================================================ */
+class CxxCompileError extends Error{ constructor(msg,line){super(msg);this.cxxCompile=true;this.line=line;} }
+class CxxParser{
+  constructor(toks){this.toks=toks;this.p=0;}
+  peek(k=0){ return this.toks[Math.min(this.p+(k||0),this.toks.length-1)]; }
+  next(){ return this.toks[this.p++]||{t:'EOF',ln:0}; }
+  is(t,v){ const tk=this.peek();
+    if(tk.t!==t)return false;
+    if(v===undefined)return true;
+    if(Array.isArray(v))return v.includes(tk.v);
+    return tk.v===v; }
+  eat(t,v){ if(this.is(t,v))return this.next(); return null; }
+  expect(t,v){ if(this.is(t,v))return this.next();
+    const tk=this.peek(), prev=this.toks[this.p-1]||{ln:1};
+    throw new CxxCompileError(`expected '${v||t}' before '${tk.v!==undefined?tk.v:'end of file'}'`,tk.ln||prev.ln||1); }
+  parseTU(){
+    const funcs=[];
+    while(!this.is('EOF')){
+      if(this.eat('PP'))continue;
+      if(this.is('KW','using')){ while(!this.is('OP',';')&&!this.is('EOF'))this.next();
+        this.eat('OP',';'); continue; }
+      funcs.push(this.parseFunc());
+    }
+    return {type:'TU',funcs};
+  }
+  isTypeNameStart(){
+    const tk=this.peek();
+    if(tk.t==='KW'&&['int','double','float','bool','char','void','auto','long','unsigned','short','signed','const'].includes(tk.v))return true;
+    if(tk.t==='NAME'&&(tk.v==='string'||tk.v==='vector'))return true;
+    if(tk.t==='NAME'&&tk.v==='std'&&this.peek(1).v==='::')return true;
+    return false;
+  }
+  parseType(){
+    let base=null;
+    if(this.is('NAME','vector')&&this.peek(1).v==='<'){
+      this.next(); this.expect('OP','<');
+      const inner=this.parseType(); this.expect('OP','>');
+      return {base:'vector',vec:inner.base};
+    }
+    if(this.is('NAME','std')&&this.peek(1).v==='::'){
+      this.next(); this.next();
+      const nm=this.next().v;
+      if(nm==='vector'){ this.expect('OP','<'); const inner=this.parseType(); this.expect('OP','>');
+        return {base:'vector',vec:inner.base}; }
+      base=(nm==='string')?'string':nm;
+    }
+    else if(this.is('NAME','string')){ this.next(); base='string'; }
+    else if(this.peek().t==='KW'&&['int','double','float','bool','char','void','auto','long','unsigned','short','signed'].includes(this.peek().v)){
+      base=(this.peek().v==='float')?'double':this.peek().v;
+      this.next();
+      while(this.is('KW','long')||this.is('KW','unsigned')){ this.next(); base='long'; }
+    }
+    else if(this.is('NAME')){ base=this.next().v; }
+    this.eat('OP','&'); this.eat('OP','*');
+    if(!base)throw new CxxCompileError("expected type before '"+(this.peek().v||'...')+"'",this.peek().ln);
+    return {base};
+  }
+  parseFunc(){
+    const ln=this.peek().ln;
+    const rt=this.parseType();
+    const name=this.expect('NAME').v;
+    this.expect('OP','(');
+    const params=[];
+    while(!this.is('OP',')')){
+      const t=this.parseType();
+      let n=null; if(this.is('NAME'))n=this.next().v;
+      params.push({type:t.base,vec:t.vec,name:n});
+      if(!this.eat('OP',','))break;
+    }
+    this.expect('OP',')');
+    const body=this.parseBlock();
+    return {type:'Func',ret:rt.base,name,params,body,line:ln};
+  }
+  parseBlock(){
+    this.expect('OP','{');
+    const b=[];
+    while(!this.is('OP','}')&&!this.is('EOF'))b.push(this.parseStmt());
+    this.expect('OP','}');
+    return b;
+  }
+  parseStmt(){
+    const tk=this.peek();
+    if(tk.t==='KW'){
+      switch(tk.v){
+        case 'if':{ this.next(); this.expect('OP','(');
+          const c=this.parseExpr(); this.expect('OP',')');
+          const body=this.parseStmt(); let orelse=null;
+          if(this.eat('KW','else'))orelse=this.parseStmt();
+          return {type:'If',cond:c,body,orelse,line:tk.ln}; }
+        case 'while':{ this.next(); this.expect('OP','(');
+          const c=this.parseExpr(); this.expect('OP',')');
+          return {type:'While',cond:c,body:this.parseStmt(),line:tk.ln}; }
+        case 'for':return this.parseFor();
+        case 'return':{ this.next();
+          let v=null; if(!this.is('OP',';'))v=this.parseExpr();
+          this.expect('OP',';');
+          return {type:'Return',value:v,line:tk.ln}; }
+        case 'break': this.next(); this.expect('OP',';'); return {type:'Break',line:tk.ln};
+        case 'continue': this.next(); this.expect('OP',';'); return {type:'Continue',line:tk.ln};
+      }
+    }
+    if(this.is('OP','{'))return {type:'Block',body:this.parseBlock(),line:tk.ln};
+    const s=this.parseSimple();
+    this.expect('OP',';');
+    return s;
+  }
+  parseFor(){
+    const tk=this.next(); this.expect('OP','(');
+    if(this.isTypeNameStart()){
+      const save=this.p;
+      this.parseType();
+      if(this.is('NAME')&&this.peek(1).v===':'){
+        const varn=this.next().v; this.next();
+        const iter=this.parseExpr(); this.expect('OP',')');
+        const body=this.parseStmt();
+        return {type:'ForRange',var:varn,iter,body,line:tk.ln};
+      }
+      this.p=save;
+    }
+    let init=null;
+    if(!this.is('OP',';'))init=this.parseSimple();
+    this.expect('OP',';');
+    let cond=null; if(!this.is('OP',';'))cond=this.parseExpr();
+    this.expect('OP',';');
+    const updates=[];
+    while(!this.is('OP',')')){ updates.push(this.parseUpdate()); if(!this.eat('OP',','))break; }
+    this.expect('OP',')');
+    const body=this.parseStmt();
+    return {type:'For',init,cond,updates,body,line:tk.ln};
+  }
+  parseSimple(){
+    const tk=this.peek();
+    if(this.is('KW','const'))this.next();
+    if(this.isTypeNameStart()){
+      const t=this.parseType();
+      const decls=[];
+      do{ const nm=this.expect('NAME').v;
+        let init=null; if(this.eat('OP','='))init=this.parseExpr();
+        decls.push({name:nm,init});
+      }while(this.eat('OP',','));
+      return {type:'Decl',vtype:t.base,vvec:t.vec,decls,line:tk.ln};
+    }
+    return this.parseUpdate();
+  }
+  parseUpdate(){
+    const tk=this.peek();
+    if(tk.t==='KW'&&(tk.v==='true'||tk.v==='false')){
+      this.next();
+      return {type:'ExprStmt',value:{type:'Bool',v:tk.v==='true'},line:tk.ln};
+    }
+    const e=this.parseExpr();
+    if(this.is('OP','++')||this.is('OP','--')){
+      const op=this.next().v;
+      return {type:'Postfix',op,target:e,line:tk.ln};
+    }
+    if(this.is('OP','=')){ this.next(); const v=this.parseExpr();
+      return {type:'Assign',target:e,value:v,line:tk.ln}; }
+    if(this.peek().t==='OP'&&['+=','-=','*=','/=','%='].includes(this.peek().v)){
+      const op=this.next().v; const v=this.parseExpr();
+      return {type:'AugAssign',op,target:e,value:v,line:tk.ln}; }
+    return {type:'ExprStmt',value:e,line:tk.ln};
+  }
+  parseExpr(){return this.parseOr();}
+  parseOr(){ let l=this.parseAnd();
+    while(this.is('OP','||')){const tk=this.next();l={type:'Bin',op:'||',l,r:this.parseAnd(),line:tk.ln};}
+    return l; }
+  parseAnd(){ let l=this.parseEq();
+    while(this.is('OP','&&')){const tk=this.next();l={type:'Bin',op:'&&',l,r:this.parseEq(),line:tk.ln};}
+    return l; }
+  parseEq(){ let l=this.parseRel();
+    while(this.is('OP','==')||this.is('OP','!=')){const tk=this.next();
+      l={type:'Bin',op:tk.v,l,r:this.parseRel(),line:tk.ln};}
+    return l; }
+  parseRel(){ let l=this.parseShift();
+    while(this.is('OP','<')||this.is('OP','<=')||this.is('OP','>')||this.is('OP','>=')){
+      const tk=this.next(); l={type:'Bin',op:tk.v,l,r:this.parseShift(),line:tk.ln};}
+    return l; }
+  parseShift(){ let l=this.parseAdd();
+    while(this.is('OP','<<')||this.is('OP','>>')){
+      const tk=this.next(); l={type:'Bin',op:tk.v,l,r:this.parseAdd(),line:tk.ln};}
+    return l; }
+  parseAdd(){ let l=this.parseMul();
+    while(this.is('OP','+')||this.is('OP','-')){const tk=this.next();
+      l={type:'Bin',op:tk.v,l,r:this.parseMul(),line:tk.ln};}
+    return l; }
+  parseMul(){ let l=this.parseUnary();
+    while(this.is('OP','*')||this.is('OP','/')||this.is('OP','%')){
+      const tk=this.next(); l={type:'Bin',op:tk.v,l,r:this.parseUnary(),line:tk.ln};}
+    return l; }
+  parseUnary(){
+    if(this.is('OP','-')){const tk=this.next();return {type:'Unary',op:'-',v:this.parseUnary(),line:tk.ln};}
+    if(this.is('OP','!')){const tk=this.next();return {type:'Not',v:this.parseUnary(),line:tk.ln};}
+    if(this.is('OP','++')||this.is('OP','--')){
+      const tk=this.next();
+      const target=this.parseUnary();
+      return {type:'Prefix',op:tk.v,target,line:tk.ln};
+    }
+    return this.parsePostfix();
+  }
+  parsePostfix(){ let e=this.parseAtom();
+    while(true){
+      if(this.is('OP','(')){ this.next(); const args=[];
+        while(!this.is('OP',')')){ args.push(this.parseExpr()); if(!this.eat('OP',','))break; }
+        this.expect('OP',')'); e={type:'Call',callee:e,args}; }
+      else if(this.is('OP','[')){ this.next(); const k=this.parseExpr(); this.expect('OP',']');
+        e={type:'Index',obj:e,key:k}; }
+      else if(this.is('OP','.')){ this.next(); const n=this.expect('NAME').v;
+        e={type:'Method',obj:e,name:n}; }
+      else if(this.is('OP','++')||this.is('OP','--')){ const tk=this.next();
+        e={type:'Postfix',op:tk.v,target:e,line:tk.ln}; }
+      else break;
+    }
+    return e;
+  }
+  parseAtom(){
+    const tk=this.peek();
+    if(tk.t==='NUM'){this.next();return {type:'Num',v:tk.v,f:tk.f,line:tk.ln};}
+    if(tk.t==='STR'){this.next();return {type:'Str',v:tk.v,line:tk.ln};}
+    if(tk.t==='CH'){this.next();return {type:'Num',v:tk.code,line:tk.ln};}
+    if(tk.t==='KW'&&tk.v==='true'){this.next();return {type:'Bool',v:true,line:tk.ln};}
+    if(tk.t==='KW'&&tk.v==='false'){this.next();return {type:'Bool',v:false,line:tk.ln};}
+    if(tk.t==='NAME'){this.next();return {type:'Name',name:tk.v,line:tk.ln};}
+    if(this.is('OP','(')){this.next();const e=this.parseExpr();this.expect('OP',')');return e;}
+    throw new CxxCompileError("expected primary-expression before '"+(tk.v||'...')+"'",tk.ln);
+  }
+}
+/* ---------------------------------------------------------------------------
+   NORMALISASI AST — parseStmt() untuk isi if/while/for mengembalikan SATU
+   statement; evaluator & emitter membutuhkan array. Pass ini membungkus
+   setiap body/orelse tunggal menjadi [stmt] tepat setelah parsing.
+--------------------------------------------------------------------------- */
+function cxxNorm(st){
+  if(!st||typeof st!=='object')return;
+  if(Array.isArray(st)){ st.forEach(cxxNorm); return; }
+  if(st.body&&typeof st.body==='object'&&!Array.isArray(st.body))st.body=[st.body];
+  if(st.orelse&&typeof st.orelse==='object'&&!Array.isArray(st.orelse))st.orelse=[st.orelse];
+  if(st.body)cxxNorm(st.body);
+  if(st.orelse)cxxNorm(st.orelse);
+  if(st.updates)cxxNorm(st.updates);
+}
+function cxxParse(src){
+  const tu=new CxxParser(cxxTokenize(src)).parseTU();
+  tu.funcs.forEach(f=>cxxNorm(f.body));
+  if(!tu.funcs.some(f=>f.name==='main'))
+    throw new CxxCompileError("'int main()' tidak ditemukan dalam program",1);
+  return tu;
+}
+
+/* ============================================================
+   C++ — cek semantik (kesalahan tertangkap saat KOMPILASI)
+============================================================ */
+function cxxSemanticCheck(tu){
+  for(const f of tu.funcs){
+    const declared=new Set(['cout','endl','cin','std']);
+    tu.funcs.forEach(g=>declared.add(g.name));
+    (f.params||[]).forEach(p=>{ if(p.name)declared.add(p.name); });
+    const chkExpr=(e,line)=>{
+      if(!e||typeof e!=='object')return;
+      switch(e.type){
+        case 'Name':
+          if(!declared.has(e.name))
+            throw new CxxCompileError(`'${e.name}' was not declared in this scope`,e.line||line);
+          break;
+        case 'Bin': chkExpr(e.l,line); chkExpr(e.r,line); break;
+        case 'Unary': case 'Not': chkExpr(e.v,line); break;
+        case 'Postfix': case 'Prefix':
+          if(e.target&&e.target.type==='Name'){
+            if(!declared.has(e.target.name))
+              throw new CxxCompileError(`'${e.target.name}' was not declared in this scope`,e.line||line);
+          } else chkExpr(e.target,line);
+          break;
+        case 'Call':
+          if(e.callee.type==='Name')chkExpr(e.callee,line);
+          else if(e.callee.type==='Method')chkExpr(e.callee.obj,line);
+          (e.args||[]).forEach(a=>chkExpr(a,line)); break;
+        case 'Method': chkExpr(e.obj,line); break;
+        case 'Index': chkExpr(e.obj,line); chkExpr(e.key,line); break;
+      }
+    };
+    const chkTarget=(t,line)=>{
+      if(!t)return;
+      if(t.type==='Name'){
+        if(!declared.has(t.name))
+          throw new CxxCompileError(`'${t.name}' was not declared in this scope`,line);
+      }else if(t.type==='Index'){ chkExpr(t.obj,line); chkExpr(t.key,line); }
+      else if(t.type==='Method'){ chkExpr(t.obj,line); }
+    };
+    const walk=st=>{
+      if(!st)return;
+      if(Array.isArray(st)){ st.forEach(walk); return; }
+      switch(st.type){
+        case 'Decl': (st.decls||[]).forEach(d=>{ declared.add(d.name); if(d.init)chkExpr(d.init,st.line); }); break;
+        case 'Assign': case 'AugAssign': case 'Postfix': case 'Prefix':
+          chkTarget(st.target,st.line); if(st.value)chkExpr(st.value,st.line); break;
+        case 'ExprStmt': chkExpr(st.value,st.line); break;
+        case 'Return': if(st.value)chkExpr(st.value,st.line); break;
+        case 'If': chkExpr(st.cond,st.line); walk(st.body); walk(st.orelse); break;
+        case 'While': chkExpr(st.cond,st.line); walk(st.body); break;
+        case 'For': walk(st.init); if(st.cond)chkExpr(st.cond,st.line);
+          (st.updates||[]).forEach(walk); walk(st.body); break;
+        case 'ForRange': chkExpr(st.iter,st.line); declared.add(st.var); walk(st.body); break;
+        case 'Block': walk(st.body); break;
+      }
+    };
+    walk(f.body);
+  }
+}
+
+/* ============================================================
+   C++ — evaluator (eksekusi "binary")
+   ---------------------------------------------------------------------------
+   PERBAIKAN "looping tanpa henti": i++ diparse sebagai EKSPRESI postfix
+   (parsePostfix memakannya lebih dulu), sehingga klausa pembaruan for
+   menjadi ExprStmt(Postfix) — bukan statement Postfix. Kasus ekspresi
+   lama hanya mengembalikan nilai tanpa efek samping → i tidak pernah
+   berubah → loop tak berujung. Kini Postfix/Prefix membawa efek samping
+   yang sesungguhnya (nilai lama dikembalikan, variabel diperbarui),
+   sehingga for(...;...;i++) DAN cout << i++ keduanya benar.
+   Ditambah: batas iterasi per loop — loop yang memang tanpa henti
+   (kesalahan pengguna) berhenti dengan pesan error yang jelas.
+--------------------------------------------------------------------------- */
+class CxxReturn{constructor(v){this.v=v;}}
+class CxxBreak{} class CxxContinue{}
+const COUT={__cout:1}, ENDL={__endl:1};
+const RELOPC={'<':1,'<=':1,'>':1,'>=':1,'==':1,'!=':1};
+function fmtOstream(v){
+  if(typeof v!=='number')return String(v);
+  if(Number.isInteger(v))return String(v);
+  let s=v.toPrecision(6);
+  if(!s.includes('e'))s=s.replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'');
+  return s;
+}
+function cxxOut(v,ctx){
+  if(v===ENDL){ctx.out('\n');return;}
+  if(v===COUT)return;
+  if(typeof v==='boolean'){ctx.out(v?'1':'0');return;}
+  if(typeof v==='number'){ctx.out(fmtOstream(v));return;}
+  ctx.out(String(v));
+}
+function cxxArith(op,l,r){
+  const a=+l,b=+r;
+  const isF=((typeof l==='number')&&!Number.isInteger(l))||((typeof r==='number')&&!Number.isInteger(r));
+  switch(op){
+    case '+': return (typeof l==='string'||typeof r==='string')?String(l)+String(r):a+b;
+    case '-': return a-b;
+    case '*': return a*b;
+    case '/':
+      if(b===0){
+        if(!isF&&Number.isInteger(a))
+          throw {cxxRuntime:true,msg:'Program menerima sinyal SIGFPE — pembagian bilangan bulat dengan nol'};
+        return a/b;
+      }
+      if(!isF&&Number.isInteger(a)&&Number.isInteger(b))return Math.trunc(a/b);
+      return a/b;
+    case '%':
+      if(b===0&&!isF&&Number.isInteger(a))
+        throw {cxxRuntime:true,msg:'Program menerima sinyal SIGFPE — pembagian bilangan bulat dengan nol'};
+      return a%b;
+  }
+  throw new Error('operator tidak didukung: '+op);
+}
+function cxxRun(tu,ctx){
+  const genv={vars:new Map(),parent:null};
+  ctx.genv=genv;
+  tu.funcs.forEach(f=>genv.vars.set(f.name,{__cxxfunc:f}));
+  const main=tu.funcs.find(f=>f.name==='main');
+  return cxxCall(main,[],genv,ctx);
+}
+function cxxCall(f,args,genv,ctx){
+  const env={vars:new Map(),parent:genv};
+  (f.params||[]).forEach((p,i)=>{ if(p.name)env.vars.set(p.name,args[i]!==undefined?args[i]:0); });
+  try{ cxxExec(f.body,env,ctx); }
+  catch(e){ if(e instanceof CxxReturn)return e.v; throw e; }
+  return 0;
+}
+function cxxEnvGet(env,n){
+  let e=env;
+  while(e){ if(e.vars.has(n))return e.vars.get(n); e=e.parent; }
+  return 0;
+}
+function cxxEnvSet(env,n,v){
+  let e=env;
+  while(e){ if(e.vars.has(n)){e.vars.set(n,v);return;} e=e.parent; }
+  env.vars.set(n,v);
+}
+function cxxExec(stmts,env,ctx){
+  if(stmts==null)return;
+  if(Array.isArray(stmts)){ for(const s of stmts)cxxStmt(s,env,ctx); return; }
+  cxxStmt(stmts,env,ctx);
+}
+function cxxStmt(s,env,ctx){
+  if(s==null)return;
+  if(Array.isArray(s)){ cxxExec(s,env,ctx); return; }
+  if(++ctx.ops>CXX_OPS_CAP)
+    throw {cxxRuntime:true,msg:'program melewati '+CXX_OPS_CAP.toLocaleString('id')+' statement — dihentikan (kemungkinan infinite loop)'};
+  switch(s.type){
+    case 'Decl':
+      for(const d of s.decls){
+        let v;
+        if(d.init==null){
+          v=(s.vtype==='string')?'':(s.vtype==='vector')?[]:
+            (s.vtype==='double')?0:(s.vtype==='bool')?false:0;
+        }else v=cxxEval(d.init,env,ctx);
+        if(s.vtype==='int'||s.vtype==='long')v=Math.trunc(+v)||0;
+        if(s.vtype==='bool')v=!!truthyC(v);
+        env.vars.set(d.name,v);
+      }
+      break;
+    case 'Assign':{
+      if(s.target.type==='Index'){
+        const o=cxxEval(s.target.obj,env,ctx);
+        const k=cxxEval(s.target.key,env,ctx);
+        o[k]=cxxEval(s.value,env,ctx);
+      }else{
+        let v=cxxEval(s.value,env,ctx);
+        const cur=cxxEnvGet(env,s.target.name);
+        if(typeof cur==='number'&&Number.isInteger(cur)&&typeof v==='number'&&!Number.isInteger(v))v=Math.trunc(v);
+        cxxEnvSet(env,s.target.name,v);
+      }
+      break; }
+    case 'AugAssign':{
+      const cur=cxxEval(s.target,env,ctx);
+      const v=cxxEval(s.value,env,ctx);
+      cxxEnvSet(env,s.target.name,cxxArith(s.op[0],cur,v));
+      break; }
+    /* Postfix/Prefix sebagai statement: efek sampingnya ada di cxxEval */
+    case 'Postfix': case 'Prefix': cxxEval(s,env,ctx); break;
+    case 'ExprStmt': cxxEval(s.value,env,ctx); break;
+    case 'Return':{
+      const v=s.value?cxxEval(s.value,env,ctx):0;
+      throw new CxxReturn(v); }
+    case 'If':
+      if(truthyC(cxxEval(s.cond,env,ctx)))cxxExec(s.body,env,ctx);
+      else if(s.orelse)cxxExec(s.orelse,env,ctx);
+      break;
+    case 'While':
+      while(true){
+        if(++ctx.iters>CXX_ITER_CAP)
+          throw {cxxRuntime:true,msg:'loop melewati 200.000 iterasi — dihentikan (kemungkinan infinite loop: periksa pembaruan variabel kondisi)'};
+        if(!truthyC(cxxEval(s.cond,env,ctx)))break;
+        try{cxxExec(s.body,env,ctx);}
+        catch(e){ if(e instanceof CxxBreak)break; if(e instanceof CxxContinue)continue; throw e; }
+      }
+      break;
+    case 'For':{
+      /* continue pada for C++ tetap menjalankan bagian update (i++) */
+      if(s.init)cxxStmt(s.init,env,ctx);
+      while(true){
+        if(++ctx.iters>CXX_ITER_CAP)
+          throw {cxxRuntime:true,msg:'loop melewati 200.000 iterasi — dihentikan (kemungkinan infinite loop: periksa pembaruan variabel kondisi)'};
+        if(s.cond&&!truthyC(cxxEval(s.cond,env,ctx)))break;
+        try{cxxExec(s.body,env,ctx);}
+        catch(e){ if(e instanceof CxxBreak)break; if(!(e instanceof CxxContinue))throw e; }
+        (s.updates||[]).forEach(u=>cxxStmt(u,env,ctx));
+      }
+      break; }
+    case 'ForRange':{
+      const arr=cxxEval(s.iter,env,ctx);
+      if(!Array.isArray(arr))break;
+      for(const v of arr){
+        if(++ctx.iters>CXX_ITER_CAP)
+          throw {cxxRuntime:true,msg:'loop melewati 200.000 iterasi — dihentikan (kemungkinan infinite loop)'};
+        env.vars.set(s.var,v);
+        try{cxxExec(s.body,env,ctx);}
+        catch(e){ if(e instanceof CxxBreak)break; if(e instanceof CxxContinue)continue; throw e; }
+      }
+      break; }
+    case 'Break': throw new CxxBreak();
+    case 'Continue': throw new CxxContinue();
+    case 'Block': cxxExec(s.body,env,ctx); break;
+  }
+}
+const truthyC=v=>!(v===false||v===0||v===''||(Array.isArray(v)&&v.length===0));
+function cxxEval(e,env,ctx){
+  switch(e.type){
+    case 'Num': return e.v;
+    case 'Str': return e.v;
+    case 'Bool': return e.v;
+    case 'Name':
+      if(e.name==='cout')return COUT;
+      if(e.name==='endl')return ENDL;
+      return cxxEnvGet(env,e.name);
+    case 'Unary': return -(+cxxEval(e.v,env,ctx));
+    case 'Not': return !truthyC(cxxEval(e.v,env,ctx));
+    /* i++ → kembalikan nilai lama, simpan nilai baru (semantik C++ asli) */
+    case 'Postfix':{
+      if(e.target&&e.target.type==='Name'){
+        const old=cxxEnvGet(env,e.target.name);
+        if(e.target.name==='cout'||e.target.name==='endl')return old;
+        cxxEnvSet(env,e.target.name,e.op==='++'?+old+1:+old-1);
+        return old;
+      }
+      if(e.target&&e.target.type==='Index'){
+        const o=cxxEval(e.target.obj,env,ctx);
+        let k=cxxEval(e.target.key,env,ctx);
+        if(typeof k==='number'&&k<0)k=(o.length||0)+k;
+        const old=o[k];
+        o[k]=e.op==='++'?+old+1:+old-1;
+        return old;
+      }
+      return cxxEval(e.target,env,ctx);
+    }
+    /* ++i → perbarui lalu kembalikan nilai baru */
+    case 'Prefix':{
+      if(e.target&&e.target.type==='Name'){
+        const nv=e.op==='++'?+cxxEnvGet(env,e.target.name)+1:+cxxEnvGet(env,e.target.name)-1;
+        cxxEnvSet(env,e.target.name,nv);
+        return nv;
+      }
+      if(e.target&&e.target.type==='Index'){
+        const o=cxxEval(e.target.obj,env,ctx);
+        let k=cxxEval(e.target.key,env,ctx);
+        if(typeof k==='number'&&k<0)k=(o.length||0)+k;
+        const nv=e.op==='++'?+o[k]+1:+o[k]-1;
+        o[k]=nv;
+        return nv;
+      }
+      return cxxEval(e.target,env,ctx);
+    }
+    case 'Bin':{
+      const l=cxxEval(e.l,env,ctx), r=cxxEval(e.r,env,ctx);
+      if(e.op==='<<'){ if(l===COUT){cxxOut(r,ctx);return COUT;} return 0; }
+      if(e.op==='>>')throw {cxxRuntime:true,msg:'cin (stdin) tidak tersedia dalam simulasi ini'};
+      if(e.op==='&&')return truthyC(l)&&truthyC(r);
+      if(e.op==='||')return truthyC(l)||truthyC(r);
+      if(RELOPC[e.op])return pyCmpOp(e.op,l,r);
+      return cxxArith(e.op,l,r);
+    }
+    case 'Call':{
+      if(e.callee.type==='Method'){
+        const obj=cxxEval(e.callee.obj,env,ctx);
+        const args=(e.args||[]).map(a=>cxxEval(a,env,ctx));
+        if(Array.isArray(obj)){
+          if(e.callee.name==='push_back'){obj.push(args[0]);return null;}
+          if(e.callee.name==='pop_back'){obj.pop();return null;}
+          if(e.callee.name==='size'||e.callee.name==='length')return obj.length;
+        }
+        if(typeof obj==='string'){
+          if(e.callee.name==='size'||e.callee.name==='length')return obj.length;
+        }
+        return null;
+      }
+      const f=cxxEval(e.callee,env,ctx);
+      if(f&&f.__cxxfunc){
+        const args=(e.args||[]).map(a=>cxxEval(a,env,ctx));
+        return cxxCall(f.__cxxfunc,args,ctx.genv||env,ctx);
+      }
+      return 0;
+    }
+    case 'Index':{
+      const o=cxxEval(e.obj,env,ctx);
+      let k=cxxEval(e.key,env,ctx);
+      if(typeof k==='number'&&k<0)k=(o.length||0)+k;
+      return o[k];
+    }
+  }
+  return 0;
+}
+
+/* ============================================================
+   C++ — pra-pemroses, assembler, linker (artefak teks)
+============================================================ */
+function cxxPreprocess(src){
+  const lines=src.split('\n'); const out=[];
+  for(const l of lines){
+    if(/^\s*#include/.test(l)){
+      out.push(`// [pra-pemroses] ${l.trim()} → isi header ${l.includes('iostream')?'<iostream>':'<header>'} disisipkan di sini (±${28+(hashStr(l)%22)} ribu baris deklarasi runtime)`); continue; }
+    if(/^\s*#define/.test(l)){ out.push(`// [pra-pemroses] ${l.trim()} → makro dicatat, akan diganti pada setiap pemakaian`); continue; }
+    if(/^\s*#\s*(if|ifdef|ifndef|else|endif|pragma)/.test(l)){ out.push(`// [pra-pemroses] ${l.trim()} → kondisi pemrosesan dievaluasi`); continue; }
+    if(/^\s*using\s+namespace/.test(l)){ out.push(`// [pra-pemroses] ${l.trim()} → anggota std:: dapat dipakai tanpa prefix`); continue; }
+    out.push(l);
+  }
+  return {text:out.join('\n')};
+}
+function cxxMangle(f){
+  if(f.name==='main')return 'main';
+  return '_Z'+f.name.length+f.name+
+    (f.params||[]).map(p=>({int:'i',double:'d',bool:'b',string:'Ss'}[p.type]||'i')).join('');
+}
+const VEC={int:'IiSaIiEE',double:'IdSaIdEE',bool:'IbSaIbEE',
+  string:'INSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE'};
+const stmtList=x=>Array.isArray(x)?x:(x?[x]:[]);
+
+function cxxAsmText(tu){
+  const R=[],rodata=[]; let lc=0,lab=0;
+  const fnMap={}; tu.funcs.forEach(f=>fnMap[f.name]=f);
+  const newLbl=()=>'.L'+(++lab);
+  const RELOPS={'<':1,'<=':1,'>':1,'>=':1,'==':1,'!=':1};
+  const ins=(op,arg,c)=>{
+    let s='        '+op.padEnd(8)+(arg==null?'':' '+arg);
+    if(c)s=s.padEnd(48)+'# '+c;
+    R.push(s);
+  };
+  const lbl=(name,c)=>{
+    let s=name+':';
+    if(c)s=s.padEnd(48)+'# '+c;
+    R.push(s);
+  };
+  const note=t=>R.push(' '.repeat(48)+'# '+t);
+  const roStr=v=>{
+    const id='.LC'+(lc++);
+    rodata.push(id+':\n        .string "'+String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n')+'"');
+    return id;
+  };
+  const roDbl=v=>{ const id='.LC'+(lc++); rodata.push(id+':\n        .double '+v); return id; };
+
+  R.push('        .text');
+  for(const f of tu.funcs){
+    R.push('');
+    try{ emitFunc(f); }
+    catch(err){
+      R.push('# [simulator] gagal menerjemahkan fungsi '+f.name+': '+((err&&err.message)||String(err)));
+    }
+  }
+  R.push('');
+  R.push('        .section        .rodata');
+  rodata.forEach(r=>R.push(r));
+  return R.join('\n');
+
+  /* ---------- emitter per fungsi ---------- */
+  function emitFunc(f){
+    const slots=new Map(); let off=0;
+    const slot=(n,t,vec)=>{
+      if(slots.has(n))return slots.get(n);
+      const sz=t==='vector'?24:((t==='double'||t==='string')?8:4);
+      off+=sz;
+      const s={off:-off,t:t||'int',vec:vec||'int'};
+      slots.set(n,s);
+      return s;
+    };
+    const SO=n=>slots.get(n)||{off:0,t:'int',vec:'int'};
+    (f.params||[]).forEach(p=>{ if(p.name)slot(p.name,p.type); });
+    const scan=st=>{
+      if(!st)return;
+      if(Array.isArray(st)){st.forEach(scan);return;}
+      if(st.type==='Decl')(st.decls||[]).forEach(d=>slot(d.name,st.vtype,st.vvec));
+      stmtList(st.body).forEach(scan);
+      stmtList(st.orelse).forEach(scan);
+      if(st.type==='For'){ scan(st.init); (st.updates||[]).forEach(scan); }
+    };
+    scan(f.body);
+    const G={f,loop:null};
+    const dbl2int=()=>ins('cvttsd2si','eax, xmm0');
+    const int2dbl=()=>ins('cvtsi2sd','xmm0, eax');
+
+    const inferDbl=e=>{
+      if(!e||typeof e!=='object')return false;
+      if(e.type==='Num')return !!e.f;
+      if(e.type==='Name')return SO(e.name).t==='double';
+      if(e.type==='Bin')return inferDbl(e.l)||inferDbl(e.r);
+      if(e.type==='Call'&&e.callee&&e.callee.type==='Name'){
+        const fn=fnMap[e.callee.name];
+        return !!fn&&fn.ret==='double';
+      }
+      return false;
+    };
+
+    const emitCoutArg=r=>{
+      if(r&&r.type==='Name'&&r.name==='endl'){
+        ins('lea','rsi, [rip + _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_]');
+        ins('lea','rdi, [rip + _ZSt4cout]');
+        ins('call','_ZNSolsEPFRSoS_E','cout << endl');
+        return;
+      }
+      if(r&&r.type==='Name'&&SO(r.name).t==='string'){
+        const sl=SO(r.name);
+        ins('lea','rsi, [rbp'+sl.off+']');
+        ins('lea','rdi, [rip + _ZSt4cout]');
+        ins('call','_ZStlsIcSt11char_traitsIcESaIcEERSt13basic_ostreamIT_T0_ES7_RNSt7__cxx1112basic_stringIS4_S5_T0_EE','cout << '+r.name);
+        return;
+      }
+      const k=emitExpr(r);
+      ins('lea','rdi, [rip + _ZSt4cout]');
+      if(k==='dbl')ins('call','_ZNSolsEd','cout << (double)');
+      else if(k==='str'){ ins('mov','rsi, rax'); ins('call','_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc','cout << "…"'); }
+      else{ ins('mov','esi, eax'); ins('call','_ZNSolsEi','cout << nilai'); }
+    };
+
+    const emitBin=e=>{
+      if(e.op==='<<'){
+        if(e.l&&e.l.type==='Name'&&e.l.name==='cout'){ emitCoutArg(e.r); return 'ostream'; }
+        emitExpr(e.l);
+        emitCoutArg(e.r);
+        return 'ostream';
+      }
+      if(e.op==='&&'||e.op==='||'){
+        const lEnd=newLbl();
+        let k=emitExpr(e.l); if(k==='dbl')dbl2int();
+        ins('test','eax, eax');
+        ins(e.op==='&&'?'je':'jne',lEnd,'short-circuit '+e.op);
+        k=emitExpr(e.r); if(k==='dbl')dbl2int();
+        ins('test','eax, eax'); ins('setne','al'); ins('movzx','eax, al');
+        lbl(lEnd);
+        return 'int';
+      }
+      const wantDbl=inferDbl(e);
+      let kr=emitExpr(e.r);
+      if(wantDbl){
+        if(kr!=='dbl')int2dbl();
+        ins('movq','rax, xmm0'); ins('push','rax');
+      }else{
+        if(kr==='dbl')dbl2int();
+        ins('push','rax');
+      }
+      let kl=emitExpr(e.l);
+      if(wantDbl){
+        if(kl!=='dbl')int2dbl();
+        ins('movsd','xmm1, QWORD PTR [rsp]');
+        ins('add','rsp, 8');
+        const md={'+':'addsd','-':'subsd','*':'mulsd','/':'divsd'}[e.op];
+        if(md){ ins(md,'xmm0, xmm1','operasi '+e.op+' (double)'); return 'dbl'; }
+        if(RELOPS[e.op]){
+          ins('comisd','xmm0, xmm1');
+          ins({'<':'setb','<=':'setbe','>':'seta','>=':'setae','==':'sete','!=':'setne'}[e.op]||'sete','al');
+          ins('movzx','eax, al');
+          return 'int';
+        }
+        return 'int';
+      }
+      if(kl==='dbl')dbl2int();
+      ins('pop','rcx');
+      if(e.op==='+'&&(kl==='str'||kr==='str')){
+        ins('mov','rdi, rax','string kiri');
+        ins('mov','rsi, rcx','string kanan');
+        ins('call','_ZStplIcSt11char_traitsIcESaIcEERSt7__cxx1112basic_stringIT_T0_T1_EDpOT0_ES9_S7_','gabung string');
+        return 'str';
+      }
+      const mi={'+':'add','-':'sub','*':'imul'}[e.op];
+      if(mi){ ins(mi,'eax, ecx','operasi '+e.op); return 'int'; }
+      if(e.op==='/'){ ins('cdq'); ins('idiv','ecx','pembagian bulat (int)'); return 'int'; }
+      if(e.op==='%'){ ins('cdq'); ins('idiv','ecx'); ins('mov','eax, edx','sisa bagi'); return 'int'; }
+      if(RELOPS[e.op]){
+        ins('cmp','eax, ecx');
+        ins({'<':'setl','<=':'setle','>':'setg','>=':'setge','==':'sete','!=':'setne'}[e.op]||'sete','al');
+        ins('movzx','eax, al');
+        return 'int';
+      }
+      return 'int';
+    };
+
+    const emitMethod=e=>{
+      const m=e.callee||{};
+      const on=(m.obj&&m.obj.name)||'v';
+      const sl=SO(on);
+      if(m.name==='push_back'){
+        const k=emitExpr((e.args||[])[0]);
+        if(k==='dbl')ins('movq','rsi, xmm0');
+        else if(k==='str')ins('mov','rsi, rax');
+        else ins('mov','esi, eax','nilai');
+        ins('lea','rdi, [rbp'+sl.off+']');
+        ins('call','_ZNSt6vector'+(VEC[sl.vec]||VEC.int)+'9push_backERK'+(sl.vec==='double'?'d':'i'),on+'.push_back(…)');
+        return 'int';
+      }
+      if(m.name==='size'||m.name==='length'){
+        if(sl.t==='string'){
+          ins('lea','rdi, [rbp'+sl.off+']');
+          ins('call','_ZNKSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE6lengthEv',on+'.length()');
+          return 'int';
+        }
+        ins('lea','rdi, [rbp'+sl.off+']');
+        ins('call','_ZNKSt6vector'+(VEC[sl.vec]||VEC.int)+'4sizeEv',on+'.size()');
+        return 'int';
+      }
+      if(m.name==='pop_back'){
+        ins('lea','rdi, [rbp'+sl.off+']');
+        ins('call','_ZNSt6vector'+(VEC[sl.vec]||VEC.int)+'8pop_backEv',on+'.pop_back()');
+        return 'int';
+      }
+      return 'int';
+    };
+
+    const emitCall=e=>{
+      if(!e.callee)return 'int';
+      if(e.callee.type==='Method')return emitMethod(e);
+      const fn=e.callee.type==='Name'?fnMap[e.callee.name]:null;
+      let di=0,fi=0;
+      (e.args||[]).forEach((a,i)=>{
+        const pt=(fn&&fn.params[i])?fn.params[i].type:'int';
+        const k=emitExpr(a);
+        if(pt==='double'){ if(k!=='dbl')int2dbl(); fi++; }
+        else if(pt==='string'){ ins('mov',['rdi','rsi','rdx','rcx'][Math.min(di++,3)]+', rax','arg '+(i+1)); }
+        else{ if(k==='dbl')dbl2int();
+          ins('mov',['edi','esi','edx','ecx'][Math.min(di++,3)]+', eax','arg '+(i+1)); }
+      });
+      const M=fn?cxxMangle(fn):('??'+(e.callee.name||'f'));
+      ins('call',M,fn?(fn.name+'('+((e.args||[]).map(x=>x.type==='Name'?x.name:'…').join(', '))+')'):'');
+      if(fn&&fn.ret==='double')return 'dbl';
+      if(fn&&fn.ret==='string')return 'str';
+      return 'int';
+    };
+
+    const emitIndex=e=>{
+      let k=emitExpr(e.key); if(k==='dbl')dbl2int();
+      ins('mov','esi, eax','indeks');
+      const ko=emitExpr(e.obj);
+      const sl=(e.obj&&e.obj.name)?SO(e.obj.name):null;
+      if(sl&&sl.t==='vector'){
+        if(sl.vec==='double'){ ins('movsd','xmm0, QWORD PTR [rax+rsi*8]'); return 'dbl'; }
+        if(sl.vec==='string'){ ins('mov','rax, QWORD PTR [rax+rsi*8]'); return 'str'; }
+        ins('mov','eax, DWORD PTR [rax+rsi*4]',(e.obj.name||'v')+'[i]');
+        return 'int';
+      }
+      if(ko==='str'){ ins('movzx','eax, BYTE PTR [rax+rsi]',(e.obj&&e.obj.name?e.obj.name:'s')+'[i]'); return 'int'; }
+      ins('mov','eax, DWORD PTR [rax+rsi*4]');
+      return 'int';
+    };
+
+    const emitExpr=e=>{
+      if(!e||typeof e!=='object'){ ins('mov','eax, 0'); return 'int'; }
+      switch(e.type){
+        case 'Num':
+          if(e.f){ ins('movsd','xmm0, QWORD PTR [rip + '+roDbl(e.v)+']',String(e.v)); return 'dbl'; }
+          ins('mov','eax, '+e.v,String(e.v)); return 'int';
+        case 'Str':
+          ins('lea','rax, [rip + '+roStr(e.v)+']','"'+(e.v.length>14?e.v.slice(0,12)+'…':e.v)+'"'); return 'str';
+        case 'Bool':
+          ins('mov','eax, '+(e.v?1:0)); return 'int';
+        case 'Name':{
+          if(e.name==='cout'){ ins('lea','rax, [rip + _ZSt4cout]'); return 'ostream'; }
+          if(e.name==='endl')return 'endl';
+          const sl=SO(e.name);
+          if(sl.t==='double'){ ins('movsd','xmm0, QWORD PTR [rbp'+sl.off+']',e.name); return 'dbl'; }
+          if(sl.t==='string'||sl.t==='vector'){ ins('lea','rax, [rbp'+sl.off+']',e.name); return 'str'; }
+          ins('mov','eax, DWORD PTR [rbp'+sl.off+']',e.name); return 'int'; }
+        case 'Unary': emitExpr(e.v); ins('neg','eax'); return 'int';
+        case 'Not': emitExpr(e.v); ins('test','eax, eax'); ins('sete','al'); ins('movzx','eax, al'); return 'int';
+        /* i++ : muat nilai lama ke eax, simpan nilai baru — inilah instruksi
+           yang sebelumnya hilang dari listing dan membuat loop tak berujung */
+        case 'Postfix':{
+          if(e.target&&e.target.type==='Name'){
+            const sl=SO(e.target.name);
+            if(sl.t==='double'){
+              ins('movsd','xmm0, QWORD PTR [rbp'+sl.off+']',e.target.name+' (nilai lama)');
+              ins('movq','rax, xmm0'); ins('push','rax');
+              ins('cvttsd2si','eax, xmm0');
+              ins(e.op==='++'?'add':'sub','eax, 1',e.target.name+e.op);
+              ins('cvtsi2sd','xmm1, eax');
+              ins('movsd','QWORD PTR [rbp'+sl.off+'], xmm1');
+              ins('pop','rax'); ins('movq','xmm0, rax');
+              return 'dbl';
+            }
+            ins('mov','eax, DWORD PTR [rbp'+sl.off+']',e.target.name+' (nilai lama)');
+            ins('mov','edx, eax');
+            ins(e.op==='++'?'add':'sub','edx, 1',e.target.name+e.op);
+            ins('mov','DWORD PTR [rbp'+sl.off+'], edx');
+            return 'int';
+          }
+          return emitExpr(e.target);
+        }
+        case 'Prefix':{
+          if(e.target&&e.target.type==='Name'){
+            const sl=SO(e.target.name);
+            if(sl.t==='double'){
+              ins('movsd','xmm0, QWORD PTR [rbp'+sl.off+']');
+              ins('cvttsd2si','eax, xmm0');
+              ins(e.op==='++'?'add':'sub','eax, 1',e.op+e.target.name);
+              ins('cvtsi2sd','xmm0, eax');
+              ins('movsd','QWORD PTR [rbp'+sl.off+'], xmm0');
+              return 'dbl';
+            }
+            ins('mov','eax, DWORD PTR [rbp'+sl.off+']');
+            ins(e.op==='++'?'add':'sub','eax, 1',e.op+e.target.name);
+            ins('mov','DWORD PTR [rbp'+sl.off+'], eax');
+            return 'int';
+          }
+          return emitExpr(e.target);
+        }
+        case 'Bin': return emitBin(e);
+        case 'Call': return emitCall(e);
+        case 'Method': return emitMethod({callee:e,args:[]});
+        case 'Index': return emitIndex(e);
+      }
+      ins('mov','eax, 0'); return 'int';
+    };
+
+    const emitCondJump=(cond,target,nt)=>{
+      if(nt)note(nt);
+      const k=(cond&&cond.type==='Bin')?emitBin(cond):emitExpr(cond);
+      if(k==='dbl'){ ins('pxor','xmm1, xmm1'); ins('comisd','xmm0, xmm1'); ins('je',target,'jika kondisi salah → lompat'); }
+      else{ ins('test','eax, eax'); ins('je',target,'jika kondisi salah → lompat'); }
+    };
+
+    const emitStmt=st=>{
+      if(!st)return;
+      if(Array.isArray(st)){ st.forEach(emitStmt); return; }
+      switch(st.type){
+        case 'Decl':{
+          (st.decls||[]).forEach(d=>{
+            const sl=slot(d.name,st.vtype,st.vvec);
+            if(d.init==null){
+              if(st.vtype==='string'){ ins('lea','rdi, [rbp'+sl.off+']'); ins('call','_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2Ev','string '+d.name+'()'); }
+              else if(st.vtype==='vector'){ ins('lea','rdi, [rbp'+sl.off+']'); ins('call','_ZNSt6vector'+(VEC[st.vvec||'int']||VEC.int)+'C2Ev','vector '+d.name+'()'); }
+              else if(st.vtype==='double'){ ins('pxor','xmm0, xmm0'); ins('movsd','QWORD PTR [rbp'+sl.off+'], xmm0',d.name+' = 0.0'); }
+              else ins('mov','DWORD PTR [rbp'+sl.off+'], 0',(st.vtype||'int')+' '+d.name+' = 0');
+              return;
+            }
+            if(st.vtype==='string'&&d.init.type==='Str'){
+              ins('lea','rsi, [rip + '+roStr(d.init.v)+']','"'+(d.init.v.length>14?d.init.v.slice(0,12)+'…':d.init.v)+'"');
+              ins('lea','rdi, [rbp'+sl.off+']');
+              ins('call','_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE6assignEPKc','string '+d.name+' = "…"');
+              return;
+            }
+            if(st.vtype==='vector')return;
+            const k=emitExpr(d.init);
+            if(st.vtype==='double'){ if(k!=='dbl')int2dbl(); ins('movsd','QWORD PTR [rbp'+sl.off+'], xmm0',d.name+' = …'); }
+            else{ if(k==='dbl')dbl2int(); ins('mov','DWORD PTR [rbp'+sl.off+'], eax',(st.vtype||'int')+' '+d.name+' = …'); }
+          });
+          break; }
+        case 'Assign':{
+          if(st.target&&st.target.type==='Index'){
+            const kv=emitExpr(st.value); if(kv==='dbl')dbl2int();
+            ins('push','rax');
+            const kk=emitExpr(st.target.key); if(kk==='dbl')dbl2int();
+            ins('mov','esi, eax','indeks');
+            emitExpr(st.target.obj);
+            ins('pop','rdx');
+            ins('mov','DWORD PTR [rax+rsi*4], edx','v[i] = …');
+            break;
+          }
+          const nm=(st.target&&st.target.name)||'…';
+          const sl=SO(nm);
+          const k=emitExpr(st.value);
+          if(sl.t==='double'){ if(k!=='dbl')int2dbl(); ins('movsd','QWORD PTR [rbp'+sl.off+'], xmm0',nm+' = …'); }
+          else{ if(k==='dbl')dbl2int(); ins('mov','DWORD PTR [rbp'+sl.off+'], eax',nm+' = …'); }
+          break; }
+        case 'AugAssign':{
+          const nm=(st.target&&st.target.name)||'…';
+          const sl=SO(nm);
+          if(sl.t==='double'){
+            ins('movsd','xmm1, QWORD PTR [rbp'+sl.off+']',nm+' (muat)');
+            const k=emitExpr(st.value);
+            if(k!=='dbl')int2dbl();
+            ins(({'+=':'addsd','-=':'subsd','*=':'mulsd','/=':'divsd'})[st.op]||'addsd','xmm1, xmm0');
+            ins('movsd','QWORD PTR [rbp'+sl.off+'], xmm1',nm+' '+st.op+' …');
+          }else{
+            ins('mov','edx, DWORD PTR [rbp'+sl.off+']',nm+' (muat)');
+            const k=emitExpr(st.value);
+            if(k==='dbl')dbl2int();
+            ins('mov','ecx, eax','nilai kanan');
+            ins('mov','eax, edx','nilai kiri');
+            if(st.op==='+='||st.op==='-=')ins(st.op==='+='?'add':'sub','eax, ecx');
+            else if(st.op==='*=')ins('imul','eax, ecx');
+            else if(st.op==='/='){ ins('cdq'); ins('idiv','ecx'); }
+            else if(st.op==='%='){ ins('cdq'); ins('idiv','ecx'); ins('mov','eax, edx'); }
+            ins('mov','DWORD PTR [rbp'+sl.off+'], eax',nm+' '+st.op+' …');
+          }
+          break; }
+        case 'Postfix': case 'Prefix': emitExpr(st); break;
+        case 'ExprStmt': emitExpr(st.value); break;
+        case 'Return':{
+          if(st.value){
+            const k=emitExpr(st.value);
+            if(k==='dbl'&&f.ret!=='double')dbl2int();
+            if(k!=='dbl'&&f.ret==='double')int2dbl();
+          }else ins('mov','eax, 0');
+          ins('leave');
+          ins('ret',null,'return — main.cpp:'+(st.line||'?'));
+          break; }
+        case 'If':{
+          const lE=st.orelse?newLbl():null, lN=newLbl();
+          emitCondJump(st.cond,lE||lN,'if — main.cpp:'+(st.line||'?'));
+          stmtList(st.body).forEach(emitStmt);
+          if(lE){ ins('jmp',lN); lbl(lE,'else'); stmtList(st.orelse).forEach(emitStmt); }
+          lbl(lN,'akhir if');
+          break; }
+        case 'While':{
+          const lB=newLbl(),lX=newLbl();
+          const save=G.loop; G.loop={cont:lB,brk:lX};
+          lbl(lB,'while — main.cpp:'+(st.line||'?'));
+          emitCondJump(st.cond,lX);
+          stmtList(st.body).forEach(emitStmt);
+          ins('jmp',lB);
+          lbl(lX,'akhir while');
+          G.loop=save;
+          break; }
+        case 'For':{
+          const lC=newLbl(),lU=newLbl(),lX=newLbl();
+          const save=G.loop; G.loop={cont:lU,brk:lX};
+          if(st.init)emitStmt(st.init);
+          lbl(lC,'for — main.cpp:'+(st.line||'?'));
+          if(st.cond)emitCondJump(st.cond,lX);
+          stmtList(st.body).forEach(emitStmt);
+          lbl(lU,'pembaruan (i++ / …)');
+          stmtList(st.updates).forEach(u=>emitStmt(u));
+          ins('jmp',lC);
+          lbl(lX,'akhir for');
+          G.loop=save;
+          break; }
+        case 'ForRange':{
+          const lB=newLbl(),lX=newLbl();
+          const save=G.loop; G.loop={cont:lB,brk:lX};
+          const vs=(st.iter&&st.iter.name)?SO(st.iter.name):null;
+          const off=vs?vs.off:-16;
+          const xs=slot(st.var,'int');
+          ins('mov','rax, QWORD PTR [rbp'+off+']','# begin(v)');
+          lbl(lB,'range-for — main.cpp:'+(st.line||'?'));
+          ins('cmp','rax, QWORD PTR [rbp'+(off+8)+']','# vs end()');
+          ins('jae',lX);
+          ins('mov','edx, DWORD PTR [rax]');
+          ins('mov','DWORD PTR [rbp'+xs.off+'], edx',(st.var||'x')+' = *it');
+          stmtList(st.body).forEach(emitStmt);
+          ins('add','rax, 4');
+          ins('jmp',lB);
+          lbl(lX,'akhir range-for');
+          G.loop=save;
+          break; }
+        case 'Break': ins('jmp',G.loop?G.loop.brk:'--','break'); break;
+        case 'Continue': ins('jmp',G.loop?G.loop.cont:'--','continue'); break;
+        case 'Block': stmtList(st.body).forEach(emitStmt); break;
+      }
+    };
+
+    lbl(cxxMangle(f),(f.ret||'int')+' '+f.name+'('+((f.params||[]).map(p=>(p.type||'int')+' '+(p.name||'')).join(', '))+') — main.cpp:'+(f.line||'?'));
+    ins('push','rbp');
+    ins('mov','rbp, rsp');
+    const frame=(off+15)&~15;
+    if(frame)ins('sub','rsp, '+frame,'ruang untuk '+slots.size+' variabel lokal');
+    stmtList(f.body).forEach(emitStmt);
+    ins('mov','eax, 0',f.name==='main'?'return 0 implisit':'nilai kembali default');
+    ins('leave');
+    ins('ret');
+  }
+}
+
+/* hexdump & panel objek/executable */
+function hexdump(seedStr,label){
+  const rnd=mulberry32(hashStr(seedStr));
+  const bytes=[0x7f,0x45,0x4c,0x46,2,1,1,0,0,0,0,0,0,0,0,0,
+    1,0,0x3e,0,1,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0x40,0,0,0,0,0,0,0,0,0,0,0];
+  while(bytes.length<64)bytes.push(0);
+  for(let i=0;i<160;i++)bytes.push(Math.floor(rnd()*256));
+  const out=['  '+label];
+  for(let r=0;r<Math.ceil(bytes.length/16);r++){
+    const seg=bytes.slice(r*16,r*16+16);
+    const hex=seg.map(b=>b.toString(16).padStart(2,'0')).join(' ');
+    const asc=seg.map(b=>(b>=32&&b<127)?String.fromCharCode(b):'.').join('');
+    out.push((r*16).toString(16).padStart(8,'0')+'  '+hex.slice(0,23)+' '+hex.slice(24)+'  |'+asc+'|');
+  }
+  out.push('  … (potongan saja — berkas lengkap lebih panjang)');
+  return out.join('\n');
+}
+function objPanelText(tu,asmText){
+  const L=[];
+  L.push('$ as main.s -o main.o        # assembler: teks assembly → kode mesin');
+  L.push('');
+  L.push('main.o — ELF 64-bit LSB relocatable, x86-64 (alamat masih belum final)');
+  L.push('');
+  L.push(hexdump('main.o'+asmText.length,'seksi .text — instruksi mesin hasil terjemahan listing di atas'));
+  L.push('');
+  L.push('SYMBOL TABLE:');
+  let addr=0x401126;
+  L.push('0000000000401000  F .text  _start          (dari crt1.o — runtime C)');
+  tu.funcs.forEach(f=>{ L.push(hex12(addr)+'  F .text  '+cxxMangle(f));
+    addr+=0x74; });
+  L.push('');
+  L.push('semua alamat masih 000000… — menunggu linker menautkan.');
+  return L.join('\n');
+}
+function exePanelText(tu,asmText){
+  const size=0x4000+asmText.length*9;
+  const L=[];
+  L.push('$ g++ main.o -o a.out        # linker: gabungkan objek + runtime + pustaka');
+  L.push('  menautkan: crt1.o · crti.o · main.o · libstdc++.so · libm.so · libc.so · crtn.o');
+  L.push('');
+  L.push('a.out — ELF 64-bit LSB executable, x86-64, dynamically linked');
+  L.push('  ukuran berkas : '+fmtBytes(size));
+  L.push('  entry point   : 0x401126  (_start → __libc_start_main → main)');
+  L.push('  simbol main   : '+hex12(0x401126+0x74*Math.max(0,tu.funcs.length-1))+'  [siap dieksekusi CPU]');
+  L.push('');
+  L.push(hexdump('a.out'+asmText.length,'potongan binary — kode mesin murni, tidak ada lagi teks C++'));
+  L.push('');
+  L.push('Mulai titik ini, "sumber" bagi CPU adalah berkas ini — bukan main.cpp.');
+  return {text:L.join('\n'),size};
+}
+
+/* ============================================================
+   PRESET PROGRAM
+============================================================ */
+const PRESETS=[
+{
+name:'01 · dasar',
+cpp:`#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string nama = "dunia";
+    int jumlah = 3;
+    double berat = 2.5;
+
+    cout << "Halo, " << nama << "!" << endl;
+    cout << "jumlah = " << jumlah << endl;
+    cout << "berat  = " << berat << endl;
+
+    jumlah = jumlah * 4 + 1;
+    cout << "jumlah sekarang = " << jumlah << endl;
+    return 0;
+}`,
+py:`nama = "dunia"
+jumlah = 3
+berat = 2.5
+
+print(f"Halo, {nama}!")
+print(f"jumlah = {jumlah}")
+print(f"berat  = {berat}")
+
+jumlah = jumlah * 4 + 1
+print(f"jumlah sekarang = {jumlah}")
+`
+},
+{
+name:'02 · fungsi & loop',
+cpp:`#include <iostream>
+using namespace std;
+
+int factorial(int n) {
+    int hasil = 1;
+    for (int i = 2; i <= n; i++) {
+        hasil = hasil * i;
+    }
+    return hasil;
+}
+
+bool isPrime(int n) {
+    if (n < 2) return false;
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) return false;
+    }
+    return true;
+}
+
+int main() {
+    cout << "Tabel faktorial:" << endl;
+    for (int n = 1; n <= 8; n++) {
+        cout << n << "! = " << factorial(n) << endl;
+    }
+    cout << "\\nBilangan prima < 30:" << endl;
+    for (int n = 2; n < 30; n++) {
+        if (isPrime(n)) cout << n << " ";
+    }
+    cout << endl;
+    return 0;
+}`,
+py:`def factorial(n):
+    hasil = 1
+    for i in range(2, n + 1):
+        hasil = hasil * i
+    return hasil
+
+def is_prime(n):
+    if n < 2:
+        return False
+    i = 2
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += 1
+    return True
+
+print("Tabel faktorial:")
+for n in range(1, 9):
+    print(f"{n}! = {factorial(n)}")
+
+print("\\nBilangan prima < 30:")
+for n in range(2, 30):
+    if is_prime(n):
+        print(n, end=" ")
+print()
+`
+},
+{
+name:'03 · momen error',
+cpp:`#include <iostream>
+using namespace std;
+
+int main() {
+    int total = 0;
+    for (int i = 1; i <= 5; i++) {
+        total = total + i;
+    }
+    cout << "total = " << total << endl;
+    cout << hasil << endl;   // belum pernah dideklarasikan!
+    return 0;
+}`,
+py:`total = 0
+for i in range(1, 6):
+    total = total + i
+
+print(f"total = {total}")
+print(hasil)   # belum pernah didefinisikan!
+`
+}];
+
+/* ============================================================
+   MEMBANGUN UI
+============================================================ */
+const Sides={};
+
+function buildSide(rootId,cfg){
+  const root=document.getElementById(rootId);
+  root.innerHTML=`
+    <div class="side-head">
+      <div class="lang-badge">${cfg.badge}</div>
+      <div class="meta">${cfg.meta}<br><b>${cfg.kind}</b></div>
+      <div class="chipfile">—</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn run">${ICONS.play}<span>${cfg.runLabel}</span></button>
+      <button class="btn re" hidden>${ICONS.bolt}<span>jalankan binary lagi</span></button>
+      <span class="srcstat">—</span>
+    </div>
+    <div class="editor"></div>
+    <div class="stages">${cfg.stages.map(s=>
+      `<div class="chip" data-stage="${s.k}"><i class="fill"></i><b>${s.label}</b><span class="ct"></span></div>`).join('')}
+    </div>
+    <div class="tabs">${cfg.tabs.map((t,i)=>
+      `<button data-tab="${t.k}" class="${i===0?'on':''}">${t.label}</button>`).join('')}
+    </div>
+    <div class="panels">${cfg.tabs.map((t,i)=>
+      `<div class="panel ${i===0?'on':''}" data-panel="${t.k}">${t.k==='stdout'?'':'<pre></pre>'}</div>`).join('')}
+    </div>
+    <div class="statusbar"><span class="live"></span><span class="stat">—</span></div>`;
+
+  const editor=new Editor(root.querySelector('.editor'),cfg.lang);
+  const S={
+    cfg,editor,root,running:false,pinned:false,
+    binary:null,lastTu:null,runs:[],
+    runBtn:root.querySelector('.btn.run'),
+    rerunBtn:root.querySelector('.btn.re'),
+    binChip:root.querySelector('.chipfile'),
+    srcstat:root.querySelector('.srcstat'),
+    live:root.querySelector('.live'),
+    stat:root.querySelector('.stat'),
+    conEl:root.querySelector('.panel[data-panel=stdout]'),
+    chips:{},panels:{},conBuf:'',curEl:null
+  };
+  root.querySelectorAll('.chip').forEach(c=>S.chips[c.dataset.stage]={el:c,ct:c.querySelector('.ct')});
+  root.querySelectorAll('.panel').forEach(p=>S.panels[p.dataset.panel]=p);
+  root.querySelectorAll('.tabs button').forEach(b=>{
+    b.addEventListener('click',()=>{ S.pinned=true; setTab(S,b.dataset.tab); });
+  });
+  S.runBtn.addEventListener('click',()=>cfg.runner());
+  if(cfg.rerunner)S.rerunBtn.addEventListener('click',()=>cfg.rerunner());
+  editor.onChange=()=>{
+    S.srcstat.textContent=(editor.value.split('\n').length)+' baris';
+    cfg.onEdit&&cfg.onEdit(S);
+  };
+  return S;
+}
+
+function setTab(S,k){
+  S.root.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===k));
+  S.root.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.dataset.panel===k));
+}
+function autoTab(S,k){ if(!S.pinned)setTab(S,k); }
+function chipOn(S,k,dur){
+  const c=S.chips[k];
+  c.el.className='chip'; void c.el.offsetWidth;
+  c.el.style.setProperty('--d',Math.max(1,dur/SPEED)+'ms');
+  c.el.className='chip active'; c.ct.textContent='…';
+}
+function chipDone(S,k,simMs){ const c=S.chips[k]; c.el.className='chip done'; c.ct.textContent=fmtMs(simMs); }
+function chipErr(S,k){ const c=S.chips[k]; c.el.className='chip err'; c.ct.textContent='gagal'; }
+function chipReset(S,k){ const c=S.chips[k]; c.el.className='chip'; c.ct.textContent=''; }
+function chipsReset(S){ Object.keys(S.chips).forEach(k=>chipReset(S,k)); }
+function scrollCon(S){ S.conEl.scrollTop=S.conEl.scrollHeight; }
+function conH(S,t){ const d=document.createElement('div'); d.className='con-h'; d.textContent=t;
+  S.conEl.appendChild(d); }
+function appendCon(S,text,cls){
+  const d=document.createElement('div'); d.className='con-ln '+(cls||'');
+  d.textContent=text; S.conEl.appendChild(d); scrollCon(S); return d;
+}
+const conErr=(S,t)=>appendCon(S,t,'err');
+const conNote=(S,t)=>appendCon(S,t,'note');
+const conOk=(S,t)=>appendCon(S,t,'ok');
+function conRaw(S,chunk){
+  S.conBuf=(S.conBuf||'')+chunk;
+  let ix;
+  while((ix=S.conBuf.indexOf('\n'))>=0){
+    appendCon(S,S.conBuf.slice(0,ix));
+    S.conBuf=S.conBuf.slice(ix+1);
+  }
+  if(S.curEl){ if(!S.conBuf){S.curEl=null;} else S.curEl.textContent=S.conBuf; }
+  else if(S.conBuf){ S.curEl=appendCon(S,S.conBuf); }
+}
+async function revealInto(S,key,text,chunkN,targetMs){
+  const panel=S.panels[key];
+  let pre=panel.querySelector('pre');
+  if(!pre){ panel.innerHTML=''; pre=document.createElement('pre'); panel.appendChild(pre); }
+  const lines=String(text).split('\n');
+  const chunks=Math.max(1,Math.ceil(lines.length/chunkN));
+  const per=Math.max(3,Math.round(targetMs/chunks));
+  pre.textContent='';
+  for(let i=0;i<lines.length;i+=chunkN){
+    pre.textContent+=lines.slice(i,i+chunkN).join('\n')+'\n';
+    panel.scrollTop=panel.scrollHeight;
+    await dslay(per);
+  }
+  return chunks*per;
+}
+function setPanelHint(S,key,hint){
+  const panel=S.panels[key]; panel.innerHTML='';
+  const pre=document.createElement('pre'); pre.textContent=hint; panel.appendChild(pre);
+}
+function resetVisual(S){
+  S.conEl.innerHTML=''; S.conBuf=''; S.curEl=null; S.pinned=false;
+  chipsReset(S); S.editor.clearActive();
+  S.live.textContent=''; S.stat.textContent='—';
+  S.cfg.tabKeys.forEach((k,i)=>setPanelHint(S,k,S.cfg.tabHints[i]));
+}
+function setStatus(S,t){ S.stat.textContent=t; }
+function setLive(S,t){ S.live.textContent=t; }
+function internalErr(S,stage,err){
+  chipErr(S,stage);
+  autoTab(S,'stdout');
+  if(!S.conEl.querySelector('.con-h'))conH(S,'stderr');
+  conErr(S,'kesalahan internal simulator pada tahap "'+stage+'": '+((err&&err.message)||String(err)));
+  setStatus(S,'kesalahan internal — tahap '+stage);
+}
+
+/* ============================================================
+   DRIVER C++ — setiap tahap terisolasi, UI selalu pulih
+============================================================ */
+async function runCpp(){
+  const S=Sides.cpp;
+  if(S.running)return;
+  S.running=true; S.runBtn.disabled=true; S.rerunBtn.disabled=true;
+  resetVisual(S);
+  const src=S.editor.value;
+  try{
+    /* 1 — PRA-PROSES */
+    chipOn(S,'pp',420); autoTab(S,'pp');
+    let pre;
+    try{ pre=cxxPreprocess(src); }
+    catch(e){ internalErr(S,'pp',e); return; }
+    const t1=(await revealInto(S,'pp',pre.text,2,360))+60;
+    chipDone(S,'pp',t1);
+
+    /* 2 — KOMPILASI: parse + normalisasi + semantik + assembly */
+    chipOn(S,'cc',1500); autoTab(S,'cc');
+    let tu;
+    try{ tu=cxxParse(src); cxxSemanticCheck(tu); }
+    catch(err){
+      chipErr(S,'cc'); autoTab(S,'stdout'); conH(S,'stderr (gcc)');
+      if(err&&err.cxxCompile){
+        conErr(S,'main.cpp:'+err.line+': error: '+err.msg);
+        conErr(S,'compilation terminated.');
+        conNote(S,'kompilasi gagal — tidak ada binary baru. Perbaiki main.cpp, lalu bangun ulang.');
+        setStatus(S,'kompilasi gagal — error tertangkap SEBELUM program berjalan');
+        updateBinChip(S,'gagal');
+      }else{
+        conErr(S,'kesalahan internal simulator pada tahap "cc": '+((err&&err.message)||String(err)));
+        setStatus(S,'kesalahan internal — tahap cc');
+      }
+      return;
+    }
+    let asmText;
+    try{ asmText=cxxAsmText(tu); }
+    catch(e){ internalErr(S,'cc',e); return; }
+    const t2=(await revealInto(S,'cc',asmText,4,760+asmText.split('\n').length*2))+120;
+    chipDone(S,'cc',t2);
+
+    /* 3 — ASSEMBLE */
+    chipOn(S,'as',620); autoTab(S,'as');
+    let objText;
+    try{ objText=objPanelText(tu,asmText); }
+    catch(e){ internalErr(S,'as',e); return; }
+    const t3=(await revealInto(S,'as',objText,3,430))+70;
+    chipDone(S,'as',t3);
+
+    /* 4 — LINK */
+    chipOn(S,'ld',640); autoTab(S,'ld');
+    let exe;
+    try{ exe=exePanelText(tu,asmText); }
+    catch(e){ internalErr(S,'ld',e); return; }
+    const t4=(await revealInto(S,'ld',exe.text,4,500))+90;
+    chipDone(S,'ld',t4);
+    S.binary={size:exe.size,src}; S.lastTu=tu;
+    updateBinChip(S,'ok');
+    S.rerunBtn.hidden=false;
+
+    /* 5 — EKSEKUSI binary */
+    chipOn(S,'run',800);
+    autoTab(S,'stdout'); conH(S,'stdout');
+    setLive(S,'CPU menjalankan a.out — instruksi mesin, bukan lagi baris C++');
+    await dslay(140);
+    const lines=[]; let buf='',outChars=0,outTrunc=false;
+    const ctx={ops:0,iters:0,out:t=>{
+      if(outTrunc)return;
+      outChars+=t.length;
+      if(outChars>OUT_CHAR_CAP){outTrunc=true;return;}
+      buf+=t;
+      let ix; while((ix=buf.indexOf('\n'))>=0){lines.push(buf.slice(0,ix));buf=buf.slice(ix+1);}
+    }};
+    let exit=0,err=null;
+    const t0=performance.now();
+    try{ exit=cxxRun(tu,ctx); }
+    catch(e){ err=e; }
+    const execMs=performance.now()-t0;
+    if(buf)lines.push(buf);
+    const showN=Math.min(lines.length,SHOW_LINE_CAP);
+    for(let i=0;i<showN;i++){ appendCon(S,lines[i]); if(i<80&&i%2===1)await dslay(14); }
+    if(lines.length>showN)conNote(S,'[… '+(lines.length-showN)+' baris lainnya tidak ditampilkan — batas tampilan simulasi]');
+    if(outTrunc)conNote(S,'[output program dipotong — melebihi 60.000 karakter simulasi]');
+    if(err){
+      chipErr(S,'run');
+      conErr(S,err.cxxRuntime?err.msg:('runtime error: '+((err&&err.message)||err)));
+      conNote(S,'[proses a.out berhenti tidak normal]');
+      setStatus(S,'binary '+fmtBytes(exe.size)+' · runtime error setelah '+fmtMs(execMs));
+    }else{
+      chipDone(S,'run',execMs);
+      conOk(S,'[proses a.out selesai · exit '+exit+' · '+fmtMs(execMs)+' · kontrol kembali ke OS]');
+      setStatus(S,'toolchain '+fmtMs(t1+t2+t3+t4)+' (simulasi) · binary '+fmtBytes(exe.size)+' · eksekusi '+fmtMs(execMs)+' · exit '+exit);
+    }
+    setLive(S,'');
+    recordRun(S,t1+t2+t3+t4,execMs);
+  }catch(e){
+    internalErr(S,'run',e);
+  }finally{
+    S.running=false; S.runBtn.disabled=false; S.rerunBtn.disabled=false;
+  }
+}
+async function rerunCpp(){
+  const S=Sides.cpp;
+  if(S.running||!S.lastTu)return;
+  S.running=true; S.runBtn.disabled=true; S.rerunBtn.disabled=true;
+  try{
+    S.conEl.innerHTML=''; S.conBuf=''; S.curEl=null; S.pinned=false;
+    chipReset(S,'run');
+    autoTab(S,'stdout'); conH(S,'stdout');
+    setLive(S,'binary yang SAMA dieksekusi lagi — nol waktu kompilasi');
+    await dslay(120);
+    const lines=[]; let buf='',outChars=0,outTrunc=false;
+    const ctx={ops:0,iters:0,out:t=>{
+      if(outTrunc)return;
+      outChars+=t.length;
+      if(outChars>OUT_CHAR_CAP){outTrunc=true;return;}
+      buf+=t;
+      let ix; while((ix=buf.indexOf('\n'))>=0){lines.push(buf.slice(0,ix));buf=buf.slice(ix+1);}
+    }};
+    let exit=0,err=null;
+    const t0=performance.now();
+    try{ exit=cxxRun(S.lastTu,ctx); }
+    catch(e){ err=e; }
+    const execMs=performance.now()-t0;
+    if(buf)lines.push(buf);
+    const showN=Math.min(lines.length,SHOW_LINE_CAP);
+    for(let i=0;i<showN;i++){ appendCon(S,lines[i]); if(i<80&&i%2===1)await dslay(14); }
+    if(lines.length>showN)conNote(S,'[… '+(lines.length-showN)+' baris lainnya tidak ditampilkan]');
+    if(outTrunc)conNote(S,'[output program dipotong — melebihi 60.000 karakter simulasi]');
+    if(err){ chipErr(S,'run'); conErr(S,err.cxxRuntime?err.msg:String(err.message||err)); }
+    else{
+      chipDone(S,'run',execMs);
+      conOk(S,'[a.out dijalankan ulang · 0 ms kompilasi · exit '+exit+']');
+      setStatus(S,'tanpa build ulang · binary sama · eksekusi '+fmtMs(execMs)+' · exit '+exit);
+    }
+    setLive(S,'');
+    recordRun(S,0,execMs);
+  }finally{
+    S.running=false; S.runBtn.disabled=false; S.rerunBtn.disabled=false;
+  }
+}
+function updateBinChip(S,state){
+  const el=S.binChip;
+  if(state==='gagal'){ el.className='chipfile warn'; el.textContent='build gagal — tidak ada a.out baru'; return; }
+  if(!S.binary){ el.className='chipfile'; el.textContent='a.out — belum dibangun'; return; }
+  if(S.editor.value!==S.binary.src){
+    el.className='chipfile warn';
+    el.textContent='a.out kadaluarsa — sumber berubah · binary lama masih ada ('+fmtBytes(S.binary.size)+')';
+  }else{
+    el.className='chipfile';
+    el.textContent='a.out · '+fmtBytes(S.binary.size)+' · sinkron dengan sumber';
+  }
+}
+
+/* ============================================================
+   DRIVER PYTHON
+============================================================ */
+const BASE_STEP=16;
+async function runPy(){
+  const S=Sides.py;
+  if(S.running)return;
+  S.running=true; S.runBtn.disabled=true;
+  resetVisual(S);
+  const src=S.editor.value;
+  try{
+    /* 1 — LEKSIKAL */
+    chipOn(S,'lex',420); autoTab(S,'tok');
+    let tokens;
+    try{ tokens=pyTokenize(src); }
+    catch(e){ internalErr(S,'lex',e); return; }
+    S.panels.tok.innerHTML=pyTokenChips(tokens);
+    S.panels.tok.scrollTop=0;
+    await dslay(380);
+    chipDone(S,'lex',380);
+
+    /* 2 — PARSING */
+    chipOn(S,'parse',540); autoTab(S,'ast');
+    let mod;
+    try{ mod=new PyParser(tokens).parseModule(); }
+    catch(err){
+      chipErr(S,'parse');
+      autoTab(S,'stdout'); conH(S,'stderr (CPython)');
+      conErr(S,'Traceback (most recent call last):');
+      conErr(S,'  File "main.py", line '+(err.line||'?'));
+      conErr(S,'SyntaxError: '+err.message);
+      conNote(S,'parsing gagal — bytecode tidak dibuat; tidak ada yang dieksekusi.');
+      setStatus(S,'parse gagal — error sintaks tertangkap sebelum eksekusi');
+      return;
+    }
+    let astText;
+    try{ astText=pyAstTree(mod); }
+    catch(e){ internalErr(S,'parse',e); return; }
+    const t2=(await revealInto(S,'ast',astText,2,420))+60;
+    chipDone(S,'parse',t2);
+
+    /* 3 — BYTECODE */
+    chipOn(S,'gen',520); autoTab(S,'bc');
+    let dis;
+    try{ dis=pyDisasmText(mod); }
+    catch(e){ internalErr(S,'gen',e); return; }
+    const t3=(await revealInto(S,'bc',dis.text,3,440))+50;
+    chipDone(S,'gen',t3);
+
+    /* 4 — VM LOOP: baris demi baris */
+    chipOn(S,'vm',4000);
+    autoTab(S,'stdout'); conH(S,'stdout');
+    const ctx={buf:'',steps:0,iters:0,frames:1,line:1,waitMs:0,outChars:0,truncOut:false,
+      flush(){ if(this.buf){ conRaw(S,this.buf); this.buf=''; } }};
+    const g=pyRun(mod.body,{vars:new Map(),parent:null},ctx);
+    const t0=performance.now();
+    let err=null;
+    while(true){
+      let r;
+      try{ r=g.next(); }
+      catch(e){ err=e; break; }
+      if(r.done)break;
+      const info=r.value;
+      if(info){
+        ctx.line=info.line;
+        /* throttle DOM: update highlight setiap langkah hanya di awal,
+           setelah itu tiap 100 langkah — loop besar tidak membekukan UI */
+        if(ctx.steps<=2500||ctx.steps%100===0){
+          S.editor.setActiveLine(info.line);
+          setLive(S,'baris '+info.line+' · '+info.note+' · '+ctx.frames+' frame · '+ctx.steps+' langkah VM');
+        }
+      }
+      ctx.flush();
+      if(ctx.steps<=2200){ ctx.waitMs+=BASE_STEP/SPEED; await dslay(BASE_STEP); }
+      if(ctx.steps>400000){ err=pyExc('RuntimeError','terlalu banyak langkah — dihentikan'); break; }
+    }
+    ctx.flush();
+    S.editor.clearActive();
+    if(ctx.truncOut)conNote(S,'[output program dipotong — melebihi 60.000 karakter simulasi]');
+    const execMs=Math.max(0.05,performance.now()-t0-ctx.waitMs);
+    const nTok=tokens.filter(t=>t.t!=='NL'&&t.t!=='EOF'&&t.t!=='INDENT'&&t.t!=='DEDENT').length;
+    if(err){
+      chipErr(S,'vm');
+      conErr(S,'Traceback (most recent call last):');
+      conErr(S,'  File "main.py", line '+ctx.line);
+      conErr(S,(err.pyType||'RuntimeError')+': '+err.message);
+      conNote(S,'[program berhenti — pada interpreter, output yang sudah tercetak tetap tampil]');
+      setStatus(S,nTok+' token · '+dis.ops+' op bytecode · '+ctx.steps+' langkah VM · error runtime');
+    }else{
+      chipDone(S,'vm',execMs);
+      conOk(S,'[program selesai · exit 0 · '+ctx.steps+' langkah VM dieksekusi]');
+      setStatus(S,nTok+' token · '+dis.ops+' op bytecode · '+ctx.steps+' langkah VM · eksekusi ~'+fmtMs(execMs));
+    }
+    setLive(S,'');
+    recordRun(S,380+t2+t3,execMs);
+  }catch(e){
+    internalErr(S,'vm',e);
+  }finally{
+    S.running=false; S.runBtn.disabled=false;
+  }
+}
+
+/* ============================================================
+   SPINE — perbandingan & run log
+============================================================ */
+function recordRun(S,build,exec){
+  S.runs.push({build,exec});
+  renderRuns();
+}
+function renderRuns(){
+  const el=document.getElementById('runlogBody');
+  const c=Sides.cpp.runs,p=Sides.py.runs;
+  const n=Math.max(c.length,p.length);
+  if(!n){
+    el.innerHTML='<div class="rl-empty">Belum ada eksekusi tercatat.<br>Jalankan satu sisi — atau keduanya sekaligus.</div>';
+    return;
+  }
+  let html='';
+  for(let i=0;i<n;i++){
+    const rc=c[i],rp=p[i];
+    const maxT=Math.max(rc?rc.build+rc.exec:0,rp?rp.build+rp.exec:0,1);
+    html+='<div class="rl-row"><span class="rl-i">#'+(i+1)+'</span><div>';
+    html+=rlLine('cpp','C++',rc,maxT);
+    html+=rlLine('py','PY',rp,maxT);
+    html+='</div></div>';
+  }
+  el.innerHTML=html;
+}
+function rlLine(side,who,r,maxT){
+  if(!r)return '<div class="rl-line '+side+'"><span class="who">'+who+'</span><div class="track"></div><span class="tt">—</span></div>';
+  const wA=Math.min(100,r.build/maxT*100);
+  const wE=Math.max(1.2,r.exec/maxT*100);
+  return '<div class="rl-line '+side+'"><span class="who">'+who+'</span>'+
+    '<div class="track"><i class="a" style="width:'+wA+'%"></i><i class="e" style="left:'+wA+'%;width:'+wE+'%"></i></div>'+
+    '<span class="tt">'+fmtMs(r.build)+' + '+fmtMs(r.exec)+'</span></div>';
+}
+function buildSpine(){
+  document.getElementById('spine').innerHTML=`
+    <div>
+      <div class="spine-title">Pertarungan dua model</div>
+      <div class="spine-sub">Kiri ditempa menjadi mesin sekali jalan.<br>Kanan diterjemahkan ulang setiap kali berjalan.</div>
+    </div>
+    <button class="btn" id="runBoth">${ICONS.both}<span>JALANKAN KEDUANYA</span></button>
+    <div class="presets" id="presets"></div>
+    <div class="ledger">
+      <div class="row"><div class="a">&nbsp;</div><div class="c xcpp"><b>C++ — g++</b></div><div class="c xpy"><b>Python — CPython</b></div></div>
+      <div class="row"><div class="a">analisis sumber</div><div class="c xcpp">sekali per <b>build</b>, sebelum program berjalan</div><div class="c xpy"><b>setiap kali</b> dijalankan</div></div>
+      <div class="row"><div class="a">artefak</div><div class="c xcpp"><b>a.out</b> — ELF x86-64 (kode mesin)</div><div class="c xpy">bytecode di memori (tak tersimpan)</div></div>
+      <div class="row"><div class="a">eksekusi</div><div class="c xcpp">CPU menjalankan instruksi mesin langsung</div><div class="c xpy">VM membaca & mengeksekusi <b>per baris</b></div></div>
+      <div class="row"><div class="a">jalankan ulang</div><div class="c xcpp">instan — binary tinggal dieksekusi</div><div class="c xpy">ulangi: token → AST → bytecode → VM</div></div>
+      <div class="row"><div class="a">kode diubah</div><div class="c xcpp">wajib build ulang; <b>binary lama tetap bisa jalan</b></div><div class="c xpy">langsung memakai kode baru</div></div>
+      <div class="row"><div class="a">saat error</div><div class="c xcpp">kompilasi gagal — program <b>tidak pernah jalan</b></div><div class="c xpy">sebagian output bisa tercetak dulu, lalu error</div></div>
+    </div>
+    <div class="runlog">
+      <div class="rl-title">Run log — build + eksekusi</div>
+      <div id="runlogBody"></div>
+      <div class="legend">
+        <span><i style="background:#8f887a;opacity:.45"></i>analisis / kompilasi</span>
+        <span><i style="background:#8f887a"></i>eksekusi program</span>
+      </div>
+      <div class="rl-cap">Perhatikan: eksekusi C++ nyaris tak terlihat setelah run #1 — kompilasi sudah dibayar. Python membayar "penerjemahan" di setiap run. Waktu build/parse disimulasikan; waktu eksekusi diukur sungguhan.</div>
+    </div>
+    <div class="footnote">Parser, evaluator, dan toolchain tiruan ini seluruhnya berjalan di browser-mu — dalam satu berkas HTML, tanpa server.</div>`;
+  document.getElementById('runBoth').addEventListener('click',()=>{ runCpp(); runPy(); });
+  const pr=document.getElementById('presets');
+  PRESETS.forEach((P,i)=>{
+    const b=document.createElement('button');
+    b.textContent=P.name;
+    b.addEventListener('click',()=>setPreset(i));
+    pr.appendChild(b);
+  });
+}
+
+/* ============================================================
+   PRESET & INISIALISASI
+============================================================ */
+let CUR=1;
+function setPreset(i){
+  CUR=i;
+  document.querySelectorAll('#presets button').forEach((b,j)=>b.classList.toggle('on',j===i));
+  const P=PRESETS[i];
+  Sides.cpp.binary=null; Sides.cpp.lastTu=null;
+  Sides.cpp.runs=[]; Sides.py.runs=[];
+  Sides.cpp.rerunBtn.hidden=true;
+  Sides.cpp.editor.setVal(P.cpp);
+  Sides.py.editor.setVal(P.py);
+  resetVisual(Sides.cpp); resetVisual(Sides.py);
+  Sides.py.binChip.className='chipfile';
+  Sides.py.binChip.textContent='main.py · tanpa artefak permanen';
+  updateBinChip(Sides.cpp);
+  renderRuns();
+}
+function init(){
+  Sides.cpp=buildSide('sideCpp',{
+    lang:'cpp',badge:'C++',meta:'g++ 13.2 · -O2 · x86-64',kind:'TERKOMPILASI',
+    runLabel:'bangun & jalankan',runner:runCpp,rerunner:rerunCpp,
+    stages:[{k:'pp',label:'PRA-PROSES'},{k:'cc',label:'KOMPILASI'},{k:'as',label:'ASSEMBLE'},{k:'ld',label:'LINK'},{k:'run',label:'EKSEKUSI'}],
+    tabs:[{k:'stdout',label:'stdout'},{k:'pp',label:'main.i'},{k:'cc',label:'main.s'},{k:'as',label:'main.o'},{k:'ld',label:'a.out'}],
+    tabKeys:['stdout','pp','cc','as','ld'],
+    tabHints:['— belum ada output','— belum dipra-proses','— belum dikompilasi','— belum diassemble','— belum ada binary'],
+    onEdit:S=>updateBinChip(S)
+  });
+  Sides.py=buildSide('sidePy',{
+    lang:'py',badge:'Python',meta:'CPython 3.12 · dis · VM loop',kind:'INTERPRETASI',
+    runLabel:'jalankan (interpretasi)',runner:runPy,
+    stages:[{k:'lex',label:'LEKSIKAL'},{k:'parse',label:'PARSING'},{k:'gen',label:'BYTECODE'},{k:'vm',label:'VM LOOP'}],
+    tabs:[{k:'stdout',label:'stdout'},{k:'tok',label:'tokens'},{k:'ast',label:'ast'},{k:'bc',label:'bytecode'}],
+    tabKeys:['stdout','tok','ast','bc'],
+    tabHints:['— belum ada output','— belum ditokenisasi','— belum diparse','— belum ada bytecode'],
+    onEdit:S=>{ S.binChip.className='chipfile';
+      S.binChip.textContent='main.py · '+(S.editor.value.split('\n').length)+' baris · tanpa artefak permanen'; }
+  });
+  buildSpine();
+  document.getElementById('resetAll').innerHTML=ICONS.undo+'<span>reset kode</span>';
+  document.getElementById('resetAll').addEventListener('click',()=>setPreset(CUR));
+  const sp=document.getElementById('speed'),spv=document.getElementById('speedVal');
+  sp.addEventListener('input',()=>{ SPEED=+sp.value; spv.textContent=SPEED+'×'; });
+  setPreset(1);
+  setTimeout(()=>{ runCpp(); runPy(); },700);
+}
+init();
+</script>
+</body>
+</html>
