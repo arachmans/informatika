@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomi Interpreter Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f2ea; --bg2:#fcfaf4; --bg3:#efe9db; --bg4:#e7e0cf;
+  --line:#ddd5c2; --line2:#c3b795;
+  --ink:#2a241a; --dim:#6d6150; --faint:#a09473;
+  --amber:#a8660b; --amber2:#8a5a10; --amberbg:rgba(168,102,11,.12);
+  --red:#b5432c; --green:#587c31; --teal:#23695c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;
+  display:flex;flex-direction:column;overflow:hidden}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px;border:2px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
+*{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.hidden{display:none!important}
+
+/* ===== HEADER ===== */
+header{flex:none;display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:12px 20px;border-bottom:1px solid var(--line);background:var(--bg2)}
+.brand h1{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;font-size:27px;line-height:1;color:var(--ink)}
+.brand h1 span{color:var(--amber)}
+.brand .sub{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin-top:5px}
+.pipeline{display:flex;align-items:center}
+.pip{display:flex;align-items:center;gap:9px;padding:5px 14px;position:relative}
+.pip .n{font-size:10px;color:var(--faint);border:1px solid var(--line2);padding:1px 5px;border-radius:3px}
+.pip b{display:block;font-size:11px;letter-spacing:.13em;font-weight:600;color:var(--faint)}
+.pip i{display:block;font-size:9px;font-style:normal;color:var(--faint);margin-top:1px}
+.pip+.pip::before{content:'';position:absolute;left:-13px;top:50%;width:26px;height:1px;background:var(--line2)}
+.pip.active b{color:var(--amber)} .pip.active .n{color:var(--amber);border-color:var(--amber2);background:var(--amberbg)}
+.pip.active i{color:var(--dim)}
+.pip.done b{color:var(--dim)} .pip.done .n{color:var(--amber);background:var(--amberbg);border-color:transparent}
+.pip.errp b{color:var(--red)} .pip.errp .n{color:var(--red);border-color:var(--red)}
+
+/* ===== LAYOUT ===== */
+main{flex:1;display:flex;min-height:0}
+.col-src{width:37%;min-width:360px;display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0}
+.col-mac{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.panel{display:flex;flex-direction:column;min-height:0}
+.p-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:7px 12px;border-bottom:1px solid var(--line);background:var(--bg2)}
+.p-title{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--dim)}
+.p-note{font-size:9.5px;color:var(--faint)}
+
+/* ===== EDITOR ===== */
+.src-panel{flex:1;min-height:0}
+.editor{flex:1;display:flex;min-height:0;background:var(--bg)}
+.gutter{flex:none;width:44px;overflow:hidden;border-right:1px solid var(--line);background:var(--bg2);
+  text-align:right;color:var(--faint);font-size:11px;line-height:21px}
+#gutterIn{padding:10px 8px 10px 0;will-change:transform}
+.code-wrap{flex:1;position:relative;min-width:0;overflow:hidden}
+#codeCanvas{position:absolute;left:0;top:0;will-change:transform}
+#hl{font:12.5px/21px 'IBM Plex Mono',monospace;padding:10px 14px;tab-size:4;
+  white-space:pre;pointer-events:none;color:var(--dim)}
+#src{position:absolute;inset:0;width:100%;height:100%;
+  font:12.5px/21px 'IBM Plex Mono',monospace;padding:10px 14px;tab-size:4;
+  background:transparent;color:transparent;caret-color:var(--amber);
+  border:0;outline:0;resize:none;overflow:auto;white-space:pre;wrap:off;z-index:2}
+#src::selection{background:rgba(168,102,11,.22);color:transparent}
+.tk{border-radius:2px;transition:opacity .22s}
+.tk-KEYWORD{color:var(--red)} .tk-NUMBER{color:var(--amber)} .tk-STRING{color:var(--green)}
+.tk-NAME{color:var(--ink)} .tk-OP{color:var(--dim)} .tk-BI{color:var(--teal)}
+.code-wrap.dim .tk{opacity:.22}
+.code-wrap.dim .tk.lit{opacity:1}
+.code-wrap .tk.cur{background:var(--amberbg)}
+.line-hl{position:absolute;left:0;width:4000px;height:21px;background:var(--amberbg);
+  border-left:2px solid var(--amber);opacity:0;transition:top .16s,opacity .2s;pointer-events:none}
+
+/* ===== CONSOLE ===== */
+.console{flex:none;height:168px;border-top:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg2)}
+.console .body{flex:1;overflow-y:auto;padding:8px 14px;font-size:12px}
+.console-empty{color:var(--faint);font-size:11px}
+.out-line{color:var(--ink);animation:fadeUp .25s;white-space:pre-wrap;word-break:break-all}
+.out-line.err{color:var(--red)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+
+/* ===== PANEL FASE ===== */
+.phase{flex:1.25;min-height:0;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;align-items:flex-end}
+.tab{padding:6px 13px 7px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);cursor:pointer;border:1px solid transparent;border-bottom:none;
+  border-radius:4px 4px 0 0;user-select:none;background:transparent}
+.tab.dis{cursor:default}
+.tab.ok:hover{color:var(--ink)}
+.tab.act{color:var(--amber);background:var(--bg2);border-color:var(--line)}
+.phase-body{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bg2)}
+.view{display:none;flex:1;min-height:0}
+.view.act{display:flex;flex-direction:column;min-height:0}
+#viewTok.act,#viewAst.act{overflow:auto}
+.placeholder{color:var(--faint);font-size:11.5px;padding:28px 16px;line-height:1.6}
+.placeholder b{color:var(--amber);font-weight:500}
+.phase-desc{flex:none;min-height:34px;padding:7px 14px;font-size:10.5px;line-height:1.55;
+  color:var(--dim);border-top:1px solid var(--line);background:var(--bg)}
+.phase-desc.err{color:var(--red)}
+
+/* token chips */
+.tokflow{display:flex;flex-wrap:wrap;gap:6px;padding:13px}
+.tchip{display:inline-flex;align-items:baseline;gap:7px;border:1px solid var(--line2);border-radius:4px;
+  padding:3px 8px;font-size:11px;background:var(--bg);opacity:0;transform:translateY(4px);transition:.22s}
+.tchip.on{opacity:1;transform:none}
+.tchip.cur{border-color:var(--amber);background:var(--amberbg)}
+.tchip i{font-style:normal;font-size:8.5px;letter-spacing:.1em;color:var(--faint)}
+.tchip b{font-weight:400;color:var(--ink)}
+.tchip.t-KEYWORD i{color:var(--red)} .tchip.t-NUMBER i{color:var(--amber)}
+.tchip.t-STRING i{color:var(--green)}
+.tchip.t-WS{opacity:0}
+.tchip.t-WS.on{opacity:.55}
+
+/* ast */
+.astwrap{padding:14px}
+.astwrap svg{display:block}
+.astn{opacity:0;transition:opacity .3s}
+.astn.on{opacity:1}
+.astn rect{fill:#f8f4e9;stroke:#d5cab0}
+.astn.stmt rect{stroke:#bd8f3c}
+.astn text{fill:var(--ink);font-size:10.5px;font-family:'IBM Plex Mono',monospace}
+.astn.const text{fill:var(--green)}
+.aste{stroke:#c9b98f;fill:none;opacity:0;transition:opacity .3s}
+.aste.on{opacity:1}
+.asthint{color:var(--faint);font-size:10px;padding:0 14px 12px}
+
+/* bytecode */
+.bcview{flex:1;min-height:0;display:flex;flex-direction:column}
+.bc-tabs{flex:none;display:flex;gap:4px;padding:8px 10px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.bc-tab{padding:4px 11px 5px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;
+  color:var(--faint);border:1px solid var(--line2);border-radius:4px 4px 0 0;background:var(--bg);cursor:pointer}
+.bc-tab.act{color:var(--amber);background:var(--bg3)}
+.bcl{flex:1;min-height:0;overflow:auto;position:relative;padding:8px 0 14px}
+.bclg{display:grid;grid-template-columns:34px 152px 1fr 40px;padding:0 16px 0 58px;margin-bottom:5px;
+  font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.bcr{display:grid;grid-template-columns:34px 152px 1fr 40px;padding:0 16px 0 58px;
+  line-height:21px;font-size:11.5px;opacity:.18;transition:opacity .22s;position:relative;
+  border-radius:3px;white-space:nowrap;cursor:default}
+.bcr.on{opacity:1}
+.bcr .a{color:var(--faint)} .bcr .o{color:var(--ink);font-weight:500}
+.bcr .g{color:var(--dim);overflow:hidden;text-overflow:ellipsis}
+.bcr .l{color:var(--faint);text-align:right}
+.bcr.cur{background:var(--amberbg)}
+.bcr.cur .o{color:var(--amber)}
+.bcr.cur::before{content:'▸';position:absolute;left:45px;color:var(--amber)}
+.bcr.next{background:rgba(168,102,11,.07);box-shadow:inset 2px 0 0 var(--amber2)}
+.arcs{position:absolute;left:4px;top:0;pointer-events:none}
+.arcs path{stroke:var(--amber);stroke-width:1.3;fill:none;opacity:.85;
+  stroke-dasharray:1;stroke-dashoffset:1;animation:arcDraw .5s forwards}
+.arcs circle{fill:var(--amber);opacity:0;animation:arcDot .3s .3s forwards}
+@keyframes arcDraw{to{stroke-dashoffset:0}}
+@keyframes arcDot{to{opacity:1}}
+
+/* ===== STACK & VARS ===== */
+.lower{flex:.9;display:flex;min-height:0}
+.stackcol{width:236px;border-right:1px solid var(--line);display:flex;flex-direction:column}
+.frames{flex:none;padding:8px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;
+  gap:4px;max-height:104px;overflow:auto;background:var(--bg)}
+.fchip{font-size:10px;padding:3px 8px;border:1px solid var(--line2);border-radius:3px;
+  color:var(--dim);background:var(--bg2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fchip:hover{color:var(--ink)}
+.fchip.cur{color:var(--amber);border-color:var(--amber2);background:var(--amberbg)}
+.fr-empty{font-size:10px;color:var(--faint)}
+.stackbody{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;
+  padding:10px;overflow:auto;position:relative}
+.stk-empty{color:var(--faint);font-size:11px;text-align:center}
+.sitem{border:1px solid var(--line2);background:var(--bg3);border-radius:4px;padding:4px 8px;
+  display:flex;align-items:baseline;gap:8px;font-size:12px}
+.sitem .i{font-size:9px;color:var(--faint);width:12px;flex:none}
+.sitem .v{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sitem .t{font-size:8.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;flex:none}
+.sitem.new{animation:pushIn .22s}
+@keyframes pushIn{from{opacity:0;transform:translateY(-10px);border-color:var(--amber)}to{opacity:1;transform:none}}
+.ghost{position:absolute;top:8px;right:10px;font-size:10px;color:var(--red);
+  background:rgba(181,67,44,.08);border:1px solid rgba(181,67,44,.45);padding:2px 7px;
+  border-radius:3px;pointer-events:none;z-index:5;animation:ghostUp .62s forwards}
+@keyframes ghostUp{0%{opacity:0;transform:translateY(6px)}25%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+.varscol{flex:1;display:flex;flex-direction:column;min-width:0}
+.varsbody{flex:1;overflow:auto;padding:8px 12px}
+.vsec{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:8px 0 4px}
+.vsec:first-child{margin-top:0}
+.vrow{display:flex;gap:9px;padding:2px 7px;font-size:12px;border-radius:3px}
+.vrow .n{color:var(--amber)} .vrow .eq{color:var(--faint)}
+.vrow .val{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vrow.chg{animation:chgFade 1s}
+@keyframes chgFade{0%{background:var(--amberbg)}100%{background:transparent}}
+.vempty{font-size:10.5px;color:var(--faint);padding:1px 7px}
+
+/* ===== CONTROLS & STATUS ===== */
+.controls{flex:none;display:flex;align-items:center;gap:12px;padding:10px 20px;
+  border-top:1px solid var(--line);background:var(--bg2)}
+.btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;padding:8px 15px;border:1px solid var(--line2);background:var(--bg);
+  color:var(--dim);border-radius:4px;cursor:pointer}
+.btn:hover{color:var(--ink);border-color:var(--faint)}
+.btn svg{width:12px;height:12px;flex:none}
+.btn.primary{background:#b4710e;border-color:#b4710e;color:#fff8ec;font-weight:600}
+.btn.primary:hover{background:#c67f14;border-color:#c67f14;color:#fff8ec}
+#examples{font:inherit;font-size:11.5px;background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236d6150' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;
+  color:var(--ink);border:1px solid var(--line2);border-radius:4px;padding:7px 32px 7px 10px;
+  appearance:none;-webkit-appearance:none;cursor:pointer}
+#examples:hover{border-color:var(--faint)}
+#examples option{background:var(--bg2);color:var(--ink)}
+.speed{display:flex;align-items:center;gap:9px;margin-left:auto}
+.speed .sl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+#spdLab{font-size:10px;color:var(--dim);width:38px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:130px;height:2px;background:var(--line2);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--amber);border:3px solid var(--bg2);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:var(--amber);border:2px solid var(--bg2);cursor:pointer}
+.status{flex:none;display:flex;align-items:center;gap:16px;padding:5px 20px;border-top:1px solid var(--line);
+  font-size:11px;background:var(--bg);color:var(--dim)}
+.status .ph{color:var(--amber);font-weight:600;letter-spacing:.1em;flex:none;min-width:130px}
+.status .ph.err{color:var(--red)}
+.status .msg{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status .stats{flex:none;color:var(--faint);font-size:10px}
+
+@media (max-width:960px){
+  body{overflow:auto}
+  main{flex-direction:column}
+  .col-src{width:100%;min-width:0;border-right:0;border-bottom:1px solid var(--line)}
+  .editor{min-height:220px}
+  .phase{min-height:320px}
+  .lower{flex-direction:column}
+  .stackcol{width:100%;border-right:0;border-bottom:1px solid var(--line)}
+  .pipeline{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Anatomi Interpreter <span>Python</span></h1>
+    <div class="sub">dari teks ke bytecode — ditelusuri langkah demi langkah</div>
+  </div>
+  <div class="pipeline" id="pipeline">
+    <div class="pip"><span class="n">01</span><div><b>LEXER</b><i>token</i></div></div>
+    <div class="pip"><span class="n">02</span><div><b>PARSER</b><i>ast</i></div></div>
+    <div class="pip"><span class="n">03</span><div><b>KOMPILATOR</b><i>bytecode</i></div></div>
+    <div class="pip"><span class="n">04</span><div><b>MESIN VIRTUAL</b><i>eksekusi</i></div></div>
+  </div>
+</header>
+
+<main>
+  <section class="col-src">
+    <div class="panel src-panel">
+      <div class="p-head"><span class="p-title">Kode Sumber</span><span class="p-note" id="srcNote">dapat diedit</span></div>
+      <div class="editor">
+        <div class="gutter"><div id="gutterIn"></div></div>
+        <div class="code-wrap" id="codeWrap">
+          <div id="codeCanvas">
+            <div class="line-hl" id="lineHl"></div>
+            <pre id="hl" aria-hidden="true"></pre>
+          </div>
+          <textarea id="src" spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="console">
+      <div class="p-head"><span class="p-title">stdout</span><span class="p-note" id="outNote"></span></div>
+      <div class="body" id="outBody"><div class="console-empty">— belum ada keluaran —</div></div>
+    </div>
+  </section>
+
+  <section class="col-mac">
+    <div class="phase panel">
+      <div class="p-head">
+        <div class="tabs" id="tabs">
+          <div class="tab" data-tab="tok">Token</div>
+          <div class="tab" data-tab="ast">AST</div>
+          <div class="tab" data-tab="bc">Bytecode</div>
+        </div>
+        <span class="p-note" id="phNote">—</span>
+      </div>
+      <div class="phase-body">
+        <div class="view act" id="viewTok">
+          <div class="placeholder" id="phTok">— aliran token akan muncul di sini.<br>Tekan <b>Jalankan</b> atau <b>Langkah</b> untuk memulai.</div>
+          <div class="tokflow hidden" id="tokFlow"></div>
+        </div>
+        <div class="view" id="viewAst">
+          <div class="placeholder" id="phAst">— pohon sintaks (AST) akan digambar di sini —</div>
+          <div class="astwrap hidden" id="astWrap"></div>
+        </div>
+        <div class="view" id="viewBc">
+          <div class="placeholder" id="phBc">— daftar instruksi bytecode akan muncul di sini —</div>
+          <div class="bcview hidden" id="bcView">
+            <div class="bc-tabs" id="bcTabs"></div>
+            <div class="bcl" id="bcl"></div>
+          </div>
+        </div>
+      </div>
+      <div class="phase-desc" id="phaseDesc"></div>
+    </div>
+
+    <div class="lower">
+      <div class="stackcol panel">
+        <div class="p-head"><span class="p-title">Value Stack</span><span class="p-note" id="stkNote">kedalaman 0</span></div>
+        <div class="frames" id="frames"><span class="fr-empty">call stack: menunggu eksekusi…</span></div>
+        <div class="stackbody" id="stackBody"><div class="stk-empty">menunggu eksekusi…</div></div>
+      </div>
+      <div class="varscol panel">
+        <div class="p-head"><span class="p-title">Variabel</span><span class="p-note">namespace</span></div>
+        <div class="varsbody" id="varsBody"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="controls">
+  <select id="examples" title="pilih contoh program"></select>
+  <button class="btn" id="resetBtn" title="reset seluruh simulasi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/></svg>
+    Reset
+  </button>
+  <button class="btn" id="stepBtn" title="maju satu langkah (spasi = jalankan/jeda)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 5v14l9-7z"/><rect x="16" y="5" width="3" height="14"/></svg>
+    Langkah
+  </button>
+  <button class="btn primary" id="runBtn">
+    <span id="runIco"></span><span id="runLab">Jalankan</span>
+  </button>
+  <div class="speed">
+    <span class="sl">kecepatan</span>
+    <input type="range" id="spd" min="0" max="9" step="1" value="6">
+    <span id="spdLab"></span>
+  </div>
+</footer>
+
+<div class="status">
+  <span class="ph" id="stPh">SIAP</span>
+  <span class="msg" id="stMsg"></span>
+  <span class="stats" id="stStats"></span>
+</div>
+
+<script>
+/* ================= UTIL ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const clampN=(a,b,c)=>Math.max(a,Math.min(b,c));
+const trunc=(s,n)=>{const t=String(s==null?'':s);return t.length>n?t.slice(0,n-1)+'…':t;};
+const errPy=(t,m,stage)=>{const e=new Error(m);e.pyType=t;e.errStage=stage;return e;};
+
+/* ================= REPRESENTASI NILAI ================= */
+function typeName(v){
+  if(v===null)return 'none'; if(typeof v==='boolean')return 'bool';
+  if(typeof v==='number')return Number.isInteger(v)?'int':'float';
+  if(typeof v==='string')return 'str'; if(Array.isArray(v))return 'list';
+  if(v&&v.__py==='range')return 'range'; if(v&&v.__py==='iter')return 'iter';
+  if(v&&v.__py==='function')return 'function'; if(v&&v.__py==='builtin')return 'builtin';
+  return 'obj';
+}
+function pyRepr(v){
+  if(v===null)return 'None'; if(v===true)return 'True'; if(v===false)return 'False';
+  if(typeof v==='number')return String(v);
+  if(typeof v==='string')return "'"+v+"'";
+  if(Array.isArray(v))return '['+v.map(pyRepr).join(', ')+']';
+  if(v&&v.__py==='range')return 'range('+v.start+', '+v.stop+(v.step!==1?', '+v.step:'')+')';
+  if(v&&v.__py==='function')return '<function '+v.name+'>';
+  if(v&&v.__py==='builtin')return '<built-in '+v.name+'>';
+  if(v&&v.__py==='iter')return '<iterator>';
+  return String(v);
+}
+const pyStr=v=>typeof v==='string'?v:pyRepr(v);
+const truthy=v=>!(v===false||v===null||v===0||v===''||(Array.isArray(v)&&v.length===0));
+
+function pyEq(a,b){
+  const num=v=>typeof v==='number'||typeof v==='boolean';
+  if(num(a)&&num(b))return +a===+b;
+  if(typeof a==='string'&&typeof b==='string')return a===b;
+  if(a===null&&b===null)return true;
+  if(Array.isArray(a)&&Array.isArray(b))return a.length===b.length&&a.every((x,i)=>pyEq(x,b[i]));
+  return false;
+}
+function binop(a,op,b){
+  const an=typeof a==='number', bn=typeof b==='number';
+  if(an&&bn){
+    switch(op){
+      case '+':return a+b; case '-':return a-b; case '*':return a*b;
+      case '/': if(b===0)throw errPy('ZeroDivisionError','pembagian dengan nol','exec'); return a/b;
+      case '//': if(b===0)throw errPy('ZeroDivisionError','pembagian dengan nol','exec'); return Math.floor(a/b);
+      case '%': if(b===0)throw errPy('ZeroDivisionError','modulo dengan nol','exec'); return ((a%b)+b)%b;
+      case '**':return Math.pow(a,b);
+    }
+  }
+  if(typeof a==='string'&&typeof b==='string'&&op==='+')return a+b;
+  if(typeof a==='string'&&bn&&op==='*')return a.repeat(Math.max(0,Math.floor(b)));
+  if(typeof b==='string'&&an&&op==='*')return b.repeat(Math.max(0,Math.floor(a)));
+  if(Array.isArray(a)&&Array.isArray(b)&&op==='+')return a.concat(b);
+  throw errPy('TypeError','tidak mendukung '+pyRepr(a)+' '+op+' '+pyRepr(b),'exec');
+}
+function cmpop(a,op,b){
+  if(op==='==')return pyEq(a,b);
+  if(op==='!=')return !pyEq(a,b);
+  const num=v=>typeof v==='number'||typeof v==='boolean';
+  if(num(a)&&num(b)){a=+a;b=+b;switch(op){case '<':return a<b;case '<=':return a<=b;case '>':return a>b;case '>=':return a>=b;}}
+  if(typeof a==='string'&&typeof b==='string'){switch(op){case '<':return a<b;case '<=':return a<=b;case '>':return a>b;case '>=':return a>=b;}}
+  throw errPy('TypeError','tidak dapat membandingkan '+typeName(a)+' dan '+typeName(b)+" dengan '"+op+"'",'exec');
+}
+
+/* ================= 01 · LEXER ================= */
+const KW=new Set(['if','elif','else','while','for','in','def','return','True','False','None','and','or','not']);
+const OPS2=['**','//','==','!=','<=','>=','+=','-=','*='];
+const OPS1='+-*/%()=<>,:[].';
+const BUILTINS={print:1,range:1,len:1};
+const SESC={'n':'\n','t':'\t','\\':'\\','"':'"',"'":"'"};
+
+function lex(src){
+  const toks=[]; let i=0,line=1,atBOL=true,lineHasTok=false,paren=0;
+  const indents=[0];
+  const T=(type,value,s,e)=>toks.push({type,value,line,start:s,end:e});
+  const fail=(m,c)=>{const e=errPy('SyntaxError',m+' (kolom '+(c+1)+')','lex');e.line=line;throw e;};
+  while(i<src.length){
+    const c=src[i];
+    if(c==='\n'){
+      i++;
+      if(lineHasTok&&paren===0)T('NEWLINE',null);
+      lineHasTok=false; atBOL=true; line++;
+      continue;
+    }
+    /* pengukuran lekukan dilakukan SEBELUM spasi dilewati */
+    if(atBOL&&paren===0){
+      let j=i,ind=0;
+      while(j<src.length&&(src[j]===' '||src[j]==='\t')){ind+=(src[j]==='\t'?8:1);j++;}
+      if(j>=src.length){i=j;continue;}
+      if(src[j]==='\n'){i=j;continue;}
+      if(src[j]==='\r'){i=j+1;continue;}
+      if(src[j]==='#'){while(j<src.length&&src[j]!=='\n')j++;i=j;continue;}
+      i=j;
+      if(ind>indents[indents.length-1]){indents.push(ind);T('INDENT',ind);}
+      else while(ind<indents[indents.length-1]){indents.pop();T('DEDENT',ind);}
+      atBOL=false;
+      continue;
+    }
+    if(c===' '||c==='\t'||c==='\r'){i++;continue;}
+    if(c==='#'){while(i<src.length&&src[i]!=='\n')i++;continue;}
+    atBOL=false; lineHasTok=true;
+    const s=i;
+    if(/[0-9]/.test(c)||(c==='.'&&/[0-9]/.test(src[i+1]||''))){
+      let j=i; while(j<src.length&&/[0-9]/.test(src[j]))j++;
+      let f=false;
+      if(src[j]==='.'&&/[0-9]/.test(src[j+1]||'')){f=true;j++;while(j<src.length&&/[0-9]/.test(src[j]))j++;}
+      const tx=src.slice(i,j);
+      if(/[A-Za-z_]/.test(src[j]||''))fail('karakter tak terduga setelah angka: \''+src[j]+'\'',j);
+      T('NUMBER',f?parseFloat(tx):parseInt(tx,10),s,j); i=j; continue;
+    }
+    if(/[A-Za-z_]/.test(c)){
+      let j=i; while(j<src.length&&/[A-Za-z0-9_]/.test(src[j]))j++;
+      const tx=src.slice(i,j);
+      T(KW.has(tx)?'KEYWORD':'NAME',tx,s,j); i=j; continue;
+    }
+    if(c==='"'||c==="'"){
+      let j=i+1,s2='';
+      while(j<src.length&&src[j]!==c){
+        if(src[j]==='\n')fail('string belum ditutup',s);
+        if(src[j]==='\\'){s2+=SESC[src[j+1]]||src[j+1];j+=2;continue;}
+        s2+=src[j]; j++;
+      }
+      if(j>=src.length)fail('string belum ditutup',s);
+      j++; T('STRING',s2,s,j); i=j; continue;
+    }
+    const two=src.substr(i,2);
+    if(OPS2.includes(two)){T('OP',two,s,i+2);i+=2;continue;}
+    if(OPS1.includes(c)){
+      if(c==='('||c==='[')paren++;
+      if(c===')'||c===']')paren=Math.max(0,paren-1);
+      T('OP',c,s,i+1); i++; continue;
+    }
+    fail('karakter tak dikenal: \''+c+'\'',i);
+  }
+  if(lineHasTok)T('NEWLINE',null);
+  while(indents.length>1){indents.pop();T('DEDENT',0);}
+  T('EOF',null);
+  return toks;
+}
+
+/* ================= 02 · PARSER (AST) ================= */
+function parse(toks){
+  let p=0;
+  /* t() SELALU mengembalikan token (fallback ke EOF) */
+  const t=()=>toks[p]||toks[toks.length-1];
+  /* PENTING: ambil token dengan toks[p++] — bukan p++ (yang hanya
+     mengembalikan angka indeks). Kesalahan inilah yang membuat
+     operator + - * / / / % menjadi undefined di versi sebelumnya. */
+  const eat=()=>toks[p++];
+  const pk=(k)=>toks[Math.min(p+(k||0),toks.length-1)];
+  const fail=(m,tk)=>{const e=errPy('SyntaxError',m,'parse');e.line=tk?tk.line:undefined;throw e;};
+  const expect=(type,val)=>{const tk=toks[p];
+    if(!tk||tk.type!==type||(val!==undefined&&tk.value!==val))fail('diharapkan '+(val||type),tk);
+    p++; return tk;};
+  const isKw=w=>t().type==='KEYWORD'&&t().value===w;
+  const isOp=o=>t().type==='OP'&&t().value===o;
+  const skipNl=()=>{while(t().type==='NEWLINE')p++;};
+
+  /* penutup pernyataan — dicek SEBELUM konsumsi */
+  function stmtEnd(prev){
+    const tt=t().type;
+    if(tt==='EOF'||tt==='DEDENT')return;
+    if(tt==='NEWLINE'){skipNl();return;}
+    if(prev&&['If','While','For','FuncDef'].includes(prev.kind))return;
+    fail('diharapkan akhir baris',t());
+  }
+
+  function parseProgram(){
+    const body=[]; skipNl();
+    while(t().type!=='EOF'){
+      if(t().type==='DEDENT'){p++;continue;}
+      const s=parseStmt();
+      body.push(s);
+      stmtEnd(s);
+    }
+    return {kind:'Module',body};
+  }
+
+  function parseStmt(){
+    const tk=t();
+    if(tk.type==='KEYWORD'){
+      switch(tk.value){
+        case 'if':return parseIf('if');
+        case 'while':{p++;const c=parseExpr(),b=parseBlock();return{kind:'While',cond:c,body:b,line:tk.line};}
+        case 'for':{p++;const tg=expect('NAME').value;expect('KEYWORD','in');
+          const it=parseExpr(),b=parseBlock();return{kind:'For',target:tg,iter:it,body:b,line:tk.line};}
+        case 'def':return parseDef();
+        case 'return':{p++;let v=null;
+          if(!['NEWLINE','EOF','DEDENT'].includes(t().type))v=parseExpr();
+          return{kind:'Return',value:v,line:tk.line};}
+      }
+    }
+    if(tk.type==='NAME'&&pk(1).type==='OP'){
+      if(pk(1).value==='='){
+        p+=2; return{kind:'Assign',target:tk.value,value:parseExpr(),line:tk.line};
+      }
+      if(['+=','-=','*='].includes(pk(1).value)){
+        const op=pk(1).value[0]; p+=2; const val=parseExpr();
+        return{kind:'Assign',target:tk.value,
+          value:{kind:'BinOp',op,left:{kind:'Name',id:tk.value,line:tk.line},right:val,line:tk.line},line:tk.line};
+      }
+    }
+    return{kind:'ExprStmt',value:parseExpr(),line:tk.line};
+  }
+
+  function parseBlock(){
+    expect('OP',':');
+    if(t().type!=='NEWLINE')fail("diharapkan baris baru setelah ':'",t());
+    skipNl();
+    if(t().type!=='INDENT')fail('blok harus berlekuk (indentasi)',t());
+    p++;
+    const body=[];
+    while(t().type!=='DEDENT'&&t().type!=='EOF'){
+      const s=parseStmt();
+      body.push(s);
+      stmtEnd(s);
+    }
+    if(t().type==='DEDENT')p++;
+    return body;
+  }
+
+  function parseIf(kw){
+    const tk=expect('KEYWORD',kw);
+    const cond=parseExpr(), body=parseBlock();
+    let orelse=[];
+    if(isKw('elif'))orelse=[parseIf('elif')];
+    else if(isKw('else')){p++;orelse=parseBlock();}
+    return{kind:'If',cond,body,orelse,line:tk.line};
+  }
+  function parseDef(){
+    const tk=expect('KEYWORD','def');
+    const name=expect('NAME').value;
+    expect('OP','(');
+    const params=[];
+    while(!isOp(')')){params.push(expect('NAME').value);if(isOp(','))p++;}
+    expect('OP',')');
+    const body=parseBlock();
+    return{kind:'FuncDef',name,params,body,line:tk.line};
+  }
+
+  /* ekspresi: or → and → not → compare → sum → term → unary → power → atom */
+  const parseExpr=()=>parseOr();
+  function parseOr(){let l=parseAnd();
+    while(isKw('or')){const tk=eat();const r=parseAnd();l={kind:'BoolOp',op:'or',left:l,right:r,line:tk.line};}return l;}
+  function parseAnd(){let l=parseNot();
+    while(isKw('and')){const tk=eat();const r=parseNot();l={kind:'BoolOp',op:'and',left:l,right:r,line:tk.line};}return l;}
+  function parseNot(){if(isKw('not')){const tk=eat();return{kind:'UnaryOp',op:'not',operand:parseNot(),line:tk.line};}return parseCmp();}
+  function parseCmp(){const l=parseSum();const tk=t();
+    if(tk.type==='OP'&&['==','!=','<','<=','>','>='].includes(tk.value)){
+      p++;return{kind:'Compare',op:tk.value,left:l,right:parseSum(),line:tk.line};}
+    return l;}
+  function parseSum(){let l=parseTerm();
+    while(isOp('+')||isOp('-')){const tk=eat();const r=parseTerm();l={kind:'BinOp',op:tk.value,left:l,right:r,line:tk.line};}return l;}
+  function parseTerm(){let l=parseUnary();
+    while(isOp('*')||isOp('/')||isOp('//')||isOp('%')){const tk=eat();const r=parseUnary();l={kind:'BinOp',op:tk.value,left:l,right:r,line:tk.line};}return l;}
+  function parseUnary(){
+    if(isOp('-')){const tk=eat();return{kind:'UnaryOp',op:'-',operand:parseUnary(),line:tk.line};}
+    return parsePow();
+  }
+  function parsePow(){const b=parseAtom();
+    if(isOp('**')){const tk=eat();return{kind:'BinOp',op:tk.value,left:b,right:parseUnary(),line:tk.line};}
+    return b;}
+  function parseAtom(){
+    const tk=t();
+    if(tk.type==='NUMBER'){p++;return{kind:'Num',value:tk.value,line:tk.line};}
+    if(tk.type==='STRING'){p++;return{kind:'Str',value:tk.value,line:tk.line};}
+    if(tk.type==='KEYWORD'){
+      if(tk.value==='True'){p++;return{kind:'Bool',value:true,line:tk.line};}
+      if(tk.value==='False'){p++;return{kind:'Bool',value:false,line:tk.line};}
+      if(tk.value==='None'){p++;return{kind:'None',line:tk.line};}
+      fail("ekspresi tak valid diawali '"+tk.value+"'",tk);
+    }
+    if(tk.type==='NAME'){
+      if(pk(1).type==='OP'&&pk(1).value==='('){
+        p+=2; const args=[];
+        if(!isOp(')')){args.push(parseExpr());while(isOp(',')){p++;if(isOp(')'))break;args.push(parseExpr());}}
+        expect('OP',')');
+        return{kind:'Call',func:tk.value,args,line:tk.line};
+      }
+      p++; return{kind:'Name',id:tk.value,line:tk.line};
+    }
+    if(isOp('(')){p++;const e=parseExpr();expect('OP',')');return e;}
+    if(isOp('[')){p++;const items=[];
+      if(!isOp(']')){items.push(parseExpr());while(isOp(',')){p++;if(isOp(']'))break;items.push(parseExpr());}}
+      expect('OP',']');
+      return{kind:'List',items,line:tk.line};}
+    fail('ekspresi tak valid',tk);
+  }
+  return parseProgram();
+}
+
+/* ================= 03 · KOMPILATOR (AST → BYTECODE) ================= */
+const instr=(op,arg,line)=>({op,arg,line:line||1});
+
+function compileProgram(ast){
+  const functions={};
+  const out=[];
+  function stmts(list){list.forEach(s=>stmt(s));}
+  function stmt(s){
+    const L=s.line||1;
+    switch(s.kind){
+      case 'Assign':
+        expr(s.value,out); out.push(instr('STORE_NAME',s.target,L)); break;
+      case 'ExprStmt':
+        expr(s.value,out); out.push(instr('POP',null,L)); break;
+      case 'If':{
+        expr(s.cond,out);
+        const jf=out.push(instr('POP_JUMP_IF_FALSE',null,L))-1;
+        stmts(s.body);
+        if(s.orelse.length){
+          const je=out.push(instr('JUMP_FORWARD',null,L))-1;
+          out[jf].arg=out.length;
+          stmts(s.orelse);
+          out[je].arg=out.length;
+        } else out[jf].arg=out.length;
+        break;
+      }
+      case 'While':{
+        const start=out.length;
+        expr(s.cond,out);
+        const jf=out.push(instr('POP_JUMP_IF_FALSE',null,L))-1;
+        stmts(s.body);
+        out.push(instr('JUMP_BACKWARD',start,L));
+        out[jf].arg=out.length;
+        break;
+      }
+      case 'For':{
+        expr(s.iter,out);
+        out.push(instr('GET_ITER',null,L));
+        const start=out.length;
+        const fi=out.push(instr('FOR_ITER',null,L))-1;
+        out.push(instr('STORE_NAME',s.target,L));
+        stmts(s.body);
+        out.push(instr('JUMP_BACKWARD',start,L));
+        out[fi].arg=out.length;
+        break;
+      }
+      case 'FuncDef':{
+        const code=[];
+        stmts(s.body);
+        code.push(instr('LOAD_CONST',null,L));
+        code.push(instr('RETURN_VALUE',null,L));
+        functions[s.name]={code,params:s.params};
+        out.push(instr('MAKE_FUNCTION',{name:s.name,params:s.params,code},L));
+        out.push(instr('STORE_NAME',s.name,L));
+        break;
+      }
+      case 'Return':{
+        if(s.value)expr(s.value,out);
+        else out.push(instr('LOAD_CONST',null,L));
+        out.push(instr('RETURN_VALUE',null,L));
+        break;
+      }
+    }
+  }
+  function expr(e,out){
+    const L=(e&&e.line)||1;
+    switch(e.kind){
+      case 'Num': case 'Str': case 'Bool': out.push(instr('LOAD_CONST',e.value,L));break;
+      case 'None': out.push(instr('LOAD_CONST',null,L));break;
+      case 'Name': out.push(instr('LOAD_NAME',e.id,L));break;
+      case 'BinOp': expr(e.left,out);expr(e.right,out);out.push(instr('BINARY_OP',e.op,L));break;
+      case 'Compare': expr(e.left,out);expr(e.right,out);out.push(instr('COMPARE_OP',e.op,L));break;
+      case 'UnaryOp': expr(e.operand,out);
+        out.push(instr(e.op==='not'?'UNARY_NOT':'UNARY_NEGATIVE',null,L));break;
+      case 'BoolOp':{
+        expr(e.left,out);
+        const j=out.push(instr(e.op==='and'?'JUMP_IF_FALSE_OR_POP':'JUMP_IF_TRUE_OR_POP',null,L))-1;
+        expr(e.right,out);
+        out[j].arg=out.length;
+        break;
+      }
+      case 'List': e.items.forEach(it=>expr(it,out));out.push(instr('BUILD_LIST',e.items.length,L));break;
+      case 'Call': out.push(instr('LOAD_NAME',e.func,L));
+        e.args.forEach(a=>expr(a,out));
+        out.push(instr('CALL',e.args.length,L));break;
+    }
+  }
+  stmts(ast.body);
+  const lastLine=ast.body.length?(ast.body[ast.body.length-1].line||1):1;
+  out.push(instr('LOAD_CONST',null,lastLine));
+  out.push(instr('RETURN_VALUE',null));
+  return {code:out,functions};
+}
+
+/* ================= 04 · MESIN VIRTUAL ================= */
+const mkFrame=(code,fnKey,name,locals)=>({code,fnKey,name,pc:0,stack:[],locals:locals||null});
+function createVM(code){return{frames:[mkFrame(code,'module','<modul>')],globals:{},out:[],steps:0,done:false};}
+
+function makeIter(v){
+  if(v&&v.__py==='range')return{__py:'iter',kind:'range',i:v.start,stop:v.stop,step:v.step};
+  if(Array.isArray(v))return{__py:'iter',kind:'list',arr:v,i:0};
+  if(typeof v==='string')return{__py:'iter',kind:'str',s:v,i:0};
+  throw errPy('TypeError',"'"+typeName(v)+"' tidak dapat diiterasi",'exec');
+}
+function iterNext(it){
+  if(it.kind==='range'){
+    if((it.step>0&&it.i<it.stop)||(it.step<0&&it.i>it.stop)){const v=it.i;it.i+=it.step;return{done:false,value:v};}
+    return{done:true};
+  }
+  if(it.kind==='list')return it.i<it.arr.length?{done:false,value:it.arr[it.i++]}:{done:true};
+  return it.i<it.s.length?{done:false,value:it.s[it.i++]}:{done:true};
+}
+function callBuiltin(name,args){
+  if(name==='print')return{__py:'print',text:args.map(pyStr).join(' ')};
+  if(name==='range'){
+    let a,b,c=1;
+    if(args.length===1){a=0;b=args[0];}
+    else if(args.length===2){a=args[0];b=args[1];}
+    else if(args.length===3){a=args[0];b=args[1];c=args[2];}
+    else throw errPy('TypeError','range() butuh 1–3 argumen','exec');
+    [a,b,c].forEach(v=>{if(typeof v!=='number')throw errPy('TypeError','argumen range() harus angka','exec');});
+    return{__py:'range',start:a,stop:b,step:c};
+  }
+  if(name==='len'){
+    const v=args[0];
+    if(typeof v==='string')return v.length;
+    if(Array.isArray(v))return v.length;
+    throw errPy('TypeError','len() butuh string atau list','exec');
+  }
+}
+
+function vmStep(vm){
+  const f=vm.frames[vm.frames.length-1];
+  if(f.pc>=f.code.length){vm.done=true;return{finish:true,ins:null,fnKey:f.fnKey,idx:f.pc,pops:[],pushes:[]};}
+  const idx=f.pc, ins=f.code[f.pc]; f.pc++; vm.steps++;
+  if(vm.steps>100000)throw errPy('RuntimeError','eksekusi melewati 100.000 langkah — kemungkinan perulangan tanpa henti','exec');
+  const fx={idx,ins,fnKey:f.fnKey,frameName:f.name,pops:[],pushes:[],jump:null,retFrame:false,
+    newFrame:null,varSet:null,output:null,switchBC:null,nextIdx:-1,nextFn:null,finish:false};
+  const push=v=>{f.stack.push(v);fx.pushes.push(v);};
+  const pop=()=>{const v=f.stack.pop();fx.pops.push(v);return v;};
+
+  switch(ins.op){
+    case 'LOAD_CONST': push(ins.arg); break;
+    case 'LOAD_NAME':{
+      let v;
+      if(f.locals&&Object.prototype.hasOwnProperty.call(f.locals,ins.arg))v=f.locals[ins.arg];
+      else if(Object.prototype.hasOwnProperty.call(vm.globals,ins.arg))v=vm.globals[ins.arg];
+      else if(BUILTINS[ins.arg])v={__py:'builtin',name:ins.arg};
+      else throw errPy('NameError',"nama '"+ins.arg+"' belum terdefinisi",'exec');
+      push(v); break;
+    }
+    case 'STORE_NAME':{
+      const v=pop();
+      if(f.locals){f.locals[ins.arg]=v;fx.varSet={scope:'lokal',name:ins.arg,value:v};}
+      else{vm.globals[ins.arg]=v;fx.varSet={scope:'global',name:ins.arg,value:v};}
+      break;
+    }
+    case 'BINARY_OP':{const b=pop(),a=pop();push(binop(a,ins.arg,b));break;}
+    case 'COMPARE_OP':{const b=pop(),a=pop();push(cmpop(a,ins.arg,b));break;}
+    case 'UNARY_NEGATIVE':{const a=pop();if(typeof a!=='number')throw errPy('TypeError','operand - harus angka','exec');push(-a);break;}
+    case 'UNARY_NOT':{const a=pop();push(!truthy(a));break;}
+    case 'POP': pop(); break;
+    case 'POP_JUMP_IF_FALSE':{
+      const v=pop();
+      if(!truthy(v)){f.pc=ins.arg;fx.jump={to:ins.arg,why:'kondisi '+trunc(pyRepr(v),8)+' → False'};}
+      break;
+    }
+    case 'JUMP_FORWARD': case 'JUMP_BACKWARD':
+      f.pc=ins.arg; fx.jump={to:ins.arg,why:ins.op==='JUMP_BACKWARD'?'kembali ke awal perulangan':'lompat'}; break;
+    case 'JUMP_IF_FALSE_OR_POP':{
+      const v=f.stack[f.stack.length-1];
+      if(!truthy(v)){f.pc=ins.arg;fx.jump={to:ins.arg,why:'short-circuit'};}else pop();
+      break;
+    }
+    case 'JUMP_IF_TRUE_OR_POP':{
+      const v=f.stack[f.stack.length-1];
+      if(truthy(v)){f.pc=ins.arg;fx.jump={to:ins.arg,why:'short-circuit'};}else pop();
+      break;
+    }
+    case 'BUILD_LIST':{const arr=[];for(let i=0;i<ins.arg;i++)arr.unshift(pop());push(arr);break;}
+    case 'GET_ITER':{push(makeIter(pop()));break;}
+    case 'FOR_ITER':{
+      const it=f.stack[f.stack.length-1];
+      if(!it||it.__py!=='iter')throw errPy('TypeError','FOR_ITER tanpa iterator di stack','exec');
+      const nx=iterNext(it);
+      if(nx.done){pop();f.pc=ins.arg;fx.jump={to:ins.arg,why:'iterasi habis'};}
+      else push(nx.value);
+      break;
+    }
+    case 'MAKE_FUNCTION':
+      push({__py:'function',name:ins.arg.name,params:ins.arg.params,code:ins.arg.code}); break;
+    case 'CALL':{
+      const n=ins.arg, args=[];
+      for(let i=0;i<n;i++)args.unshift(pop());
+      const fn=pop();
+      if(fn&&fn.__py==='builtin'){
+        const r=callBuiltin(fn.name,args);
+        if(r&&r.__py==='print'){fx.output=r.text;vm.out.push(r.text);push(null);break;}
+        push(r); break;
+      }
+      if(fn&&fn.__py==='function'){
+        if(args.length!==fn.params.length)
+          throw errPy('TypeError',fn.name+'() butuh '+fn.params.length+' argumen, diberikan '+args.length,'exec');
+        const locals={};fn.params.forEach((pm,i)=>locals[pm]=args[i]);
+        const nf=mkFrame(fn.code,fn.name,fn.name+'('+args.map(pyRepr).join(', ')+')',locals);
+        vm.frames.push(nf);
+        fx.newFrame={name:nf.name,bindings:locals};
+        fx.switchBC=fn.name;
+        break;
+      }
+      throw errPy('TypeError',"'"+pyRepr(fn)+"' tidak dapat dipanggil",'exec');
+    }
+    case 'RETURN_VALUE':{
+      const v=pop(); vm.frames.pop(); fx.retFrame=true;
+      if(vm.frames.length===0){vm.done=true;fx.finish=true;}
+      else{
+        const c=vm.frames[vm.frames.length-1];
+        c.stack.push(v); fx.pushes.push(v);
+        fx.switchBC=c.fnKey;
+        fx.nextIdx=c.pc-1; fx.nextFn=c.fnKey;
+      }
+      break;
+    }
+    default: throw errPy('RuntimeError','opcode tak dikenal: '+ins.op,'exec');
+  }
+  return fx;
+}
+
+/* ================= AST: LABEL & LAYOUT ================= */
+function astKids(n){
+  switch(n.kind){
+    case 'Module':return n.body;
+    case 'Assign':return[{kind:'Name',id:n.target,line:n.line},n.value];
+    case 'ExprStmt':return[n.value];
+    case 'If':{const k=[n.cond,{kind:'Block',label:'body',children:n.body,line:n.line}];
+      if(n.orelse.length)k.push({kind:'Block',label:'else',children:n.orelse,line:n.line});return k;}
+    case 'While':return[n.cond,{kind:'Block',label:'body',children:n.body,line:n.line}];
+    case 'For':return[n.iter,{kind:'Block',label:'body',children:n.body,line:n.line}];
+    case 'FuncDef':return[{kind:'Block',label:'body',children:n.body,line:n.line}];
+    case 'Return':return n.value?[n.value]:[];
+    case 'Block':return n.children;
+    case 'BinOp':case 'Compare':case 'BoolOp':return[n.left,n.right];
+    case 'UnaryOp':return[n.operand];
+    case 'Call':return n.args;
+    case 'List':return n.items;
+    default:return[];
+  }
+}
+function astLabel(n){
+  switch(n.kind){
+    case 'Module':return 'module';
+    case 'Assign':return 'assign '+(n.target!=null?n.target:'?');
+    case 'ExprStmt':return 'expr';
+    case 'If':return 'if';
+    case 'While':return 'while';
+    case 'For':return 'for '+(n.target!=null?n.target:'?');
+    case 'FuncDef':return 'def '+(n.name||'?')+'('+(n.params||[]).join(', ')+')';
+    case 'Return':return n.value?'return':'return None';
+    case 'Block':return n.label||'block';
+    case 'BinOp':case 'Compare':case 'BoolOp':return String(n.op||'?');
+    case 'UnaryOp':return n.op==='not'?'not':'neg';
+    case 'Call':return (n.func||'?')+'()';
+    case 'List':return 'list';
+    case 'Name':return String(n.id!=null?n.id:'?');
+    case 'Num':case 'Str':case 'Bool':return trunc(pyRepr(n.value),22);
+    case 'None':return 'None';
+    default:return String(n.kind||'node');
+  }
+}
+function buildAstView(root){
+  const order=[]; let cx=0, maxD=0;
+  const ROWH=46,NH=30,PADX=16,PADY=14,GAP=26;
+  const safeLabel=n=>{
+    let s='';
+    try{s=astLabel(n);}catch(e){s='';}
+    if(typeof s!=='string'||!s)s=(n&&n.kind)?String(n.kind):'node';
+    return s;
+  };
+  (function walk(n,d){
+    if(!n||typeof n!=='object'||!n.kind)return;
+    maxD=Math.max(maxD,d);
+    let kids=[];
+    try{kids=astKids(n)||[];}catch(e){kids=[];}
+    kids=kids.filter(k=>k&&typeof k==='object'&&k.kind);
+    n._kids=kids;
+    kids.forEach(k=>walk(k,d+1));
+    n._label=safeLabel(n);
+    n._w=clampN(54,n._label.length*7.1+26,240);
+    if(kids.length)n._cx=(kids[0]._cx+kids[kids.length-1]._cx)/2;
+    else{n._cx=cx+n._w/2;cx+=n._w+GAP;}
+    n._y=PADY+d*ROWH; n._idx=order.length; order.push(n);
+  })(root,0);
+  M.order=order;
+  const W=Math.max(cx-GAP,120)+PADX*2, H=PADY*2+(maxD+1)*ROWH-(ROWH-NH);
+  let edges='',nodes='';
+  order.forEach(n=>{
+    (n._kids||[]).forEach(k=>{
+      const py=n._y+NH, my=py+(k._y-py)/2;
+      edges+='<path class="aste" data-o="'+n._idx+'" d="M '+n._cx+' '+py+' L '+n._cx+' '+my+' L '+k._cx+' '+my+' L '+k._cx+' '+k._y+'"/>';
+    });
+  });
+  order.forEach(n=>{
+    const cls=(['Num','Str','Bool','None'].includes(n.kind))?'const':
+      (['Module','Assign','ExprStmt','If','While','For','FuncDef','Return','Block'].includes(n.kind))?'stmt':'';
+    nodes+='<g class="astn '+cls+'" data-i="'+n._idx+'" transform="translate('+(n._cx-n._w/2)+','+n._y+')">'+
+      '<rect width="'+n._w+'" height="'+NH+'" rx="4"/>'+
+      '<text x="'+(n._w/2)+'" y="'+(NH/2+4)+'">'+esc(trunc(n._label,26))+'</text></g>';
+  });
+  astWrap.innerHTML='<svg width="'+W+'" height="'+H+'" style="min-width:'+W+'px">'+edges+nodes+'</svg>'+
+    '<div class="asthint">simpul dibuat post-order: daun lebih dulu, lalu induknya — persis kapan recursive-descent parser "kembali" dari rekursinya.</div>';
+  M.astEls=astWrap.querySelectorAll('.astn');
+  M.astEdgeEls=astWrap.querySelectorAll('.aste');
+}
+
+/* ================= TOOLTIP OPCODE ================= */
+const OPHELP={
+  LOAD_CONST:'Taruh konstanta di puncak stack',
+  LOAD_NAME:'Cari nama (lokal → global → bawaan), taruh nilainya di stack',
+  STORE_NAME:'Ambil nilai dari puncak stack, simpan ke variabel',
+  BINARY_OP:'Pop dua nilai (kanan di puncak), hitung, push hasil',
+  COMPARE_OP:'Pop dua nilai, bandingkan, push True/False',
+  UNARY_NEGATIVE:'Pop nilai, push negatifnya',
+  UNARY_NOT:'Pop nilai, push kebalikan nilai-kebenarannya',
+  POP:'Buang nilai di puncak stack',
+  POP_JUMP_IF_FALSE:'Pop nilai; jika False → lompat ke target',
+  JUMP_FORWARD:'Lompat maju ke target (melompati blok else)',
+  JUMP_BACKWARD:'Lompat mundur ke target — inti dari perulangan',
+  JUMP_IF_FALSE_OR_POP:'Jika False: lompat (nilai dibiarkan); jika True: pop',
+  JUMP_IF_TRUE_OR_POP:'Jika True: lompat (nilai dibiarkan); jika False: pop',
+  GET_ITER:'Pop koleksi, push iterator-nya',
+  FOR_ITER:'Ambil item berikutnya → push; jika habis: pop iterator & lompat keluar',
+  BUILD_LIST:'Pop n nilai, bentuk list, push',
+  MAKE_FUNCTION:'Bentuk objek fungsi dari body yang telah dikompilasi',
+  CALL:'Pop n argumen + fungsi; buat frame baru (atau panggil bawaan)',
+  RETURN_VALUE:'Pop nilai balik, tutup frame, lanjutkan pemanggil',
+};
+function bcArg(ins){
+  if(ins.arg==null)return '';
+  switch(ins.op){
+    case 'LOAD_CONST':return trunc(pyRepr(ins.arg),24);
+    case 'MAKE_FUNCTION':return ins.arg.name;
+    case 'POP_JUMP_IF_FALSE':case 'JUMP_FORWARD':case 'JUMP_BACKWARD':case 'FOR_ITER':return '→ '+ins.arg;
+    case 'CALL':return ins.arg+' arg';
+    case 'BUILD_LIST':return ins.arg+' item';
+    default:return String(ins.arg);
+  }
+}
+
+/* ================= CONTOH PROGRAM ================= */
+const EXAMPLES=[
+ {name:'Perulangan & akumulasi (while)',
+  code:'total = 0\ni = 1\nwhile i <= 5:\n    total = total + i\n    i = i + 1\nprint(total)'},
+ {name:'Ekspresi & variabel',
+  code:'x = 5\ny = 3 * x + 2\nz = (x + y) / 7\nprint(z)'},
+ {name:'Percabangan if / elif / else',
+  code:'nilai = 87\nif nilai >= 90:\n    predikat = "sangat baik"\nelif nilai >= 80:\n    predikat = "baik"\nelse:\n    predikat = "cukup"\nprint(predikat)'},
+ {name:'Fungsi rekursif: faktorial',
+  code:'def faktorial(n):\n    if n <= 1:\n        return 1\n    return n * faktorial(n - 1)\n\nprint(faktorial(5))'},
+ {name:'for & range',
+  code:'for i in range(1, 6):\n    kuadrat = i * i\n    print(kuadrat)'},
+ {name:'String & list',
+  code:'buah = ["mangga", "pisang"]\njumlah = len(buah)\nbuah = buah + ["jeruk"]\nprint(buah)\nprint(jumlah)'},
+];
+
+/* ================= STATE APLIKASI ================= */
+const srcEl=$('src'), hlEl=$('hl'), canvas=$('codeCanvas'), lineHl=$('lineHl'),
+  gutterIn=$('gutterIn'), codeWrap=$('codeWrap'), outBody=$('outBody'), outNote=$('outNote'),
+  pipeline=$('pipeline'), tabsEl=$('tabs'), phNote=$('phNote'), phaseDesc=$('phaseDesc'),
+  phTok=$('phTok'), tokFlow=$('tokFlow'), phAst=$('phAst'), astWrap=$('astWrap'), viewAstEl=$('viewAst'),
+  phBc=$('phBc'), bcView=$('bcView'), bcTabs=$('bcTabs'), bcl=$('bcl'),
+  framesEl=$('frames'), stackBody=$('stackBody'), stkNote=$('stkNote'), varsBody=$('varsBody'),
+  runBtn=$('runBtn'), runIco=$('runIco'), runLab=$('runLab'), stepBtn=$('stepBtn'), resetBtn=$('resetBtn'),
+  spd=$('spd'), spdLab=$('spdLab'), examples=$('examples'), stPh=$('stPh'), stMsg=$('stMsg'),
+  stStats=$('stStats'), srcNote=$('srcNote');
+const pipEls=pipeline.querySelectorAll('.pip');
+const tabEls=tabsEl.querySelectorAll('.tab');
+
+const IC={
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>'
+};
+const SPEEDS=[1,1.5,2,3,4,6,8,12,16,24];
+let speedIdx=+spd.value;
+function freshM(){return{phase:'idle',tokens:null,ast:null,code:null,funcs:null,order:null,
+  lexI:0,astI:0,bcI:0,vm:null,lastFx:null,knownFuncs:[],bcTab:'module',tab:'tok',
+  reached:{lex:false,parse:false,compile:false,exec:false,done:false},
+  err:null,errPhaseIdx:-1,errShown:false,ghostStep:null};}
+let M=freshM();
+let auto=null, autoOn=false, outCount=0;
+
+/* ================= RENDER ================= */
+const show=(el,b)=>el.classList.toggle('hidden',!b);
+const PHIDX={idle:-1,lex:0,parse:1,compile:2,exec:3,done:4,error:-2};
+
+function renderAll(){
+  renderPipeline();renderTabs();renderTok();renderAst();renderBC();
+  renderStack();renderVars();renderConsole();renderEditorDecor();
+  renderStatus();renderPhaseDesc();renderPhNote();renderControls();
+}
+
+function renderPipeline(){
+  const seq=['lex','parse','compile','exec'];
+  seq.forEach((ph,i)=>{
+    pipEls[i].classList.remove('active','done','errp');
+    if(M.phase==='error'){
+      if(M.errPhaseIdx===i)pipEls[i].classList.add('errp');
+      else if(i<M.errPhaseIdx)pipEls[i].classList.add('done');
+    }else{
+      const pi=PHIDX[M.phase];
+      if(i<pi)pipEls[i].classList.add('done');
+      else if(i===pi)pipEls[i].classList.add('active');
+    }
+  });
+}
+function renderTabs(){
+  const ok={tok:M.reached.lex,ast:M.reached.parse,bc:M.reached.compile};
+  tabEls.forEach(el=>{
+    const k=el.dataset.tab;
+    el.classList.toggle('act',M.tab===k);
+    el.classList.toggle('ok',!!ok[k]);
+    el.classList.toggle('dis',!ok[k]);
+  });
+  ['tok','ast','bc'].forEach(k=>$('view'+k[0].toUpperCase()+k.slice(1)).classList.toggle('act',M.tab===k));
+}
+function renderPhNote(){
+  let s='—';
+  if(M.phase==='lex')s=M.tokens.length+' token';
+  else if(M.phase==='parse')s=M.astI+'/'+M.order.length+' simpul';
+  else if(M.phase==='compile')s=M.bcI+'/'+M.code.length+' instruksi';
+  else if(M.phase==='exec'||M.phase==='done')s='langkah '+M.vm.steps;
+  else if(M.phase==='error')s='gagal';
+  phNote.textContent=s;
+}
+function renderTok(){
+  if(!M.tokens){show(phTok,true);show(tokFlow,false);return;}
+  show(phTok,false);show(tokFlow,true);
+  tokFlow.innerHTML=M.tokens.map((t,i)=>{
+    const ws=['NEWLINE','INDENT','DEDENT','EOF'].includes(t.type);
+    const on=i<M.lexI, cur=(M.phase==='lex'&&i===M.lexI-1);
+    let v=t.value;
+    if(t.type==='STRING')v="'"+v+"'";
+    if(t.type==='NEWLINE')v='nl';
+    if(t.type==='INDENT')v='indent '+v;
+    if(t.type==='DEDENT')v='dedent';
+    if(t.type==='EOF')v='eof';
+    return '<span class="tchip t-'+(ws?'WS':t.type)+(on?' on':'')+(cur?' cur':'')+'"><i>'+t.type+'</i><b>'+esc(String(v))+'</b></span>';
+  }).join('');
+  const c=tokFlow.querySelector('.tchip.cur');
+  if(c)c.scrollIntoView({block:'nearest'});
+}
+function renderAst(){
+  if(!M.order){show(phAst,true);show(astWrap,false);return;}
+  show(phAst,false);show(astWrap,true);
+  M.astEls.forEach(g=>g.classList.toggle('on',+g.dataset.i<M.astI));
+  M.astEdgeEls.forEach(pth=>pth.classList.toggle('on',+pth.dataset.o<M.astI));
+  if(M.phase==='parse'&&M.astI>0){
+    const nd=M.order[M.astI-1];
+    if(nd&&typeof nd._cx==='number'&&typeof nd._y==='number'){
+      const vx=14+nd._cx, vy=14+nd._y;
+      const vw=viewAstEl.clientWidth, vh=viewAstEl.clientHeight;
+      if(vx-90<viewAstEl.scrollLeft||vx+90>viewAstEl.scrollLeft+vw)
+        viewAstEl.scrollLeft=Math.max(0,vx-vw/2);
+      if(vy-40<viewAstEl.scrollTop||vy+70>viewAstEl.scrollTop+vh)
+        viewAstEl.scrollTop=Math.max(0,vy-vh/2);
+    }
+  }
+}
+function renderBC(){
+  if(!M.code){show(phBc,true);show(bcView,false);return;}
+  show(phBc,false);show(bcView,true);
+  const tabs=[['module','MODUL']].concat(M.knownFuncs.map(n=>[n,n]));
+  bcTabs.innerHTML=tabs.map(([k,l])=>'<span class="bc-tab'+(M.bcTab===k?' act':'')+'" data-k="'+esc(k)+'">'+esc(l)+'</span>').join('');
+  const code=M.bcTab==='module'?M.code:(M.funcs[M.bcTab]&&M.funcs[M.bcTab].code)||[];
+  const allOn=M.bcTab!=='module'||M.phase==='exec'||M.phase==='done';
+  const fx=M.lastFx;
+  const curIdx=((M.phase==='exec'||M.phase==='done')&&fx&&fx.ins&&fx.fnKey===M.bcTab)?fx.idx:-1;
+  const nextIdx=(fx&&fx.nextFn===M.bcTab&&fx.nextIdx>=0&&(M.phase==='exec'||M.phase==='done'))?fx.nextIdx:-1;
+  let html='<div class="bclg"><span>#</span><span>opcode</span><span>argumen</span><span style="text-align:right">baris</span></div>';
+  html+=code.map((ins,i)=>{
+    const on=allOn||i<M.bcI, cur=i===curIdx, nx=i===nextIdx;
+    return '<div class="bcr'+(on?' on':'')+(cur?' cur':'')+(nx&&!cur?' next':'')+'" data-i="'+i+'" title="'+esc(OPHELP[ins.op]||'')+'">'+
+      '<span class="a">'+String(i).padStart(2,'0')+'</span><span class="o">'+ins.op+'</span>'+
+      '<span class="g">'+esc(bcArg(ins))+'</span><span class="l">'+(ins.line||'')+'</span></div>';
+  }).join('');
+  let arc='';
+  if(curIdx>=0&&fx&&fx.jump&&typeof fx.jump.to==='number'&&fx.jump.to<code.length){
+    const y0=8+curIdx*21+10.5, y1=8+fx.jump.to*21+10.5;
+    arc='<svg class="arcs" width="46" height="'+(8+code.length*21+8)+'">'+
+      '<path pathLength="1" d="M 41 '+y0+' C 12 '+y0+', 12 '+y1+', 41 '+y1+'"/><circle cx="41" cy="'+y1+'" r="2.6"/></svg>';
+  }
+  bcl.innerHTML=html+arc;
+  const r=bcl.querySelector('.bcr.cur');
+  if(r)r.scrollIntoView({block:'nearest'});
+}
+function renderStack(){
+  const f=M.vm&&M.vm.frames[M.vm.frames.length-1];
+  if(M.vm&&M.vm.frames.length){
+    framesEl.innerHTML=M.vm.frames.map((fr,i)=>
+      '<span class="fchip'+(i===M.vm.frames.length-1?' cur':'')+'" data-fk="'+esc(fr.fnKey)+'" title="frame: '+esc(fr.name)+'">'+esc(trunc(fr.name,26))+'</span>').join('');
+  }else{
+    framesEl.innerHTML='<span class="fr-empty">call stack: '+(M.vm?'— kosong —':'menunggu eksekusi…')+'</span>';
+  }
+  const stk=f?f.stack:[];
+  stkNote.textContent='kedalaman '+stk.length;
+  if(!stk.length){
+    stackBody.innerHTML='<div class="stk-empty">'+((M.phase==='exec'||M.phase==='done')?'— kosong —':'menunggu eksekusi…')+'</div>';
+  }else{
+    stackBody.innerHTML=stk.map((v,i)=>{
+      const nw=(i===stk.length-1)&&M.phase==='exec'&&M.lastFx&&M.lastFx.pushes.length>0;
+      return '<div class="sitem'+(nw?' new':'')+'"><span class="i">'+i+'</span>'+
+        '<span class="v">'+esc(trunc(pyRepr(v),16))+'</span><span class="t">'+typeName(v)+'</span></div>';
+    }).join('');
+    stackBody.scrollTop=stackBody.scrollHeight;
+  }
+  const fx=M.lastFx;
+  if(fx&&fx.pops.length&&M.phase==='exec'&&M.vm&&M.ghostStep!==M.vm.steps){
+    M.ghostStep=M.vm.steps;
+    const g=document.createElement('div');
+    g.className='ghost';
+    g.textContent='pop '+fx.pops.map(v=>trunc(pyRepr(v),12)).join(', ');
+    stackBody.appendChild(g);
+    setTimeout(()=>g.remove(),650);
+  }
+}
+function varRows(o,scope){
+  const keys=Object.keys(o);
+  if(!keys.length)return '';
+  return keys.map(k=>'<div class="vrow" data-vn="'+esc(k)+'" data-scope="'+scope+'">'+
+    '<span class="n">'+esc(k)+'</span><span class="eq">=</span>'+
+    '<span class="val">'+esc(trunc(pyRepr(o[k]),34))+'</span></div>').join('');
+}
+function renderVars(){
+  let html='<div class="vsec">global</div>';
+  const g=M.vm?M.vm.globals:{};
+  html+=varRows(g,'global')||'<div class="vempty">— kosong —</div>';
+  const f=M.vm&&M.vm.frames[M.vm.frames.length-1];
+  html+='<div class="vsec">lokal'+(f&&f.locals?' · '+esc(trunc(f.name,30)):'')+'</div>';
+  if(f&&f.locals)html+=varRows(f.locals,'lokal')||'<div class="vempty">— kosong —</div>';
+  else html+='<div class="vempty">— frame modul: tanpa variabel lokal —</div>';
+  varsBody.innerHTML=html;
+  const fx=M.lastFx;
+  if(fx&&fx.varSet&&M.phase==='exec'){
+    const row=varsBody.querySelector('.vrow[data-vn="'+CSS.escape(fx.varSet.name)+'"][data-scope="'+fx.varSet.scope+'"]');
+    if(row)row.classList.add('chg');
+  }
+}
+function renderConsole(){
+  const lines=M.vm?M.vm.out:[];
+  const anyErr=M.err&&!M.errShown;
+  if(!lines.length&&!anyErr&&outCount===0){
+    outBody.innerHTML='<div class="console-empty">— belum ada keluaran —</div>';
+    outNote.textContent='';return;
+  }
+  if(outCount===0)outBody.innerHTML='';
+  while(outCount<lines.length){
+    const d=document.createElement('div');
+    d.className='out-line';d.textContent=lines[outCount++];
+    outBody.appendChild(d);
+  }
+  if(anyErr){
+    M.errShown=true;
+    const d=document.createElement('div');
+    d.className='out-line err';
+    d.textContent=(M.err.pyType||'Error')+': '+M.err.message+(M.err.line?' — baris '+M.err.line:'');
+    outBody.appendChild(d);
+  }
+  outNote.textContent=lines.length?lines.length+' baris':'';
+  outBody.scrollTop=outBody.scrollHeight;
+}
+function scrollToY(y){
+  const h=srcEl.clientHeight;
+  if(y<srcEl.scrollTop+24||y>srcEl.scrollTop+h-40)
+    srcEl.scrollTop=Math.max(0,y-h/2);
+}
+function renderEditorDecor(){
+  if(M.phase==='lex'){
+    codeWrap.classList.add('dim');
+    const spans=hlEl.querySelectorAll('[data-ti]');
+    spans.forEach(sp=>{
+      const i=+sp.dataset.ti;
+      sp.classList.toggle('lit',i<M.lexI);
+      sp.classList.toggle('cur',i===M.lexI-1);
+    });
+    const cur=hlEl.querySelector('.cur');
+    if(cur)scrollToY(cur.offsetTop-60);
+  }else{
+    codeWrap.classList.remove('dim');
+    hlEl.querySelectorAll('.lit,.cur').forEach(s=>s.classList.remove('lit','cur'));
+  }
+  const fx=M.lastFx;
+  if((M.phase==='exec'||M.phase==='done')&&fx&&fx.ins&&fx.ins.line){
+    lineHl.style.opacity=1;
+    lineHl.style.top=(10+(fx.ins.line-1)*21)+'px';
+    scrollToY(10+(fx.ins.line-1)*21-30);
+  }else lineHl.style.opacity=0;
+  srcNote.textContent=M.phase==='idle'?'dapat diedit':'mengedit akan mereset';
+}
+function execMsg(fx){
+  const parts=[fx.frameName+' · i '+String(fx.idx).padStart(2,'0')+' · '+fx.ins.op];
+  if(fx.varSet)parts.push('simpan '+fx.varSet.scope+' '+fx.varSet.name+' = '+trunc(pyRepr(fx.varSet.value),14));
+  if(fx.output!=null)parts.push('cetak "'+trunc(fx.output,26)+'"');
+  if(fx.pops.length)parts.push('pop '+fx.pops.map(v=>trunc(pyRepr(v),10)).join(', '));
+  if(fx.pushes.length)parts.push('push '+fx.pushes.map(v=>trunc(pyRepr(v),10)).join(', '));
+  if(fx.newFrame)parts.push('frame baru: '+trunc(fx.newFrame.name,20));
+  if(fx.retFrame)parts.push('frame ditutup → kembali ke pemanggil');
+  if(fx.jump)parts.push('lompat → '+fx.jump.to+(fx.jump.why?' ('+fx.jump.why+')':''));
+  return parts.join(' · ');
+}
+function renderStatus(){
+  const stg={idle:'SIAP',lex:'01 · LEXER',parse:'02 · PARSER',compile:'03 · KOMPILATOR',exec:'04 · MESIN VIRTUAL',done:'SELESAI',error:'ERROR'};
+  stPh.textContent=stg[M.phase];
+  stPh.classList.toggle('err',M.phase==='error');
+  let m='';
+  if(M.phase==='idle')m='tekan "Jalankan" untuk seluruh pipeline, atau "Langkah" untuk maju satu tahap. Spasi = jalankan/jeda.';
+  else if(M.phase==='lex'&&M.tokens.length){
+    const tk=M.tokens[M.lexI-1];
+    if(tk)m='token '+M.lexI+'/'+M.tokens.length+' — '+tk.type+' '+(tk.value!=null?trunc(pyRepr(tk.value),16):'')+' · baris '+tk.line;
+  }
+  else if(M.phase==='parse'&&M.order){
+    m='simpul '+M.astI+'/'+M.order.length;
+    if(M.astI>0){const nd=M.order[M.astI-1];if(nd)m+=' — '+trunc(nd._label||'',22);}
+  }
+  else if(M.phase==='compile'&&M.code){
+    m='instruksi '+M.bcI+'/'+M.code.length;
+    if(M.bcI>0){const ins=M.code[M.bcI-1];m+=' — '+ins.op+(bcArg(ins)?' ('+trunc(bcArg(ins),16)+')':'');}
+  }
+  else if((M.phase==='exec'||M.phase==='done')&&M.lastFx&&M.lastFx.ins)m=execMsg(M.lastFx);
+  else if(M.phase==='exec')m='mesin virtual siap — frame <modul> dibuat';
+  else if(M.phase==='done')m='eksekusi selesai — '+(M.vm?M.vm.steps:0)+' langkah, '+(M.vm?M.vm.out.length:0)+' baris keluaran';
+  else if(M.phase==='error')m=(M.err&&M.err.pyType?M.err.pyType:'Error')+': '+(M.err?M.err.message:'')+(M.err&&M.err.line?' — baris '+M.err.line:'');
+  stMsg.textContent=m;
+  stStats.textContent='token '+(M.tokens?M.tokens.length:0)+' · simpul '+(M.order?M.order.length:0)+
+    ' · bytecode '+(M.code?M.code.length:0)+' · langkah '+(M.vm?M.vm.steps:0);
+}
+function renderPhaseDesc(){
+  const D={
+    idle:'Simulasi menelusuri empat tahap interpreter Python: tokenisasi, parsing (AST), kompilasi ke bytecode, lalu eksekusi pada mesin virtual berbasis tumpukan.',
+    lex:'01 · LEXER — memindai sumber dan mengelompokkannya menjadi token. Baris kosong dilewati; perubahan lekukan menjadi token INDENT/DEDENT karena Python peka terhadap spasi.',
+    parse:'02 · PARSER — menyusun token menjadi pohon sintaks (AST). Simpul dibuat saat rekursi parser naik (post-order): daun lebih dulu, lalu induknya.',
+    compile:'03 · KOMPILATOR — menjelajahi AST dan menghasilkan bytecode untuk mesin virtual. Fungsi dikompilasi menjadi code object terpisah; tab-nya muncul saat dipanggil.',
+    exec:'04 · MESIN VIRTUAL — mengeksekusi bytecode satu per satu: LOAD_* menaruh nilai di stack, BINARY_OP mengambil dua nilai dan menaruh hasil, STORE_NAME memindahkan nilai ke variabel.',
+    done:'Eksekusi selesai — frame modul ditutup dengan nilai balik None (perilaku bawaan Python). Tekan "Ulangi" untuk menjalankan kembali.',
+    error:''};
+  phaseDesc.textContent=D[M.phase]||'';
+  phaseDesc.classList.toggle('err',M.phase==='error');
+  if(M.phase==='error'&&M.err)
+    phaseDesc.textContent='GAGAL — '+(M.err.pyType||'Error')+': '+M.err.message+(M.err.line?' (baris '+M.err.line+')':'')+' · perbaiki kode sumber lalu jalankan lagi.';
+}
+function renderControls(){
+  if(autoOn){runIco.innerHTML=IC.pause;runLab.textContent='Jeda';}
+  else if(M.phase==='done'||M.phase==='error'){runIco.innerHTML=IC.play;runLab.textContent='Ulangi';}
+  else if(M.phase==='idle'){runIco.innerHTML=IC.play;runLab.textContent='Jalankan';}
+  else{runIco.innerHTML=IC.play;runLab.textContent='Lanjutkan';}
+  spdLab.textContent='×'+SPEEDS[speedIdx];
+}
+
+/* ================= EDITOR ================= */
+function syncScroll(){
+  canvas.style.transform='translate('+(-srcEl.scrollLeft)+'px,'+(-srcEl.scrollTop)+'px)';
+  gutterIn.style.transform='translateY('+(-srcEl.scrollTop)+'px)';
+}
+function renderHl(){
+  let html='';
+  const src=srcEl.value;
+  try{
+    const toks=lex(src);
+    let prev=0;
+    toks.forEach((t,i)=>{
+      if(t.start==null)return;
+      if(t.start>prev)html+=esc(src.slice(prev,t.start));
+      const cls=(t.type==='NAME'&&BUILTINS[t.value])?'tk-NAME tk-BI':'tk-'+t.type;
+      html+='<span class="tk '+cls+'" data-ti="'+i+'">'+esc(src.slice(t.start,t.end))+'</span>';
+      prev=t.end;
+    });
+    html+=esc(src.slice(prev));
+  }catch(e){html='<span class="tk">'+esc(src)+'</span>';}
+  hlEl.innerHTML=html;
+  const n=src.split('\n').length;
+  gutterIn.innerHTML=Array.from({length:n},(_,i)=>'<div>'+(i+1)+'</div>').join('');
+  syncScroll();
+}
+
+/* ================= MESIN LANGKAH ================= */
+function prepare(){
+  try{
+    M.tokens=lex(srcEl.value);
+    M.ast=parse(M.tokens);
+    const c=compileProgram(M.ast);
+    M.code=c.code; M.funcs=c.functions;
+    buildAstView(M.ast);
+    resetConsole();
+    return true;
+  }catch(e){failRun(e);return false;}
+}
+function failRun(e){
+  const before=(PHIDX[M.phase]!==undefined)?PHIDX[M.phase]:-1;
+  M.phase='error'; M.err=e;
+  const map={lex:0,parse:1,compile:2,exec:3};
+  M.errPhaseIdx=(e&&e.errStage!==undefined&&map[e.errStage]!==undefined)?map[e.errStage]:before;
+  stopRun(); renderAll();
+}
+function doStep(){
+  try{
+    switch(M.phase){
+      case 'idle':
+        if(!prepare())return false;
+        M.phase='lex'; M.reached.lex=true; M.tab='tok';
+        break;
+      case 'lex':
+        M.lexI++;
+        if(M.lexI>=M.tokens.length){M.phase='parse';M.reached.parse=true;M.tab='ast';}
+        break;
+      case 'parse':
+        M.astI++;
+        if(M.astI>=M.order.length){M.phase='compile';M.reached.compile=true;M.tab='bc';}
+        break;
+      case 'compile':
+        M.bcI++;
+        if(M.bcI>=M.code.length){
+          M.phase='exec'; M.reached.exec=true;
+          M.vm=createVM(M.code); M.bcTab='module'; M.tab='bc';
+        }
+        break;
+      case 'exec':{
+        const fx=vmStep(M.vm);
+        M.lastFx=fx;
+        if(fx&&fx.finish&&M.vm.done){M.phase='done';M.reached.done=true;}
+        if(fx&&fx.switchBC){
+          if(fx.switchBC!=='module'&&!M.knownFuncs.includes(fx.switchBC))M.knownFuncs.push(fx.switchBC);
+          M.bcTab=fx.switchBC; M.tab='bc';
+        }
+        break;
+      }
+      default:return false;
+    }
+  }catch(e){failRun(e);return false;}
+  try{renderAll();}catch(re){console.error('render:',re);}
+  return M.phase!=='error';
+}
+const interval=()=>Math.max(24,760/SPEEDS[speedIdx]);
+function tick(){
+  let r=false;
+  try{r=doStep();}
+  catch(e){failRun(e);}
+  if(!r||M.phase==='done'||M.phase==='error'){stopRun();return;}
+  const iv=(M.phase==='exec')?interval():Math.min(interval(),380);
+  auto=setTimeout(tick,iv);
+}
+function startRun(){
+  if(M.phase==='done'||M.phase==='error')resetMachine();
+  autoOn=true; renderControls();
+  tick();
+}
+function stopRun(){if(auto){clearTimeout(auto);auto=null;}autoOn=false;renderControls();}
+function resetConsole(){outCount=0;outBody.innerHTML='<div class="console-empty">— belum ada keluaran —</div>';outNote.textContent='';M.errShown=false;}
+function resetMachine(){M=freshM();resetConsole();renderAll();}
+function onSrcChange(){
+  stopRun(); M=freshM(); resetConsole();
+  renderHl(); renderAll();
+}
+
+/* ================= EVENTS ================= */
+runBtn.addEventListener('click',()=>{autoOn?stopRun():startRun();});
+stepBtn.addEventListener('click',()=>{stopRun();doStep();});
+resetBtn.addEventListener('click',()=>{stopRun();resetMachine();});
+spd.addEventListener('input',()=>{speedIdx=+spd.value;renderControls();});
+tabsEl.addEventListener('click',e=>{
+  const el=e.target.closest('.tab'); if(!el)return;
+  const k=el.dataset.tab;
+  const ok={tok:M.reached.lex,ast:M.reached.parse,bc:M.reached.compile};
+  if(!ok[k])return;
+  M.tab=k; renderAll();
+});
+bcTabs.addEventListener('click',e=>{
+  const el=e.target.closest('.bc-tab'); if(!el)return;
+  M.bcTab=el.dataset.k; M.tab='bc'; renderAll();
+});
+framesEl.addEventListener('click',e=>{
+  const el=e.target.closest('.fchip'); if(!el)return;
+  M.bcTab=el.dataset.fk; M.tab='bc'; renderAll();
+});
+examples.addEventListener('change',()=>{srcEl.value=EXAMPLES[+examples.value].code;onSrcChange();});
+srcEl.addEventListener('input',onSrcChange);
+srcEl.addEventListener('scroll',syncScroll);
+srcEl.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){e.preventDefault();
+    srcEl.setRangeText('    ',srcEl.selectionStart,srcEl.selectionEnd,'end');
+    srcEl.dispatchEvent(new Event('input'));}
+});
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'&&e.target!==srcEl){e.preventDefault();runBtn.click();}
+});
+
+/* ================= INIT ================= */
+EXAMPLES.forEach((ex,i)=>{
+  const o=document.createElement('option');
+  o.value=i;o.textContent=ex.name;
+  examples.appendChild(o);
+});
+srcEl.value=EXAMPLES[0].code;
+renderHl(); renderAll();
+</script>
+</body>
+</html>
