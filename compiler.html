@@ -1,1483 +1,2659 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KOMPILER × INTERPRETER — Simulasi Eksekusi Program</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Anatomi Kompilator C++ — Simulasi 8 Fase</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
-/* ============ FONDASI ============ */
 :root{
-  --paper:#F1EDE2; --paper2:#FAF8F1; --paper3:#FEFDF9;
-  --ink:#191713; --ink-soft:#5C5648; --ink-faint:#8B8574;
-  --verm:#C13E1B; --verm-deep:#9E2F12; --verm-tint:#F3DDD2;
-  --teal:#0E6B5C; --teal-deep:#0A4F44; --teal-tint:#DBE9E2;
-  --gold:#8A6A1C;
+  --paper:#F1EDDF; --paper2:#E7E2CF; --paper3:#FBF8EF;
+  --ink:#211E15; --ink2:#5F594A; --ink3:#948D79;
+  --red:#C43C1B; --green:#3A6B41; --amber:#A16A0E; --teal:#0E6A6B;
+  --line:rgba(33,30,21,.9); --lineSoft:rgba(33,30,21,.22);
+  --term:#191711; --termFg:#CFC7AE;
   --mono:'IBM Plex Mono',ui-monospace,monospace;
-  --sans:'Space Grotesk',sans-serif;
-  --lh:21px;
+  --disp:'Big Shoulders Display',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html,body{height:100%}
 body{
-  background:var(--paper);
-  background-image:radial-gradient(rgba(25,23,19,.09) 1px,transparent 1px);
-  background-size:22px 22px;
-  color:var(--ink); font-family:var(--sans);
-  -webkit-font-smoothing:antialiased;
+  font:400 13px/1.5 var(--mono); color:var(--ink); background:var(--paper);
+  background-image:
+    linear-gradient(rgba(33,30,21,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(33,30,21,.05) 1px,transparent 1px);
+  background-size:26px 26px;
+  display:flex;flex-direction:column;overflow:hidden;
 }
-::selection{background:var(--verm);color:var(--paper)}
-.container{max-width:1240px;margin:0 auto;padding:0 24px}
-button{font-family:inherit;cursor:pointer}
-button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px dashed var(--verm);outline-offset:2px}
-svg.lucide{width:15px;height:15px;flex:none}
+::selection{background:var(--red);color:var(--paper)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--ink3);border:2px solid var(--paper)}
+::-webkit-scrollbar-track{background:transparent}
+svg.lucide{width:14px;height:14px;vertical-align:-2px}
+#fatalBar{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--red);color:#fff;font:600 12px/1.4 var(--mono);padding:10px 16px;border-bottom:2px solid #7E240E}
 
-/* ============ MASTHEAD ============ */
-.masthead{padding:42px 0 22px}
-.mast-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:18px}
-.tags{display:flex;gap:8px;flex-wrap:wrap}
-.tag{font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:5px 9px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper)}
-.tag.ghost{background:transparent;color:var(--ink)}
-h1{font-size:clamp(32px,5.6vw,70px);font-weight:700;letter-spacing:-.025em;line-height:.96;text-transform:uppercase}
-h1 .v{color:var(--verm);font-style:normal}
-h1 .t{color:var(--teal);font-style:normal}
-h1 .slash{color:var(--ink);opacity:.22;font-weight:400;margin:0 .06em}
-.rule-double{height:7px;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);margin-top:20px}
-.mast-sub{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end;padding-top:18px}
-.mast-sub p{max-width:600px;font-size:15px;line-height:1.6;color:var(--ink-soft)}
-.mast-sub p b{color:var(--ink)}
-.legend{font:500 11px/1.9 var(--mono);white-space:nowrap}
-.legend .row{display:flex;align-items:center;gap:8px}
-.lg-line{display:inline-block;width:26px;height:0;border-top:3px solid var(--ink)}
-.lg-line.v{border-color:var(--verm)} .lg-line.t{border-color:var(--teal)}
-
-/* ============ LABEL SEKSI ============ */
-.sec-label{display:flex;align-items:center;gap:10px;font:600 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink);margin:38px 0 16px}
-.sec-no{background:var(--ink);color:var(--paper);padding:4px 8px}
-.sec-label .fill{flex:1;height:1px;background:var(--ink);opacity:.25}
-
-/* ============ SEKSI 01 — EDITOR ============ */
-.src-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:20px;align-items:start}
-.card{background:var(--paper2);border:1.5px solid var(--ink);box-shadow:6px 6px 0 rgba(25,23,19,.85)}
-.editor-card{padding:0}
-.editor-wrap{display:grid;grid-template-columns:48px 1fr;height:330px}
-.gutter{position:relative;overflow:hidden;border-right:1px solid rgba(25,23,19,.25);background:#F5F1E6}
-.gutter-inner{position:absolute;top:0;left:0;right:0;padding:12px 0}
-.g-line{height:var(--lh);font:500 11px/var(--lh) var(--mono);color:var(--ink-faint);text-align:right;padding-right:10px;user-select:none}
-.g-line.g-c{color:var(--verm);font-weight:700}
-.g-line.g-i{color:var(--teal);font-weight:700}
-.g-line.g-err{color:#fff;background:var(--verm-deep);font-weight:600}
-.code-area{position:relative}
-#srcHl,#srcTa{position:absolute;inset:0;font:500 13px/var(--lh) var(--mono);padding:12px 14px;letter-spacing:0;tab-size:2}
-#srcHl{overflow:hidden;pointer-events:none;background:transparent}
-#srcTa{overflow:auto;background:transparent;border:0;outline:0;resize:none;color:transparent;caret-color:var(--verm);white-space:pre;word-wrap:normal}
-#srcTa::selection{background:rgba(193,62,27,.28)}
-.hl-line{display:block;width:max-content;min-width:100%;height:var(--lh);white-space:pre}
-.hl-line.mk-c{background:rgba(193,62,27,.15);box-shadow:inset 3px 0 0 var(--verm)}
-.hl-line.mk-i{background:rgba(14,107,92,.15);box-shadow:inset -3px 0 0 var(--teal)}
-.hl-line.mk-c.mk-i{background:rgba(160,90,50,.22)}
-.hl-line.mk-err{background:rgba(158,47,18,.18);box-shadow:inset 3px 0 0 var(--verm-deep)}
-.c-kw{color:var(--verm);font-weight:600}
-.c-num{color:var(--teal)}
-.c-str{color:var(--gold)}
-.c-com{color:var(--ink-faint);font-style:italic}
-.c-id{color:var(--ink)}
-.c-op{color:var(--ink-soft)}
-.c-bad{background:rgba(158,47,18,.2);border-bottom:2px solid var(--verm-deep)}
-.editor-foot{border-top:1px solid rgba(25,23,19,.2);padding:9px 14px;font:500 10px/1.6 var(--mono);color:var(--ink-faint);letter-spacing:.03em}
-.editor-foot b{color:var(--ink-soft)}
-
-/* indeks berkas di sidebar */
-.file-index{border:1.5px solid var(--ink);background:var(--paper2)}
-.fi-head{font:600 10px/1 var(--mono);letter-spacing:.18em;padding:9px 12px;border-bottom:1.5px solid var(--ink);background:var(--ink);color:var(--paper)}
-.fi-item{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid rgba(25,23,19,.18);padding:10px 12px;transition:background .12s}
-.fi-item:hover{background:var(--verm-tint)}
-.fi-item.is-active{background:var(--ink);color:var(--paper)}
-.fi-no{font:600 10px/1 var(--mono);letter-spacing:.12em;color:var(--verm);display:block;margin-bottom:3px}
-.fi-item.is-active .fi-no{color:var(--verm-tint)}
-.fi-name{font:700 14px/1.2 var(--sans);display:block}
-.fi-hint{font:500 10px/1 var(--mono);color:var(--ink-faint);display:block;margin-top:4px}
-.fi-item.is-active .fi-hint{color:rgba(241,237,226,.65)}
-.pi{margin-top:16px;padding:14px 16px;border:1.5px solid var(--ink);border-left:6px solid var(--verm);background:var(--paper2)}
-.pi-tag{font:600 10px/1 var(--mono);letter-spacing:.16em;color:var(--verm-deep);margin-bottom:6px}
-.pi h3{font:700 17px/1.2 var(--sans);margin-bottom:6px}
-.pi p{font-size:13px;line-height:1.6;color:var(--ink-soft)}
-.pi .mod{font:500 10px/1 var(--mono);color:var(--gold);margin-top:8px;display:none}
-.pi.modified .mod{display:block}
-.btn-run{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:16px;padding:15px 16px;
-  background:var(--verm);color:var(--paper);border:1.5px solid var(--ink);box-shadow:5px 5px 0 rgba(25,23,19,.85);
-  font:700 15px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;transition:transform .1s,box-shadow .1s}
-.btn-run svg{width:16px;height:16px}
-.btn-run:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 rgba(25,23,19,.85)}
-.btn-run:active{transform:translate(3px,3px);box-shadow:1px 1px 0 rgba(25,23,19,.85)}
-.btn-ghost{display:block;width:100%;margin-top:10px;padding:8px;background:transparent;border:1px dashed var(--ink-soft);color:var(--ink-soft);font:500 11px/1 var(--mono);letter-spacing:.08em}
-.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
-
-/* ============ SEKSI 02 — LINTASAN WAKTU + KONTROL ============ */
-.track-card{padding:12px 16px 8px}
-.track-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px}
-.track-legend{display:flex;gap:16px;font:600 10px/1 var(--mono);letter-spacing:.1em}
-.track-legend .row{display:flex;align-items:center;gap:7px}
-.tlive-wrap{text-align:right}
-.tlive-wrap .mini{font:600 9px/1 var(--mono);letter-spacing:.18em;color:var(--ink-faint);display:block;margin-bottom:3px}
-#tLive{font:600 20px/1 var(--mono);letter-spacing:-.02em}
-#raceSvg{display:block;width:100%;height:150px}
-.tk-lab{font:600 9px var(--mono);fill:var(--ink-faint)}
-.tk-path-c{fill:none;stroke:var(--verm);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
-.tk-path-i{fill:none;stroke:var(--teal);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
-.control-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 18px;padding:10px 14px;border:1.5px solid var(--ink);background:var(--paper2);box-shadow:4px 4px 0 rgba(25,23,19,.8)}
-.ctl-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1.5px solid var(--ink);background:var(--paper3);color:var(--ink);
-  font:600 11px/1 var(--mono);letter-spacing:.1em;box-shadow:3px 3px 0 rgba(25,23,19,.75);transition:transform .08s,box-shadow .08s}
-.ctl-btn svg{width:13px;height:13px}
-.ctl-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(25,23,19,.75)}
-.ctl-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(25,23,19,.75)}
-.ctl-btn.primary{background:var(--ink);color:var(--paper)}
-.ctl-btn:disabled{opacity:.4;pointer-events:none}
-#btnMaster .s{display:none;align-items:center;gap:7px}
-#btnMaster[data-state="idle"] .s-idle{display:inline-flex}
-#btnMaster[data-state="running"] .s-run{display:inline-flex}
-#btnMaster[data-state="paused"] .s-pause{display:inline-flex}
-#btnMaster[data-state="done"] .s-done{display:inline-flex}
-.speed-wrap{display:flex;align-items:center;gap:9px;margin-left:auto}
-.speed-wrap label{font:600 9px/1.4 var(--mono);letter-spacing:.14em;color:var(--ink-faint)}
-#speed{width:150px;accent-color:var(--ink)}
-#speedLbl{font:600 11px/1.4 var(--mono);min-width:86px}
-
-/* ============ SEKSI 03 — PANEL MESIN ============ */
-.machines{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
-.machine{display:flex;flex-direction:column;background:var(--paper2);border:1.5px solid var(--ink);box-shadow:6px 6px 0 rgba(25,23,19,.85)}
-.mach-head{display:flex;align-items:center;gap:10px;padding:10px 14px;color:var(--paper)}
-.m-c .mach-head{background:var(--verm)}
-.m-i .mach-head{background:var(--teal)}
-.mach-id{display:flex;align-items:center;gap:8px;font:700 14px/1 var(--sans);letter-spacing:.14em}
-.mach-id svg{width:16px;height:16px}
-.badge{margin-left:auto;font:600 10px/1 var(--mono);letter-spacing:.12em;padding:4px 8px;border:1.5px solid currentColor;white-space:nowrap}
-.badge.b-run{animation:pulse 1.2s infinite}
-.badge.b-ok{background:var(--paper);color:var(--ink);border-color:var(--ink)}
-.badge.b-bad{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
-.mach-time{font:600 13px/1 var(--mono);min-width:60px;text-align:right}
-/* fase strip kompilator */
-.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:9px 14px;border-bottom:1px dashed rgba(25,23,19,.3)}
-.ph .ph-n{font:600 9px/1 var(--mono);letter-spacing:.14em;color:var(--ink-faint);display:block;margin-bottom:5px}
-.ph.is-active .ph-n{color:var(--verm-deep)}
-.ph.is-done .ph-n{color:var(--ink-soft)}
-.ph-bar{display:block;height:4px;background:rgba(25,23,19,.14)}
-.ph-bar i{display:block;height:100%;width:0%;background:var(--verm);transition:width .12s}
-.ph.is-done .ph-bar i{background:var(--ink-soft)}
-/* lensa aksi */
-.lens{min-height:46px;padding:8px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
-  font:500 11px/1.5 var(--mono);border-bottom:1px solid rgba(25,23,19,.18);border-left:4px solid var(--verm);background:var(--paper3)}
-.m-i .lens-ih{border-left-color:var(--teal)}
-.lens b{font-weight:600;color:var(--verm-deep)}
-.lens .err{color:var(--verm-deep);font-weight:600}
-/* area kode objek */
-.obj{padding:10px 14px 12px}
-.mini-label{font:600 9px/1 var(--mono);letter-spacing:.16em;color:var(--ink-faint);display:block;margin-bottom:6px}
-.obj-list{position:relative;height:196px;overflow:auto;border:1px solid rgba(25,23,19,.28);background:var(--paper3)}
-.obj-empty,.rh-empty{padding:10px;font:500 11px/1.6 var(--mono);color:var(--ink-faint)}
-.ins{display:grid;grid-template-columns:36px 58px 1fr 40px;gap:4px;font:500 11px/19px var(--mono);padding:0 8px;border-bottom:1px solid rgba(25,23,19,.06);white-space:pre}
-.ins-n{color:var(--ink-faint)}
-.ins-op{font-weight:600}
-.ins-a{color:var(--ink-soft)}
-.ins-l{color:var(--ink-faint);text-align:right}
-.ins.on{background:var(--verm-tint)}
-.ins.on .ins-n{color:var(--verm-deep);font-weight:700}
-/* kepala bacaan interpreter */
-.readhead{padding:10px 14px 12px;display:flex;flex-direction:column;flex:1;min-height:250px}
-.rh-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.rh-stats{font:600 10px/1 var(--mono);color:var(--teal-deep);letter-spacing:.05em}
-.rh-src{font:600 13px/1.5 var(--mono);background:var(--paper3);border:1px solid rgba(25,23,19,.28);border-left:4px solid var(--teal);padding:7px 10px;margin:7px 0;min-height:36px;white-space:pre-wrap;word-break:break-word}
-.rh-tokens{display:flex;flex-wrap:wrap;gap:4px;min-height:22px;margin-bottom:8px}
-.tk{font:500 10px/1 var(--mono);padding:4px 6px;border:1px solid rgba(25,23,19,.3);background:var(--paper3)}
-.tk-kw{color:var(--verm);font-weight:600;border-color:var(--verm)}
-.tk-num{color:var(--teal);font-weight:600}
-.tk-str{color:var(--gold)}
-.tk-op{color:var(--ink-soft)}
-.tk-id{color:var(--ink)}
-.rh-trace{margin-top:auto}
-.tr-step{font:500 11px/1.7 var(--mono);padding-left:12px;border-left:2px dashed rgba(14,107,92,.4)}
-.tr-step .arr{color:var(--teal);font-weight:700}
-.tr-note{font:600 11px/1.7 var(--mono);color:var(--teal-deep);padding-left:12px;border-left:2px dashed rgba(14,107,92,.4)}
-.tr-err{font:600 11px/1.7 var(--mono);color:var(--verm-deep)}
-/* meta row */
-.mach-meta{display:grid;gap:0;border-top:1.5px solid var(--ink)}
-.m-c .mach-meta{grid-template-columns:1.1fr 1.6fr .9fr}
-.m-i .mach-meta{grid-template-columns:1.8fr .8fr}
-.meta-cell{padding:8px 14px;border-right:1px solid rgba(25,23,19,.18)}
-.meta-cell:last-child{border-right:0}
-.meta-cell label{font:600 9px/1 var(--mono);letter-spacing:.14em;color:var(--ink-faint);display:block;margin-bottom:5px}
-.meta-val{font:500 11px/1.5 var(--mono);min-height:18px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-.stk-v{padding:2px 6px;border:1.5px solid var(--ink);background:var(--paper3);font-weight:600}
-.stk-v.top{border-color:var(--verm);color:var(--verm-deep)}
-.var-chip{padding:2px 6px;border:1px solid rgba(25,23,19,.35);background:var(--paper3)}
-.var-chip b{color:var(--verm-deep)}
-.m-i .var-chip b{color:var(--teal-deep)}
-.emptyv{color:var(--ink-faint)}
-/* konsol */
-.console{margin-top:auto}
-.con-label{font:600 9px/1 var(--mono);letter-spacing:.16em;color:var(--ink-faint);padding:8px 14px 5px}
-.con-out{height:118px;overflow:auto;background:#23201A;color:#E9E4D3;font:500 11px/1.75 var(--mono);padding:8px 12px;border-top:1.5px solid var(--ink)}
-.con-line{white-space:pre-wrap;word-break:break-word}
-.con-sys{color:#E8A18B;font-style:italic}
-.m-i .con-sys{color:#8FC9B9}
-
-/* ============ SEKSI 04 — RINGKASAN ============ */
-.sum-card{padding:0;overflow:hidden}
-.sum-table{width:100%;border-collapse:collapse}
-.sum-table th,.sum-table td{padding:9px 16px;font:500 12px/1.4 var(--mono);border-bottom:1px solid rgba(25,23,19,.15);text-align:right}
-.sum-table th:first-child,.sum-table td:first-child{text-align:left;font:600 10px/1.4 var(--mono);letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase}
-.sum-table thead th{font:700 12px/1 var(--mono);letter-spacing:.14em;border-bottom:1.5px solid var(--ink)}
-.sum-table thead th.hc{color:var(--verm)}
-.sum-table thead th.hi{color:var(--teal)}
-.sum-table tfoot td{border-bottom:0;font-weight:600}
-.concl{margin-top:18px;padding:16px 20px;border:1.5px solid var(--ink);border-left:8px solid var(--ink);background:var(--paper3);box-shadow:5px 5px 0 rgba(25,23,19,.8)}
-.concl .stamp{display:inline-block;font:700 10px/1 var(--mono);letter-spacing:.2em;background:var(--ink);color:var(--paper);padding:5px 9px;margin-bottom:10px}
-.concl h3{font:700 19px/1.25 var(--sans);margin-bottom:8px}
-.concl p{font-size:14px;line-height:1.65;color:var(--ink-soft);max-width:920px}
-.concl-facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.cf{font:600 10.5px/1.4 var(--mono);padding:5px 9px;border:1px solid var(--ink);background:var(--paper2)}
-.cf.v{border-color:var(--verm);color:var(--verm-deep)}
-.cf.t{border-color:var(--teal);color:var(--teal-deep)}
-
-/* ============ FOOTER / TOAST ============ */
-footer{margin-top:44px;border-top:1px solid rgba(25,23,19,.3);padding:22px 0 44px}
-.foot-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;font:500 10.5px/1.7 var(--mono);color:var(--ink-faint)}
-#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:var(--ink);color:var(--paper);
-  font:500 12px/1 var(--mono);padding:12px 18px;border:1.5px solid var(--ink);box-shadow:4px 4px 0 rgba(25,23,19,.4);
-  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:90vw}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-
-/* scrollbar tipis */
-.obj-list::-webkit-scrollbar,.con-out::-webkit-scrollbar,#srcTa::-webkit-scrollbar,.rh-trace div::-webkit-scrollbar{width:8px;height:8px}
-.obj-list::-webkit-scrollbar-thumb,.con-out::-webkit-scrollbar-thumb,#srcTa::-webkit-scrollbar-thumb{background:rgba(25,23,19,.3)}
-.con-out::-webkit-scrollbar-thumb{background:#4A443A}
-
-/* ============ RESPONSIF ============ */
-@media (max-width:960px){
-  .src-grid,.machines,.foot-grid,.mast-sub{grid-template-columns:1fr}
-  .legend{white-space:normal}
-  .machines{gap:16px}
-  .speed-wrap{margin-left:0;width:100%;justify-content:space-between}
-  .mach-meta{grid-template-columns:1fr 1fr!important}
-  .meta-cell:nth-child(2){border-right:0}
-  .meta-cell:nth-child(3){grid-column:1/-1;border-top:1px solid rgba(25,23,19,.18)}
+header{
+  display:flex;justify-content:space-between;align-items:stretch;gap:20px;
+  padding:12px 22px 12px;border-bottom:2px solid var(--ink);background:var(--paper);
+  flex:0 0 auto;
 }
-@media (prefers-reduced-motion:reduce){
-  *{animation:none!important;transition:none!important}
-  html{scroll-behavior:auto}
+.docmeta{font:500 9.5px/1 var(--mono);letter-spacing:.14em;color:var(--ink2);text-transform:uppercase}
+h1{font:800 42px/0.95 var(--disp);letter-spacing:.015em;text-transform:uppercase;margin-top:6px}
+h1 em{font-style:normal;color:var(--red)}
+.tagline{font:italic 400 11px/1.4 var(--mono);color:var(--ink2);margin-top:5px}
+.head-ctl{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:10px}
+.ctl-row{display:flex;gap:10px;align-items:center}
+select{
+  font:500 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.05em;
+  background:var(--paper3);border:1.5px solid var(--ink);color:var(--ink);
+  padding:9px 12px;max-width:340px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;
+}
+select:disabled{opacity:.5;cursor:default}
+.btn{
+  font:700 12px/1 var(--mono);text-transform:uppercase;letter-spacing:.1em;
+  background:var(--paper3);color:var(--ink);border:1.5px solid var(--ink);
+  padding:11px 18px;box-shadow:3px 3px 0 var(--ink);cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:transform .07s,box-shadow .07s;
+  user-select:none;
+}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn:disabled{opacity:.45;cursor:default;transform:none;box-shadow:3px 3px 0 var(--ink)}
+.btn-primary{background:var(--red);color:#F6F1E4}
+.btn-primary:disabled{
+  background:repeating-linear-gradient(45deg,var(--red) 0 10px,#A93417 10px 20px);color:#F6F1E4;
+  animation:stripemove .5s linear infinite;
+}
+@keyframes stripemove{to{background-position:28px 0}}
+.btn-big{font:800 17px/1 var(--disp);letter-spacing:.08em;padding:14px 30px}
+.hint{font:400 10px/1.5 var(--mono);color:var(--ink2);text-align:right}
+
+main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:clamp(340px,30%,440px) 1fr}
+.ed-col{border-right:1.5px solid var(--ink);display:flex;flex-direction:column;min-height:0;background:var(--paper)}
+.res-col{display:flex;flex-direction:column;min-height:0;min-width:0}
+
+.col-head{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--lineSoft);background:var(--paper2);
+  font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+}
+.ed-tabs{display:flex;gap:0}
+.ed-tab{
+  font:600 9.5px/1 var(--mono);letter-spacing:.08em;padding:5px 9px;border:1px solid var(--ink);
+  background:var(--paper3);cursor:pointer;color:var(--ink2);
+}
+.ed-tab+.ed-tab{border-left:0}
+.ed-tab.on{background:var(--ink);color:var(--paper)}
+.ed-tab:disabled{opacity:.4;cursor:default}
+.ed-wrap{position:relative;flex:1 1 auto;min-height:0;background:var(--paper3);overflow:hidden}
+.ed-gut{
+  position:absolute;left:0;top:0;bottom:0;width:44px;z-index:2;overflow:hidden;
+  border-right:1px solid var(--lineSoft);background:var(--paper2);
+  padding:10px 8px 10px 0;text-align:right;color:var(--ink3);font:400 11px/22px var(--mono);
+  user-select:none;white-space:pre;
+}
+.ed-pre,.ed-ta{
+  position:absolute;inset:0;padding:10px 12px 10px 56px;
+  font:400 13.5px/22px var(--mono);white-space:pre;tab-size:4;
+}
+.ed-pre{z-index:1;overflow:hidden;pointer-events:none}
+.ed-ta{
+  z-index:3;overflow:auto;background:transparent;color:transparent;
+  caret-color:var(--ink);border:0;outline:0;resize:none;
+}
+.ed-ta::selection{background:rgba(196,60,27,.35);color:transparent}
+.mk{background:rgba(196,60,27,.30);outline:1px solid rgba(196,60,27,.55)}
+.ed-foot{padding:7px 14px;border-top:1px solid var(--lineSoft);background:var(--paper2);font:400 9.5px/1.7 var(--mono);color:var(--ink2)}
+.tkl{display:inline-flex;align-items:center;gap:5px;margin-right:13px;white-space:nowrap}
+.sw{display:inline-block;width:9px;height:9px;border:1px solid var(--ink)}
+.tk-kw{color:#B33417;font-weight:600}
+.tk-id{color:#211E15}
+.tk-int,.tk-float{color:#0E6A6B}
+.tk-str{color:#8A6410}
+.tk-op{color:#6B6552}
+.tk-punc{color:#8A8574}
+.tk-bool{color:#3A6B41;font-weight:600}
+.tk-cm{color:#A39C86;font-style:italic}
+.tk-pre{color:#8A5A2B;font-weight:600}
+
+.statusbar{
+  display:flex;justify-content:space-between;gap:12px;padding:6px 16px;
+  border-bottom:1px solid var(--lineSoft);background:var(--paper2);
+  font:500 10px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+}
+.statusbar .st-err{color:var(--red);font-weight:600}
+.statusbar .st-ok{color:var(--green);font-weight:600}
+.stepper{display:flex;flex-wrap:nowrap;overflow-x:auto;border-bottom:1.5px solid var(--ink);background:var(--paper);flex:0 0 auto}
+.chip{
+  position:relative;display:flex;align-items:baseline;gap:6px;padding:8px 11px 7px;
+  border:1.5px solid var(--ink);border-left:0;background:var(--paper3);cursor:pointer;
+  font:600 10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);
+  white-space:nowrap;flex:1 0 auto;min-width:0;
+}
+.chip:first-child{border-left:1.5px solid var(--ink)}
+.chip .no{font:800 16px/1 var(--disp);letter-spacing:.02em;color:var(--ink)}
+.chip .nm{overflow:hidden;text-overflow:ellipsis}
+.chip.off{opacity:.32;pointer-events:none}
+.chip.done{background:var(--ink);color:var(--paper)}
+.chip.done .no{color:var(--paper)}
+.chip.active{background:var(--red);color:#F6F1E4}
+.chip.active .no{color:#F6F1E4}
+.chip.active::after{content:'';position:absolute;left:0;right:0;bottom:-1.5px;height:3px;background:var(--ink);animation:chipfill .8s linear forwards}
+@keyframes chipfill{from{width:0}to{width:100%}}
+.chip.err{background:var(--red);color:#F6F1E4}
+.chip.err .no{color:#F6F1E4}
+.chip.err::before{content:'✕ ';font-weight:700}
+.chip.ready{color:var(--red);font-weight:700}
+.chip.run{flex:0 0 auto;border-left:1.5px solid var(--ink)}
+.chip.stale{opacity:.55}
+
+.phase{flex:1 1 auto;min-height:0;overflow:auto;background:var(--paper)}
+.ph-head{
+  position:sticky;top:0;z-index:5;display:flex;gap:16px;align-items:flex-start;
+  padding:16px 22px 12px;border-bottom:1px solid var(--lineSoft);background:var(--paper);
+}
+.ph-no{font:800 44px/0.9 var(--disp);color:var(--red);letter-spacing:.02em}
+.ph-head h2{font:700 24px/1 var(--disp);letter-spacing:.03em;text-transform:uppercase}
+.ph-head p{font:italic 400 11px/1.5 var(--mono);color:var(--ink2);margin-top:4px;max-width:560px}
+.ph-metrics{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.mt{text-align:right}
+.mt b{display:block;font:800 22px/1 var(--disp);color:var(--ink)}
+.mt span{font:500 8.5px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.ph-body{padding:16px 22px 30px}
+.empty{padding:40px 22px;text-align:center}
+.empty h3{font:800 56px/1 var(--disp);letter-spacing:.03em;color:var(--ink)}
+.empty .cmd{display:inline-block;margin:18px 0 10px;padding:10px 16px;background:var(--term);color:var(--termFg);font:500 13px/1 var(--mono)}
+.empty p{font:italic 400 11.5px/1.7 var(--mono);color:var(--ink2)}
+.subttl{font:700 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;border-bottom:1.5px solid var(--ink);padding-bottom:5px;margin:22px 0 10px;display:flex;justify-content:space-between}
+.subttl small{font:italic 400 10px/1 var(--mono);color:var(--ink2);text-transform:none;letter-spacing:0}
+
+.tbl{width:100%;border-collapse:collapse;font:400 11.5px/1.5 var(--mono)}
+.tbl th{font:600 9px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);text-align:left;padding:5px 8px;border-bottom:1.5px solid var(--ink)}
+.tbl td{padding:4px 8px;border-bottom:1px solid var(--lineSoft);vertical-align:top}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:rgba(196,60,27,.07)}
+.lg{font:400 10px/1.7 var(--mono);color:var(--ink2);margin-top:8px;font-style:italic}
+
+.diff{display:grid;grid-template-columns:30px 1fr 30px 1fr;gap:0 10px;font:400 11.5px/1.7 var(--mono);max-height:300px;overflow:auto;border:1px solid var(--lineSoft);padding:8px 10px;background:var(--paper3)}
+.d-ln{color:var(--ink3);text-align:right}
+.d-cell{white-space:pre-wrap;word-break:break-word}
+.d-cell.rm{color:var(--red);background:rgba(196,60,27,.10);text-decoration:line-through;text-decoration-thickness:1px}
+.d-cell.ch{color:var(--green);background:rgba(58,107,65,.12)}
+.kv{display:flex;gap:10px;flex-wrap:wrap}
+.kvcard{border:1.5px solid var(--ink);padding:8px 12px;background:var(--paper3)}
+.kvcard b{font:700 15px/1 var(--disp)}
+.kvcard span{display:block;font:500 8.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
+
+.toklex{padding:1px 5px;border:1px solid var(--lineSoft);background:var(--paper2)}
+.kindtag{font:600 8.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+
+.msg{display:flex;gap:10px;padding:7px 10px;border:1px solid var(--lineSoft);border-left:4px solid var(--ink2);margin-bottom:6px;background:var(--paper3);cursor:pointer;font:400 11.5px/1.5 var(--mono)}
+.msg:hover{border-left-color:var(--red)}
+.m-err{border-left-color:var(--red)}
+.m-err .m-b{color:var(--red);font-weight:700}
+.m-warn{border-left-color:var(--amber)}
+.m-warn .m-b{color:var(--amber);font-weight:700}
+.m-tag{font:700 8.5px/1 var(--mono);letter-spacing:.1em;color:var(--ink2);min-width:52px;padding-top:3px}
+.errview{background:var(--term);color:var(--termFg);padding:12px 16px;font:400 12px/1.6 var(--mono);overflow-x:auto;margin:12px 0}
+.errview .caret{color:#FF6A3D;font-weight:700}
+.errview .em{color:#FF6A3D}
+
+.ast-wrap{border:1.5px solid var(--ink);background:var(--paper3);background-image:linear-gradient(rgba(33,30,21,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(33,30,21,.06) 1px,transparent 1px);background-size:22px 22px;overflow:auto;max-height:56vh;position:relative}
+.ast-bar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.ast-bar .btn{padding:7px 10px;font-size:10px}
+.ast-tip{position:fixed;z-index:50;background:var(--ink);color:var(--paper);padding:6px 10px;font:500 10.5px/1.5 var(--mono);pointer-events:none;max-width:280px;display:none;box-shadow:3px 3px 0 rgba(33,30,21,.35)}
+.nd rect{fill:var(--paper3);stroke:var(--ink);stroke-width:1.4}
+.nd text{font:600 11px var(--mono);fill:var(--ink);text-anchor:middle}
+.nd.c-lit rect{fill:var(--ink)}
+.nd.c-lit text{fill:var(--paper)}
+.nd.c-lit.c-str rect{fill:var(--amber)}
+.nd.c-ctrl rect{fill:#E4D8BC;stroke-width:2.2}
+.nd.c-ctrl text{font:700 11.5px var(--mono)}
+.nd.c-var rect{fill:transparent;stroke-dasharray:3 3}
+.nd.c-st rect{fill:var(--paper2)}
+.nd.c-ex rect{fill:#FBF8EF}
+.nd:hover rect{stroke:var(--red);stroke-width:2}
+.e{fill:none;stroke:var(--ink2);stroke-width:1.2}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font:400 10px/1 var(--mono);color:var(--ink2);margin-top:8px}
+.legend i{display:inline-block;width:11px;height:11px;border:1.4px solid var(--ink);vertical-align:-2px;margin-right:5px}
+
+.tacbox{border:1.5px solid var(--ink);background:var(--paper3);max-height:52vh;overflow:auto}
+.trow{display:grid;grid-template-columns:34px 56px 1fr;gap:0 8px;padding:1px 10px 1px 6px;font:400 12.5px/1.75 var(--mono);white-space:pre;border-bottom:1px solid rgba(33,30,21,.07)}
+.trow .ti{text-align:right;color:var(--ink3);font-size:10.5px;line-height:2}
+.trow .tlab{color:var(--red);font-weight:600}
+.trow.on{background:rgba(196,60,27,.13);box-shadow:inset 3px 0 0 var(--red)}
+.trow.on .ti{color:var(--red);font-weight:700}
+.trow.new{background:rgba(58,107,65,.09)}
+.trow.new .ti{color:var(--green)}
+.q-kw{color:var(--red);font-weight:600}
+.q-var{color:var(--ink);font-weight:600}
+.q-tmp{color:var(--teal)}
+.q-lit{color:#8A6410}
+.q-str{color:#8A6410;font-style:italic}
+.q-t{color:var(--ink3)}
+
+.opt-grid{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:18px;align-items:start}
+.pass{display:grid;grid-template-columns:24px 1fr 60px;gap:10px;padding:9px 0;border-bottom:1px solid var(--lineSoft)}
+.pass .p-no{font:800 18px/1 var(--disp);color:var(--ink2)}
+.pass .p-nm{font:700 11.5px/1.2 var(--mono);letter-spacing:.02em}
+.pass .p-ds{font:italic 400 10px/1.5 var(--mono);color:var(--ink2);margin-top:3px}
+.pass .p-n{font:800 20px/1 var(--disp);text-align:right;color:var(--green)}
+.pass .p-n.zero{color:var(--ink3)}
+.big-delta{font:800 34px/1 var(--disp);letter-spacing:.02em}
+.big-delta .ar{color:var(--red)}
+.tabs{display:flex;gap:0;margin-bottom:10px}
+.tabs button{font:600 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border:1.5px solid var(--ink);background:var(--paper3);cursor:pointer;color:var(--ink2)}
+.tabs button+button{border-left:0}
+.tabs button.on{background:var(--ink);color:var(--paper)}
+
+.asmbox{border:1.5px solid var(--ink);background:var(--paper3);max-height:60vh;overflow:auto;padding:10px 14px}
+.as-ins{color:var(--ink);font:500 12px/1.7 var(--mono)}
+.as-com{color:var(--ink3);font-style:italic}
+.as-lab{color:var(--red);font-weight:700}
+.as-lab2{color:var(--red);font-weight:700}
+.as-sec{color:var(--red);font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+pre.asm{white-space:pre;font:500 12px/1.7 var(--mono)}
+
+.lnk-svg{border:1.5px solid var(--ink);background:var(--paper3);padding:8px;overflow-x:auto}
+.lk-box{fill:var(--paper3);stroke:var(--ink);stroke-width:1.6}
+.lk-s{font:400 9px var(--mono);fill:var(--ink2)}
+.lk-w{font:800 15px var(--disp);fill:var(--ink)}
+.lk-sec{fill:#E4D8BC;stroke:var(--ink);stroke-width:1.1}
+.lk-sect{font:600 9.5px var(--mono);fill:var(--ink)}
+.edge{stroke:var(--red);stroke-width:1.8;fill:none;stroke-dasharray:6 5;animation:dash 1.1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-11}}
+.cta{margin-top:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cta .note{font:italic 400 10.5px/1.5 var(--mono);color:var(--ink2);max-width:340px}
+
+.run-ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1.5px solid var(--ink);background:var(--paper2);margin-bottom:14px}
+.run-ctl .sp{flex:1}
+.r-st{font:700 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.r-st.good{color:var(--green)}
+.r-st.bad{color:var(--red)}
+.r-count{font:400 10.5px/1 var(--mono);color:var(--ink2)}
+.r-count b{color:var(--ink);font-weight:700}
+input[type=range]{accent-color:var(--red);width:130px}
+.run-grid{display:grid;grid-template-columns:minmax(340px,1.25fr) minmax(260px,1fr);gap:14px;align-items:start}
+.run-tac .tacbox{max-height:54vh}
+.run-side{display:flex;flex-direction:column;gap:14px}
+.vr{display:grid;grid-template-columns:1fr 46px 1fr;gap:8px;padding:2px 8px;font:400 12px/1.9 var(--mono);border-bottom:1px solid rgba(33,30,21,.08)}
+.vr .vn{font-weight:600}
+.vr .vn.tmp{color:var(--teal);font-weight:400}
+.vr .vt{color:var(--ink3);font-size:10px}
+.vr .vv{text-align:right;font-weight:600}
+.vr.nv .vv{color:var(--ink3);font-weight:400}
+.console{background:var(--term);color:var(--termFg);border:1.5px solid var(--ink);padding:10px 14px;font:400 12px/1.7 var(--mono);min-height:120px;max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.console:empty::after{content:'(keluaran program akan muncul di sini)';color:var(--ink3);font-style:italic}
+
+.term-wrap{flex:0 0 auto;border-top:2px solid var(--ink);background:var(--term);height:196px;display:flex;flex-direction:column;transition:height .22s ease}
+.term-wrap.closed{height:33px}
+.term-head{display:flex;align-items:center;gap:10px;padding:7px 16px 7px 14px;cursor:pointer;user-select:none;color:#8F8870}
+.term-head b{font:700 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#B9B097}
+.term-head .dot{width:8px;height:8px;background:var(--red);display:inline-block}
+.term-head .lucide{margin-left:auto;transition:transform .2s}
+.term-wrap.closed .term-head .lucide{transform:rotate(180deg)}
+.term-body{flex:1;overflow-y:auto;padding:2px 16px 10px;font:400 11.5px/1.75 var(--mono);color:var(--termFg)}
+.tl{display:flex;gap:9px;white-space:pre-wrap}
+.tt{font:700 8.5px/2 var(--mono);letter-spacing:.08em;min-width:34px;color:#7E7761}
+.tt.cmd{color:#FF8A5C;font-size:12px;min-width:14px}
+.tt.ok{color:#7FBF8A}
+.tt.bad{color:#FF6A3D}
+.tt.tPre{color:#D8A866}.tt.tLex{color:#9CC5A0}.tt.tPar{color:#A8B6D8}.tt.tSem{color:#D8A866}
+.tt.tIr{color:#C5A3E0}.tt.tOpt{color:#7FBF8A}.tt.tAsm{color:#E0A3A3}.tt.tLnk{color:#A3C5E0}
+.tl.e .tx{color:#FF6A3D}
+.tl.w .tx{color:#E0B45C}
+.tl.o .tx{color:#7FBF8A}
+.caret-blink{display:inline-block;width:7px;height:13px;background:var(--termFg);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+@media(max-width:1060px){
+  main{grid-template-columns:1fr;grid-template-rows:300px 1fr}
+  .ed-col{border-right:0;border-bottom:1.5px solid var(--ink)}
+  h1{font-size:30px}
+  .opt-grid,.run-grid{grid-template-columns:1fr}
+  .chip .nm{display:none}
+}
+@media(max-width:720px){
+  header{flex-direction:column}
+  .head-ctl{align-items:flex-start}
 }
 </style>
 </head>
 <body>
 
-<!-- ==================== MASTHEAD ==================== -->
-<header class="masthead container">
-  <div class="mast-top">
-    <div class="tags">
-      <span class="tag">SIM · 01</span>
-      <span class="tag ghost">SIMULASI EKSEKUSI PROGRAM</span>
-    </div>
-    <div class="tags">
-      <span class="tag ghost">MODEL: TOKEN → AST → KODE OBJEK</span>
-    </div>
+<div id="fatalBar"></div>
+
+<header>
+  <div class="masthead">
+    <div class="docmeta">DOK. CPP-08 · SIMULASI KOMPILATOR · EKSEKUSI SEPENUHNYA DI PERAMBAN</div>
+    <h1>Anatomi Kompilator <em>C++</em></h1>
+    <p class="tagline">Delapan fase mesin — preprosesor, leksikal, sintaksis, semantik, kode antara, optimasi, rakitan, penautan — lalu jalankan hasilnya instruksi demi instruksi.</p>
   </div>
-  <h1><em class="v">KOMPILER</em><span class="slash">/</span><em class="t">INTERPRETER</em></h1>
-  <div class="rule-double"></div>
-  <div class="mast-sub">
-    <p>Satu program sumber, dua strategi penerjemahan. <b>Kompilator</b> menerjemahkan seluruh program menjadi kode objek lebih dulu — membayar ongkos di muka, lalu menikmati eksekusi yang murah. <b>Interpreter</b> tidak menunggu: ia membaca dan menerjemahkan baris demi baris, sambil menjalankannya. Jalankan simulasi dan lihat keduanya berlari pada satu garis waktu.</p>
-    <div class="legend">
-      <div class="row"><span class="lg-line v"></span> jalur kompilasi — terjemahkan semua, baru jalankan</div>
-      <div class="row"><span class="lg-line t"></span> jalur interpretasi — terjemahkan sambil berjalan</div>
+  <div class="head-ctl">
+    <div class="ctl-row">
+      <label class="docmeta" style="display:flex;flex-direction:column;gap:5px">
+        <span>PROGRAM CONTOH</span>
+        <select id="exampleSel"></select>
+      </label>
+      <button class="btn" id="btnSkip" style="display:none">LEWATI ANIMASI</button>
     </div>
+    <div class="ctl-row">
+      <button class="btn btn-primary btn-big" id="btnCompile"><i data-lucide="cog"></i> KOMPILASI</button>
+    </div>
+    <div class="hint">UBAH KODE SEBEBASNYA — SUBSET DIDAKTIK:<br>int / float / bool · if / while / for · cout · #define</div>
   </div>
 </header>
 
-<main class="container">
-
-  <!-- ==================== 01 · PROGRAM SUMBER ==================== -->
-  <div class="sec-label"><span class="sec-no">01</span> PROGRAM SUMBER — BAHASA MINI<span class="fill"></span></div>
-  <div class="src-grid">
-    <div class="card editor-card">
-      <div class="editor-wrap">
-        <div class="gutter"><div class="gutter-inner" id="gutterInner"></div></div>
-        <div class="code-area">
-          <pre id="srcHl" aria-hidden="true"></pre>
-          <textarea id="srcTa" wrap="off" spellcheck="false" aria-label="Editor program sumber"></textarea>
-        </div>
-      </div>
-      <div class="editor-foot">
-        SINTAKS — <b>cetak "teks " ekspresi</b> · <b>nama = ekspresi</b> · <b>ulangi N kali … akhir</b> · <b># komentar</b> · operator <b>+ − × ÷ ( )</b> · kata <b>cetak / ulangi / kali / akhir</b> adalah kata kunci
-      </div>
+<main>
+  <section class="ed-col">
+    <div class="col-head">
+      <span>SUMBER — main.cpp</span>
+      <span class="ed-tabs">
+        <button class="ed-tab on" id="tabSyn">SINTAKSIS</button>
+        <button class="ed-tab" id="tabTok" disabled>TOKEN</button>
+      </span>
     </div>
-    <aside>
-      <nav class="file-index" id="fileIndex" aria-label="Indeks berkas uji"></nav>
-      <div class="pi" id="piBox">
-        <div class="pi-tag" id="piTag"></div>
-        <h3 id="piTitle"></h3>
-        <p id="piWatch"></p>
-        <div class="mod">* berkas telah dimodifikasi — teks berbeda dari arsip</div>
-      </div>
-      <button class="btn-run" id="btnRun"><i data-lucide="play"></i>JALANKAN SIMULASI</button>
-      <button class="btn-ghost" id="btnReload">muat ulang berkas asli</button>
-    </aside>
-  </div>
-
-  <!-- ==================== 02 · LINTASAN WAKTU ==================== -->
-  <div class="sec-label" id="arena"><span class="sec-no">02</span> LINTASAN WAKTU — PROGRESS TERHADAP WAKTU SIMULASI<span class="fill"></span></div>
-  <div class="card track-card">
-    <div class="track-head">
-      <div class="track-legend">
-        <div class="row"><span class="lg-line v"></span> KOMPILER</div>
-        <div class="row"><span class="lg-line t"></span> INTERPRETER</div>
-      </div>
-      <div class="tlive-wrap"><span class="mini">WAKTU SIMULASI</span><span id="tLive">t = 0u</span></div>
+    <div class="ed-wrap">
+      <div class="ed-gut" id="edGut"></div>
+      <pre class="ed-pre" id="edPre" aria-hidden="true"></pre>
+      <textarea class="ed-ta" id="edTa" spellcheck="false" wrap="off"></textarea>
     </div>
-    <svg id="raceSvg"></svg>
-  </div>
-  <div class="control-bar">
-    <button class="ctl-btn primary" id="btnMaster" data-state="idle" aria-label="Kontrol utama">
-      <span class="s s-idle"><i data-lucide="play"></i>JALANKAN</span>
-      <span class="s s-run"><i data-lucide="pause"></i>JEDA</span>
-      <span class="s s-pause"><i data-lucide="play"></i>LANJUT</span>
-      <span class="s s-done"><i data-lucide="rotate-ccw"></i>ULANGI</span>
-    </button>
-    <button class="ctl-btn" id="btnStep"><i data-lucide="skip-forward"></i>LANGKAH</button>
-    <button class="ctl-btn" id="btnFF"><i data-lucide="fast-forward"></i>KE AKHIR</button>
-    <button class="ctl-btn" id="btnReset"><i data-lucide="rotate-ccw"></i>RESET</button>
-    <div class="speed-wrap">
-      <label for="speed">TEMPO</label>
-      <input type="range" id="speed" min="0" max="100" value="50">
-      <span id="speedLbl">400u/dtk</span>
+    <div class="ed-foot">
+      <span id="edMeta"></span><br>
+      <span class="tkl"><i class="sw" style="background:#B33417"></i>kata kunci</span>
+      <span class="tkl"><i class="sw" style="background:#0E6A6B"></i>angka</span>
+      <span class="tkl"><i class="sw" style="background:#8A6410"></i>string</span>
+      <span class="tkl"><i class="sw" style="background:#6B6552"></i>operator</span>
+      <span class="tkl"><i class="sw" style="background:#A39C86"></i>komentar</span>
     </div>
-  </div>
+  </section>
 
-  <!-- ==================== 03 · DUA MESIN ==================== -->
-  <div class="sec-label"><span class="sec-no">03</span> DUA MESIN, SATU PROGRAM<span class="fill"></span></div>
-  <div class="machines">
-
-    <!-- PANEL KOMPILATOR -->
-    <article class="machine m-c">
-      <header class="mach-head">
-        <div class="mach-id"><i data-lucide="hammer"></i>KOMPILER</div>
-        <div class="badge" id="stC">MENUNGGU</div>
-        <div class="mach-time" id="tC">0u</div>
-      </header>
-      <div class="phases" id="phasesC">
-        <div class="ph" data-k="scan"><span class="ph-n">SCAN</span><span class="ph-bar"><i></i></span></div>
-        <div class="ph" data-k="parse"><span class="ph-n">PARSE</span><span class="ph-bar"><i></i></span></div>
-        <div class="ph" data-k="gen"><span class="ph-n">SUSUN</span><span class="ph-bar"><i></i></span></div>
-        <div class="ph" data-k="run"><span class="ph-n">EKSEKUSI</span><span class="ph-bar"><i></i></span></div>
-      </div>
-      <div class="lens" id="lensC">menunggu — tekan JALANKAN SIMULASI</div>
-      <div class="obj">
-        <span class="mini-label" id="objLabelC">KODE OBJEK — MESIN STACK</span>
-        <div class="obj-list" id="objListC"><div class="obj-empty">instruksi akan disusun di sini selama fase kompilasi…</div></div>
-      </div>
-      <div class="mach-meta">
-        <div class="meta-cell"><label>STACK</label><div class="meta-val" id="stackC"><span class="emptyv">—</span></div></div>
-        <div class="meta-cell"><label>VARIABEL</label><div class="meta-val" id="varsC"><span class="emptyv">—</span></div></div>
-        <div class="meta-cell"><label>PENGULANGAN</label><div class="meta-val" id="loopC"><span class="emptyv">—</span></div></div>
-      </div>
-      <div class="console">
-        <div class="con-label">KONSOL OUTPUT</div>
-        <div class="con-out" id="outC"></div>
-      </div>
-    </article>
-
-    <!-- PANEL INTERPRETER -->
-    <article class="machine m-i">
-      <header class="mach-head">
-        <div class="mach-id"><i data-lucide="book-open"></i>INTERPRETER</div>
-        <div class="badge" id="stI">MENUNGGU</div>
-        <div class="mach-time" id="tI">0u</div>
-      </header>
-      <div class="readhead">
-        <div class="rh-top">
-          <span class="mini-label">KEPALA BACAAN — BARIS <span id="rhNo">–</span></span>
-          <span class="rh-stats" id="rhStats">menunggu program…</span>
-        </div>
-        <div class="rh-src" id="rhSrc">tidak ada baris yang sedang dibaca</div>
-        <div class="rh-tokens" id="rhTok"></div>
-        <div class="rh-trace">
-          <span class="mini-label">JEJAK EVALUASI</span>
-          <div id="rhTrace"><span class="emptyv">—</span></div>
-        </div>
-      </div>
-      <div class="mach-meta">
-        <div class="meta-cell"><label>VARIABEL</label><div class="meta-val" id="varsI"><span class="emptyv">—</span></div></div>
-        <div class="meta-cell"><label>PENGULANGAN</label><div class="meta-val" id="loopI"><span class="emptyv">—</span></div></div>
-      </div>
-      <div class="console">
-        <div class="con-label">KONSOL OUTPUT</div>
-        <div class="con-out" id="outI"></div>
-      </div>
-    </article>
-  </div>
-
-  <!-- ==================== 04 · RINGKASAN ==================== -->
-  <div class="sec-label"><span class="sec-no">04</span> RINGKASAN PERBANDINGAN<span class="fill"></span></div>
-  <div class="card sum-card">
-    <table class="sum-table">
-      <thead><tr><th></th><th class="hc">KOMPILER</th><th class="hi">INTERPRETER</th></tr></thead>
-      <tbody>
-        <tr><td>waktu kompilasi</td><td id="sCc">—</td><td id="sCi">—</td></tr>
-        <tr><td>waktu eksekusi</td><td id="sEc">—</td><td id="sEi">—</td></tr>
-        <tr><td>total waktu</td><td id="sTc">—</td><td id="sTi">—</td></tr>
-        <tr><td>langkah kerja</td><td id="sWc">—</td><td id="sWi">—</td></tr>
-        <tr><td>baris output</td><td id="sOc">—</td><td id="sOi">—</td></tr>
-      </tbody>
-      <tfoot><tr><td>status</td><td id="sSc">menunggu</td><td id="sSi">menunggu</td></tr></tfoot>
-    </table>
-  </div>
-  <div class="concl" id="conclWrap" hidden>
-    <span class="stamp">KESIMPULAN SIMULASI</span>
-    <h3 id="conclHead"></h3>
-    <p id="conclBody"></p>
-    <div class="concl-facts" id="conclFacts"></div>
-  </div>
-
+  <section class="res-col">
+    <div class="statusbar">
+      <span id="statusText">STATUS: SUMBER DIMUAT — SIAP DIKOMPILASI</span>
+      <span id="statusRight"></span>
+    </div>
+    <div class="stepper" id="stepper"></div>
+    <div class="phase" id="phasePanel"></div>
+  </section>
 </main>
 
-<footer>
-  <div class="container foot-grid">
-    <div>MODEL BIAYA — kompilator: 3u/token (pindai) · 2u/token (urai) · 2u/instruksi (susun) · 1u/instruksi (eksekusi) &nbsp;|&nbsp; interpreter: 4u/token (baca ulang setiap kali) · 2u/simpul (evaluasi)</div>
-    <div>1u = satu unit waktu simulasi. Angka bersifat ilustratif untuk memperlihatkan sifat dasar kedua strategi — bukan benchmark dunia nyata.</div>
+<div class="term-wrap" id="termWrap">
+  <div class="term-head" id="termToggle">
+    <span class="dot"></span><b>KELUARAN KOMPILATOR — gcc (simulasi)</b>
+    <i data-lucide="chevron-down"></i>
   </div>
-</footer>
+  <div class="term-body" id="termBody"></div>
+</div>
 
-<div id="toast" role="status"></div>
+<div class="ast-tip" id="astTip"></div>
 
 <script>
-/* ================================================================
-   SIMULASI KOMPILER vs INTERPRETER
-   Kedua mesin benar-benar bekerja: tokenizer, parser, generator
-   kode objek (stack machine), dan evaluator — semuanya ditulis
-   di sini. Setiap mesin menghasilkan "trace" peristiwa berdurasi,
-   lalu diputar ulang pada satu garis waktu bersama.
-   ================================================================ */
-
-// ---------- util ----------
-const qs = s => document.querySelector(s);
-const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const fmt = v => typeof v==='string' ? v : (Number.isInteger(v) ? String(v) : String(Math.round(v*1e6)/1e6));
-const fmtT = v => Math.round(v);
-const countNodes = n => !n ? 0 : n.k==='num'||n.k==='var' ? 1 : n.k==='neg' ? 1+countNodes(n.e) : 1+countNodes(n.l)+countNodes(n.r);
-
-// model biaya waktu (unit simulasi)
-const COST = { cScan:3, cParse:2, cGen:2, cExec:1, cPrint:2, iRead:4, iEval:2 };
-const KEYWORDS = new Set(['cetak','ulangi','kali','akhir']);
-
-// ---------- tokenizer ----------
-function tokenizeLine(src, line){
-  const toks=[]; let i=0;
-  while(i < src.length){
-    const ch = src[i];
-    if(ch===' '||ch==='\t'||ch==='\r'){ i++; continue; }
-    if(ch==='#') break; // komentar sampai akhir baris
-    if(ch==='"'){
-      let j=i+1, s='';
-      while(j<src.length && src[j]!=='"'){ s+=src[j]; j++; }
-      if(j>=src.length) return {tokens:null, error:{line, msg:'string tidak ditutup tanda kutip "'}};
-      toks.push({t:'STR', v:s}); i=j+1; continue;
-    }
-    if(/[0-9]/.test(ch)){
-      let j=i, s='';
-      while(j<src.length && /[0-9.]/.test(src[j])){ s+=src[j]; j++; }
-      if((s.match(/\./g)||[]).length > 1) return {tokens:null, error:{line, msg:'angka tidak valid: '+s}};
-      toks.push({t:'NUM', v:parseFloat(s)}); i=j; continue;
-    }
-    if(/[A-Za-z_]/.test(ch)){
-      let j=i, s='';
-      while(j<src.length && /[A-Za-z0-9_]/.test(src[j])){ s+=src[j]; j++; }
-      toks.push(KEYWORDS.has(s) ? {t:'KW', v:s} : {t:'ID', v:s});
-      i=j; continue;
-    }
-    if('+-*/=()'.includes(ch)){ toks.push({t:'OP', v:ch}); i++; continue; }
-    return {tokens:null, error:{line, msg:"karakter tidak dikenal: '"+ch+"'"}};
-  }
-  return {tokens:toks, error:null};
-}
-
-// ---------- parser ekspresi (descending rekursif) ----------
-function parseExprToks(toks,p,line){
-  let r = parseTermToks(toks,p,line); if(r.err) return r;
-  let node=r.node; p=r.pos;
-  while(p<toks.length && toks[p].t==='OP' && (toks[p].v==='+'||toks[p].v==='-')){
-    const op = toks[p++].v;
-    const rr = parseTermToks(toks,p,line); if(rr.err) return rr;
-    node = {k:'bin', op, l:node, r:rr.node}; p = rr.pos;
-  }
-  return {node, pos:p};
-}
-function parseTermToks(toks,p,line){
-  let r = parseFactorToks(toks,p,line); if(r.err) return r;
-  let node=r.node; p=r.pos;
-  while(p<toks.length && toks[p].t==='OP' && (toks[p].v==='*'||toks[p].v==='/')){
-    const op = toks[p++].v;
-    const rr = parseFactorToks(toks,p,line); if(rr.err) return rr;
-    node = {k:'bin', op, l:node, r:rr.node}; p = rr.pos;
-  }
-  return {node, pos:p};
-}
-function parseFactorToks(toks,p,line){
-  if(p>=toks.length) return {err:{line, msg:'ekspresi berakhir tiba-tiba'}};
-  const t = toks[p];
-  if(t.t==='NUM') return {node:{k:'num', v:t.v}, pos:p+1};
-  if(t.t==='ID')  return {node:{k:'var', name:t.v}, pos:p+1};
-  if(t.t==='OP' && t.v==='('){
-    const r = parseExprToks(toks,p+1,line); if(r.err) return r;
-    if(r.pos>=toks.length || toks[r.pos].v!==')') return {err:{line, msg:'tanda kurung tidak ditutup'}};
-    return {node:r.node, pos:r.pos+1};
-  }
-  if(t.t==='OP' && t.v==='-'){
-    const r = parseFactorToks(toks,p+1,line); if(r.err) return r;
-    return {node:{k:'neg', e:r.node}, pos:r.pos};
-  }
-  return {err:{line, msg:"token tak terduga: '"+t.v+"'"}};
-}
-
-// ---------- parser pernyataan (per baris) ----------
-function parseLine(tokens, line){
-  if(!tokens.length) return {stmt:{k:'blank', line}};
-  const t0 = tokens[0];
-  if(t0.t==='KW'){
-    if(t0.v==='akhir'){
-      if(tokens.length>1) return {err:{line, msg:'akhir tidak menerima token tambahan'}};
-      return {stmt:{k:'end', line}};
-    }
-    if(t0.v==='ulangi'){
-      if(tokens.length<3 || tokens[1].t!=='NUM' || tokens[2].t!=='KW' || tokens[2].v!=='kali')
-        return {err:{line, msg:'bentuk yang benar: ulangi <angka> kali'}};
-      const n = tokens[1].v;
-      if(!Number.isInteger(n) || n<0) return {err:{line, msg:'jumlah pengulangan harus bilangan bulat ≥ 0'}};
-      if(tokens.length>3) return {err:{line, msg:"token berlebih setelah 'ulangi N kali'"}};
-      return {stmt:{k:'repeat', count:n, line}};
-    }
-    if(t0.v==='cetak'){
-      let p=1, prefix=null;
-      if(p<tokens.length && tokens[p].t==='STR'){ prefix = tokens[p].v; p++; }
-      const start = p;
-      const r = parseExprToks(tokens,p,line); if(r.err) return r;
-      if(r.pos<tokens.length) return {err:{line, msg:'token berlebih setelah pernyataan cetak'}};
-      const expr = r.pos>start ? r.node : null;
-      if(prefix==null && expr==null) return {err:{line, msg:'cetak butuh teks atau ekspresi'}};
-      return {stmt:{k:'print', prefix, expr, line}};
-    }
-    return {err:{line, msg:"'kali' hanya dipakai dalam 'ulangi N kali'"}};
-  }
-  if(t0.t==='ID' && tokens.length>=2 && tokens[1].t==='OP' && tokens[1].v==='='){
-    const r = parseExprToks(tokens,2,line); if(r.err) return r;
-    if(r.pos<tokens.length) return {err:{line, msg:'token berlebih setelah ekspresi'}};
-    return {stmt:{k:'assign', name:t0.v, expr:r.node, line}};
-  }
-  return {err:{line, msg: t0.t==='STR' ? 'string hanya boleh di dalam cetak' : "pernyataan tidak dikenal (dimulai '"+t0.v+"')"}};
-}
-
-// ringkasan pernyataan untuk tampilan lensa
-function exprStr(n){
-  if(!n) return '';
-  if(n.k==='num') return fmt(n.v);
-  if(n.k==='var') return n.name;
-  if(n.k==='neg') return '-'+exprStr(n.e);
-  return exprStr(n.l)+' '+n.op+' '+exprStr(n.r);
-}
-function stmtStr(st){
-  if(!st) return '';
-  switch(st.k){
-    case 'assign': return 'assign · '+st.name+' ← '+exprStr(st.expr);
-    case 'print':  return 'cetak · '+(st.prefix!=null?'"'+st.prefix+'" ':'')+exprStr(st.expr);
-    case 'repeat': return 'ulangi '+st.count+'× (blok '+st.body.length+' pernyataan)';
-    case 'end':    return 'akhir blok';
-    default:       return 'baris kosong / komentar';
+'use strict';
+/* ═══════════ PERANGKAP ERROR (harus paling atas) ═══════════ */
+function __fatal(msg){
+  window.__ERR_MSG=String(msg);
+  var el=document.getElementById('fatalBar');
+  if(el){
+    el.style.display='block';
+    el.textContent='ERROR SKRIP: '+window.__ERR_MSG+' — tekan F12 (Console) untuk detail, lalu laporkan pesan ini.';
   }
 }
+window.addEventListener('error',function(e){
+  __fatal((e.message||'error tak dikenal')+(e.lineno?(' (baris skrip '+e.lineno+')'):''));
+});
+window.addEventListener('unhandledrejection',function(e){
+  var r=e&&e.reason;
+  __fatal('Promise ditolak: '+((r&&r.message)||String(r)));
+});
 
-// evaluator dengan jejak langkah (dipakai interpreter)
-function evalExpr(node, vars){
-  const steps=[];
-  function ev(n){
-    switch(n.k){
-      case 'num': return n.v;
-      case 'var':
-        if(!(n.name in vars)) throw {msg:"variabel '"+n.name+"' belum didefinisikan"};
-        return vars[n.name];
-      case 'neg': { const v=ev(n.e), r=-v; steps.push('-'+fmt(v)+' → '+fmt(r)); return r; }
-      case 'bin': {
-        const a=ev(n.l), b=ev(n.r);
-        if(n.op==='/' && b===0) throw {msg:'pembagian dengan nol'};
-        const r = n.op==='+'?a+b : n.op==='-'?a-b : n.op==='*'?a*b : a/b;
-        steps.push(fmt(a)+' '+n.op+' '+fmt(b)+' → '+fmt(r));
-        return r;
-      }
-    }
-  }
-  try{ const v=ev(node); return {value:v, steps}; }
-  catch(e){ return {err: e.msg || 'kesalahan evaluasi', steps}; }
+/* ═══════════════ UTIL ═══════════════ */
+var $=function(s){return document.querySelector(s);};
+var esc=function(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');};
+var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+var fmtF=function(v){var s=String(Math.round(v*1e6)/1e6);if(s.indexOf('.')<0)s+='.0';return s;};
+var RELOPS=new Set(['<','>','<=','>=','==','!=']);
+var isTmp=function(n){return /^t\d+$/.test(n);};
+function lineOff(text,line){
+  var ls=text.split('\n');var o=0;
+  for(var i=0;i<Math.min(line-1,ls.length);i++)o+=ls[i].length+1;
+  return o;
 }
+function refreshIcons(){try{lucide.createIcons();}catch(e){}}
 
-/* ================================================================
-   KOMPILATOR — membangun trace peristiwa:
-   scan → parse → codegen → eksekusi kode objek
-   ================================================================ */
-function buildCompilerTrace(lines){
-  const evs=[]; let time=0;
-  const push=(dur,kind,data)=>{ const e=Object.assign({dur,kind},data); evs.push(e); time+=dur; return e; };
-  let fail=null, failedPushed=false;
-  const code=[], outs=[];
-
-  // --- fase SCAN ---
-  const parsed=[];
-  for(let li=0; li<lines.length; li++){
-    const res = tokenizeLine(lines[li], li+1);
-    const ntok = Math.max(1, res.tokens ? res.tokens.length : 1);
-    push(COST.cScan*ntok, 'scan', {line:li+1, li, toks:res.tokens||[], err:res.error?res.error.msg:null,
-      scanIdx:li, scanTotal:lines.length});
-    parsed.push(res);
-    if(res.error){ fail={phase:'compile', line:li+1, msg:res.error.msg}; break; }
-  }
-
-  // --- fase PARSE (sekaligus membentuk pohon program) ---
-  if(!fail){
-    const prog=[]; const bstack=[{body:prog, line:0}];
-    for(let li=0; li<parsed.length; li++){
-      const res = parsed[li];
-      const ntok = Math.max(1, res.tokens.length);
-      let stmt=null, err=null;
-      const pr = parseLine(res.tokens, li+1);
-      if(pr.err) err = pr.err; else stmt = pr.stmt;
-      push(COST.cParse*ntok, 'parse', {line:li+1, li, sStr: stmt?stmtStr(stmt):null, err: err?err.msg:null});
-      if(err){ fail={phase:'compile', line:li+1, msg:err.msg}; break; }
-      if(stmt.k==='blank') continue;
-      if(stmt.k==='repeat'){ const node=Object.assign({}, stmt, {body:[]}); bstack[bstack.length-1].body.push(node); bstack.push({body:node.body, line:li+1}); continue; }
-      if(stmt.k==='end'){
-        if(bstack.length===1){ fail={phase:'compile', line:li+1, msg:"'akhir' tanpa 'ulangi' yang membuka blok"}; break; }
-        bstack.pop(); continue;
-      }
-      bstack[bstack.length-1].body.push(stmt);
-    }
-    if(!fail && bstack.length>1){
-      const bl = bstack[bstack.length-1].line;
-      fail = {phase:'compile', line:bl, msg:"'ulangi' di baris "+bl+" tidak ditutup dengan 'akhir'"};
-    }
-
-    // --- fase CODEGEN (stack machine) ---
-    if(!fail){
-      const genStmt = (st, code) => {
-        switch(st.k){
-          case 'assign':
-            genE(st.expr, code, st.line);
-            code.push({op:'STORE', arg:st.name, line:st.line});
-            break;
-          case 'print':
-            if(st.prefix!=null) code.push({op:'PUSHS', arg:st.prefix, line:st.line});
-            if(st.expr) genE(st.expr, code, st.line);
-            code.push({op:(st.prefix!=null && st.expr)?'PRINT2':'PRINT', line:st.line});
-            break;
-          case 'repeat': {
-            const loopIdx = code.length;
-            code.push({op:'LOOP', arg:st.count, line:st.line});
-            st.body.forEach(b => genStmt(b, code));
-            code.push({op:'END', arg:loopIdx+1, line:st.line});
-            break;
-          }
-        }
-      };
-      const genE = (n, code, line) => {
-        switch(n.k){
-          case 'num': code.push({op:'PUSH', arg:n.v, line}); break;
-          case 'var': code.push({op:'LOAD', arg:n.name, line}); break;
-          case 'neg': genE(n.e, code, line); code.push({op:'NEG', line}); break;
-          case 'bin': genE(n.l, code, line); genE(n.r, code, line); code.push({op:{'+':'ADD','-':'SUB','*':'MUL','/':'DIV'}[n.op], line}); break;
-        }
-      };
-      for(let si=0; si<prog.length; si++){
-        const start = code.length;
-        genStmt(prog[si], code);
-        const instrs = code.slice(start);
-        push(Math.max(1, COST.cGen*instrs.length), 'codegen',
-          {line:prog[si].line, instrs, firstIdx:start, genIdx:si, genTotal:prog.length});
-      }
-
-      // --- fase EKSEKUSI kode objek ---
-      const stack=[], cvars={}, loops=[]; let pcI=0, rfail=null;
-      const execEvents=[];
-      while(pcI < code.length){
-        const ins = code[pcI];
-        let dur = COST.cExec;
-        const d = {pc:pcI, ins, stackSnap:null, varSet:null, out:null, err:null, loop:null};
-        switch(ins.op){
-          case 'PUSH': case 'PUSHS': stack.push(ins.arg); break;
-          case 'LOAD':
-            if(!(ins.arg in cvars)) rfail = {msg:"variabel '"+ins.arg+"' belum didefinisikan"};
-            else stack.push(cvars[ins.arg]);
-            break;
-          case 'STORE': cvars[ins.arg]=stack.pop(); d.varSet={name:ins.arg, val:cvars[ins.arg]}; break;
-          case 'ADD': { const b=stack.pop(), a=stack.pop(); stack.push(a+b); break; }
-          case 'SUB': { const b=stack.pop(), a=stack.pop(); stack.push(a-b); break; }
-          case 'MUL': { const b=stack.pop(), a=stack.pop(); stack.push(a*b); break; }
-          case 'DIV': { const b=stack.pop(), a=stack.pop(); if(b===0){ rfail={msg:'pembagian dengan nol'}; break; } stack.push(a/b); break; }
-          case 'NEG': stack.push(-stack.pop()); break;
-          case 'PRINT':  { const v=stack.pop(); d.out=fmt(v); outs.push(d.out); dur=COST.cPrint; break; }
-          case 'PRINT2': { const v=stack.pop(), s=stack.pop(); d.out=s+fmt(v); outs.push(d.out); dur=COST.cPrint; break; }
-          case 'LOOP': loops.push({n:ins.arg, total:ins.arg}); break;
-          case 'END': {
-            const L = loops[loops.length-1];
-            L.n--;
-            if(L.n>0){ pcI = ins.arg-1; d.loop={iter:L.total-L.n, total:L.total}; }
-            else { loops.pop(); d.loop={iter:L.total, total:L.total}; }
-            break;
-          }
-        }
-        if(rfail) d.err = rfail.msg;
-        d.stackSnap = stack.slice();
-        const e = push(dur, 'exec', d);
-        execEvents.push(e);
-        if(rfail) break;
-        pcI++;
-      }
-      if(rfail){ push(1,'cfail',{phase:'run', line:code[pcI]?code[pcI].line:null, msg:rfail.msg}); failedPushed=true; }
-      else push(1,'cdone',{});
-      // progres program hanya dihitung dari fase eksekusi
-      execEvents.forEach((e,i)=> e.prog=(i+1)/execEvents.length);
-      if(!rfail) evs[evs.length-1].prog = 1;
-    }
-  }
-  if(fail && !failedPushed) push(1,'cfail', fail);
-  evs.forEach(e=>{ if(e.prog==null) e.prog=0; });
-  return {evs, code, fail, outs, total:time};
+/* ═══════════════ CONTOH PROGRAM ═══════════════ */
+var EXAMPLES=[
+{name:'01 · Faktorial (loop + cabang)',code:
+'// Program: faktorial — loop while + cabang if\n'+
+'#include <iostream>\n'+
+'using namespace std;\n'+
+'\n'+
+'int main() {\n'+
+'    int n = 5;\n'+
+'    int faktorial = 1;\n'+
+'    int i = 1;\n'+
+'\n'+
+'    while (i <= n) {\n'+
+'        faktorial = faktorial * i;\n'+
+'        i = i + 1;\n'+
+'    }\n'+
+'\n'+
+'    int tampil = 2 + 3;\n'+
+'    if (tampil < 10) {\n'+
+'        cout << n << "! = " << faktorial << endl;\n'+
+'    }\n'+
+'\n'+
+'    return 0;\n'+
+'}\n'
+},
+{name:'02 · Ganjil / genap (if–else)',code:
+'#include <iostream>\n'+
+'using namespace std;\n\n'+
+'int main() {\n'+
+'    int angka = 7;\n\n'+
+'    if (angka % 2 == 0) {\n'+
+'        cout << angka << " adalah bilangan genap" << endl;\n'+
+'    } else {\n'+
+'        cout << angka << " adalah bilangan ganjil" << endl;\n'+
+'    }\n'+
+'    return 0;\n'+
+'}\n'
+},
+{name:'03 · Rata-rata (jebakan int vs float)',code:
+'#include <iostream>\n'+
+'using namespace std;\n\n'+
+'int main() {\n'+
+'    int total = 10 + 20 + 25 + 30;   // dilipat menjadi 85\n'+
+'    int banyak = 4;\n\n'+
+'    float rataBulat = total / banyak;   // 85/4 = 21 (pembagian bulat!)\n'+
+'    float ftotal = total;\n'+
+'    float rataAsli = ftotal / banyak;   // 21.25\n\n'+
+'    cout << "Rata-rata (int)  : " << rataBulat << endl;\n'+
+'    cout << "Rata-rata (float): " << rataAsli << endl;\n'+
+'    return 0;\n'+
+'}\n'
+},
+{name:'04 · Fibonacci (loop, banyak variabel)',code:
+'#include <iostream>\n'+
+'using namespace std;\n\n'+
+'int main() {\n'+
+'    int n = 10;\n'+
+'    int a = 0;\n'+
+'    int b = 1;\n'+
+'    int i = 0;\n\n'+
+'    while (i < n) {\n'+
+'        int c = a + b;\n'+
+'        a = b;\n'+
+'        b = c;\n'+
+'        i = i + 1;\n'+
+'    }\n\n'+
+'    cout << "Fibonacci ke-" << n << " = " << a << endl;\n'+
+'    return 0;\n'+
+'}\n'
+},
+{name:'05 · Rakit untuk OPTIMIZER (makro + kode mati)',code:
+'#include <iostream>\n'+
+'#define NAPAK 12\n'+
+'using namespace std;\n\n'+
+'int main() {\n'+
+'    int a = 3 * 4 + 2;         // dilipat -> 14\n'+
+'    int b = a * 1;             // identitas -> a\n'+
+'    int c = 0 * a;             // -> 0\n'+
+'    int mati = a + 100;        // tak pernah dibaca -> dihapus\n'+
+'    int hasil = a + b + NAPAK; // propagasi -> 40\n\n'+
+'    if (0) {                   // kondisi konstan -> cabang dibuang\n'+
+'        cout << "tidak pernah tercetak" << endl;\n'+
+'    }\n'+
+'    cout << "hasil = " << hasil << endl;\n'+
+'    return 0;\n'+
+'}\n'
+},
+{name:'06 · Tabel perkalian (for bersarang)',code:
+'#include <iostream>\n'+
+'using namespace std;\n\n'+
+'int main() {\n'+
+'    for (int i = 1; i <= 3; i++) {\n'+
+'        for (int j = 1; j <= 3; j++) {\n'+
+'            cout << i * j << " ";\n'+
+'        }\n'+
+'        cout << endl;\n'+
+'    }\n'+
+'    return 0;\n'+
+'}\n'
+},
+{name:'07 · Program BERERROR (perbaiki bertahap)',code:
+'// Ada beberapa kesalahan — kompilasi, baca pesannya,\n'+
+'// perbaiki satu per satu, lalu kompilasi ulang.\n'+
+'#include <iostream>\n'+
+'using namespace std;\n\n'+
+'int main() {\n'+
+'    int a = 5\n'+
+'    int b = a + x;\n'+
+'    float a = 3.5;\n'+
+'    cout << b << endl;\n'+
+'    return 0;\n'+
+'}\n'
 }
-
-/* ================================================================
-   INTERPRETER — membaca & mengurai ulang baris demi baris,
-   termasuk di setiap iterasi pengulangan.
-   ================================================================ */
-function buildInterpreterTrace(lines){
-  const evs=[]; let time=0;
-  const push=(dur,kind,data)=>{ const e=Object.assign({dur,kind},data); evs.push(e); time+=dur; return e; };
-  const vars={}, loopStack=[]; let pc=0, fail=null, reads=0, execLines=0; const outs=[];
-
-  while(pc < lines.length){
-    const li=pc, line=li+1, src=lines[li];
-    const res = tokenizeLine(src, line);
-    reads++;
-    const ntok = Math.max(1, res.tokens ? res.tokens.length : 1);
-    push(COST.iRead*ntok, 'iread', {line, li, toks:res.tokens||[], err:res.error?res.error.msg:null, total:lines.length});
-    if(res.error){ fail={line, msg:res.error.msg}; break; }
-    const pr = parseLine(res.tokens, line);
-    if(pr.err){ fail={line, msg:pr.err.msg}; break; }
-    const st = pr.stmt;
-    if(st.k==='blank'){ pc++; continue; }
-
-    if(st.k==='repeat'){
-      loopStack.push({bodyStart:pc+1, iter:0, total:st.count});
-      push(2,'ieval',{line, note:'buka blok ulangi ×'+st.count, trace:[]});
-      execLines++; pc++; continue;
-    }
-    if(st.k==='end'){
-      const fr = loopStack[loopStack.length-1];
-      if(!fr){ fail={line, msg:"'akhir' tanpa 'ulangi' yang membuka blok"}; break; }
-      fr.iter++;
-      if(fr.iter < fr.total){
-        pc = fr.bodyStart;
-        push(1,'ieval',{line, note:'iterasi '+(fr.iter+1)+'/'+fr.total+' — kembali ke baris '+(fr.bodyStart+1), trace:[], loop:{iter:fr.iter+1,total:fr.total}});
-      } else {
-        loopStack.pop(); pc++;
-        push(1,'ieval',{line, note:'tutup blok ulangi ('+fr.total+'×)', trace:[], loop:null});
-      }
-      continue;
-    }
-    execLines++;
-    if(st.k==='assign'){
-      const r = evalExpr(st.expr, vars);
-      const dur = COST.iEval*countNodes(st.expr)+1;
-      if(r.err){ push(dur,'ieval',{line, note:'gagal', trace:[], err:r.err}); fail={line, msg:r.err}; break; }
-      vars[st.name] = r.value;
-      push(dur,'ieval',{line, note:'simpan '+st.name+' ← '+fmt(r.value), trace:r.steps, varSet:{name:st.name, val:r.value}});
-    } else { // print
-      let val=null, steps=[];
-      const dur = COST.iEval*countNodes(st.expr)+1;
-      if(st.expr){
-        const r = evalExpr(st.expr, vars);
-        if(r.err){ push(dur,'ieval',{line, note:'gagal', trace:[], err:r.err}); fail={line, msg:r.err}; break; }
-        val = r.value; steps = r.steps;
-      }
-      const text = (st.prefix!=null?st.prefix:'') + (val!=null?fmt(val):'');
-      outs.push(text);
-      push(dur,'ieval',{line, note:'cetak', trace:steps, out:text});
-    }
-    pc++;
-  }
-  if(fail) push(1,'ifail', fail); else push(1,'idone',{});
-  evs.forEach((e,i)=> e.prog=(i+1)/evs.length);
-  return {evs, fail, outs, vars, reads, execLines, total:time};
-}
-
-/* ================================================================
-   PRESET BERKAS UJI
-   ================================================================ */
-const PRESETS = [
-  {
-    no:'B-01', name:'Perulangan Berat', hint:'24 iterasi · beban kerja berat',
-    watch:'Interpreter harus membaca ulang dan mengurai baris yang sama di setiap iterasi pengulangan. Kompilator membayar ongkos di muka — perhatikan kurvanya diam datar selama fase kompilasi, lalu menembus garis finish jauh lebih cepat.',
-    code:
-`# program yang sama, dua mesin berbeda
-cetak "Mulai perhitungan"
-ulangi 24 kali
-  a = 6
-  b = a * 4 + 2
-  cetak "b = " b
-akhir
-cetak "Selesai"`
-  },
-  {
-    no:'B-02', name:'Program Kilat', hint:'4 baris · dijalankan sekali',
-    watch:'Program mungil yang hanya berjalan sekali. Biaya kompilasi tidak sempat terbayar — lihat siapa yang lebih dulu menyentuh garis finish. Tapi perhatikan juga waktu eksekusi murninya: siapa yang sebenarnya lebih gesit.',
-    code:
-`# program kecil, dijalankan sekali
-x = 2 + 3 * 4
-y = x / 2
-cetak "x = " x
-cetak "y = " y`
-  },
-  {
-    no:'B-03', name:'Kesalahan Sintaks', hint:'rusak di baris ke-6',
-    watch:'Ada kesalahan sintaks di baris ke-6 (operator +*). Kompilator akan menolak seluruh berkas — nol baris output. Interpreter sudah lebih dulu menjalankan separuh program sebelum tersandung. Bandingkan kedua konsol.',
-    code:
-`# ada kesalahan sintaks di baris 6
-cetak "Mulai"
-a = 10
-b = a * 2 + 5
-cetak "b = " b
-c = a +* 3
-cetak c`
-  },
-  {
-    no:'B-04', name:'Kesalahan Runtime', hint:'sintaks sempurna, isi tidak',
-    watch:'Sintaksnya sempurna, tetapi pembagian dengan nol menunggu di baris ke-5. Kompilator tidak bisa melihat isi variabel saat menerjemahkan — nilainya baru ada ketika program berjalan. Kedua mesin gagal di titik yang sama.',
-    code:
-`# sintaks sempurna, isi variabel tidak
-a = 120
-b = 0
-cetak "Membagi dengan nol..."
-c = a / b
-cetak "Hasil: " c`
-  },
 ];
 
-/* ================================================================
-   REFERENSI DOM
-   ================================================================ */
-const D = {
-  ta:qs('#srcTa'), hl:qs('#srcHl'), gut:qs('#gutterInner'),
-  fileIndex:qs('#fileIndex'), piBox:qs('#piBox'), piTag:qs('#piTag'), piTitle:qs('#piTitle'), piWatch:qs('#piWatch'),
-  btnRun:qs('#btnRun'), btnReload:qs('#btnReload'),
-  raceSvg:qs('#raceSvg'), tLive:qs('#tLive'),
-  btnMaster:qs('#btnMaster'), btnStep:qs('#btnStep'), btnFF:qs('#btnFF'), btnReset:qs('#btnReset'),
-  speed:qs('#speed'), speedLbl:qs('#speedLbl'),
-  stC:qs('#stC'), tC:qs('#tC'), lensC:qs('#lensC'), objListC:qs('#objListC'), objLabelC:qs('#objLabelC'),
-  stackC:qs('#stackC'), varsC:qs('#varsC'), loopC:qs('#loopC'), outC:qs('#outC'),
-  stI:qs('#stI'), tI:qs('#tI'), rhNo:qs('#rhNo'), rhSrc:qs('#rhSrc'), rhTok:qs('#rhTok'),
-  rhTrace:qs('#rhTrace'), rhStats:qs('#rhStats'), varsI:qs('#varsI'), loopI:qs('#loopI'), outI:qs('#outI'),
-  sCc:qs('#sCc'), sCi:qs('#sCi'), sEc:qs('#sEc'), sEi:qs('#sEi'), sTc:qs('#sTc'), sTi:qs('#sTi'),
-  sWc:qs('#sWc'), sWi:qs('#sWi'), sOc:qs('#sOc'), sOi:qs('#sOi'), sSc:qs('#sSc'), sSi:qs('#sSi'),
-  conclWrap:qs('#conclWrap'), conclHead:qs('#conclHead'), conclBody:qs('#conclBody'), conclFacts:qs('#conclFacts'),
-  toast:qs('#toast'),
-};
-const Dph = {};
-document.querySelectorAll('#phasesC .ph').forEach(el=>{
-  Dph[el.dataset.k] = {el, bar:el.querySelector('.ph-bar i')};
-});
-const PH_ORDER = ['scan','parse','gen','run'];
-
-/* ================================================================
-   STATE SIMULASI
-   ================================================================ */
-const sim = { running:false, finished:false, clock:0, speed:400, mC:null, mI:null, cross:null };
-let hlLines=[], gLines=[];
-let curPreset=0;
-const marks = {C:null, I:null};
-const errMarks = {C:null, I:null};
-let activeRowC=null;
-
-/* ================================================================
-   EDITOR — highlight, gutter, penanda baris
-   ================================================================ */
-function hlLine(line){
-  let out='', last=0;
-  const re = /(#.*$)|("[^"]*$)|("[^"]*")|(\d+(?:\.\d+)?)|([A-Za-z_][A-Za-z0-9_]*)|([+\-*/=()])/g;
-  let m;
-  while((m = re.exec(line))){
-    if(m.index>last) out += esc(line.slice(last, m.index));
-    const s = m[0];
-    let cls='c-op';
-    if(m[1]) cls='c-com';
-    else if(m[2]) cls='c-str c-bad';
-    else if(m[3]) cls='c-str';
-    else if(m[4]) cls='c-num';
-    else if(m[5]) cls = KEYWORDS.has(s) ? 'c-kw' : 'c-id';
-    out += '<span class="'+cls+'">'+esc(s)+'</span>';
-    last = m.index + s.length;
+/* ═══════════════ FASE 01 · PREPROSESOR ═══════════════ */
+function runPreprocessor(src){
+  var includes=[],defines={},errors=[],notes=[];
+  var inBlock=false,inStr=false,inChr=false,cleaned='',comments=0;
+  for(var i=0;i<src.length;i++){
+    var c=src[i],d=src[i+1];
+    if(inStr){cleaned+=c;if(c==='\\'&&d!==undefined){cleaned+=d;i++;}else if(c==='"'){inStr=false;}continue;}
+    if(inChr){cleaned+=c;if(c==='\\'&&d!==undefined){cleaned+=d;i++;}else if(c==="'"){inChr=false;}continue;}
+    if(inBlock){
+      if(c==='*'&&d==='/'){inBlock=false;cleaned+='  ';i++;}
+      else if(c==='\n'){cleaned+='\n';}
+      else{cleaned+=' ';}
+      continue;
+    }
+    if(c==='"'){inStr=true;cleaned+=c;continue;}
+    if(c==="'"){inChr=true;cleaned+=c;continue;}
+    if(c==='/'&&d==='/'){
+      comments++;
+      while(i<src.length&&src[i]!=='\n'){cleaned+=' ';i++;}
+      if(i<src.length&&src[i]==='\n'){cleaned+='\n';}
+      continue;
+    }
+    if(c==='/'&&d==='*'){comments++;inBlock=true;cleaned+='  ';i++;continue;}
+    cleaned+=c;
   }
-  out += esc(line.slice(last));
-  return out;
+  var lines=cleaned.split('\n');
+  for(var li=0;li<lines.length;li++){
+    var line=lines[li],t=line.trim();
+    if(t.charAt(0)==='#'){
+      var mI=t.match(/^#\s*include\s*[<"]([^>"]+)[>"]/);
+      var mD=t.match(/^#\s*define\s+([A-Za-z_]\w*)\s+(.+)$/);
+      if(mI){
+        includes.push(mI[1]);
+        lines[li]=new Array(line.length+1).join(' ');
+        notes.push('"'+mI[1]+'" disisipkan (simulasi): ±800 baris deklarasi pustaka ikut unit translasi nyata — di sini dicatat saja.');
+      }else if(mD){
+        defines[mD[1]]=mD[2].trim();
+        lines[li]=new Array(line.length+1).join(' ');
+      }else{
+        errors.push({msg:'directive "'+t.slice(0,24)+'" tidak didukung subset (hanya #include / #define)',line:li+1,col:1});
+      }
+    }
+  }
+  cleaned=lines.join('\n');
+  var names=Object.keys(defines);
+  var macroUses=0;
+  if(names.length){
+    var re=new RegExp('\\b('+names.join('|')+')\\b','g');
+    cleaned=cleaned.replace(re,function(m){
+      macroUses++;
+      var rep=defines[m];
+      if(rep.length<m.length){rep=rep+new Array(m.length-rep.length+1).join(' ');}
+      return rep;
+    });
+  }
+  return{output:cleaned,includes:includes,defines:defines,notes:notes,errors:errors,
+    comments:comments,macroUses:macroUses,
+    rawLines:src.split('\n'),outLines:cleaned.split('\n')};
 }
-function refreshEditor(){
-  const src = D.ta.value;
-  const lines = src.split('\n');
-  D.hl.innerHTML = lines.map(l=>'<div class="hl-line">'+hlLine(l)+'</div>').join('') + '\n';
-  D.gut.innerHTML = lines.map((_,i)=>'<div class="g-line" data-n="'+(i+1)+'">'+(i+1)+'</div>').join('');
-  hlLines = Array.from(D.hl.children);
-  gLines  = Array.from(D.gut.children);
-  marks.C = marks.I = errMarks.C = errMarks.I = null;
-}
-function clearMark(kind){
-  if(marks[kind]){ marks[kind].hl.classList.remove('mk-'+kind.toLowerCase()); marks[kind].g.classList.remove('g-'+kind.toLowerCase()); marks[kind]=null; }
-}
-function markLine(kind, line){
-  clearMark(kind);
-  const i = line-1;
-  if(i<0 || i>=hlLines.length) return;
-  hlLines[i].classList.add('mk-'+kind.toLowerCase());
-  gLines[i].classList.add('g-'+kind.toLowerCase());
-  marks[kind] = {hl:hlLines[i], g:gLines[i]};
-}
-function markErrLine(kind, line){
-  const i = line-1;
-  if(i<0 || i>=hlLines.length) return;
-  hlLines[i].classList.add('mk-err');
-  gLines[i].classList.add('g-err');
-  errMarks[kind] = {hl:hlLines[i], g:gLines[i]};
-}
-D.ta.addEventListener('input', ()=>{ refreshEditor(); D.piBox.classList.add('modified'); if(sim.finished||sim.running){} });
-D.ta.addEventListener('scroll', ()=>{
-  D.hl.scrollTop = D.ta.scrollTop; D.hl.scrollLeft = D.ta.scrollLeft;
-  D.gut.style.transform = 'translateY('+(-D.ta.scrollTop)+'px)';
-});
 
-/* ================================================================
-   RENDER KOMPONEN PANEL
-   ================================================================ */
-function setBadge(el, txt, mode){
-  el.textContent = txt;
-  el.className = 'badge' + (mode==='run' ? ' b-run' : mode==='ok' ? ' b-ok' : mode==='bad' ? ' b-bad' : '');
+/* ═══════════════ FASE 02 · LEKSER ═══════════════ */
+var KW=new Set(['int','float','bool','void','if','else','while','for','return','using','namespace','const']);
+var OPS2=['<<','<=','>=','==','!=','&&','||','+=','-=','*=','/=','++','--'];
+function lex(text){
+  var T=[],errors=[];
+  var i=0,line=1,col=1;
+  function push(kind,lexeme,start,l,c,extra){
+    var o={kind:kind,lexeme:lexeme,line:l,col:c,start:start,end:start+lexeme.length};
+    if(extra)Object.keys(extra).forEach(function(k){o[k]=extra[k];});
+    T.push(o);
+  }
+  while(i<text.length){
+    var c=text[i];
+    if(c==='\n'){i++;line++;col=1;continue;}
+    if(c===' '||c==='\t'||c==='\r'){i++;col++;continue;}
+    if(/[A-Za-z_]/.test(c)){
+      var j=i;
+      while(j<text.length&&/\w/.test(text[j])){j++;}
+      var w=text.slice(i,j);
+      if(w==='true'||w==='false'){push('boollit',w,i,line,col,{v:w==='true'});}
+      else if(KW.has(w)){push('kw',w,i,line,col);}
+      else{push('id',w,i,line,col);}
+      col+=j-i;i=j;continue;
+    }
+    if(/[0-9]/.test(c)){
+      var j2=i,isF=false;
+      while(j2<text.length&&/[0-9]/.test(text[j2])){j2++;}
+      if(text[j2]==='.'){isF=true;j2++;while(j2<text.length&&/[0-9]/.test(text[j2])){j2++;}}
+      if(text[j2]==='e'||text[j2]==='E'){isF=true;j2++;if(text[j2]==='+'||text[j2]==='-'){j2++;}while(j2<text.length&&/[0-9]/.test(text[j2])){j2++;}}
+      var w2=text.slice(i,j2);
+      push(isF?'floatlit':'intlit',w2,i,line,col,{v:isF?parseFloat(w2):parseInt(w2,10)});
+      col+=j2-i;i=j2;continue;
+    }
+    if(c==='"'){
+      var j3=i+1,v='';
+      while(j3<text.length&&text[j3]!=='"'){
+        if(text[j3]==='\\'&&j3+1<text.length){
+          var e=text[j3+1];
+          v+=(e==='n')?'\n':(e==='t')?'\t':(e==='0')?'\0':e;
+          j3+=2;
+        }else{v+=text[j3];j3++;}
+      }
+      if(j3>=text.length){errors.push({msg:'string tidak ditutup tanda kutip',line:line,col:col});j3=text.length-1;}
+      var w3=text.slice(i,j3+1);
+      push('strlit',w3,i,line,col,{v:v});
+      col+=w3.length;i+=w3.length;continue;
+    }
+    if(c==="'"){errors.push({msg:'literal karakter tidak didukung subset — gunakan string "..."',line:line,col:col});i+=3;col+=3;continue;}
+    var two=text.substr(i,2);
+    if(OPS2.indexOf(two)>=0){push('op',two,i,line,col);i+=2;col+=2;continue;}
+    if('+-*/%=<>!'.indexOf(c)>=0){push('op',c,i,line,col);i++;col++;continue;}
+    if(';,(){}'.indexOf(c)>=0){push('punc',c,i,line,col);i++;col++;continue;}
+    if(c==='#'){errors.push({msg:"directive '#' harus berada di awal baris (preprosesor melewatkannya)",line:line,col:col});while(i<text.length&&text[i]!=='\n'){i++;col++;}continue;}
+    if(c===':'){errors.push({msg:"karakter ':' — kualifikasi namespace '::' tidak didukung; gunakan 'using namespace std;'",line:line,col:col});i++;col++;continue;}
+    errors.push({msg:'karakter tak dikenal "'+c+'" (kode '+c.charCodeAt(0)+')',line:line,col:col});
+    i++;col++;
+  }
+  var last=T.length?T[T.length-1]:null;
+  T.push({kind:'eof',lexeme:'<akhir-berkas>',line:last?last.line:1,col:last?last.col:1,start:text.length,end:text.length});
+  return{tokens:T,errors:errors};
 }
-function chipsHTML(toks){
-  if(!toks.length) return '<span class="emptyv">— baris kosong / komentar —</span>';
-  return toks.map(t=>{
-    const cls = t.t==='KW'?'tk-kw' : t.t==='NUM'?'tk-num' : t.t==='STR'?'tk-str' : t.t==='OP'?'tk-op' : 'tk-id';
-    const txt = t.t==='STR' ? '"'+t.v+'"' : t.v;
-    return '<span class="tk '+cls+'" title="'+t.t+'">'+esc(txt)+'</span>';
+var KIND_NAME={kw:'kata kunci',id:'pengenal',intlit:'literal bulat',floatlit:'literal desimal',boollit:'literal bool',strlit:'string',op:'operator',punc:'tanda baca'};
+var KIND_CLS={kw:'tk-kw',id:'tk-id',intlit:'tk-int',floatlit:'tk-float',boollit:'tk-bool',strlit:'tk-str',op:'tk-op',punc:'tk-punc',eof:'tk-cm'};
+
+/* ═══════════════ FASE 03 · PARSER (AST) ═══════════════ */
+function parse(tokens){
+  var toks=tokens,p=0;
+  function cur(){return toks[Math.min(p,toks.length-1)];}
+  function at(k,l){var t=cur();return t.kind===k&&(l===undefined||t.lexeme===l);}
+  function atL(l){return cur().lexeme===l;}
+  function eat(){return toks[p++];}
+  function fail(m){var t=cur();throw{msg:m,line:t.line,col:t.col,near:t.lexeme};}
+  function expect(l){if(!atL(l)){fail("diharapkan '"+l+"' tetapi ditemukan '"+cur().lexeme+"'");}return eat();}
+  function expectId(w){if(!at('id')){fail('diharapkan '+w+' tetapi ditemukan '+cur().lexeme);}return eat();}
+  var TYPES=new Set(['int','float','bool','void']);
+  var ASSIGN=['=','+=','-=','*=','/='];
+
+  function parseProgram(){
+    var funcs=[];
+    while(cur().kind!=='eof'){
+      if(at('kw','using')){eat();expect('namespace');expectId('nama namespace');expect(';');continue;}
+      var t=cur();
+      if(t.kind!=='kw'||!TYPES.has(t.lexeme)){fail("diharapkan tipe (int / float / bool) atau 'using' tetapi ditemukan '"+t.lexeme+"'");}
+      eat();
+      var name=expectId('nama fungsi');
+      expect('(');
+      var params=[];
+      if(!atL(')')){
+        do{
+          var pt=cur();
+          if(pt.kind!=='kw'||!TYPES.has(pt.lexeme)){fail('diharapkan tipe parameter');}
+          eat();
+          var pn=expectId('nama parameter');
+          params.push({type:pt.lexeme,name:pn.lexeme,line:pn.line});
+        }while(atL(',')&&eat());
+      }
+      expect(')');
+      var body=parseBlock();
+      funcs.push({kind:'Func',type:t.lexeme,name:name.lexeme,params:params,body:body,start:t.start,end:body.end,line:t.line});
+    }
+    return{kind:'Program',funcs:funcs,start:0,end:toks.length?toks[toks.length-1].end:0,line:1};
+  }
+  function parseBlock(){
+    var b=expect('{');
+    var stmts=[];
+    while(!atL('}')){
+      if(cur().kind==='eof'){fail("diharapkan '}' — blok belum ditutup");}
+      var s=parseStmt();
+      if(s)stmts.push(s);
+    }
+    var e=eat();
+    return{kind:'Block',stmts:stmts,start:b.start,end:e.end,line:b.line};
+  }
+  function parseVarDecl(isConst){
+    var t=cur();
+    if(t.kind!=='kw'||!TYPES.has(t.lexeme)){fail("'"+t.lexeme+"' bukan tipe yang didukung");}
+    eat();
+    var id=expectId('nama variabel');
+    var init=null;
+    if(atL('=')){eat();init=parseExpr();}
+    var semi=expect(';');
+    return{kind:'VarDecl',type:t.lexeme,name:id.lexeme,isConst:!!isConst,init:init,start:t.start,end:semi.end,line:t.line};
+  }
+  function parseStmt(){
+    var t=cur();
+    if(atL(';')){eat();return null;}
+    if(atL('{')){return parseBlock();}
+    if(t.kind==='kw'){
+      if(TYPES.has(t.lexeme)){return parseVarDecl(false);}
+      if(t.lexeme==='const'){eat();return parseVarDecl(true);}
+      if(t.lexeme==='if'){
+        eat();expect('(');
+        var cond=parseExpr();expect(')');
+        var then=parseStmt();
+        var els=null;
+        if(at('kw','else')){eat();els=parseStmt();}
+        return{kind:'If',cond:cond,then:then,els:els,start:t.start,end:(els||then||{end:t.end}).end,line:t.line};
+      }
+      if(t.lexeme==='while'){
+        eat();expect('(');
+        var cond2=parseExpr();expect(')');
+        var body=parseStmt();
+        return{kind:'While',cond:cond2,body:body,start:t.start,end:body?body.end:t.end,line:t.line};
+      }
+      if(t.lexeme==='for'){
+        eat();expect('(');
+        var init=null;
+        if(!atL(';')){init=parseStmt();}else{eat();}
+        var cond3=null;
+        if(!atL(';')){cond3=parseExpr();}
+        expect(';');
+        var upd=null;
+        if(!atL(')')){upd=parseAssignCore();}
+        expect(')');
+        var body3=parseStmt();
+        return{kind:'For',init:init,cond:cond3,upd:upd,body:body3,start:t.start,end:body3?body3.end:t.end,line:t.line};
+      }
+      if(t.lexeme==='return'){
+        eat();
+        var expr=null;
+        if(!atL(';')){expr=parseExpr();}
+        var semi=expect(';');
+        return{kind:'Return',expr:expr,start:t.start,end:semi.end,line:t.line};
+      }
+      fail("kata kunci '"+t.lexeme+"' tidak dapat memulai pernyataan");
+    }
+    if(t.kind==='id'){
+      var nx=toks[Math.min(p+1,toks.length-1)];
+      if(t.lexeme==='cout'&&nx.lexeme==='<<'){return parseCout();}
+      if(nx.kind==='op'&&(ASSIGN.indexOf(nx.lexeme)>=0||nx.lexeme==='++'||nx.lexeme==='--')){
+        var st=parseAssignCore();
+        expect(';');
+        return st;
+      }
+    }
+    var e=parseAssignCore();
+    expect(';');
+    return e.kind==='Assign'?e:{kind:'ExprStmt',expr:e,start:e.start,end:e.end,line:e.line};
+  }
+  function parseCout(){
+    var t=eat();
+    var items=[];
+    while(at('op','<<')){eat();items.push(parseExpr());}
+    if(!items.length){fail("diharapkan ekspresi setelah '<<'");}
+    var semi=expect(';');
+    return{kind:'Cout',items:items,start:t.start,end:semi.end,line:t.line};
+  }
+  function parseAssignCore(){
+    if(cur().kind==='id'){
+      var nx=toks[Math.min(p+1,toks.length-1)];
+      if(nx.kind==='op'&&nx.lexeme==='='){
+        var id=eat();eat();
+        var e=parseExpr();
+        return{kind:'Assign',name:id.lexeme,expr:e,start:id.start,end:e.end,line:id.line};
+      }
+      if(nx.kind==='op'&&['+=','-=','*=','/='].indexOf(nx.lexeme)>=0){
+        var id2=eat();var op=eat();var e2=parseExpr();
+        var varN={kind:'Var',name:id2.lexeme,start:id2.start,end:id2.end,line:id2.line};
+        return{kind:'Assign',name:id2.lexeme,
+          expr:{kind:'Bin',op:op.lexeme.charAt(0),l:varN,r:e2,start:id2.start,end:e2.end,line:id2.line},
+          sugar:op.lexeme,start:id2.start,end:e2.end,line:id2.line};
+      }
+      if(nx.lexeme==='++'||nx.lexeme==='--'){
+        var id3=eat();var op3=eat();
+        var varN3={kind:'Var',name:id3.lexeme,start:id3.start,end:id3.end,line:id3.line};
+        return{kind:'Assign',name:id3.lexeme,
+          expr:{kind:'Bin',op:op3.lexeme.charAt(0),l:varN3,r:{kind:'IntLit',v:1,start:id3.start,end:id3.end,line:id3.line},start:id3.start,end:op3.end,line:id3.line},
+          sugar:op3.lexeme,start:id3.start,end:op3.end,line:id3.line};
+      }
+    }
+    return parseExpr();
+  }
+  function mkBin(op,l,r){return{kind:'Bin',op:op,l:l,r:r,start:l.start,end:r.end,line:l.line};}
+  function parseExpr(){return orE();}
+  function orE(){var l=andE();while(at('op','||')){eat();l=mkBin('||',l,andE());}return l;}
+  function andE(){var l=eqE();while(at('op','&&')){eat();l=mkBin('&&',l,eqE());}return l;}
+  function eqE(){var l=relE();while(at('op','==')||at('op','!=')){var o=eat();l=mkBin(o.lexeme,l,relE());}return l;}
+  function relE(){var l=addE();while(cur().kind==='op'&&['<','>','<=','>='].indexOf(cur().lexeme)>=0){var o=eat();l=mkBin(o.lexeme,l,addE());}return l;}
+  function addE(){var l=mulE();while(cur().kind==='op'&&(cur().lexeme==='+'||cur().lexeme==='-')){var o=eat();l=mkBin(o.lexeme,l,mulE());}return l;}
+  function mulE(){var l=unaE();while(cur().kind==='op'&&['*','/','%'].indexOf(cur().lexeme)>=0){var o=eat();l=mkBin(o.lexeme,l,unaE());}return l;}
+  function unaE(){
+    if(cur().kind==='op'&&(cur().lexeme==='-'||cur().lexeme==='!')){
+      var o=eat();
+      var e=unaE();
+      return{kind:'Un',op:o.lexeme,e:e,start:o.start,end:e.end,line:o.line};
+    }
+    return prim();
+  }
+  function prim(){
+    var t=cur();
+    if(t.kind==='intlit'){eat();return{kind:'IntLit',v:t.v,start:t.start,end:t.end,line:t.line};}
+    if(t.kind==='floatlit'){eat();return{kind:'FloatLit',v:t.v,start:t.start,end:t.end,line:t.line};}
+    if(t.kind==='boollit'){eat();return{kind:'BoolLit',v:t.v,start:t.start,end:t.end,line:t.line};}
+    if(t.kind==='strlit'){eat();return{kind:'StrLit',v:t.v,start:t.start,end:t.end,line:t.line};}
+    if(t.kind==='id'){eat();return{kind:'Var',name:t.lexeme,start:t.start,end:t.end,line:t.line};}
+    if(atL('(')){eat();var e=parseExpr();expect(')');return e;}
+    fail("ekspresi tak terduga '"+t.lexeme+"'");
+  }
+  return parseProgram();
+}
+
+/* ═══════════════ FASE 04 · SEMANTIK ═══════════════ */
+function analyze(prog){
+  var errors=[],warnings=[],symbols=[],varTypes=new Map();
+  var tacCounter={};
+  function tacNameFor(n){tacCounter[n]=(tacCounter[n]||0)+1;return tacCounter[n]===1?n:n+'_'+tacCounter[n];}
+  var scopes=[{map:new Map(),label:'global'}];
+  function pushScope(label){scopes.push({map:new Map(),label:label});}
+  function popScope(){scopes.pop();}
+  function declare(sym){scopes[scopes.length-1].map.set(sym.name,sym);symbols.push(sym);}
+  function lookup(name){
+    for(var i=scopes.length-1;i>=0;i--){if(scopes[i].map.has(name))return scopes[i].map.get(name);}
+    return null;
+  }
+  function err(msg,node){errors.push({msg:msg,line:node?node.line:0});}
+  function warn(msg,node){warnings.push({msg:msg,line:node?node.line:0});}
+  function setTy(n,t){varTypes.set(n,t);}
+
+  function typeExpr(e,assigned){
+    var t='int';
+    switch(e.kind){
+      case 'IntLit':t='int';break;
+      case 'FloatLit':t='float';break;
+      case 'BoolLit':t='bool';break;
+      case 'StrLit':t='string';break;
+      case 'Var':{
+        if(e.name==='endl'){e.isEndl=true;t='endl';break;}
+        var sym=lookup(e.name);
+        if(!sym){err("'"+e.name+"' tidak dideklarasikan dalam scope ini",e);t='int';}
+        else{
+          sym.uses++;e.sym=sym;t=sym.type;
+          if(sym.kind==='var'&&assigned&&!assigned.has(sym.tacName)){warn("'"+e.name+"' mungkin dipakai sebelum diinisialisasi",e);}
+        }
+        break;}
+      case 'Un':{
+        var a=typeExpr(e.e,assigned);
+        if(e.op==='!'){
+          if(a==='string'){err("operand '!' tidak boleh string",e);}
+          t='bool';
+        }else{
+          if(a==='string'||a==='bool'){err("operand '-' harus bilangan, bukan "+a,e);}
+          t=a==='string'?'int':a;
+        }
+        break;}
+      case 'Bin':{
+        var lt=typeExpr(e.l,assigned),rt2=typeExpr(e.r,assigned),op=e.op;
+        if(lt==='string'||rt2==='string'){err("operand '"+op+"' tidak boleh bertipe string",e);break;}
+        if(op==='&&'||op==='||'){
+          if(lt==='float'){warn("operand kiri '"+op+"' bertipe float — dikonversi ke bool (≠ 0)",e);}
+          if(rt2==='float'){warn("operand kanan '"+op+"' bertipe float — dikonversi ke bool (≠ 0)",e);}
+          t='bool';
+        }else if(RELOPS.has(op)){t='bool';}
+        else{
+          if(op==='%'&&(lt==='float'||rt2==='float')){err("operator '%' hanya berlaku untuk bilangan bulat",e);}
+          t=(lt==='float'||rt2==='float')?'float':'int';
+          if(lt!==rt2&&lt!=='bool'&&rt2!=='bool'){warn("operand "+(lt==='float'?'kanan':'kiri')+" dikonversi implisit ke float pada '"+op+"'",e);}
+        }
+        break;}
+    }
+    setTy(e,t);return t;
+  }
+  function checkAssign(sym,exprNode,at,assigned){
+    var et=typeExpr(exprNode,assigned);
+    if(et==='string'){err("tidak dapat menugaskan string ke '"+sym.name+"' ("+sym.type+")",at);return;}
+    if(et==='endl'){err("'endl' hanya berlaku bersama cout",at);return;}
+    var vt=sym.type;
+    if(vt==='float'&&(et==='int'||et==='bool')){warn("konversi implisit "+et+"→float saat menugaskan '"+sym.name+"'",at);}
+    else if(vt==='int'&&et==='float'){warn("pemotongan float→int pada '"+sym.name+"' — digit desimal dibuang",at);}
+    else if(vt==='int'&&et==='bool'){warn("konversi bool→int (0/1) pada '"+sym.name+"'",at);}
+    else if(vt==='bool'&&et==='float'){warn("konversi float→bool (≠0) pada '"+sym.name+"'",at);}
+    else if(vt==='bool'&&et==='int'){warn("konversi int→bool (≠0) pada '"+sym.name+"'",at);}
+  }
+  function walkStmt(s,assigned){
+    if(!s)return;
+    switch(s.kind){
+      case 'Block':
+        pushScope('blok @ baris '+s.line);
+        s.stmts.forEach(function(x){walkStmt(x,assigned);});
+        popScope();
+        return;
+      case 'VarDecl':{
+        if(scopes[scopes.length-1].map.has(s.name)){err("deklarasi ulang '"+s.name+"' dalam scope yang sama",s);}
+        if(s.isConst&&!s.init){err("konstanta '"+s.name+"' wajib diinisialisasi",s);}
+        var sym={name:s.name,type:s.type,kind:'var',scope:scopes[scopes.length-1].label,
+          declLine:s.line,isConst:s.isConst,uses:0,init:!!s.init,tacName:tacNameFor(s.name)};
+        declare(sym);s.sym=sym;
+        if(s.init){checkAssign(sym,s.init,s,assigned);assigned.add(sym.tacName);}
+        return;}
+      case 'Assign':{
+        var sym2=lookup(s.name);
+        if(!sym2){err("'"+s.name+"' tidak dideklarasikan dalam scope ini",s);typeExpr(s.expr,assigned);return;}
+        s.sym=sym2;sym2.uses++;sym2.init=true;
+        if(sym2.isConst){err("'"+s.name+"' adalah konstanta — tidak dapat diubah",s);}
+        checkAssign(sym2,s.expr,s,assigned);
+        assigned.add(sym2.tacName);
+        return;}
+      case 'If':{
+        var ct=typeExpr(s.cond,assigned);
+        if(ct==='string'||ct==='endl'){err("kondisi 'if' harus bool atau bilangan",s);}
+        else if(ct==='float'){warn("kondisi 'if' bertipe float — dibandingkan ≠ 0.0",s);}
+        var a1=new Set(assigned),a2=new Set(assigned);
+        walkStmt(s.then,a1);
+        if(s.els)walkStmt(s.els,a2);
+        a1.forEach(function(x){assigned.add(x);});
+        a2.forEach(function(x){assigned.add(x);});
+        return;}
+      case 'While':{
+        var ct2=typeExpr(s.cond,assigned);
+        if(ct2==='string'||ct2==='endl'){err("kondisi 'while' harus bool atau bilangan",s);}
+        else if(ct2==='float'){warn("kondisi 'while' bertipe float — dibandingkan ≠ 0.0",s);}
+        var a3=new Set(assigned);
+        walkStmt(s.body,a3);
+        a3.forEach(function(x){assigned.add(x);});
+        return;}
+      case 'For':{
+        pushScope('blok @ baris '+s.line);
+        if(s.init)walkStmt(s.init,new Set(assigned));
+        if(s.cond){
+          var ct3=typeExpr(s.cond,assigned);
+          if(ct3==='string'||ct3==='endl'){err("kondisi 'for' harus bool atau bilangan",s);}
+        }
+        if(s.upd)walkStmt(s.upd,new Set(assigned));
+        var a4=new Set(assigned);
+        walkStmt(s.body,a4);
+        a4.forEach(function(x){assigned.add(x);});
+        popScope();
+        return;}
+      case 'Return':{
+        if(!s.expr)return;
+        var et=typeExpr(s.expr,assigned);
+        if(et==='string'||et==='endl'){err('return harus bilangan',s);}
+        else if(et==='float'){warn('return float→int (pemotongan nilai)',s);}
+        else if(et==='bool'){warn('return bool→int',s);}
+        return;}
+      case 'Cout':{
+        s.items.forEach(function(it){
+          var it2=typeExpr(it,assigned);
+          if(['string','endl','int','float','bool'].indexOf(it2)<0){err('item cout bertipe tidak dikenal',it);}
+        });
+        return;}
+      case 'ExprStmt':typeExpr(s.expr,assigned);return;
+    }
+  }
+  prog.funcs.forEach(function(f){
+    if(f.name!=='main'){err("fungsi '"+f.name+"' — definisi fungsi tambahan di luar subset didaktik (hanya main)",f);return;}
+    if(f.type!=='int'){warn("'main' sebaiknya bertipe int (standar C++)",f);}
+    if(f.params.length){err("'main' tidak menerima parameter dalam subset ini",f);}
+    pushScope('main');
+    var assigned=new Set();
+    f.body.stmts.forEach(function(st){walkStmt(st,assigned);});
+    popScope();
+  });
+  if(!prog.funcs.some(function(f){return f.name==='main';})){err("fungsi 'main' tidak ditemukan",null);}
+  symbols.forEach(function(s){
+    if(s.kind==='var'&&s.uses===0){warn("variabel '"+s.name+"' dideklarasikan tetapi tidak pernah dipakai",{line:s.declLine});}
+  });
+  return{errors:errors,warnings:warnings,symbols:symbols,varTypes:varTypes};
+}
+
+/* ═══════════════ FASE 05 · KODE ANTARA (TAC) ═══════════════ */
+function genTAC(prog,sem){
+  var code=[],strings=[],strMap=new Map(),types=new Map();
+  var tc=0,lc=0;
+  function newT(){return 't'+(++tc);}
+  function newL(){return 'L'+(++lc);}
+  function emit(x){code.push(x);}
+  function ty(n){return sem.varTypes.get(n);}
+  function strFor(v){
+    if(strMap.has(v))return strMap.get(v);
+    var lab='.LSTR'+strings.length;
+    strings.push({label:lab,value:v});
+    strMap.set(v,lab);
+    return lab;
+  }
+  function toFloat(A){
+    if(A.t==='int'||A.t==='bool')return{t:'float',v:+A.v};
+    if(A.t==='float')return A;
+    if(types.get(A.v)==='float')return A;
+    var t=newT();types.set(t,'float');
+    emit({k:'cvt',dst:t,src:A,mode:'i2f'});
+    return{t:'var',v:t};
+  }
+  function logic(op,e){
+    var A=expr(e.l);
+    var t=newT();types.set(t,'bool');
+    var La=newL(),Lb=newL();
+    if(op==='&&'){
+      emit({k:'iffalse',a:A,name:La});
+      var B=expr(e.r);
+      emit({k:'iffalse',a:B,name:La});
+      emit({k:'lit',dst:t,v:1,vt:'bool'});
+      emit({k:'goto',name:Lb});
+      emit({k:'label',name:La});
+      emit({k:'lit',dst:t,v:0,vt:'bool'});
+      emit({k:'label',name:Lb});
+    }else{
+      emit({k:'iftrue',a:A,name:La});
+      var B2=expr(e.r);
+      emit({k:'iftrue',a:B2,name:La});
+      emit({k:'lit',dst:t,v:0,vt:'bool'});
+      emit({k:'goto',name:Lb});
+      emit({k:'label',name:La});
+      emit({k:'lit',dst:t,v:1,vt:'bool'});
+      emit({k:'label',name:Lb});
+    }
+    return{t:'var',v:t};
+  }
+  function expr(e){
+    switch(e.kind){
+      case 'IntLit':return{t:'int',v:e.v};
+      case 'FloatLit':return{t:'float',v:e.v};
+      case 'BoolLit':return{t:'bool',v:e.v?1:0};
+      case 'StrLit':return{t:'str',v:strFor(e.v)};
+      case 'Var':return{t:'var',v:e.sym?e.sym.tacName:e.name};
+      case 'Un':{
+        var A=expr(e.e),rt=ty(e)||'int';
+        if(e.op==='-'){
+          if(A.t!=='var')return{t:A.t==='float'?'float':(A.t==='bool'?'bool':'int'),v:-A.v};
+          var t2=newT();types.set(t2,rt);
+          emit({k:'un',dst:t2,a:A,op:'-'});
+          return{t:'var',v:t2};
+        }
+        var t3=newT();types.set(t3,'bool');
+        emit({k:'un',dst:t3,a:A,op:'!'});
+        return{t:'var',v:t3};
+      }
+      case 'Bin':{
+        var op=e.op;
+        if(op==='&&'||op==='||')return logic(op,e);
+        var A2=expr(e.l),B3=expr(e.r);
+        var rt4=ty(e)||'int';
+        if(RELOPS.has(op)){
+          if(A2.t==='float'||B3.t==='float'){A2=toFloat(A2);B3=toFloat(B3);}
+        }else if(rt4==='float'){
+          A2=toFloat(A2);B3=toFloat(B3);
+        }
+        var t4=newT();types.set(t4,rt4);
+        emit({k:'bin',dst:t4,a:A2,b:B3,op:op});
+        return{t:'var',v:t4};
+      }
+    }
+  }
+  function assignTo(sym,e){
+    var A=expr(e);
+    var vt=sym.type;
+    if(vt==='float'){A=toFloat(A);}
+    else if(vt==='int'){
+      if(A.t==='float'){
+        if(A.t!=='var'){A={t:'int',v:Math.trunc(A.v)};}
+        else{var t5=newT();types.set(t5,'int');emit({k:'cvt',dst:t5,src:A,mode:'f2i'});A={t:'var',v:t5};}
+      }else if(A.t==='bool'&&A.t!=='var'){A={t:'int',v:A.v};}
+    }
+    else if(vt==='bool'){
+      if(A.t==='int'||A.t==='float'){
+        var z=A.t==='float'?{t:'float',v:0}:{t:'int',v:0};
+        emit({k:'bin',dst:sym.tacName,a:A,op:'!=',b:z});
+        types.set(sym.tacName,'bool');
+        return;
+      }
+    }
+    if(A.t==='var'){emit({k:'copy',dst:sym.tacName,src:A});}
+    else{emit({k:'lit',dst:sym.tacName,v:A.v,vt:A.t==='float'?'float':(A.t==='bool'?'bool':'int')});}
+    types.set(sym.tacName,sym.type);
+  }
+  function stmt(s){
+    if(!s)return;
+    switch(s.kind){
+      case 'Block':s.stmts.forEach(stmt);return;
+      case 'VarDecl':if(s.init&&s.sym)assignTo(s.sym,s.init);return;
+      case 'Assign':if(s.sym)assignTo(s.sym,s.expr);return;
+      case 'If':{
+        var A=expr(s.cond);
+        if(s.els){
+          var Le=newL(),Lx=newL();
+          emit({k:'iffalse',a:A,name:Le});
+          stmt(s.then);
+          emit({k:'goto',name:Lx});
+          emit({k:'label',name:Le});
+          stmt(s.els);
+          emit({k:'label',name:Lx});
+        }else{
+          var Le2=newL();
+          emit({k:'iffalse',a:A,name:Le2});
+          stmt(s.then);
+          emit({k:'label',name:Le2});
+        }
+        return;}
+      case 'While':{
+        var Lh=newL(),Le3=newL();
+        emit({k:'label',name:Lh});
+        var A4=expr(s.cond);
+        emit({k:'iffalse',a:A4,name:Le3});
+        stmt(s.body);
+        emit({k:'goto',name:Lh});
+        emit({k:'label',name:Le3});
+        return;}
+      case 'For':{
+        if(s.init)stmt(s.init);
+        var Lh2=newL(),Le4=newL();
+        emit({k:'label',name:Lh2});
+        if(s.cond){var A5=expr(s.cond);emit({k:'iffalse',a:A5,name:Le4});}
+        stmt(s.body);
+        if(s.upd)stmt(s.upd);
+        emit({k:'goto',name:Lh2});
+        emit({k:'label',name:Le4});
+        return;}
+      case 'Return':{
+        var A6=s.expr?expr(s.expr):{t:'int',v:0};
+        emit({k:'ret',a:A6});
+        return;}
+      case 'Cout':{
+        s.items.forEach(function(it){
+          if(it.kind==='StrLit'){emit({k:'out',a:{t:'str',v:strFor(it.v)},xt:'str'});return;}
+          if(it.kind==='Var'&&it.isEndl){emit({k:'out',a:{t:'int',v:0},xt:'nl'});return;}
+          var A7=expr(it);
+          var xt=A7.t==='var'?(types.get(A7.v)||'int'):(A7.t==='str'?'str':A7.t);
+          emit({k:'out',a:A7,xt:xt});
+        });
+        return;}
+      case 'ExprStmt':expr(s.expr);return;
+    }
+  }
+  var mainFn=null;
+  prog.funcs.forEach(function(f){if(f.name==='main')mainFn=f;});
+  if(mainFn)mainFn.body.stmts.forEach(stmt);
+  return{code:code,strings:strings,types:types,tcount:tc,lcount:lc};
+}
+function opStr(o){
+  if(!o)return'';
+  if(o.t==='var')return o.v;
+  if(o.t==='float')return fmtF(o.v);
+  if(o.t==='str')return o.v;
+  return String(o.v);
+}
+function tacPretty(c){
+  switch(c.k){
+    case 'label':return c.name+':';
+    case 'lit':return c.dst+' = '+(c.vt==='float'?fmtF(c.v):c.v);
+    case 'copy':return c.dst+' = '+opStr(c.src);
+    case 'bin':return c.dst+' = '+opStr(c.a)+' '+c.op+' '+opStr(c.b);
+    case 'un':return c.dst+' = '+c.op+' '+opStr(c.a);
+    case 'cvt':return c.dst+' = '+(c.mode==='i2f'?'cvtf':'cvti')+' '+opStr(c.src);
+    case 'goto':return 'goto '+c.name;
+    case 'iffalse':return 'ifFalse '+opStr(c.a)+' goto '+c.name;
+    case 'iftrue':return 'ifTrue '+opStr(c.a)+' goto '+c.name;
+    case 'out':return c.xt==='nl'?'out.nl':('out.'+c.xt+' '+opStr(c.a));
+    case 'ret':return 'ret '+opStr(c.a);
+  }
+  return'';
+}
+function tacHTML(c,idx,extra){
+  function vo(o){
+    if(!o)return'';
+    if(o.t==='var')return '<span class="q-'+(isTmp(o.v)?'tmp':'var')+'">'+esc(o.v)+'</span>';
+    if(o.t==='str')return '<span class="q-str">'+esc(o.v)+'</span>';
+    return '<span class="q-lit">'+esc(o.t==='float'?fmtF(o.v):o.v)+'</span>';
+  }
+  function dv(d){return '<span class="q-'+(isTmp(d)?'tmp':'var')+'">'+esc(d)+'</span>';}
+  var lab='',body='';
+  switch(c.k){
+    case 'label':lab=esc(c.name)+':';break;
+    case 'lit':body=dv(c.dst)+' <span class="q-t">=</span> <span class="q-lit">'+esc(c.vt==='float'?fmtF(c.v):c.v)+'</span>';break;
+    case 'copy':body=dv(c.dst)+' <span class="q-t">=</span> '+vo(c.src);break;
+    case 'bin':body=dv(c.dst)+' <span class="q-t">=</span> '+vo(c.a)+' <span class="q-kw">'+esc(c.op)+'</span> '+vo(c.b);break;
+    case 'un':body=dv(c.dst)+' <span class="q-t">=</span> <span class="q-kw">'+esc(c.op)+'</span> '+vo(c.a);break;
+    case 'cvt':body=dv(c.dst)+' <span class="q-t">=</span> <span class="q-kw">'+(c.mode==='i2f'?'cvtf':'cvti')+'</span> '+vo(c.src);break;
+    case 'goto':body='<span class="q-kw">goto</span> <span class="q-var">'+esc(c.name)+'</span>';break;
+    case 'iffalse':body='<span class="q-kw">ifFalse</span> '+vo(c.a)+' <span class="q-kw">goto</span> <span class="q-var">'+esc(c.name)+'</span>';break;
+    case 'iftrue':body='<span class="q-kw">ifTrue</span> '+vo(c.a)+' <span class="q-kw">goto</span> <span class="q-var">'+esc(c.name)+'</span>';break;
+    case 'out':body=c.xt==='nl'?'<span class="q-kw">out.nl</span>':('<span class="q-kw">out.'+esc(c.xt)+'</span> '+vo(c.a));break;
+    case 'ret':body='<span class="q-kw">ret</span> '+vo(c.a);break;
+  }
+  return '<div class="trow'+(extra||'')+'" data-i="'+idx+'"><span class="ti">'+String(idx).padStart(2,'0')+'</span><span class="tlab">'+lab+'</span><span>'+body+'</span></div>';
+}
+
+/* ═══════════════ FASE 06 · OPTIMIZER ═══════════════ */
+function isNumT(t){return t==='int'||t==='float'||t==='bool';}
+function constVal(o){return (o&&isNumT(o.t))?o.v:null;}
+function cloneIns(x){
+  var c=Object.assign({},x);
+  ['a','b','src'].forEach(function(f){
+    if(c[f]&&typeof c[f]==='object'){c[f]=Object.assign({},c[f]);}
+  });
+  return c;
+}
+function evalBin(op,a,b){
+  var x=+a.v,y=+b.v,fl=(a.t==='float'||b.t==='float'),v=null;
+  switch(op){
+    case '+':v=x+y;break;
+    case '-':v=x-y;break;
+    case '*':v=x*y;break;
+    case '/':if(y===0)return null;v=x/y;break;
+    case '%':if(y===0)return null;v=x%y;break;
+    case '<':return{t:'bool',v:x<y?1:0};
+    case '>':return{t:'bool',v:x>y?1:0};
+    case '<=':return{t:'bool',v:x<=y?1:0};
+    case '>=':return{t:'bool',v:x>=y?1:0};
+    case '==':return{t:'bool',v:x===y?1:0};
+    case '!=':return{t:'bool',v:x!==y?1:0};
+    case '&&':return{t:'bool',v:(x&&y)?1:0};
+    case '||':return{t:'bool',v:(x||y)?1:0};
+  }
+  if(v===null)return null;
+  return{t:fl?'float':'int',v:fl?v:Math.trunc(v)};
+}
+function passConst(code){
+  var n=0;
+  var env=new Map(),alias=new Map();
+  var refs=new Set();
+  code.forEach(function(x){if(x.k==='goto'||x.k==='iffalse'||x.k==='iftrue'){refs.add(x.name);}});
+  function kill(name){
+    env.delete(name);alias.delete(name);
+    var ks=[...alias.keys()];
+    ks.forEach(function(k){if(alias.get(k)===name)alias.delete(k);});
+  }
+  function sub(o){
+    if(!o||o.t!=='var')return o;
+    if(env.has(o.v)){var e=env.get(o.v);return{t:e.t,v:e.v};}
+    if(alias.has(o.v))return{t:'var',v:alias.get(o.v)};
+    return o;
+  }
+  code.forEach(function(ins){
+    switch(ins.k){
+      case 'label':
+        if(refs.has(ins.name)){env.clear();alias.clear();}
+        break;
+      case 'lit':
+        env.set(ins.dst,{t:ins.vt,v:ins.v});alias.delete(ins.dst);
+        break;
+      case 'copy':{
+        var s=sub(ins.src);
+        if(s!==ins.src){ins.src=s;ins._ch=1;n++;}
+        if(s.t==='var'){alias.set(ins.dst,s.v);env.delete(ins.dst);}
+        else{
+          ins.k='lit';ins.v=s.v;ins.vt=s.t;delete ins.src;
+          env.set(ins.dst,{t:s.t,v:s.v});alias.delete(ins.dst);ins._ch=1;
+        }
+        break;}
+      case 'bin':{
+        var a=sub(ins.a),b=sub(ins.b);
+        if(a!==ins.a||b!==ins.b){ins.a=a;ins.b=b;ins._ch=1;n++;}
+        if(isNumT(a.t)&&isNumT(b.t)){
+          var r=evalBin(ins.op,a,b);
+          if(r){
+            ins.k='lit';ins.v=r.v;ins.vt=r.t;
+            delete ins.a;delete ins.b;delete ins.op;
+            ins._ch=1;n++;
+            env.set(ins.dst,{t:r.t,v:r.v});alias.delete(ins.dst);
+            return;
+          }
+        }
+        kill(ins.dst);
+        return;}
+      case 'un':{
+        var a2=sub(ins.a);
+        if(a2!==ins.a){ins.a=a2;ins._ch=1;n++;}
+        if(isNumT(a2.t)){
+          var v=+a2.v;
+          var r2=ins.op==='!'?{t:'bool',v:v===0?1:0}:{t:a2.t,v:-v};
+          ins.k='lit';ins.v=r2.v;ins.vt=r2.t;
+          delete ins.a;delete ins.op;
+          ins._ch=1;n++;
+          env.set(ins.dst,r2);alias.delete(ins.dst);
+        }else{kill(ins.dst);}
+        return;}
+      case 'cvt':{
+        var s2=sub(ins.src);
+        if(s2!==ins.src){ins.src=s2;ins._ch=1;n++;}
+        if(isNumT(s2.t)){
+          var r3=ins.mode==='i2f'?{t:'float',v:+s2.v}:{t:'int',v:Math.trunc(+s2.v)};
+          ins.k='lit';ins.v=r3.v;ins.vt=r3.t;
+          delete ins.src;delete ins.mode;
+          ins._ch=1;n++;
+          env.set(ins.dst,r3);
+        }else{kill(ins.dst);}
+        alias.delete(ins.dst);
+        return;}
+      case 'iffalse':
+      case 'iftrue':{
+        var a3=sub(ins.a);
+        if(a3!==ins.a){ins.a=a3;ins._ch=1;n++;}
+        if(isNumT(a3.t)){
+          var truth=(+a3.v)!==0;
+          if((ins.k==='iffalse')===truth){ins._dead=1;}
+          else{ins.k='goto';delete ins.a;}
+          ins._ch=1;n++;
+        }
+        return;}
+      case 'out':{
+        var a4=sub(ins.a);
+        if(a4!==ins.a){ins.a=a4;ins._ch=1;n++;}
+        return;}
+      case 'ret':{
+        var a5=sub(ins.a);
+        if(a5!==ins.a){ins.a=a5;ins._ch=1;n++;}
+        return;}
+    }
+  });
+  return{code:code.filter(function(x){return !x._dead;}),n:n};
+}
+function passAlgebra(code){
+  var n=0;
+  function asCopy(ins,o){ins.k='copy';ins.src=o;delete ins.a;delete ins.b;delete ins.op;ins._ch=1;}
+  function asLit(ins,t,v){ins.k='lit';ins.vt=t;ins.v=v;delete ins.a;delete ins.b;delete ins.op;ins._ch=1;}
+  code.forEach(function(ins){
+    if(ins.k!=='bin')return;
+    var a=ins.a,b=ins.b,op=ins.op;
+    var va=constVal(a),vb=constVal(b);
+    var fl=(a.t==='float'||b.t==='float');
+    if(op==='+'){if(vb===0){asCopy(ins,a);n++;}else if(va===0){asCopy(ins,b);n++;}}
+    else if(op==='-'){
+      if(vb===0){asCopy(ins,a);n++;}
+      else if(a.t==='var'&&b.t==='var'&&a.v===b.v){asLit(ins,fl?'float':'int',0);n++;}
+    }
+    else if(op==='*'){
+      if(vb===1){asCopy(ins,a);n++;}
+      else if(va===1){asCopy(ins,b);n++;}
+      else if(va===0||vb===0){asLit(ins,fl?'float':'int',0);n++;}
+    }
+    else if(op==='/'){if(vb===1){asCopy(ins,a);n++;}}
+    else if(op==='&&'){if(va===0||vb===0){asLit(ins,'bool',0);n++;}}
+    else if(op==='||'){if(va===1||vb===1){asLit(ins,'bool',1);n++;}}
+  });
+  return{code:code,n:n};
+}
+function passDCE(code){
+  var n=0;
+  for(var i=0;i<code.length;i++){
+    var ins=code[i];
+    if(ins._dead)continue;
+    if(ins.k==='goto'||ins.k==='ret'){
+      var j=i+1;
+      while(j<code.length&&!(code[j].k==='label'&&!code[j]._dead)){j++;}
+      for(var m=i+1;m<j;m++){if(!code[m]._dead){code[m]._dead=1;n++;}}
+      i=j-1;
+    }
+  }
+  var read=new Set();
+  code.forEach(function(ins){
+    if(ins._dead)return;
+    var rs=[];
+    if(ins.k==='bin'){rs.push(ins.a,ins.b);}
+    else if(ins.k==='un'||ins.k==='cvt'){if(ins.a)rs.push(ins.a);if(ins.src)rs.push(ins.src);}
+    else if(ins.k==='copy'){rs.push(ins.src);}
+    else if(ins.k==='iffalse'||ins.k==='iftrue'||ins.k==='out'||ins.k==='ret'){rs.push(ins.a);}
+    rs.forEach(function(o){if(o&&o.t==='var')read.add(o.v);});
+  });
+  code.forEach(function(ins){
+    if(ins._dead)return;
+    if(['lit','copy','bin','un','cvt'].indexOf(ins.k)>=0&&!read.has(ins.dst)){ins._dead=1;n++;}
+  });
+  var ref=new Set();
+  code.forEach(function(ins){
+    if(!ins._dead&&(ins.k==='goto'||ins.k==='iffalse'||ins.k==='iftrue'))ref.add(ins.name);
+  });
+  code.forEach(function(ins){
+    if(!ins._dead&&ins.k==='label'&&!ref.has(ins.name)){ins._dead=1;n++;}
+  });
+  for(var i2=0;i2<code.length;i2++){
+    var ins2=code[i2];
+    if(ins2._dead||ins2.k!=='goto')continue;
+    var j2=i2+1;
+    while(j2<code.length&&code[j2]._dead){j2++;}
+    if(j2<code.length&&code[j2].k==='label'&&code[j2].name===ins2.name){ins2._dead=1;n++;}
+  }
+  return{code:code.filter(function(x){return !x._dead;}),n:n};
+}
+function optimize(tac){
+  var before=tac.code.map(cloneIns);
+  var code=tac.code.map(cloneIns);
+  var agg={'const':0,alg:0,dce:0};
+  var passes=[['const',passConst],['alg',passAlgebra],['dce',passDCE]];
+  var changed=true,iter=0;
+  while(changed&&iter<8){
+    changed=false;iter++;
+    passes.forEach(function(pair){
+      var r=pair[1](code);
+      code=r.code;
+      agg[pair[0]]+=r.n;
+      if(r.n>0)changed=true;
+    });
+  }
+  return{
+    code:code,before:before,
+    notes:[
+      {nm:'Pelipatan & Propagasi Konstanta',ds:'`x = 5` membuat pemakaian x diganti 5; `2*3+1` dihitung saat kompilasi. Nilai tidak boleh menyeberangi label yang menjadi target lompatan.',n:agg['const']},
+      {nm:'Penyederhanaan Aljabar',ds:'Identitas seperti x+0, x*1, x*0, x/1, x−x, b&&0 diringkas menjadi salinan atau konstanta.',n:agg.alg},
+      {nm:'Penghapusan Kode Mati',ds:'Penugasan yang tak pernah dibaca, blok tak terjangkau setelah goto/ret, dan label tanpa rujukan dibuang.',n:agg.dce}
+    ]
+  };
+}
+
+/* ═══════════════ FASE 07 · CODEGEN x86-64 ═══════════════ */
+function asmStr(v){
+  var segs=v.split('\n').map(function(s){return '"'+s.replace(/(["\\])/g,'\\$1')+'"';});
+  return segs.join(', 10, ')+', 0';
+}
+function genAsm(opt,tac){
+  var code=opt.code;
+  var slot=new Map(),ns=0;
+  function slotOf(n){if(!slot.has(n)){slot.set(n,++ns);}return slot.get(n);}
+  code.forEach(function(ins){
+    if(ins.dst)slotOf(ins.dst);
+    ['a','b','src'].forEach(function(f){var o=ins[f];if(o&&o.t==='var')slotOf(o.v);});
+  });
+  var frame=Math.max(16,(ns*8+15)&~15);
+  var floats=new Map(),fnc=0;
+  function floatLabel(v){
+    if(floats.has(v))return floats.get(v);
+    var l='FL'+(fnc++);
+    floats.set(v,l);
+    return l;
+  }
+  function F(o){return o.t==='float'||(o.t==='var'&&tac.types.get(o.v)==='float');}
+  function mem(n){return '[rbp-'+(slotOf(n)*8)+']';}
+  function S(o){return o.t==='var'?mem(o.v):String(o.v);}
+  function SF(o){return o.t==='var'?mem(o.v):('[rip+'+floatLabel(o.v)+']');}
+  var L=[];
+  function raw(s,c){L.push({s:s,c:c||'ins'});}
+  function ins(mn,args,cm){
+    var line='        '+mn.padEnd(10)+(args||'');
+    L.push({s:cm?line.padEnd(52)+'; '+cm:line,c:'ins'});
+  }
+  function lbl(s,c){L.push({s:s,c:c||'lab'});}
+  function com(s){L.push({s:s,c:'com'});}
+  var usedRt=new Set();
+  code.forEach(function(c){if(c.k==='out')usedRt.add(c.xt);});
+  var RT={int:'rt_print_int',float:'rt_print_float',str:'rt_print_str',nl:'rt_print_nl'};
+  var SETCC={'<':'setl','>':'setg','<=':'setle','>=':'setge','==':'sete','!=':'setne'};
+  var SETCCF={'<':'setb','>':'seta','<=':'setbe','>=':'setae','==':'sete','!=':'setne'};
+  var FMN={'+':'addss','-':'subss','*':'mulss','/':'divss'};
+
+  raw('; ----------------------------------------------','com');
+  raw(';  main.s — dihasilkan oleh KompilatorDidaktik','com');
+  raw(';  target: x86-64 · System V · sintaks Intel','com');
+  raw('; ----------------------------------------------','com');
+  raw('');
+  ['int','float','str','nl'].forEach(function(x){if(usedRt.has(x))raw('        extern  '+RT[x]);});
+  raw('');
+  lbl('        section .text','sec');
+  raw('        global  main');
+  lbl('main:');
+  ins('push','rbp');
+  ins('mov','rbp, rsp');
+  ins('sub','rsp, '+frame,'bingkai '+frame+' byte · '+ns+' slot');
+
+  code.forEach(function(c,i){
+    var cm='['+String(i).padStart(2,'0')+'] '+tacPretty(c);
+    switch(c.k){
+      case 'label':lbl(c.name+':');break;
+      case 'lit':
+        if(c.vt==='float'){
+          ins('movss','xmm0, [rip+'+floatLabel(c.v)+']');
+          ins('movss',mem(c.dst)+', xmm0',cm);
+        }else{
+          ins('mov','dword ptr '+mem(c.dst)+', '+c.v,cm);
+        }
+        break;
+      case 'copy':
+        if(F(c.src)){
+          ins('movss','xmm0, '+SF(c.src));
+          ins('movss',mem(c.dst)+', xmm0',cm);
+        }else if(c.src.t==='var'){
+          ins('mov','eax, '+mem(c.src.v));
+          ins('mov',mem(c.dst)+', eax',cm);
+        }else{
+          ins('mov','dword ptr '+mem(c.dst)+', '+c.src.v,cm);
+        }
+        break;
+      case 'un':
+        if(c.op==='!'){
+          ins('mov','eax, '+S(c.a));
+          ins('cmp','eax, 0');
+          ins('sete','al');
+          ins('movzx','eax, al');
+          ins('mov',mem(c.dst)+', eax',cm);
+        }else{
+          if(F(c.a)){
+            ins('movss','xmm0, '+SF(c.a));
+            ins('mov','eax, 0x80000000');
+            ins('movd','xmm1, eax');
+            ins('xorps','xmm0, xmm1');
+            ins('movss',mem(c.dst)+', xmm0',cm);
+          }else{
+            ins('mov','eax, '+S(c.a));
+            ins('neg','eax');
+            ins('mov',mem(c.dst)+', eax',cm);
+          }
+        }
+        break;
+      case 'bin':
+        if(RELOPS.has(c.op)){
+          if(F(c.a)||F(c.b)){
+            ins('movss','xmm0, '+SF(c.a));
+            ins('comiss','xmm0, '+SF(c.b));
+            ins(SETCCF[c.op],'al');
+            ins('movzx','eax, al');
+            ins('mov',mem(c.dst)+', eax',cm);
+          }else{
+            ins('mov','eax, '+S(c.a));
+            ins('cmp','eax, '+S(c.b));
+            ins(SETCC[c.op],'al');
+            ins('movzx','eax, al');
+            ins('mov',mem(c.dst)+', eax',cm);
+          }
+        }else if(F(c.a)||F(c.b)){
+          ins('movss','xmm0, '+SF(c.a));
+          ins(FMN[c.op],'xmm0, '+SF(c.b));
+          ins('movss',mem(c.dst)+', xmm0',cm);
+        }else{
+          ins('mov','eax, '+S(c.a));
+          if(c.op==='+'){ins('add','eax, '+S(c.b));}
+          else if(c.op==='-'){ins('sub','eax, '+S(c.b));}
+          else if(c.op==='*'){
+            if(c.b.t==='var'){ins('imul','eax, '+mem(c.b.v));}
+            else{ins('imul','eax, eax, '+c.b.v);}
+          }else{
+            ins('cdq','');
+            if(c.b.t==='var'){ins('idiv','dword ptr '+mem(c.b.v));}
+            else{ins('mov','ecx, '+c.b.v);ins('idiv','ecx');}
+            if(c.op==='%'){ins('mov','eax, edx');}
+          }
+          ins('mov',mem(c.dst)+', eax',cm);
+        }
+        break;
+      case 'cvt':
+        if(c.mode==='i2f'){
+          if(c.src.t==='var'){
+            ins('cvtsi2ss','xmm0, dword ptr '+mem(c.src.v));
+            ins('movss',mem(c.dst)+', xmm0',cm);
+          }else{
+            ins('movss','xmm0, [rip+'+floatLabel(+c.src.v)+']');
+            ins('movss',mem(c.dst)+', xmm0',cm);
+          }
+        }else{
+          if(c.src.t==='float'){
+            ins('mov','dword ptr '+mem(c.dst)+', '+Math.trunc(c.src.v),cm);
+          }else{
+            ins('cvttss2si','eax, dword ptr '+mem(c.src.v));
+            ins('mov',mem(c.dst)+', eax',cm);
+          }
+        }
+        break;
+      case 'goto':ins('jmp',c.name,cm);break;
+      case 'iffalse':
+        if(c.a.t==='var'){
+          ins('cmp','dword ptr '+mem(c.a.v)+', 0');
+          ins('je',c.name,cm);
+        }else if(+c.a.v===0){
+          ins('jmp',c.name,cm);
+        }else{
+          com('; ['+i+'] ifFalse '+c.a.v+' — selalu benar, dilewati');
+        }
+        break;
+      case 'iftrue':
+        if(c.a.t==='var'){
+          ins('cmp','dword ptr '+mem(c.a.v)+', 0');
+          ins('jne',c.name,cm);
+        }else if(+c.a.v!==0){
+          ins('jmp',c.name,cm);
+        }else{
+          com('; ['+i+'] ifTrue '+c.a.v+' — selalu salah, dilewati');
+        }
+        break;
+      case 'out':
+        if(c.xt==='str'){ins('lea','rdi, [rip+'+c.a.v+']');ins('call',RT.str,cm);}
+        else if(c.xt==='nl'){ins('call',RT.nl,cm);}
+        else if(c.xt==='float'){ins('movss','xmm0, '+SF(c.a));ins('call',RT.float,cm);}
+        else{ins('mov','edi, '+S(c.a));ins('call',RT.int,cm);}
+        break;
+      case 'ret':
+        if(c.a.t==='var'){ins('mov','eax, '+mem(c.a.v));}
+        else{ins('mov','eax, '+Math.trunc(+c.a.v));}
+        ins('leave');
+        ins('ret','',cm);
+        break;
+    }
+  });
+  if(code.length===0||code[code.length-1].k!=='ret'){
+    com('');
+    ins('mov','eax, 0','return 0 implisit');
+    ins('leave');
+    ins('ret');
+  }
+  raw('');
+  lbl('        section .rodata','sec');
+  tac.strings.forEach(function(s){
+    lbl('  '+s.label+':','lab2');
+    raw('        db      '+asmStr(s.value));
+  });
+  floats.forEach(function(l,v){
+    lbl('  '+l+':','lab2');
+    raw('        dd      '+fmtF(v));
+  });
+  var nIns=L.filter(function(x){return x.c==='ins';}).length;
+  return{lines:L,frame:frame,slots:ns,nIns:nIns,strings:tac.strings.length,floats:fnc};
+}
+
+/* ═══════════════ FASE 08 · PENAUT ═══════════════ */
+function buildLink(asmInfo,opt){
+  var used=new Set();
+  opt.code.forEach(function(c){if(c.k==='out')used.add(c.xt);});
+  var syms=[
+    {name:'_start',def:'crt0.o',tipe:'T',addr:'0x401090',note:'titik masuk ELF — memanggil main()'},
+    {name:'main',def:'main.o',tipe:'T',addr:'0x401176',note:'hasil main.s kita'},
+    {name:'rt_print_int',def:'runtime.o',tipe:'T',addr:'0x4011c0',note:'cout << int'},
+    {name:'rt_print_float',def:'runtime.o',tipe:'T',addr:'0x4011f4',note:'cout << float'},
+    {name:'rt_print_str',def:'runtime.o',tipe:'T',addr:'0x401228',note:'cout << "…"'},
+    {name:'rt_print_nl',def:'runtime.o',tipe:'T',addr:'0x40125c',note:'cout << endl'}
+  ].filter(function(s){
+    return s.name.charAt(0)==='_'||s.name==='main'||used.has(s.name.replace('rt_print_',''));
+  });
+  var textB=(asmInfo.nIns*4+16)&~15;
+  var rodB=asmInfo.strings*16+asmInfo.floats*4+16;
+  var symB=syms.length*24+24;
+  return{syms:syms,textB:textB,rodB:rodB,symB:symB};
+}
+
+/* ═══════════════ FASE 09 · MESIN EKSEKUSI ═══════════════ */
+function makeMachine(opt,tac,sem){
+  var code=opt.code;
+  var labelIdx=new Map();
+  code.forEach(function(c,i){if(c.k==='label')labelIdx.set(c.name,i);});
+  var strVal=new Map();
+  tac.strings.forEach(function(s){strVal.set(s.label,s.value);});
+  var names=[];
+  function add(n){if(n&&names.indexOf(n)<0)names.push(n);}
+  (sem.symbols||[]).forEach(function(s){add(s.tacName);});
+  var tseen=new Set();
+  code.forEach(function(c){
+    if(c.dst&&names.indexOf(c.dst)<0&&!tseen.has(c.dst)){tseen.add(c.dst);names.push(c.dst);}
+    [c.a,c.b,c.src].forEach(function(o){
+      if(o&&o.t==='var'&&names.indexOf(o.v)<0&&!tseen.has(o.v)){tseen.add(o.v);names.push(o.v);}
+    });
+  });
+  var env=new Map();
+  var pc=0,out='',steps=0,halted=false,exit=null,error=null;
+  function val(o){return o.t==='var'?(env.has(o.v)?env.get(o.v):0):+o.v;}
+  function isF(o){return o.t==='float'||(o.t==='var'&&tac.types.get(o.v)==='float');}
+  function jumpTo(name){
+    var t=labelIdx.get(name);
+    pc=(t!==undefined)?t:pc+1;
+  }
+  function step(){
+    if(halted||error)return false;
+    if(steps>300000){error={msg:'BATAS 300.000 LANGKAH — kemungkinan infinite loop'};halted=true;return false;}
+    if(pc>=code.length){halted=true;exit=0;return false;}
+    steps++;
+    var c=code[pc];
+    switch(c.k){
+      case 'label':pc++;return true;
+      case 'lit':env.set(c.dst,+c.v);pc++;return true;
+      case 'copy':env.set(c.dst,val(c.src));pc++;return true;
+      case 'bin':{
+        var x=val(c.a),y=val(c.b),r=0;
+        switch(c.op){
+          case '+':r=x+y;break;
+          case '-':r=x-y;break;
+          case '*':r=x*y;break;
+          case '/':
+            if(y===0){error={msg:'PEMBAGIAN NOL pada instruksi #'+pc};halted=true;return false;}
+            r=(isF(c.a)||isF(c.b))?x/y:Math.trunc(x/y);
+            break;
+          case '%':
+            if(y===0){error={msg:'MODULO NOL pada instruksi #'+pc};halted=true;return false;}
+            r=x%y;
+            break;
+          case '<':r=x<y?1:0;break;
+          case '>':r=x>y?1:0;break;
+          case '<=':r=x<=y?1:0;break;
+          case '>=':r=x>=y?1:0;break;
+          case '==':r=x===y?1:0;break;
+          case '!=':r=x!==y?1:0;break;
+          case '&&':r=(x&&y)?1:0;break;
+          case '||':r=(x||y)?1:0;break;
+        }
+        env.set(c.dst,r);pc++;return true;
+      }
+      case 'un':{
+        var x2=val(c.a);
+        env.set(c.dst,c.op==='!'?(x2===0?1:0):-x2);
+        pc++;return true;
+      }
+      case 'cvt':{
+        var x3=val(c.src);
+        env.set(c.dst,c.mode==='i2f'?x3:Math.trunc(x3));
+        pc++;return true;
+      }
+      case 'goto':jumpTo(c.name);return true;
+      case 'iffalse':if(val(c.a)===0){jumpTo(c.name);}else{pc++;}return true;
+      case 'iftrue':if(val(c.a)!==0){jumpTo(c.name);}else{pc++;}return true;
+      case 'out':{
+        if(c.xt==='str'){out+=(strVal.get(c.a.v)||c.a.v);}
+        else if(c.xt==='nl'){out+='\n';}
+        else if(c.xt==='float'){out+=fmtF(val(c.a));}
+        else{out+=String(Math.trunc(val(c.a)));}
+        pc++;return true;
+      }
+      case 'ret':exit=Math.trunc(val(c.a));halted=true;pc++;return true;
+    }
+    pc++;return true;
+  }
+  return{
+    step:step,env:env,code:code,names:names,
+    reset:function(){env.clear();pc=0;out='';steps=0;halted=false;exit=null;error=null;},
+    get pc(){return pc;},
+    get out(){return out;},
+    get steps(){return steps;},
+    get halted(){return halted;},
+    get exit(){return exit;},
+    get error(){return error;}
+  };
+}
+
+/* ═══════════════ STATE & ELEMEN UI ═══════════════ */
+var ST={};
+var UI={phase:null,running:false,skip:false,ok:false,stale:false,mode:'syntax',hi:null};
+var M=null;
+var PHASES=[
+  {id:'pre',no:'01',code:'PRE',name:'Preprosesor',desc:'Directive #include/#define dicatat, makro diganti, dan komentar dibersihkan menjadi unit translasi murni — posisi karakter dipertahankan.'},
+  {id:'lex',no:'02',code:'LEX',name:'Analisis Leksikal',desc:'Unit translasi dipecah menjadi rangkaian token: kata kunci, pengenal, literal, operator, dan tanda baca.'},
+  {id:'parse',no:'03',code:'PAR',name:'Analisis Sintaksis',desc:'Token disusun menjadi pohon sintaks abstrak (AST) menurut tata bahasa C++ — recursive descent.'},
+  {id:'sem',no:'04',code:'SEM',name:'Analisis Semantik',desc:'Deklarasi, scope, dan tipe diperiksa; tabel simbol dibangun; konversi implisit menjadi peringatan.'},
+  {id:'ir',no:'05',code:'IR',name:'Kode Antara (TAC)',desc:'AST diturunkan menjadi kode tiga alamat: satu operasi per baris, temporer t1..tN, label L1..LN.'},
+  {id:'opt',no:'06',code:'OPT',name:'Optimasi',desc:'Pelipatan konstanta, propagasi, penyederhanaan aljabar, dan penghapusan kode mati bekerja pada TAC hingga titik tetap.'},
+  {id:'asm',no:'07',code:'ASM',name:'Pembangkitan Kode',desc:'TAC optimal diterjemahkan ke rakitan x86-64: bingkai rbp, slot stack, SSE untuk float, konstanta di .rodata.'},
+  {id:'lnk',no:'08',code:'LNK',name:'Penghubung',desc:'crt0.o + main.o + runtime.o digabung; simbol eksternal direlokasi menjadi satu berkas a.out (ELF).'},
+  {id:'run',no:'09',code:'RUN',name:'Eksekusi',desc:'a.out dijalankan oleh mesin simulasi — amati PC, isi variabel, dan keluaran program instruksi demi instruksi.'}
+];
+var ED={ta:$('#edTa'),pre:$('#edPre'),gut:$('#edGut'),text:''};
+var termBody=$('#termBody');
+var RUN={playing:false,delay:120};
+var DELAYS=[0,10,25,60,120,260,520];
+var R={};
+
+/* ═══════════════ EDITOR ═══════════════ */
+var SYN_RE=/(^[ \t]*#[^\n]*)|(\/\/[^\n]*)|("(?:\\.|[^"\\])*")|('(?:\\.|[^'\\])*')|(\b(?:int|float|bool|void|const|if|else|while|for|return|using|namespace|true|false)\b)|(\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b)|([A-Za-z_]\w*)|([+\-*/%=<>!&|]+)|([;(){}])/gm;
+function syntaxSegs(text){
+  var segs=[],m;
+  SYN_RE.lastIndex=0;
+  while((m=SYN_RE.exec(text))){
+    var cls=['tk-pre','tk-cm','tk-str','tk-str','tk-kw','tk-int','tk-id','tk-op','tk-punc'].find(function(_,i){return m[i+1]!==undefined;});
+    if(cls)segs.push({s:m.index,e:m.index+m[0].length,c:cls});
+  }
+  return segs;
+}
+function renderEditor(){
+  var text=ED.text;
+  var nl=text.split('\n').length;
+  var g='';for(var i=1;i<=nl;i++)g+=i+'\n';
+  ED.gut.textContent=g;
+  var segs;
+  if(UI.mode==='token'&&ST.tokens&&ST.tokens.length){
+    segs=ST.tokens.filter(function(t){return t.kind!=='eof';}).map(function(t){return{s:t.start,e:t.end,c:KIND_CLS[t.kind]||'tk-id'};}).filter(function(x){return x.e>x.s;});
+  }else{segs=syntaxSegs(text);}
+  var pos=0,full=[];
+  segs.forEach(function(sg){
+    if(sg.s>pos)full.push({s:pos,e:sg.s,c:''});
+    if(sg.s<sg.e)full.push(sg);
+    pos=Math.max(pos,sg.e);
+  });
+  if(pos<text.length)full.push({s:pos,e:text.length,c:''});
+  segs=full;
+  if(UI.hi){
+    var hi=UI.hi,out=[];
+    segs.forEach(function(sg){
+      if(hi.e<=sg.s||hi.s>=sg.e){out.push(sg);return;}
+      if(sg.s<hi.s)out.push({s:sg.s,e:hi.s,c:sg.c});
+      out.push({s:Math.max(sg.s,hi.s),e:Math.min(sg.e,hi.e),c:(sg.c+' mk').trim()});
+      if(sg.e>hi.e)out.push({s:hi.e,e:sg.e,c:sg.c});
+    });
+    segs=out;
+  }
+  var html='';
+  segs.forEach(function(sg){
+    var part=esc(text.slice(sg.s,sg.e));
+    html+=sg.c?('<span class="'+sg.c+'">'+part+'</span>'):part;
+  });
+  if(text.charAt(text.length-1)==='\n'||text==='')html+='\n';
+  ED.pre.innerHTML=html;
+  $('#edMeta').textContent=nl+' baris · '+text.length+' karakter';
+}
+function setText(t){
+  ED.text=t;ED.ta.value=t;UI.hi=null;
+  renderEditor();
+}
+ED.ta.addEventListener('input',function(){ED.text=ED.ta.value;renderEditor();markStale();});
+ED.ta.addEventListener('scroll',function(){
+  ED.pre.scrollTop=ED.ta.scrollTop;ED.pre.scrollLeft=ED.ta.scrollLeft;
+  ED.gut.scrollTop=ED.ta.scrollTop;
+});
+ED.ta.addEventListener('keydown',function(e){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    var s=ED.ta.selectionStart,en=ED.ta.selectionEnd;
+    ED.text=ED.text.slice(0,s)+'    '+ED.text.slice(en);
+    ED.ta.value=ED.text;
+    ED.ta.selectionStart=ED.ta.selectionEnd=s+4;
+    renderEditor();markStale();
+  }
+});
+function jumpEditor(line,col,len){
+  var off=lineOff(ED.text,line)+Math.max(0,col-1);
+  UI.hi={s:off,e:off+Math.max(1,len||1)};
+  renderEditor();
+  ED.ta.scrollTop=Math.max(0,(line-1)*22-ED.ta.clientHeight/3);
+  ED.pre.scrollTop=ED.ta.scrollTop;
+  ED.gut.scrollTop=ED.ta.scrollTop;
+}
+function jumpLine(line){jumpEditor(line,1,(ED.text.split('\n')[line-1]||' ').length);}
+function updateEditorTabs(){
+  $('#tabSyn').classList.toggle('on',UI.mode!=='token');
+  $('#tabTok').classList.toggle('on',UI.mode==='token');
+  $('#tabTok').disabled=!(ST.tokens&&ST.tokens.length);
+}
+ $('#tabSyn').onclick=function(){UI.mode='syntax';updateEditorTabs();renderEditor();};
+ $('#tabTok').onclick=function(){if(ST.tokens){UI.mode='token';updateEditorTabs();renderEditor();}};
+function markStale(){
+  if(UI.ok||UI.phase){
+    UI.stale=true;
+    setStatus('SUMBER BERUBAH — KOMPILASI ULANG UNTUK HASIL BARU');
+    document.querySelectorAll('.chip.done,.chip.active,.chip.ready').forEach(function(c){c.classList.add('stale');});
+  }
+}
+
+/* ═══════════════ TERMINAL ═══════════════ */
+var TAG_CLS={ERR:'bad',OK:'ok'};
+function log(tag,text,cls){
+  var d=document.createElement('div');
+  d.className='tl'+(cls?' '+cls:'');
+  if(tag==='$'){
+    d.innerHTML='<span class="tt cmd">$</span><span class="tx">'+esc(text)+'</span>';
+  }else{
+    var t=(tag||'···').toUpperCase();
+    var tc=TAG_CLS[t]||('t'+t.charAt(0)+t.slice(1).toLowerCase());
+    d.innerHTML='<span class="tt '+tc+'">'+esc(t)+'</span><span class="tx">'+esc(text)+'</span>';
+  }
+  termBody.appendChild(d);
+  termBody.scrollTop=termBody.scrollHeight;
+}
+function termClear(){termBody.innerHTML='';}
+ $('#termToggle').onclick=function(){$('#termWrap').classList.toggle('closed');};
+
+/* ═══════════════ STEPPER & PANEL ═══════════════ */
+function buildStepper(){
+  $('#stepper').innerHTML=PHASES.map(function(ph){
+    return '<button class="chip off'+(ph.id==='run'?' run':'')+'" id="chip-'+ph.id+'">'+
+      '<span class="no">'+ph.no+'</span><span class="cd">'+ph.code+'</span><span class="nm">'+ph.name+'</span></button>';
   }).join('');
-}
-function appendOut(el, text, sys){
-  const div = document.createElement('div');
-  div.className = 'con-line' + (sys?' con-sys':'');
-  div.textContent = (sys?' ':'> ') + text;
-  el.appendChild(div);
-  while(el.children.length>400) el.removeChild(el.firstChild);
-}
-function renderStack(snap){
-  if(!snap || !snap.length){ D.stackC.innerHTML = '<span class="emptyv">—</span>'; return; }
-  D.stackC.innerHTML = snap.map((v,i)=>'<span class="stk-v'+(i===snap.length-1?' top':'')+'">'+esc(fmt(v))+'</span>').join('');
-}
-function renderVars(el, vars, accent){
-  const keys = Object.keys(vars);
-  if(!keys.length){ el.innerHTML = '<span class="emptyv">—</span>'; return; }
-  el.innerHTML = keys.map(k=>'<span class="var-chip"><b>'+esc(k)+'</b>='+esc(fmt(vars[k]))+'</span>').join('');
-}
-function renderLoop(el, txt){ el.innerHTML = txt ? '<span class="var-chip">'+esc(txt)+'</span>' : '<span class="emptyv">—</span>'; }
-function appendInstrs(instrs, firstIdx){
-  if(D.objListC.querySelector('.obj-empty')) D.objListC.innerHTML='';
-  instrs.forEach((ins,k)=>{
-    const row = document.createElement('div');
-    row.className='ins';
-    const arg = ins.arg!=null ? (ins.op==='END' ? '→'+String(ins.arg).padStart(3,'0') : (ins.op==='PUSHS' ? '"'+ins.arg+'"' : ins.arg)) : '';
-    row.innerHTML = '<span class="ins-n">'+String(firstIdx+k).padStart(3,'0')+'</span>'
-      + '<span class="ins-op">'+ins.op+'</span>'
-      + '<span class="ins-a">'+esc(String(arg))+'</span>'
-      + '<span class="ins-l">'+(ins.line!=null?'L'+ins.line:'')+'</span>';
-    D.objListC.appendChild(row);
-  });
-  D.objLabelC.textContent = 'KODE OBJEK — '+D.objListC.children.length+' INSTRUKSI · MESIN STACK';
-}
-function setPc(pc){
-  if(activeRowC) activeRowC.classList.remove('on');
-  const rows = D.objListC.children;
-  if(rows[pc]){ rows[pc].classList.add('on'); activeRowC = rows[pc]; }
-}
-function updatePhases(m){
-  const ph = m.state.ph, idx = PH_ORDER.indexOf(m.state.phase);
-  PH_ORDER.forEach((k,i)=>{
-    const p = Dph[k];
-    p.el.classList.toggle('is-active', i===idx);
-    p.el.classList.toggle('is-done', i<idx || (m.state.phase==='done'));
-    p.bar.style.width = Math.round((ph[k]||0)*100)+'%';
+  PHASES.forEach(function(ph){
+    $('#chip-'+ph.id).onclick=function(){
+      if(ph.id==='run'&&!UI.ok)return;
+      setPhase(ph.id);
+    };
   });
 }
-
-/* ================================================================
-   PENERAPAN PERISTIWA KE PANEL
-   ================================================================ */
-function applyEvent(m, ev){
-  if(m.id==='C') applyEventC(m, ev); else applyEventI(m, ev);
+function chip(id,cls){
+  var el=$('#chip-'+id);
+  el.classList.remove('active','done','err','ready','off','stale');
+  el.classList.add(cls);
+}
+function setStatus(txt){$('#statusText').innerHTML=esc(txt);}
+function setPhase(id){
+  UI.phase=id;
+  PHASES.forEach(function(ph){$('#chip-'+ph.id).classList.toggle('active',ph.id===id);});
+  UI.mode=(id==='lex'&&ST.tokens&&ST.tokens.length)?'token':'syntax';
+  updateEditorTabs();
+  renderEditor();
+  renderPhase();
+}
+function phaseHead(ph,metrics){
+  return '<div class="ph-head">'+
+    '<div class="ph-no">'+ph.no+'</div>'+
+    '<div><h2>'+ph.name+'</h2><p>'+ph.desc+'</p></div>'+
+    '<div class="ph-metrics">'+(metrics||'')+'</div></div>';
+}
+function mt(v,l){return '<div class="mt"><b>'+v+'</b><span>'+l+'</span></div>';}
+function emptyPanel(){
+  $('#phasePanel').innerHTML='<div class="empty">'+
+    '<h3>MENUNGGU SUMBER</h3>'+
+    '<span class="cmd">g++ -O2 main.cpp -o a.out</span>'+
+    '<p>Tekan <b style="color:var(--red)">KOMPILASI</b> untuk menjalankan 8 fase mesin.<br>'+
+    'Setiap fase dapat ditinjau ulang lewat pita nomor di atas — dan bila kompilasi berhasil,<br>'+
+    'fase 09 menjalankan a.out instruksi demi instruksi.</p></div>';
+}
+function renderPhase(){
+  var id=UI.phase;
+  var ph=PHASES.find(function(p){return p.id===id;});
+  if(!ph){emptyPanel();return;}
+  switch(id){
+    case 'pre':renderPre(ph);break;
+    case 'lex':renderLex(ph);break;
+    case 'parse':renderParse(ph);break;
+    case 'sem':renderSem(ph);break;
+    case 'ir':renderIR(ph);break;
+    case 'opt':renderOpt(ph);break;
+    case 'asm':renderAsm(ph);break;
+    case 'lnk':renderLnk(ph);break;
+    case 'run':renderRun(ph);break;
+    default:emptyPanel();
+  }
+  refreshIcons();
+}
+function runningPanel(ph){
+  $('#phasePanel').innerHTML=phaseHead(ph,mt('…','sedang diproses'))+
+    '<div class="ph-body"><div class="empty" style="padding:30px">'+
+    '<h3 style="font-size:34px">MESIN BEKERJA…</h3><p>'+esc(ph.desc)+'</p></div></div>';
+}
+function caretView(line,col,msg){
+  var lines=ED.text.split('\n');
+  var l=lines[Math.max(0,line-1)]||'';
+  var pad='';for(var i=0;i<Math.max(0,col-1);i++)pad+=' ';
+  return '<div class="errview">'+esc(l)+'\n'+pad+'<span class="caret">^</span>\n<span class="em">'+esc(msg)+'</span></div>';
 }
 
-function applyEventC(m, ev){
-  const S = m.state;
-  switch(ev.kind){
-    case 'scan':
-      S.phase='scan'; S.ph.scan=(ev.scanIdx+1)/ev.scanTotal;
-      setBadge(D.stC,'MEMINDAI','run'); updatePhases(m);
-      D.lensC.innerHTML = '<b>SCAN</b> L'+ev.line+' · '+ev.toks.length+' token · '+ev.dur+'u '
-        + (ev.err?'<span class="err">✗ '+esc(ev.err)+'</span>':'')
-        + '<span>'+chipsHTML(ev.toks.slice(0,14))+(ev.toks.length>14?' <span class="emptyv">+'+(ev.toks.length-14)+'</span>':'')+'</span>';
-      markLine('C', ev.line);
-      break;
-    case 'parse':
-      S.phase='parse'; S.ph.parse=(ev.li+1)/ev.totLines;
-      setBadge(D.stC,'MENGURAI','run'); updatePhases(m);
-      D.lensC.innerHTML = '<b>PARSE</b> L'+ev.line+' · '+ev.dur+'u — '
-        + (ev.err ? '<span class="err">✗ '+esc(ev.err)+'</span>' : esc(ev.sStr||'baris kosong'));
-      markLine('C', ev.line);
-      break;
-    case 'codegen':
-      S.phase='gen'; S.ph.gen=(ev.genIdx+1)/ev.genTotal;
-      setBadge(D.stC,'MENYUSUN','run'); updatePhases(m);
-      D.lensC.innerHTML = '<b>CODEGEN</b> L'+ev.line+' · +'+ev.instrs.length+' instruksi · '+ev.dur+'u';
-      appendInstrs(ev.instrs, ev.firstIdx);
-      markLine('C', ev.line);
-      break;
-    case 'exec':
-      if(S.compileTime==null) S.compileTime = m.time;
-      S.phase='run'; S.ph.run=(ev.pc+1)/m.code.length; S.instrDone++;
-      setBadge(D.stC,'MENGEKSEKUSI','run'); updatePhases(m);
-      setPc(ev.pc);
-      renderStack(ev.stackSnap);
-      if(ev.varSet){ S.vars[ev.varSet.name]=ev.varSet.val; renderVars(D.varsC, S.vars); }
-      if(ev.out!=null){ S.out.push(ev.out); appendOut(D.outC, ev.out); }
-      if(ev.loop){ S.loopTxt='iter '+ev.loop.iter+'/'+ev.loop.total; renderLoop(D.loopC, S.loopTxt); }
-      D.lensC.innerHTML = '<b>EXEC</b> '+String(ev.pc).padStart(3,'0')+' · '+ev.ins.op
-        + (ev.ins.arg!=null?' '+esc(String(ev.ins.arg)):'')+' · '+ev.dur+'u'
-        + (ev.err?' <span class="err">✗ '+esc(ev.err)+'</span>':'');
-      markLine('C', ev.ins.line||0);
-      // deteksi momen menyusul interpreter
-      if(!sim.cross && ev.prog>0 && sim.mI && sim.mI.points.length){
-        const pI = sim.mI.points[sim.mI.points.length-1].p;
-        if(pI>0.05 && ev.prog>pI) sim.cross = {t:m.time+ev.dur, p:ev.prog};
-      }
-      break;
-    case 'cfail':
-      if(S.compileTime==null) S.compileTime = m.time;
-      S.fail = {phase:ev.phase, line:ev.line, msg:ev.msg};
-      setBadge(D.stC, ev.phase==='run'?'GAGAL SAAT EKSEKUSI':'KOMPILASI GAGAL', 'bad');
-      D.lensC.innerHTML = '<span class="err">✗ '+esc(ev.msg)+(ev.line!=null?' — baris '+ev.line:'')+'</span>';
-      appendOut(D.outC, (ev.phase==='run'?'eksekusi berhenti: ':'kompilasi dibatalkan: ')+ev.msg+(ev.line!=null?' (baris '+ev.line+')':''), true);
-      if(ev.line!=null) markErrLine('C', ev.line);
-      updatePhases(m);
-      break;
-    case 'cdone':
-      S.ok=true; S.phase='done'; S.ph.run=1;
-      setBadge(D.stC,'SELESAI','ok'); updatePhases(m);
-      D.lensC.innerHTML = '<b>SELESAI</b> — '+fmtT(m.time)+'u total · '+S.instrDone+' instruksi dieksekusi';
-      appendOut(D.outC, '— program selesai —', true);
-      break;
-  }
-}
-
-function applyEventI(m, ev){
-  const S = m.state;
-  switch(ev.kind){
-    case 'iread':
-      S.reads++;
-      setBadge(D.stI,'BERJALAN','run');
-      D.rhNo.textContent = ev.line;
-      D.rhSrc.textContent = (m.rawLines[ev.li]||'').trim() || '·';
-      D.rhTok.innerHTML = chipsHTML(ev.toks);
-      D.rhStats.textContent = 'baris '+ev.line+'/'+ev.total+' · '+ev.toks.length+' token · baca '+ev.dur+'u';
-      markLine('I', ev.line);
-      if(ev.err){
-        D.rhTrace.innerHTML = '<div class="tr-err">✗ '+esc(ev.err)+'</div>';
-      }
-      break;
-    case 'ieval':
-      S.execLines++;
-      if(ev.loop!=null){ S.loopTxt = ev.loop ? 'iter '+ev.loop.iter+'/'+ev.loop.total : null; renderLoop(D.loopI, S.loopTxt); }
-      else if(ev.note && ev.note.indexOf('buka blok')===0){ S.loopTxt = null; renderLoop(D.loopI, null); }
-      let html = '';
-      if(ev.trace && ev.trace.length){
-        html += ev.trace.map(s=>'<div class="tr-step">'+esc(s.replace('→','<span class="arr">→</span>'))+'</div>').join('');
-      }
-      if(ev.err) html += '<div class="tr-err">✗ '+esc(ev.err)+'</div>';
-      else if(ev.note) html += '<div class="tr-note">'+esc(ev.note)+(ev.out!=null?' → “'+esc(ev.out)+'”':'')+'</div>';
-      D.rhTrace.innerHTML = html || '<span class="emptyv">—</span>';
-      if(ev.varSet){ S.vars[ev.varSet.name]=ev.varSet.val; renderVars(D.varsI, S.vars); }
-      if(ev.out!=null){ S.out.push(ev.out); appendOut(D.outI, ev.out); }
-      if(ev.line) markLine('I', ev.line);
-      break;
-    case 'ifail':
-      S.fail = {line:ev.line, msg:ev.msg};
-      setBadge(D.stI,'ERROR','bad');
-      D.rhTrace.innerHTML = '<div class="tr-err">✗ '+esc(ev.msg)+' — baris '+ev.line+'</div>';
-      appendOut(D.outI, 'eksekusi berhenti: '+ev.msg+' (baris '+ev.line+')', true);
-      if(ev.line!=null) markErrLine('I', ev.line);
-      break;
-    case 'idone':
-      S.ok=true;
-      setBadge(D.stI,'SELESAI','ok');
-      D.rhTrace.innerHTML = '<div class="tr-note">— selesai: '+fmtT(m.time)+'u · '+S.reads+' baris dibaca —</div>';
-      appendOut(D.outI, '— program selesai —', true);
-      break;
-  }
-}
-
-/* ================================================================
-   LINTASAN WAKTU (SVG)
-   ================================================================ */
-function niceMax(v){
-  const steps=[60,100,150,200,300,400,600,800,1000,1500,2000,3000,4000,6000,8000,10000,15000,20000,30000,40000,60000,100000];
-  for(const s of steps) if(v<=s) return s;
-  return Math.ceil(v/100000)*100000;
-}
-function renderTrack(){
-  const svg = D.raceSvg;
-  const W = svg.clientWidth||900, H=150;
-  const pl=50, pr=16, pt=16, pb=24, iw=W-pl-pr, ih=H-pt-pb;
-  const tMax = niceMax(Math.max(sim.clock, sim.mC?sim.mC.time:0, sim.mI?sim.mI.time:0, 60));
-  const X=t=>pl+(t/tMax)*iw, Y=p=>pt+(1-p)*ih;
-  let s='';
-  for(let g=0; g<=4; g++){
-    const p=g/4, y=Y(p).toFixed(1);
-    s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(25,23,19,.16)" stroke-dasharray="'+(g===0?'none':'3 4')+'"/>';
-    s+='<text x="'+(pl-8)+'" y="'+(+y+3)+'" text-anchor="end" class="tk-lab">'+Math.round(p*100)+'%</text>';
-  }
-  s+='<text x="'+pl+'" y="'+(H-8)+'" class="tk-lab">0u</text>';
-  s+='<text x="'+(W-pr)+'" y="'+(H-8)+'" text-anchor="end" class="tk-lab">'+tMax+'u</text>';
-  if(!sim.mC){
-    s+='<text x="'+(pl+iw/2)+'" y="'+(pt+ih/2)+'" text-anchor="middle" class="tk-lab">tekan JALANKAN SIMULASI untuk memulai</text>';
-    svg.innerHTML=s; return;
-  }
-  if(sim.mC.state.compileTime>0){
-    const ct=sim.mC.state.compileTime, x2=X(ct), y0=Y(0);
-    s+='<rect x="'+pl+'" y="'+(y0-7)+'" width="'+(x2-pl)+'" height="7" fill="rgba(193,62,27,.22)"/>';
-    if(x2-pl>90) s+='<text x="'+((pl+x2)/2)+'" y="'+(y0-12)+'" text-anchor="middle" class="tk-lab" fill="#9E2F12">kompilasi '+fmtT(ct)+'u</text>';
-  }
-  const path=(pts,cls)=>{
-    if(!pts || pts.length<2) return '';
-    let d='M '+X(pts[0].t).toFixed(1)+' '+Y(pts[0].p).toFixed(1);
-    for(let k=1;k<pts.length;k++) d+=' L '+X(pts[k].t).toFixed(1)+' '+Y(pts[k].p).toFixed(1);
-    return '<path d="'+d+'" class="'+cls+'"/>';
-  };
-  s+=path(sim.mI.points,'tk-path-i');
-  s+=path(sim.mC.points,'tk-path-c');
-  const marker=(m,col)=>{
-    if(!m || !m.points.length) return '';
-    const last=m.points[m.points.length-1], x=X(last.t), y=Y(last.p);
-    let r='<circle cx="'+x+'" cy="'+y+'" r="4" fill="'+col+'" stroke="#F1EDE2" stroke-width="1.5"/>';
-    if(m.done){
-      r+='<line x1="'+x+'" x2="'+x+'" y1="'+pt+'" y2="'+(H-pb)+'" stroke="'+col+'" stroke-dasharray="4 4" stroke-width="1.5"/>';
-      r+='<text x="'+x+'" y="'+(pt-4)+'" text-anchor="middle" class="tk-lab" fill="'+col+'">'+fmtT(last.t)+'u</text>';
-      if(m.state.fail) r+='<path d="M '+(x-5)+' '+(y-5)+' L '+(x+5)+' '+(y+5)+' M '+(x-5)+' '+(y+5)+' L '+(x+5)+' '+(y-5)+'" stroke="'+col+'" stroke-width="2.5"/>';
-    }
-    return r;
-  };
-  s+=marker(sim.mI,'#0E6B5C');
-  s+=marker(sim.mC,'#C13E1B');
-  if(sim.cross){
-    const x=X(sim.cross.t), y=Y(sim.cross.p);
-    s+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="none" stroke="#191713" stroke-width="1.5"/>';
-    s+='<text x="'+(x+11)+'" y="'+(y-9)+'" class="tk-lab" fill="#191713">menyusul</text>';
-  }
-  svg.innerHTML=s;
-}
-
-/* ================================================================
-   MESIN WAKTU — playback paralel dua trace
-   ================================================================ */
-function advance(units){
-  const target = sim.clock + units;
-  for(const m of [sim.mC, sim.mI]){
-    if(!m || m.done) continue;
-    while(!m.done && m.time <= target + 1e-9){
-      const ev = m.evs[m.i];
-      applyEvent(m, ev);
-      m.time += ev.dur; m.i++;
-      m.points.push({t:m.time, p:ev.prog||0});
-      if(m.i >= m.evs.length) m.done = true;
-    }
-  }
-  sim.clock = Math.max(sim.clock, target);
-  if(sim.mC.done && sim.mI.done) sim.clock = Math.max(sim.mC.time, sim.mI.time);
-}
-function stepOnce(){
-  pauseSim();
-  if(!sim.mC || !sim.mI) return;
-  const cands = [sim.mC, sim.mI].filter(m=>!m.done).sort((a,b)=>a.time-b.time);
-  if(!cands.length) return;
-  const m = cands[0], ev = m.evs[m.i];
-  applyEvent(m, ev);
-  m.time += ev.dur; m.i++;
-  m.points.push({t:m.time, p:ev.prog||0});
-  if(m.i >= m.evs.length) m.done = true;
-  sim.clock = Math.max(sim.clock, sim.mC.time, sim.mI.time);
-  renderTick(); checkFinish();
-}
-function fastForward(){
-  if(!sim.mC || !sim.mI) return;
-  pauseSim();
-  let guard = 500000;
-  while((!sim.mC.done || !sim.mI.done) && guard-->0){
-    const cands = [sim.mC, sim.mI].filter(m=>!m.done).sort((a,b)=>a.time-b.time);
-    const m = cands[0], ev = m.evs[m.i];
-    applyEvent(m, ev);
-    m.time += ev.dur; m.i++;
-    m.points.push({t:m.time, p:ev.prog||0});
-    if(m.i >= m.evs.length) m.done = true;
-  }
-  sim.clock = Math.max(sim.clock, sim.mC.time, sim.mI.time);
-  renderTick(); checkFinish();
-}
-
-function renderTick(){
-  D.tLive.textContent = 't = '+fmtT(sim.clock)+'u';
-  if(sim.mC) D.tC.textContent = fmtT(sim.mC.time)+'u';
-  if(sim.mI) D.tI.textContent = fmtT(sim.mI.time)+'u';
-  renderTrack();
-  // jaga baris instruksi aktif tetap terlihat
-  if(activeRowC){
-    const c = D.objListC, top = activeRowC.offsetTop, bot = top + activeRowC.offsetHeight;
-    if(top < c.scrollTop+4 || bot > c.scrollTop + c.clientHeight - 4)
-      c.scrollTop = top - c.clientHeight/2 + 10;
-  }
-  D.outC.scrollTop = D.outC.scrollHeight;
-  D.outI.scrollTop = D.outI.scrollHeight;
-  updateSummary();
-}
-function checkFinish(){
-  if(sim.finished) return;
-  if(sim.mC && sim.mI && sim.mC.done && sim.mI.done){
-    sim.finished = true; sim.running = false;
-    setMaster('done');
-    renderTick();
-    buildConclusion();
-  }
-}
-
-/* ================================================================
-   RINGKASAN & KESIMPULAN
-   ================================================================ */
-function updateSummary(){
-  const c=sim.mC, i=sim.mI;
-  if(!c || !i){
-    ['sCc','sCi','sEc','sEi','sTc','sTi','sWc','sWi','sOc','sOi'].forEach(k=>D[k].textContent='—');
-    D.sSc.textContent='menunggu'; D.sSi.textContent='menunggu';
+/* ═══════════ RENDER: 01 PRE ═══════════ */
+function renderPre(ph){
+  var P=ST.pre;
+  if(!P)return;
+  if(P.errors.length){
+    $('#phasePanel').innerHTML=phaseHead(ph)+'<div class="ph-body">'+
+      '<div class="subttl">PREPROSESOR BERHENTI</div>'+
+      P.errors.map(function(e){return caretView(e.line,e.col,e.msg);}).join('')+
+    '</div>';
     return;
   }
-  const cs=c.state, is=i.state;
-  D.sCc.textContent = cs.compileTime!=null ? fmtT(cs.compileTime)+'u' : (c.done?'0u':'mengompilasi…');
-  D.sCi.textContent = '— (tanpa fase)';
-  D.sEc.textContent = cs.compileTime!=null ? fmtT(c.time-cs.compileTime)+'u' : '—';
-  D.sEi.textContent = fmtT(i.time)+'u';
-  D.sTc.textContent = fmtT(c.time)+'u';
-  D.sTi.textContent = fmtT(i.time)+'u';
-  D.sWc.textContent = cs.instrDone ? cs.instrDone+' instruksi' : '—';
-  D.sWi.textContent = is.reads ? is.reads+' kali baca' : '—';
-  D.sOc.textContent = cs.out.length+' baris';
-  D.sOi.textContent = is.out.length+' baris';
-  D.sSc.textContent = cs.ok?'selesai':cs.fail?(cs.fail.phase==='run'?'gagal (runtime)':'gagal (sintaks)'):(c.done?'berhenti':'berjalan…');
-  D.sSi.textContent = is.ok?'selesai':is.fail?'gagal (baris '+is.fail.line+')':(i.done?'berhenti':'berjalan…');
-}
-function buildConclusion(){
-  const c=sim.mC, i=sim.mI;
-  const cs=c.state, is=i.state;
-  const ct=c.time, it=i.time;
-  const cCom = cs.compileTime||0, cExe = ct-cCom, iExe = it;
-  const rasio = cExe>0 ? (iExe/cExe) : null;
-  let head='', body='';
-  if(cs.fail && cs.fail.phase==='compile'){
-    head='Kompilator menolak seluruh program';
-    body='Satu kesalahan sintaks di baris '+cs.fail.line+' membatalkan semuanya: nol instruksi dijalankan, konsol tetap kosong. '
-      +'Interpreter menempuh jalan sebaliknya — ia sudah menjalankan '+is.execLines+' pernyataan dan mencetak '+is.out.length+' baris output sebelum tersandung di baris yang sama. '
-      +'Inilah perbedaan mendasarnya: kompilator memeriksa seluruh program di muka; interpreter menemukan masalah justru pada saat menginjaknya.';
-  } else if(!cs.ok && !is.ok){
-    head='Keduanya gagal di titik yang sama';
-    body='Sintaks program lolos pemeriksaan, tetapi '+ (cs.fail && cs.fail.msg ? '“'+cs.fail.msg+'”' : 'sebuah kesalahan runtime')
-      +' menunggu di baris '+cs.fail.line+' — sesuatu yang tidak bisa dipastikan kompilator ketika menerjemahkan, karena nilainya baru ada saat program berjalan. '
-      +'Kompilator memang melesat setelah fase kompilasi ('+fmtT(cExe)+'u vs '+fmtT(iExe)+'u eksekusi), namun keduanya tetap berhenti di baris yang sama: sintaks yang benar bukan jaminan program berjalan.';
-  } else if(cs.ok && is.ok && it < ct){
-    head='Interpreter justru tiba lebih dulu';
-    body='Program ini terlalu kecil untuk membayar ongkos kompilasi '+fmtT(cCom)+'u: total waktu kompilator ('+fmtT(ct)+'u) kalah dari interpreter ('+fmtT(it)+'u). '
-      +'Namun lihat waktu eksekusi murninya — '+fmtT(cExe)+'u lawan '+fmtT(iExe)+'u'+(rasio?', sekitar '+(Math.round(rasio*10)/10)+'× lebih cepat':'')
-      +'. Untuk program kecil yang dijalankan sekali, interpretasi lebih murah; untuk program besar atau yang dijalankan berulang kali, kompilasi menang telak.';
-  } else if(cs.ok && is.ok){
-    head='Kompilator menang: '+fmtT(ct)+'u lawan '+fmtT(it)+'u';
-    body='Setelah membayar '+fmtT(cCom)+'u di muka untuk tiga fase penerjemahan (pindai, urai, susun kode), kode objek siap pakai membuat setiap langkah eksekusi jauh lebih murah. '
-      +'Di lintasan waktu terlihat jelas: kurva kompilator tertinggal datar selama fase kompilasi, lalu menembus finish '+fmtT(it-ct)+'u lebih cepat. '
-      +(rasio?'Eksekusi murninya '+(Math.round(rasio*10)/10)+'× lebih cepat dari interpreter. ':'')
-      +'Semakin besar dan semakin sering program dijalankan, semakin besar selisih ini.';
-  } else {
-    head='Kompilator menyelesaikan program';
-    body='Kompilator menuntaskan seluruh eksekusi dalam '+fmtT(ct)+'u'+(cCom?(' (kompilasi '+fmtT(cCom)+'u + eksekusi '+fmtT(cExe)+'u)':'')
-      +'. Interpreter berhenti karena kesalahan'+(is.fail?(' di baris '+is.fail.line+': '+is.fail.msg):'')+'.';
+  var nDef=Object.keys(P.defines).length;
+  var diff='';
+  var max=Math.max(P.rawLines.length,P.outLines.length);
+  for(var i=0;i<max;i++){
+    var a=P.rawLines[i]||'';
+    var b=P.outLines[i]||'';
+    var changed=a!==b;
+    diff+='<span class="d-ln">'+(i+1)+'</span><span class="d-cell'+(changed?' rm':'')+'">'+(esc(a)||' ')+'</span>'+
+          '<span class="d-ln">'+(i+1)+'</span><span class="d-cell'+(changed?' ch':'')+'">'+(esc(b)||'·')+'</span>';
   }
-  D.conclHead.textContent = head;
-  D.conclBody.textContent = body;
-  const facts=[];
-  if(!(cs.fail && cs.fail.phase==='compile')) facts.push({t:'eksekusi murni — '+fmtT(cExe)+'u vs '+fmtT(iExe)+'u'+(rasio?' ('+(Math.round(rasio*10)/10)+'×)':''), c:'v'});
-  facts.push({t:'output program — '+cs.out.length+' vs '+is.out.length+' baris', c:''});
-  facts.push({t:'total waktu — '+fmtT(ct)+'u vs '+fmtT(it)+'u', c:'t'});
-  if(cs.fail) facts.push({t:'kompilator: '+(cs.fail.phase==='run'?'error runtime':'error sintaks')+' di baris '+cs.fail.line, c:'v'});
-  if(is.fail) facts.push({t:'interpreter: error di baris '+is.fail.line, c:'t'});
-  D.conclFacts.innerHTML = facts.map(f=>'<span class="cf '+f.c+'">'+esc(f.t)+'</span>').join('');
-  D.conclWrap.hidden = false;
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(P.rawLines.length,'baris sumber')+mt(P.comments,'komentar dihapus')+
+    mt(P.includes.length,'header')+mt(nDef,'makro'))+
+  '<div class="ph-body">'+
+    '<div class="subttl">PERBANDINGAN <small>kiri: main.cpp · kanan: main.i (unit translasi)</small></div>'+
+    '<div class="diff">'+diff+'</div>'+
+    (P.notes.length?('<div class="subttl" style="margin-top:18px">CATATAN PREPROSESOR</div>'+
+      P.notes.map(function(n){return '<div class="msg m-warn" style="cursor:default"><span class="m-tag">CATATAN</span><span>'+esc(n)+'</span></div>';}).join('')):'')+
+    (nDef?('<div class="subttl" style="margin-top:18px">TABEL MAKRO</div>'+
+      '<table class="tbl"><tr><th>#</th><th>Nama</th><th>Pengganti</th><th>Pemakaian</th></tr>'+
+      Object.keys(P.defines).map(function(k,i2){return '<tr><td>'+(i2+1)+'</td><td><b>'+esc(k)+'</b></td><td>'+esc(P.defines[k])+'</td><td>'+P.macroUses+'× substitusi</td></tr>';}).join('')+
+      '</table>'):'')+
+    (P.includes.length?('<div class="subttl" style="margin-top:18px">HEADER DISERTAKAN</div>'+
+      '<div class="kv">'+P.includes.map(function(h){return '<div class="kvcard"><b>&lt;'+esc(h)+'&gt;</b><span>dicatat — ±800 baris deklarasi</span></div>';}).join('')+'</div>'):'')+
+  '</div>';
 }
 
-/* ================================================================
-   RESET & JALANKAN
-   ================================================================ */
-function resetArena(){
-  sim.running=false; sim.finished=false; sim.clock=0; sim.mC=null; sim.mI=null; sim.cross=null;
-  setMaster('idle');
-  D.ta.readOnly=false;
-  // panel kompilator
-  setBadge(D.stC,'MENUNGGU',''); D.tC.textContent='0u';
-  PH_ORDER.forEach(k=>{ Dph[k].el.className='ph'; Dph[k].bar.style.width='0%'; });
-  D.lensC.innerHTML='menunggu — tekan JALANKAN SIMULASI';
-  D.objListC.innerHTML='<div class="obj-empty">instruksi akan disusun di sini selama fase kompilasi…</div>';
-  D.objLabelC.textContent='KODE OBJEK — MESIN STACK';
-  D.stackC.innerHTML='<span class="emptyv">—</span>';
-  D.varsC.innerHTML='<span class="emptyv">—</span>';
-  D.loopC.innerHTML='<span class="emptyv">—</span>';
-  D.outC.innerHTML='';
-  activeRowC=null;
-  // panel interpreter
-  setBadge(D.stI,'MENUNGGU',''); D.tI.textContent='0u';
-  D.rhNo.textContent='–';
-  D.rhSrc.textContent='tidak ada baris yang sedang dibaca';
-  D.rhTok.innerHTML='';
-  D.rhTrace.innerHTML='<span class="emptyv">—</span>';
-  D.rhStats.textContent='menunggu program…';
-  D.varsI.innerHTML='<span class="emptyv">—</span>';
-  D.loopI.innerHTML='<span class="emptyv">—</span>';
-  D.outI.innerHTML='';
-  // penanda editor
-  hlLines.forEach(l=>l.className='hl-line');
-  gLines.forEach(g=>g.className='g-line');
-  marks.C=marks.I=errMarks.C=errMarks.I=null;
-  // ringkasan
-  D.conclWrap.hidden=true;
-  updateSummary();
-  D.tLive.textContent='t = 0u';
-  renderTrack();
-}
-function runSim(){
-  const lines = D.ta.value.replace(/\t/g,'  ').split('\n');
-  const meaningful = lines.some(l=>l.trim() && !l.trim().startsWith('#'));
-  if(!meaningful){ showToast('Program kosong — tulis beberapa pernyataan, atau pilih berkas uji.'); return; }
-  resetArena();
-  D.ta.readOnly=true;
-  const tC = buildCompilerTrace(lines);
-  const tI = buildInterpreterTrace(lines);
-  sim.mC = {id:'C', evs:tC.evs, code:tC.code, i:0, time:0, done:false,
-    points:[{t:0,p:0}],
-    rawLines:lines,
-    state:{phase:'idle', ph:{scan:0,parse:0,gen:0,run:0}, vars:{}, out:[], instrDone:0, compileTime:null, ok:false, fail:tC.fail}};
-  sim.mC.evs.forEach(e=>{ if(e.kind==='parse') e.totLines = lines.length; });
-  sim.mI = {id:'I', evs:tI.evs, i:0, time:0, done:false,
-    points:[{t:0,p:0}],
-    rawLines:lines,
-    state:{vars:{}, out:[], reads:0, execLines:0, ok:false, fail:tI.fail}};
-  sim.running=true;
-  setMaster('running');
-  qs('#arena').scrollIntoView({behavior:'smooth', block:'start'});
-}
-function setMaster(state){
-  D.btnMaster.dataset.state = state;
-  D.btnStep.disabled = D.btnFF.disabled = D.btnReset.disabled = !sim.mC;
-}
-function pauseSim(){ if(sim.running){ sim.running=false; setMaster('paused'); } }
-function resumeSim(){ if(!sim.finished && sim.mC){ sim.running=true; setMaster('running'); } }
-
-/* ================================================================
-   KONTROL
-   ================================================================ */
-D.btnRun.addEventListener('click', runSim);
-D.btnMaster.addEventListener('click', ()=>{
-  const st = D.btnMaster.dataset.state;
-  if(st==='idle' || st==='done') runSim();
-  else if(st==='running') pauseSim();
-  else if(st==='paused') resumeSim();
-});
-D.btnStep.addEventListener('click', stepOnce);
-D.btnFF.addEventListener('click', fastForward);
-D.btnReset.addEventListener('click', ()=>{ resetArena(); });
-D.speed.addEventListener('input', ()=>{
-  const v = +D.speed.value;
-  sim.speed = Math.round(Math.exp(Math.log(40) + (v/100)*(Math.log(4000)-Math.log(40))));
-  D.speedLbl.textContent = sim.speed+'u/dtk';
-});
-D.btnReload.addEventListener('click', ()=>{ loadPreset(curPreset); showToast('Berkas asli dimuat ulang.'); });
-
-let toastTimer=null;
-function showToast(msg){
-  D.toast.textContent = msg;
-  D.toast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>D.toast.classList.remove('show'), 2600);
+/* ═══════════ RENDER: 02 LEX ═══════════ */
+function renderLex(ph){
+  var LX=ST.lexRes;
+  if(!LX)return;
+  var toks=LX.tokens.filter(function(t){return t.kind!=='eof';});
+  if(LX.errors.length){
+    $('#phasePanel').innerHTML=phaseHead(ph)+'<div class="ph-body">'+
+      '<div class="subttl">LEKSER MENEMUKAN '+LX.errors.length+' KESALAHAN</div>'+
+      LX.errors.map(function(e){return caretView(e.line,e.col,e.msg);}).join('')+
+      '<p class="lg">Kompilasi dihentikan — fase 03 dst. belum dijalankan.</p></div>';
+    return;
+  }
+  var counts={};
+  toks.forEach(function(t){counts[t.kind]=(counts[t.kind]||0)+1;});
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(toks.length,'total token')+mt(new Set(toks.map(function(t){return t.line;})).size,'baris tercakup'))+
+  '<div class="ph-body">'+
+    '<div class="subttl">DISTRIBUSI JENIS TOKEN</div>'+
+    '<div class="kv">'+Object.keys(counts).map(function(k){return '<div class="kvcard"><b>'+counts[k]+'</b><span>'+(KIND_NAME[k]||k)+'</span></div>';}).join('')+'</div>'+
+    '<div class="subttl" style="margin-top:18px">ARUS TOKEN <small>klik baris untuk menyorotnya di editor (mode TOKEN)</small></div>'+
+    '<div style="max-height:46vh;overflow:auto;border:1.5px solid var(--ink);background:var(--paper3)">'+
+    '<table class="tbl"><tr><th>#</th><th>Lexeme</th><th>Jenis</th><th>Posisi</th><th>Lebar</th></tr>'+
+    toks.map(function(t,i){
+      return '<tr class="click tokrow" data-line="'+t.line+'" data-col="'+t.col+'" data-len="'+t.lexeme.length+'">'+
+        '<td>'+(i+1)+'</td>'+
+        '<td><span class="toklex '+(KIND_CLS[t.kind]||'')+'">'+esc(t.lexeme)+'</span></td>'+
+        '<td><span class="kindtag">'+(KIND_NAME[t.kind]||t.kind)+'</span></td>'+
+        '<td>'+t.line+':'+t.col+'</td><td>'+t.lexeme.length+' kr</td></tr>';
+    }).join('')+
+    '</table></div>'+
+    '<p class="lg">Setiap token membawa jenis, lexeme, dan posisi (baris:kolom) yang akan dipakai parser dan pelapor kesalahan.</p>'+
+  '</div>';
 }
 
-/* ================================================================
-   PRESET
-   ================================================================ */
-function renderFileIndex(){
-  D.fileIndex.innerHTML = '<div class="fi-head">INDEKS BERKAS UJI</div>' +
-    PRESETS.map((p,i)=>
-      '<button class="fi-item'+(i===curPreset?' is-active':'')+'" data-i="'+i+'">'
-      +'<span class="fi-no">'+p.no+'</span><span class="fi-name">'+esc(p.name)+'</span><span class="fi-hint">'+esc(p.hint)+'</span></button>'
-    ).join('');
-  D.fileIndex.querySelectorAll('.fi-item').forEach(btn=>{
-    btn.addEventListener('click', ()=>loadPreset(+btn.dataset.i));
+/* ═══════════ RENDER: 03 PARSE (AST) ═══════════ */
+function astLabel(n){
+  switch(n.kind){
+    case 'Program':return 'program';
+    case 'Func':return n.name+'()';
+    case 'Block':return '{ }';
+    case 'VarDecl':return n.type+' '+n.name+(n.isConst?' const':'');
+    case 'Assign':return n.name+' ='+(n.sugar?' '+n.sugar:'');
+    case 'If':return 'if';
+    case 'While':return 'while';
+    case 'For':return 'for';
+    case 'Return':return 'return';
+    case 'Cout':return 'cout «';
+    case 'Bin':return n.op;
+    case 'Un':return n.op;
+    case 'Var':return n.name;
+    case 'IntLit':return String(n.v);
+    case 'FloatLit':return fmtF(n.v);
+    case 'BoolLit':return n.v?'true':'false';
+    case 'StrLit':return '"'+(n.v.length>10?n.v.slice(0,9)+'…':n.v)+'"';
+  }
+  return n.kind;
+}
+function astCls(n){
+  if(['If','While','For','Return','Cout'].indexOf(n.kind)>=0)return 'c-ctrl';
+  if(['IntLit','FloatLit','BoolLit','StrLit'].indexOf(n.kind)>=0)return 'c-lit'+(n.kind==='StrLit'?' c-str':'');
+  if(n.kind==='Var')return 'c-var';
+  if(['VarDecl','Assign','Block','Program','Func'].indexOf(n.kind)>=0)return 'c-st';
+  return 'c-ex';
+}
+function astChildren(n){
+  switch(n.kind){
+    case 'Program':return n.funcs;
+    case 'Func':return [n.body];
+    case 'Block':return n.stmts;
+    case 'VarDecl':return n.init?[n.init]:[];
+    case 'Assign':return [n.expr];
+    case 'If':return [n.cond,n.then,n.els].filter(Boolean);
+    case 'While':return [n.cond,n.body];
+    case 'For':return [n.init,n.cond,n.upd,n.body].filter(Boolean);
+    case 'Return':return n.expr?[n.expr]:[];
+    case 'Cout':return n.items;
+    case 'Bin':return [n.l,n.r];
+    case 'Un':return [n.e];
+    default:return[];
+  }
+}
+var AST=null;
+function renderParse(ph){
+  if(ST.parseErr){
+    var e=ST.parseErr;
+    $('#phasePanel').innerHTML=phaseHead(ph)+'<div class="ph-body">'+
+      '<div class="subttl">ERROR SINTAKSIS — main.cpp:'+e.line+':'+e.col+'</div>'+
+      caretView(e.line,e.col,'error: '+e.msg)+
+      '<p class="lg">Parser recursive-descent berhenti di token "'+esc(e.near)+'". Kompilasi dihentikan; fase 04 dst. belum dijalankan.</p></div>';
+    return;
+  }
+  var ast=ST.ast;
+  if(!ast)return;
+  var nodes=[];
+  function collect(n,parent){
+    if(n.kind==='ExprStmt')return collect(n.expr,parent);
+    var o={label:astLabel(n),cls:astCls(n),node:n,ch:[],ty:ST.sem?ST.sem.varTypes.get(n):null};
+    nodes.push(o);
+    if(parent)parent.ch.push(o);
+    astChildren(n).forEach(function(c){collect(c,o);});
+    return o;
+  }
+  var root=collect(ast,null);
+  function NW(l){return Math.max(40,l.length*7.8+18);}
+  var GAPX=14,LHh=62,NH=28;
+  function measure(o){
+    if(!o.ch.length){o.w=NW(o.label);return o.w;}
+    var cw=0;
+    o.ch.forEach(function(c){cw+=measure(c)+GAPX;});
+    cw-=GAPX;
+    o.w=Math.max(NW(o.label),cw);
+    return o.w;
+  }
+  measure(root);
+  function place(o,x0,d){
+    o.d=d;
+    var cw=0;
+    o.ch.forEach(function(c){cw+=c.w+GAPX;});
+    cw-=GAPX;
+    var cx=x0+Math.max(0,o.w-cw)/2;
+    o.ch.forEach(function(c){place(c,cx,d+1);cx+=c.w+GAPX;});
+    o.x=x0+o.w/2;
+    o.y=24+d*LHh;
+  }
+  place(root,0,0);
+  var edges='',rects='';
+  nodes.forEach(function(o){
+    o.ch.forEach(function(c){
+      var x1=o.x.toFixed(1),y1=(o.y+NH/2).toFixed(1);
+      var x2=c.x.toFixed(1),y2=(c.y-NH/2).toFixed(1);
+      var my=((o.y+NH/2+c.y-NH/2)/2).toFixed(1);
+      edges+='<path class="e" d="M'+x1+' '+y1+'V'+my+'H'+x2+'V'+y2+'"/>';
+    });
+  });
+  nodes.forEach(function(o,i){
+    var w=NW(o.label);
+    rects+='<g class="nd '+o.cls+'" data-n="'+i+'" transform="translate('+(o.x-w/2).toFixed(1)+','+(o.y-NH/2).toFixed(1)+')">'+
+      '<rect width="'+w+'" height="'+NH+'" rx="3"/><text x="'+(w/2)+'" y="'+(NH/2+4)+'">'+esc(o.label)+'</text></g>';
+  });
+  var W=root.w+40,H=root.y+70;
+  var depthMax=Math.max.apply(null,nodes.map(function(o){return o.d;}));
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(nodes.length,'simpul AST')+mt(depthMax+1,'tingkat kedalaman')+mt(root.ch.length,'fungsi'))+
+  '<div class="ph-body">'+
+    '<div class="ast-bar">'+
+      '<button class="btn" id="astIn"><i data-lucide="plus"></i> PERBESAR</button>'+
+      '<button class="btn" id="astOut"><i data-lucide="minus"></i> PERKECIL</button>'+
+      '<button class="btn" id="astFit"><i data-lucide="maximize"></i> PAS LAYAR</button>'+
+      '<span style="font:italic 400 10.5px var(--mono);color:var(--ink2)">arahkan kursor ke simpul untuk melihat tipe &amp; menyorot sumbernya</span>'+
+    '</div>'+
+    '<div class="ast-wrap" id="astWrap">'+
+      '<svg id="astSvg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'"><g id="astG">'+edges+rects+'</g></svg>'+
+    '</div>'+
+    '<div class="legend">'+
+      '<span><i style="background:#E4D8BC"></i>pernyataan kendali</span>'+
+      '<span><i style="background:var(--paper2)"></i>pernyataan</span>'+
+      '<span><i style="background:var(--paper3)"></i>ekspresi</span>'+
+      '<span><i style="background:var(--ink)"></i>literal</span>'+
+      '<span><i style="background:transparent;border-style:dashed"></i>variabel</span>'+
+    '</div>'+
+  '</div>';
+  AST={nodes:nodes};
+  var g=$('#astG');
+  var AZ={k:1,x:0,y:0};
+  function apply(){g.setAttribute('transform','translate('+AZ.x+' '+AZ.y+') scale('+AZ.k+')');}
+  var wrap=$('#astWrap');
+  wrap.addEventListener('wheel',function(e){
+    e.preventDefault();
+    AZ.k=Math.min(3,Math.max(.2,AZ.k*(e.deltaY<0?1.12:.89)));
+    apply();
+  },{passive:false});
+  var drag=null;
+  wrap.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY};wrap.setPointerCapture(e.pointerId);});
+  wrap.addEventListener('pointermove',function(e){
+    if(drag){
+      AZ.x+=e.clientX-drag.x;AZ.y+=e.clientY-drag.y;
+      drag={x:e.clientX,y:e.clientY};
+      apply();
+    }
+  });
+  wrap.addEventListener('pointerup',function(){drag=null;});
+  $('#astIn').onclick=function(){AZ.k=Math.min(3,AZ.k*1.25);apply();};
+  $('#astOut').onclick=function(){AZ.k=Math.max(.2,AZ.k/1.25);apply();};
+  $('#astFit').onclick=function(){AZ.k=1;AZ.x=0;AZ.y=0;apply();wrap.scrollTo(0,0);};
+  var tip=$('#astTip');
+  var svg=$('#astSvg');
+  svg.addEventListener('pointerover',function(e){
+    var gNd=e.target.closest?e.target.closest('.nd'):null;
+    if(!gNd){tip.style.display='none';return;}
+    var o=AST.nodes[+gNd.getAttribute('data-n')];
+    var kindName={'Program':'program','Func':'deklarasi fungsi','Block':'blok','VarDecl':'deklarasi variabel','Assign':'penugasan','If':'kondisional','While':'loop while','For':'loop for','Return':'return','Cout':'keluaran cout','Bin':'operator biner','Un':'operator uner','Var':'variabel','IntLit':'literal int','FloatLit':'literal float','BoolLit':'literal bool','StrLit':'string'}[o.node.kind]||o.node.kind;
+    tip.innerHTML='<b>'+esc(o.label)+'</b> · '+kindName+((o.ty&&o.ty!=='string')?(' · tipe: <b>'+esc(o.ty)+'</b>'):'')+'<br>baris '+(o.node.line||'?')+' · rentang sumber '+o.node.start+'–'+o.node.end;
+    tip.style.display='block';
+    UI.hi={s:o.node.start,e:o.node.end};
+    renderEditor();
+  });
+  svg.addEventListener('pointermove',function(e){
+    if(tip.style.display==='block'){
+      tip.style.left=Math.min(window.innerWidth-300,e.clientX+14)+'px';
+      tip.style.top=(e.clientY+14)+'px';
+    }
+  });
+  svg.addEventListener('pointerout',function(e){
+    if(e.target.closest&&e.target.closest('.nd')){tip.style.display='none';UI.hi=null;renderEditor();}
   });
 }
-function loadPreset(i){
-  curPreset = i;
-  const p = PRESETS[i];
-  D.ta.value = p.code;
-  refreshEditor();
-  D.piTag.textContent = p.no+' · BERKAS UJI';
-  D.piTitle.textContent = p.name;
-  D.piWatch.textContent = p.watch;
-  D.piBox.classList.remove('modified');
-  renderFileIndex();
-  resetArena();
-  D.ta.scrollTop = 0;
-  D.hl.scrollTop = 0; D.hl.scrollLeft = 0;
-  D.gut.style.transform = 'translateY(0)';
+
+/* ═══════════ RENDER: 04 SEM ═══════════ */
+function renderSem(ph){
+  var S=ST.sem;
+  if(!S)return;
+  var msgs=S.errors.map(function(e){return{b:'ERROR',cls:'m-err',line:e.line,msg:e.msg};})
+    .concat(S.warnings.map(function(w){return{b:'PERINGATAN',cls:'m-warn',line:w.line,msg:w.msg};}));
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(S.symbols.length,'simbol')+mt(S.errors.length,'error')+mt(S.warnings.length,'peringatan'))+
+  '<div class="ph-body">'+
+    (S.errors.length?('<div class="subttl" style="border-color:var(--red)">KOMPILASI DIHENTIKAN — '+S.errors.length+' ERROR SEMANTIK</div>')
+      :'<div class="subttl">PESAN PEMERIKSA <small>klik untuk melompat ke baris sumber</small></div>')+
+    (msgs.length?msgs.map(function(m){
+      return '<div class="msg '+m.cls+'" data-line="'+m.line+'"><span class="m-b">'+m.b+'</span><span>main.cpp:'+m.line+' — '+esc(m.msg)+'</span></div>';
+    }).join(''):'<p class="lg">Tidak ada pesan — semua tipe dan deklarasi konsisten.</p>')+
+    '<div class="subttl" style="margin-top:18px">TABEL SIMBOL</div>'+
+    '<table class="tbl"><tr><th>#</th><th>Nama</th><th>Tipe</th><th>Kategori</th><th>Scope</th><th>Baris</th><th>Init</th><th>Dipakai</th><th>Nama-TAC</th></tr>'+
+    S.symbols.map(function(s,i){
+      return '<tr><td>'+(i+1)+'</td><td><b>'+esc(s.name)+'</b>'+(s.isConst?' <span class="kindtag" style="color:var(--red)">const</span>':'')+'</td><td>'+s.type+'</td><td>'+(s.kind==='var'?'variabel':'param')+'</td><td>'+esc(s.scope)+'</td><td class="click" data-line="'+s.declLine+'">'+s.declLine+'</td><td>'+(s.init?'ya':'belum')+'</td><td>'+s.uses+'×</td><td><span class="q-tmp" style="font-family:var(--mono)">'+esc(s.tacName)+'</span></td></tr>';
+    }).join('')+
+    '</table>'+
+    '<p class="lg">Setiap variabel mendapat nama unik TAC (variabel yang dibayangi di scope lain diberi akhiran _2, _3, …) agar kode antara bebas dari ambiguitas scope.</p>'+
+  '</div>';
 }
 
-/* ================================================================
-   LOOP UTAMA & INISIALISASI
-   ================================================================ */
-let lastTs = null;
-function frame(ts){
-  if(lastTs==null) lastTs = ts;
-  const dt = Math.min(0.05, (ts-lastTs)/1000);
-  lastTs = ts;
-  if(sim.running && sim.mC && sim.mI){
-    advance(sim.speed*dt);
-    renderTick();
-    checkFinish();
+/* ═══════════ RENDER: 05 IR ═══════════ */
+function renderIR(ph){
+  var T=ST.tac;
+  if(!T)return;
+  var nLab=T.code.filter(function(c){return c.k==='label';}).length;
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(T.code.length,'instruksi')+mt(T.tcount,'temporer')+mt(nLab,'label'))+
+  '<div class="ph-body">'+
+    '<div class="subttl">KODE TIGA ALAMAT <small>bentuk umum: x = a op b · satu operasi per baris</small></div>'+
+    '<div class="tacbox">'+T.code.map(function(c,i){return tacHTML(c,i);}).join('')+'</div>'+
+    '<p class="lg">Bentuk-bentuk: <b>t = a op b</b> (biner) · <b>t = !a</b> (uner) · <b>t = cvtf a / cvti a</b> (konversi int↔float) · <b>ifFalse t goto L</b> (lompat bersyarat) · <b>out.int / out.float / out.str / out.nl</b> (cout) · <b>ret</b>. Label L1… adalah target lompatan — alur if/while/for dibangun darinya.</p>'+
+  '</div>';
+}
+
+/* ═══════════ RENDER: 06 OPT ═══════════ */
+function renderOpt(ph,view){
+  var O=ST.opt;
+  if(!O)return;
+  view=view||'after';
+  var d=O.before.length-O.code.length;
+  var pct=O.before.length?Math.round(d/O.before.length*100):0;
+  var zeroAll=O.notes.every(function(n){return n.n===0;});
+  var list=view==='after'?O.code:O.before;
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    '<div class="mt"><b class="big-delta">'+O.before.length+' <span class="ar">→</span> '+O.code.length+'</b><span>instruksi (−'+pct+'%)</span></div>'+
+    mt(O.notes.reduce(function(a,n){return a+n.n;},0),'transformasi'))+
+  '<div class="ph-body">'+
+    '<div class="opt-grid">'+
+      '<div>'+
+        '<div class="subttl">LINTASAN OPTIMASI <small>iterasi hingga titik tetap</small></div>'+
+        O.notes.map(function(n,i){
+          return '<div class="pass"><span class="p-no">P'+(i+1)+'</span>'+
+            '<span><span class="p-nm">'+esc(n.nm)+'</span><div class="p-ds">'+n.ds+'</div></span>'+
+            '<span class="p-n'+(n.n===0?' zero':'')+'">'+n.n+'</span></div>';
+        }).join('')+
+        (zeroAll?'<p class="lg" style="margin-top:10px">Tidak ada transformasi — konstanta tidak dapat menyeberangi label loop (target lompatan bisa mengubah variabel), dan seluruh penugasan terbaca. Program ini sudah rapat.</p>':'')+
+        '<p class="lg">Istilah: <b>constant folding</b> = hitung di waktu kompilasi · <b>propagasi</b> = ganti variabel yang nilainya sudah diketahui · <b>DCE</b> = buang instruksi tanpa efek.</p>'+
+      '</div>'+
+      '<div>'+
+        '<div class="tabs">'+
+          '<button id="optTabA" class="'+(view==='after'?'on':'')+'">SESUDAH</button>'+
+          '<button id="optTabB" class="'+(view!=='after'?'on':'')+'">SEBELUM</button>'+
+        '</div>'+
+        '<div class="tacbox" id="optList">'+
+          list.map(function(c,i){return tacHTML(c,i,(c._ch&&view==='after')?' new':'');}).join('')+
+        '</div>'+
+        (view==='after'?'<p class="lg">Baris berlatar hijau adalah instruksi yang berubah atau lahir dari optimasi.</p>':'')+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  $('#optTabA').onclick=function(){renderOpt(ph,'after');};
+  $('#optTabB').onclick=function(){renderOpt(ph,'before');};
+}
+
+/* ═══════════ RENDER: 07 ASM ═══════════ */
+function renderAsm(ph){
+  var A=ST.asm;
+  if(!A)return;
+  var lines=A.lines.map(function(l){return '<span class="as-'+l.c+'">'+esc(l.s)+'</span>';}).join('\n');
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(A.lines.length,'baris rakitan')+mt(A.frame,'byte bingkai')+mt(A.slots,'slot stack'))+
+  '<div class="ph-body">'+
+    '<div class="subttl">main.s — x86-64 (INTEL) <small>setiap blok diberi komentar TAC asalnya</small></div>'+
+    '<div class="asmbox"><pre class="asm">'+lines+'</pre></div>'+
+    '<p class="lg">Konvensi: prolog <b>push rbp / mov rbp,rsp</b> membangun bingkai; tiap variabel &amp; temporer menempati slot 8-byte [rbp-N]. Bilangan bulat dihitung di <b>eax</b> (idiv untuk ÷ dan %), bilangan desimal di <b>xmm0</b> (addss/divss/comiss). String ditaruh di seksi .rodata dengan label .LSTRk; keluaran cout didelegasikan ke fungsi runtime.</p>'+
+  '</div>';
+}
+
+/* ═══════════ RENDER: 08 LNK ═══════════ */
+function renderLnk(ph){
+  var K=ST.link;
+  if(!K)return;
+  var total=K.textB+K.rodB+K.symB+96;
+  var secs=[['.text',K.textB],['.rodata',K.rodB],['.symtab',K.symB],['.strtab',Math.round(K.symB/3)],['.eh_frame',64]];
+  var secRows='';
+  secs.forEach(function(s,i){
+    var w=110+Math.min(180,s[1]/6);
+    secRows+='<rect class="lk-sec" x="300" y="'+(58+i*26)+'" width="'+w+'" height="19"/><text class="lk-sect" x="308" y="'+(71+i*26)+'">'+s[0]+' — '+s[1]+' B</text>';
+  });
+  var objs=[
+    {y:16,nm:'crt0.o',syms:'_start (T)'},
+    {y:86,nm:'main.o',syms:'main (T) · rt_print_* (U)'},
+    {y:156,nm:'runtime.o',syms:'rt_print_* (T)'}
+  ];
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(K.syms.length,'simbol direlokasi')+mt(total,'byte a.out')+mt('0','tautan gagal'))+
+  '<div class="ph-body">'+
+    '<div class="subttl">PEMERIKSAAN TautAN — ld</div>'+
+    '<div class="lnk-svg"><svg viewBox="0 0 640 216" width="640" height="216">'+
+      objs.map(function(o){
+        return '<rect class="lk-box" x="14" y="'+o.y+'" width="170" height="46"/>'+
+          '<text class="lk-w" x="24" y="'+(o.y+19)+'">'+o.nm+'</text>'+
+          '<text class="lk-s" x="24" y="'+(o.y+35)+'">'+o.syms+'</text>';
+      }).join('')+
+      '<path class="edge" d="M184 39 H 300"/>'+
+      '<path class="edge" d="M184 109 H 300"/>'+
+      '<path class="edge" d="M184 179 H 300"/>'+
+      '<rect class="lk-box" x="300" y="8" width="322" height="46" style="fill:var(--ink)"/>'+
+      '<text class="lk-w" x="312" y="28" style="fill:var(--paper)">a.out — ELF 64-bit</text>'+
+      '<text class="lk-s" x="312" y="44" style="fill:#CFC7AE">header ELF · _start @ 0x401090</text>'+
+      secRows+
+    '</svg></div>'+
+    '<div class="subttl" style="margin-top:18px">TABEL SIMBOL TERSELESAIKAN</div>'+
+    '<table class="tbl"><tr><th>Simbol</th><th>Kelas</th><th>Didefinisikan di</th><th>Alamat akhir</th><th>Catatan</th></tr>'+
+    K.syms.map(function(s){return '<tr><td><b>'+esc(s.name)+'</b></td><td>'+s.tipe+'</td><td>'+s.def+'</td><td>'+s.addr+'</td><td>'+esc(s.note)+'</td></tr>';}).join('')+
+    '</table>'+
+    '<p class="lg">main.o meninggalkan <b>U</b> (undefined) untuk rt_print_* — penaut mencarinya di runtime.o lalu menuliskan alamat final. crt0.o berisi _start yang mengatur stack dan memanggil main(). T = simbol pada seksi teks (kode).</p>'+
+    '<div class="cta">'+
+      '<button class="btn btn-primary btn-big" id="lnkRun"><i data-lucide="play"></i> JALANKAN a.out</button>'+
+      '<span class="note">Melanjutkan ke fase 09 — mesin eksekusi menjalankan kode antara optimal, persis seperti CPU membaca .text hasil tautan.</span>'+
+    '</div>'+
+  '</div>';
+  $('#lnkRun').onclick=function(){setPhase('run');};
+}
+
+/* ═══════════ RENDER: 09 RUN ═══════════ */
+function renderRun(ph){
+  if(!ST.opt){emptyPanel();return;}
+  M=makeMachine(ST.opt,ST.tac,ST.sem);
+  RUN.playing=false;
+  $('#phasePanel').innerHTML=phaseHead(ph,
+    mt(ST.opt.code.length,'instruksi TAC')+mt('300k','langkah maks'))+
+  '<div class="ph-body">'+
+    '<div class="run-ctl">'+
+      '<button class="btn btn-primary" id="rPlay"><i data-lucide="play"></i><span id="rPlayTxt">JALANKAN</span></button>'+
+      '<button class="btn" id="rStep"><i data-lucide="chevron-right"></i> SATU LANGKAH</button>'+
+      '<button class="btn" id="rFast"><i data-lucide="zap"></i> SELESAIKAN</button>'+
+      '<button class="btn" id="rReset"><i data-lucide="rotate-ccw"></i> RESET</button>'+
+      '<span class="sp"></span>'+
+      '<label class="r-count">LAMBAT <input type="range" id="rSpeed" min="0" max="6" value="4" step="1"> CEPAT</label>'+
+      '<span class="r-count">LANGKAH <b id="rCount">0</b></span>'+
+      '<span class="r-st" id="rStatus">SIAP</span>'+
+    '</div>'+
+    '<div class="run-grid">'+
+      '<div class="run-tac">'+
+        '<div class="subttl">PENUNJUK PROGRAM (PC) <small>baris tersorot = instruksi berikutnya</small></div>'+
+        '<div class="tacbox" id="rtac">'+M.code.map(function(c,i){return tacHTML(c,i);}).join('')+'</div>'+
+      '</div>'+
+      '<div class="run-side">'+
+        '<div>'+
+          '<div class="subttl">NILAI VARIABEL &amp; TEMPORER</div>'+
+          '<div id="rvars" style="border:1.5px solid var(--ink);background:var(--paper3);max-height:230px;overflow:auto"></div>'+
+        '</div>'+
+        '<div>'+
+          '<div class="subttl">KELUARAN STANDAR (stdout)</div>'+
+          '<div class="console" id="rout"></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  R={tac:$('#rtac'),vars:$('#rvars'),out:$('#rout'),cnt:$('#rCount'),st:$('#rStatus')};
+  $('#rPlay').onclick=function(){
+    if(RUN.playing){RUN.playing=false;setRunBtns();}
+    else{runPlay();}
+  };
+  $('#rStep').onclick=function(){if(!RUN.playing){M.step();renderRunState();}};
+  $('#rFast').onclick=function(){
+    RUN.playing=false;
+    var guard=300000;
+    while(!M.halted&&!M.error&&guard-->0){M.step();}
+    renderRunState();
+  };
+  $('#rReset').onclick=function(){RUN.playing=false;M.reset();renderRunState();};
+  $('#rSpeed').oninput=function(e){RUN.delay=DELAYS[+e.target.value];};
+  renderRunState();
+}
+async function runPlay(){
+  if(RUN.playing||M.halted)return;
+  RUN.playing=true;
+  var myM=M;
+  setRunBtns();
+  while(RUN.playing&&M===myM&&!myM.halted&&!myM.error){
+    if(RUN.delay===0){
+      var guard=300000;
+      while(!myM.halted&&!myM.error&&guard-->0){myM.step();}
+      break;
+    }
+    myM.step();
+    renderRunState();
+    await sleep(RUN.delay);
   }
-  requestAnimationFrame(frame);
+  RUN.playing=false;
+  setRunBtns();
+  renderRunState();
 }
-window.addEventListener('resize', renderTrack);
+function setRunBtns(){
+  var t=$('#rPlayTxt');
+  if(t)t.textContent=RUN.playing?'JEDA':'JALANKAN';
+}
+function renderRunState(){
+  if(!M||!R.tac)return;
+  R.tac.querySelectorAll('.trow.on').forEach(function(x){x.classList.remove('on');});
+  var row=R.tac.querySelector('[data-i="'+M.pc+'"]');
+  if(row){
+    row.classList.add('on');
+    if(RUN.playing){row.scrollIntoView({block:'nearest'});}
+  }
+  R.vars.innerHTML=M.names.map(function(n){
+    var has=M.env.has(n);
+    var t=ST.tac.types.get(n);
+    var v=has?(t==='float'?fmtF(M.env.get(n)):String(Math.trunc(M.env.get(n)))):'—';
+    return '<div class="vr'+(has?'':' nv')+'"><span class="vn'+(isTmp(n)?' tmp':'')+'">'+esc(n)+'</span><span class="vt">'+(t||'')+'</span><span class="vv">'+esc(v)+'</span></div>';
+  }).join('');
+  R.out.textContent=M.out;
+  R.out.scrollTop=R.out.scrollHeight;
+  R.cnt.textContent=M.steps;
+  if(M.error){R.st.textContent='ERROR RUNTIME: '+M.error.msg;R.st.className='r-st bad';}
+  else if(M.halted){R.st.textContent='SELESAI — kode keluar '+M.exit;R.st.className='r-st good';}
+  else{R.st.textContent=RUN.playing?'BERJALAN…':'JEDA';R.st.className='r-st';}
+  setRunBtns();
+}
 
-renderFileIndex();
-loadPreset(0);
-requestAnimationFrame(frame);
-if(typeof lucide !== 'undefined') lucide.createIcons();
+/* ═══════════ KLIK TERDELEGASI PANEL ═══════════ */
+ $('#phasePanel').addEventListener('click',function(e){
+  var tok=e.target.closest?e.target.closest('.tokrow'):null;
+  if(tok){
+    UI.mode='token';
+    updateEditorTabs();
+    jumpEditor(+tok.getAttribute('data-line'),+tok.getAttribute('data-col'),+tok.getAttribute('data-len'));
+    return;
+  }
+  var m=e.target.closest?e.target.closest('.msg[data-line]'):null;
+  if(m&&m.getAttribute('data-line')){jumpLine(+m.getAttribute('data-line'));return;}
+  var td=e.target.closest?e.target.closest('td[data-line]'):null;
+  if(td&&td.getAttribute('data-line')){jumpLine(+td.getAttribute('data-line'));}
+});
+
+/* ═══════════ ALUR KOMPILASI ═══════════ */
+function pause(ms){return sleep(UI.skip?0:ms);}
+async function typeLines(lines){
+  for(var i=0;i<lines.length;i++){
+    var L=lines[i];
+    if(L[0]){log('$',L[2]);}
+    else{log(L[1],L[2],L[3]);}
+    await pause(110);
+  }
+}
+async function compile(){
+  if(UI.running)return;
+  UI.running=true;UI.skip=false;UI.ok=false;UI.stale=false;M=null;
+  Object.keys(ST).forEach(function(k){delete ST[k];});
+  var btn=$('#btnCompile');
+  btn.disabled=true;
+  $('#exampleSel').disabled=true;
+  $('#btnSkip').style.display='inline-flex';
+  buildStepper();
+  termClear();
+  var t0=performance.now();
+  setStatus('MENGOMPILASI — memulai pipeline…');
+  var src=ED.text;
+  log('$','g++ main.cpp -o a.out --didaktik');
+
+  var steps=[];
+  steps.push({id:'pre',cmd:'g++ -E main.cpp -o main.i',run:function(){
+    ST.pre=runPreprocessor(src);
+    return ST.pre.errors.length?('main.cpp:'+ST.pre.errors[0].line+': error: '+ST.pre.errors[0].msg):null;
+  },ok:function(){
+    return [
+      ['','PRE',ST.pre.comments+' komentar dihapus · '+ST.pre.includes.length+' header dicatat · '+Object.keys(ST.pre.defines).length+' makro',''],
+      ['','PRE','unit translasi main.i — '+ST.pre.outLines.filter(function(l){return l.trim();}).length+' baris efektif','']
+    ];
+  }});
+  steps.push({id:'lex',cmd:'cc1plus -O2 main.i (fase leksikal)',run:function(){
+    ST.lexRes=lex(ST.pre.output);
+    ST.tokens=ST.lexRes.tokens;
+    return ST.lexRes.errors.length?('main.cpp:'+ST.lexRes.errors[0].line+':'+ST.lexRes.errors[0].col+': error: '+ST.lexRes.errors[0].msg):null;
+  },ok:function(){
+    var toks=ST.tokens.filter(function(t){return t.kind!=='eof';});
+    var c={};
+    toks.forEach(function(t){c[t.kind]=(c[t.kind]||0)+1;});
+    return [['','LEX',toks.length+' token dikenali ('+Object.keys(c).map(function(k){return c[k]+' '+KIND_NAME[k];}).join(', ')+')','']];
+  }});
+  steps.push({id:'parse',cmd:null,run:function(){
+    try{ST.ast=parse(ST.tokens);}
+    catch(e){ST.parseErr=e;return 'main.cpp:'+e.line+':'+e.col+': error: '+e.msg;}
+    return null;
+  },ok:function(){
+    function cnt(x){
+      var c=1;
+      astChildren(x).forEach(function(y){c+=cnt(y.kind==='ExprStmt'?y.expr:y);});
+      return c;
+    }
+    return [['','PAR','AST dibangun — '+cnt(ST.ast)+' simpul, tata bahasa recursive-descent tanpa konflik','']];
+  }});
+  steps.push({id:'sem',cmd:null,run:function(){
+    ST.sem=analyze(ST.ast);
+    return ST.sem.errors.length?('main.cpp:'+ST.sem.errors[0].line+': error: '+ST.sem.errors[0].msg):null;
+  },ok:function(){
+    var L=[['','SEM',ST.sem.symbols.length+' simbol pada scope bertingkat — '+ST.sem.errors.length+' error, '+ST.sem.warnings.length+' peringatan','']];
+    ST.sem.warnings.slice(0,4).forEach(function(w){L.push(['','SEM','main.cpp:'+w.line+': peringatan: '+w.msg,'w']);});
+    if(ST.sem.warnings.length>4){L.push(['','SEM','… +'+(ST.sem.warnings.length-4)+' peringatan lain','w']);}
+    return L;
+  }});
+  steps.push({id:'ir',cmd:'cc1plus: menurunkan AST → TAC',run:function(){
+    ST.tac=genTAC(ST.ast,ST.sem);
+    return null;
+  },ok:function(){
+    var nLab=ST.tac.code.filter(function(c){return c.k==='label';}).length;
+    return [['','IR',ST.tac.code.length+' instruksi tiga-alamat · '+ST.tac.tcount+' temporer · '+nLab+' label','']];
+  }});
+  steps.push({id:'opt',cmd:null,run:function(){
+    ST.opt=optimize(ST.tac);
+    return null;
+  },ok:function(){
+    var O=ST.opt,tot=O.notes.reduce(function(a,n){return a+n.n;},0);
+    var pct=O.before.length?Math.round((O.before.length-O.code.length)/O.before.length*100):0;
+    return [['','OPT',O.before.length+' → '+O.code.length+' instruksi (−'+pct+'%) — '+tot+' transformasi: '+O.notes.map(function(n){return n.n+' '+n.nm.split(' ')[0].toLowerCase();}).join(' · '),'']];
+  }});
+  steps.push({id:'asm',cmd:'as main.s -o main.o',run:function(){
+    ST.asm=genAsm(ST.opt,ST.tac);
+    return null;
+  },ok:function(){
+    return [['','ASM','main.s ditulis — '+ST.asm.lines.length+' baris, bingkai '+ST.asm.frame+' byte, '+ST.asm.floats+' konstanta float, '+ST.asm.strings+' string','']];
+  }});
+  steps.push({id:'lnk',cmd:'ld -o a.out crt0.o main.o runtime.o',run:function(){
+    ST.link=buildLink(ST.asm,ST.opt);
+    return null;
+  },ok:function(){
+    return [
+      ['','LNK','menggabungkan crt0.o + main.o + runtime.o → a.out (ELF 64-bit)',''],
+      ['','LNK',ST.link.syms.length+' simbol direlokasi, 0 tertunda — a.out siap dieksekusi','o']
+    ];
+  }});
+
+  var failed=false;
+  try{
+    for(var i=0;i<steps.length;i++){
+      var st=steps[i];
+      var ph=PHASES.find(function(p){return p.id===st.id;});
+      chip(st.id,'active');
+      UI.phase=st.id;
+      runningPanel(ph);
+      setStatus('MENGOMPILASI — FASE '+ph.no+'/08 · '+ph.name.toUpperCase());
+      await pause(420+Math.random()*280);
+      if(st.cmd)log('$',st.cmd);
+      var errMsg=st.run();
+      if(errMsg){
+        chip(st.id,'err');
+        log('ERR',errMsg,'e');
+        log('ERR','kompilasi dihentikan — cc1plus gagal','e');
+        renderPhase();
+        setStatus('GAGAL — FASE '+ph.no+' · '+ph.name.toUpperCase());
+        $('#statusRight').innerHTML='<span class="st-err">✕ KOMPILASI GAGAL</span>';
+        failed=true;
+        break;
+      }
+      await typeLines(st.ok());
+      chip(st.id,'done');
+      renderPhase();
+      await pause(120);
+    }
+    if(!failed){
+      UI.ok=true;
+      chip('run','ready');
+      var dt=((performance.now()-t0)/1000).toFixed(1);
+      var nW=ST.sem.warnings.length;
+      log('OK','*** a.out dibangun — 0 error · '+nW+' peringatan ('+dt+' s) ***','o');
+      setStatus('a.out SIAP — 0 ERROR · '+nW+' PERINGATAN — FASE 09 TERBUKA');
+      $('#statusRight').innerHTML='<span class="st-ok">✓ a.out ('+ST.opt.code.length+' instr)</span>';
+      setPhase('lnk');
+    }
+  }catch(e){
+    __fatal('compile(): '+((e&&e.message)||e));
+    log('ERR','kesalahan internal: '+((e&&e.message)||e),'e');
+  }finally{
+    UI.running=false;
+    btn.disabled=false;
+    $('#exampleSel').disabled=false;
+    $('#btnSkip').style.display='none';
+    refreshIcons();
+  }
+}
+ $('#btnCompile').onclick=compile;
+ $('#btnSkip').onclick=function(){UI.skip=true;};
+
+/* ═══════════ CONTOH & INIT ═══════════ */
+function fillExamples(){
+  $('#exampleSel').innerHTML=EXAMPLES.map(function(e,i){return '<option value="'+i+'">'+esc(e.name)+'</option>';}).join('');
+  $('#exampleSel').onchange=function(e){
+    setText(EXAMPLES[+e.target.value].code);
+    resetAll();
+    log('$','memuat contoh: '+EXAMPLES[+e.target.value].name);
+  };
+}
+function resetAll(){
+  Object.keys(ST).forEach(function(k){delete ST[k];});
+  UI.ok=false;UI.stale=false;UI.phase=null;M=null;
+  buildStepper();
+  setStatus('SUMBER DIMUAT — SIAP DIKOMPILASI');
+  $('#statusRight').innerHTML='';
+  emptyPanel();
+  UI.mode='syntax';
+  updateEditorTabs();
+  renderEditor();
+}
+function init(){
+  buildStepper();
+  fillExamples();
+  setText(EXAMPLES[0].code);
+  emptyPanel();
+  updateEditorTabs();
+  termClear();
+  log('$','selamat datang — ini keluaran kompiler (simulasi gcc)');
+  log('PRE','pilih program contoh, sunting bila perlu, lalu tekan KOMPILASI');
+  refreshIcons();
+  window.__APP_OK=true;
+}
+try{
+  init();
+}catch(e){
+  __fatal('init(): '+((e&&e.message)||e));
+}
+</script>
+
+<script>
+/* Penjaga mandiri: jika skrip utama gagal dimuat (salinan terpotong /
+   peramban terlalu tua / SyntaxError), pita merah tetap muncul. */
+(function(){
+  setTimeout(function(){
+    if(!window.__APP_OK){
+      var el=document.getElementById('fatalBar');
+      if(el){
+        el.style.display='block';
+        el.textContent='ERROR SKRIP: skrip utama tidak termuat — pastikan seluruh kode tersalin utuh, simpan sebagai file .html ber-encoding UTF-8, lalu muat ulang dengan Ctrl+F5.';
+      }
+      var ed=document.getElementById('edTa');
+      if(ed&&!ed.value){
+        ed.value='// skrip gagal dimuat — lihat pita merah di atas';
+      }
+    }
+  },400);
+})();
 </script>
 </body>
 </html>
