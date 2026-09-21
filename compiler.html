@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOMPILER × INTERPRETER — Simulasi Eksekusi Program</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ============ FONDASI ============ */
+:root{
+  --paper:#F1EDE2; --paper2:#FAF8F1; --paper3:#FEFDF9;
+  --ink:#191713; --ink-soft:#5C5648; --ink-faint:#8B8574;
+  --verm:#C13E1B; --verm-deep:#9E2F12; --verm-tint:#F3DDD2;
+  --teal:#0E6B5C; --teal-deep:#0A4F44; --teal-tint:#DBE9E2;
+  --gold:#8A6A1C;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'Space Grotesk',sans-serif;
+  --lh:21px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  background-image:radial-gradient(rgba(25,23,19,.09) 1px,transparent 1px);
+  background-size:22px 22px;
+  color:var(--ink); font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--verm);color:var(--paper)}
+.container{max-width:1240px;margin:0 auto;padding:0 24px}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px dashed var(--verm);outline-offset:2px}
+svg.lucide{width:15px;height:15px;flex:none}
+
+/* ============ MASTHEAD ============ */
+.masthead{padding:42px 0 22px}
+.mast-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.tags{display:flex;gap:8px;flex-wrap:wrap}
+.tag{font:600 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;padding:5px 9px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper)}
+.tag.ghost{background:transparent;color:var(--ink)}
+h1{font-size:clamp(32px,5.6vw,70px);font-weight:700;letter-spacing:-.025em;line-height:.96;text-transform:uppercase}
+h1 .v{color:var(--verm);font-style:normal}
+h1 .t{color:var(--teal);font-style:normal}
+h1 .slash{color:var(--ink);opacity:.22;font-weight:400;margin:0 .06em}
+.rule-double{height:7px;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);margin-top:20px}
+.mast-sub{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end;padding-top:18px}
+.mast-sub p{max-width:600px;font-size:15px;line-height:1.6;color:var(--ink-soft)}
+.mast-sub p b{color:var(--ink)}
+.legend{font:500 11px/1.9 var(--mono);white-space:nowrap}
+.legend .row{display:flex;align-items:center;gap:8px}
+.lg-line{display:inline-block;width:26px;height:0;border-top:3px solid var(--ink)}
+.lg-line.v{border-color:var(--verm)} .lg-line.t{border-color:var(--teal)}
+
+/* ============ LABEL SEKSI ============ */
+.sec-label{display:flex;align-items:center;gap:10px;font:600 11px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink);margin:38px 0 16px}
+.sec-no{background:var(--ink);color:var(--paper);padding:4px 8px}
+.sec-label .fill{flex:1;height:1px;background:var(--ink);opacity:.25}
+
+/* ============ SEKSI 01 — EDITOR ============ */
+.src-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(280px,1fr);gap:20px;align-items:start}
+.card{background:var(--paper2);border:1.5px solid var(--ink);box-shadow:6px 6px 0 rgba(25,23,19,.85)}
+.editor-card{padding:0}
+.editor-wrap{display:grid;grid-template-columns:48px 1fr;height:330px}
+.gutter{position:relative;overflow:hidden;border-right:1px solid rgba(25,23,19,.25);background:#F5F1E6}
+.gutter-inner{position:absolute;top:0;left:0;right:0;padding:12px 0}
+.g-line{height:var(--lh);font:500 11px/var(--lh) var(--mono);color:var(--ink-faint);text-align:right;padding-right:10px;user-select:none}
+.g-line.g-c{color:var(--verm);font-weight:700}
+.g-line.g-i{color:var(--teal);font-weight:700}
+.g-line.g-err{color:#fff;background:var(--verm-deep);font-weight:600}
+.code-area{position:relative}
+#srcHl,#srcTa{position:absolute;inset:0;font:500 13px/var(--lh) var(--mono);padding:12px 14px;letter-spacing:0;tab-size:2}
+#srcHl{overflow:hidden;pointer-events:none;background:transparent}
+#srcTa{overflow:auto;background:transparent;border:0;outline:0;resize:none;color:transparent;caret-color:var(--verm);white-space:pre;word-wrap:normal}
+#srcTa::selection{background:rgba(193,62,27,.28)}
+.hl-line{display:block;width:max-content;min-width:100%;height:var(--lh);white-space:pre}
+.hl-line.mk-c{background:rgba(193,62,27,.15);box-shadow:inset 3px 0 0 var(--verm)}
+.hl-line.mk-i{background:rgba(14,107,92,.15);box-shadow:inset -3px 0 0 var(--teal)}
+.hl-line.mk-c.mk-i{background:rgba(160,90,50,.22)}
+.hl-line.mk-err{background:rgba(158,47,18,.18);box-shadow:inset 3px 0 0 var(--verm-deep)}
+.c-kw{color:var(--verm);font-weight:600}
+.c-num{color:var(--teal)}
+.c-str{color:var(--gold)}
+.c-com{color:var(--ink-faint);font-style:italic}
+.c-id{color:var(--ink)}
+.c-op{color:var(--ink-soft)}
+.c-bad{background:rgba(158,47,18,.2);border-bottom:2px solid var(--verm-deep)}
+.editor-foot{border-top:1px solid rgba(25,23,19,.2);padding:9px 14px;font:500 10px/1.6 var(--mono);color:var(--ink-faint);letter-spacing:.03em}
+.editor-foot b{color:var(--ink-soft)}
+
+/* indeks berkas di sidebar */
+.file-index{border:1.5px solid var(--ink);background:var(--paper2)}
+.fi-head{font:600 10px/1 var(--mono);letter-spacing:.18em;padding:9px 12px;border-bottom:1.5px solid var(--ink);background:var(--ink);color:var(--paper)}
+.fi-item{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid rgba(25,23,19,.18);padding:10px 12px;transition:background .12s}
+.fi-item:hover{background:var(--verm-tint)}
+.fi-item.is-active{background:var(--ink);color:var(--paper)}
+.fi-no{font:600 10px/1 var(--mono);letter-spacing:.12em;color:var(--verm);display:block;margin-bottom:3px}
+.fi-item.is-active .fi-no{color:var(--verm-tint)}
+.fi-name{font:700 14px/1.2 var(--sans);display:block}
+.fi-hint{font:500 10px/1 var(--mono);color:var(--ink-faint);display:block;margin-top:4px}
+.fi-item.is-active .fi-hint{color:rgba(241,237,226,.65)}
+.pi{margin-top:16px;padding:14px 16px;border:1.5px solid var(--ink);border-left:6px solid var(--verm);background:var(--paper2)}
+.pi-tag{font:600 10px/1 var(--mono);letter-spacing:.16em;color:var(--verm-deep);margin-bottom:6px}
+.pi h3{font:700 17px/1.2 var(--sans);margin-bottom:6px}
+.pi p{font-size:13px;line-height:1.6;color:var(--ink-soft)}
+.pi .mod{font:500 10px/1 var(--mono);color:var(--gold);margin-top:8px;display:none}
+.pi.modified .mod{display:block}
+.btn-run{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:16px;padding:15px 16px;
+  background:var(--verm);color:var(--paper);border:1.5px solid var(--ink);box-shadow:5px 5px 0 rgba(25,23,19,.85);
+  font:700 15px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;transition:transform .1s,box-shadow .1s}
+.btn-run svg{width:16px;height:16px}
+.btn-run:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 rgba(25,23,19,.85)}
+.btn-run:active{transform:translate(3px,3px);box-shadow:1px 1px 0 rgba(25,23,19,.85)}
+.btn-ghost{display:block;width:100%;margin-top:10px;padding:8px;background:transparent;border:1px dashed var(--ink-soft);color:var(--ink-soft);font:500 11px/1 var(--mono);letter-spacing:.08em}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ============ SEKSI 02 — LINTASAN WAKTU + KONTROL ============ */
+.track-card{padding:12px 16px 8px}
+.track-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.track-legend{display:flex;gap:16px;font:600 10px/1 var(--mono);letter-spacing:.1em}
+.track-legend .row{display:flex;align-items:center;gap:7px}
+.tlive-wrap{text-align:right}
+.tlive-wrap .mini{font:600 9px/1 var(--mono);letter-spacing:.18em;color:var(--ink-faint);display:block;margin-bottom:3px}
+#tLive{font:600 20px/1 var(--mono);letter-spacing:-.02em}
+#raceSvg{display:block;width:100%;height:150px}
+.tk-lab{font:600 9px var(--mono);fill:var(--ink-faint)}
+.tk-path-c{fill:none;stroke:var(--verm);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.tk-path-i{fill:none;stroke:var(--teal);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
+.control-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 18px;padding:10px 14px;border:1.5px solid var(--ink);background:var(--paper2);box-shadow:4px 4px 0 rgba(25,23,19,.8)}
+.ctl-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1.5px solid var(--ink);background:var(--paper3);color:var(--ink);
+  font:600 11px/1 var(--mono);letter-spacing:.1em;box-shadow:3px 3px 0 rgba(25,23,19,.75);transition:transform .08s,box-shadow .08s}
+.ctl-btn svg{width:13px;height:13px}
+.ctl-btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(25,23,19,.75)}
+.ctl-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(25,23,19,.75)}
+.ctl-btn.primary{background:var(--ink);color:var(--paper)}
+.ctl-btn:disabled{opacity:.4;pointer-events:none}
+#btnMaster .s{display:none;align-items:center;gap:7px}
+#btnMaster[data-state="idle"] .s-idle{display:inline-flex}
+#btnMaster[data-state="running"] .s-run{display:inline-flex}
+#btnMaster[data-state="paused"] .s-pause{display:inline-flex}
+#btnMaster[data-state="done"] .s-done{display:inline-flex}
+.speed-wrap{display:flex;align-items:center;gap:9px;margin-left:auto}
+.speed-wrap label{font:600 9px/1.4 var(--mono);letter-spacing:.14em;color:var(--ink-faint)}
+#speed{width:150px;accent-color:var(--ink)}
+#speedLbl{font:600 11px/1.4 var(--mono);min-width:86px}
+
+/* ============ SEKSI 03 — PANEL MESIN ============ */
+.machines{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+.machine{display:flex;flex-direction:column;background:var(--paper2);border:1.5px solid var(--ink);box-shadow:6px 6px 0 rgba(25,23,19,.85)}
+.mach-head{display:flex;align-items:center;gap:10px;padding:10px 14px;color:var(--paper)}
+.m-c .mach-head{background:var(--verm)}
+.m-i .mach-head{background:var(--teal)}
+.mach-id{display:flex;align-items:center;gap:8px;font:700 14px/1 var(--sans);letter-spacing:.14em}
+.mach-id svg{width:16px;height:16px}
+.badge{margin-left:auto;font:600 10px/1 var(--mono);letter-spacing:.12em;padding:4px 8px;border:1.5px solid currentColor;white-space:nowrap}
+.badge.b-run{animation:pulse 1.2s infinite}
+.badge.b-ok{background:var(--paper);color:var(--ink);border-color:var(--ink)}
+.badge.b-bad{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.mach-time{font:600 13px/1 var(--mono);min-width:60px;text-align:right}
+/* fase strip kompilator */
+.phases{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:9px 14px;border-bottom:1px dashed rgba(25,23,19,.3)}
+.ph .ph-n{font:600 9px/1 var(--mono);letter-spacing:.14em;color:var(--ink-faint);display:block;margin-bottom:5px}
+.ph.is-active .ph-n{color:var(--verm-deep)}
+.ph.is-done .ph-n{color:var(--ink-soft)}
+.ph-bar{display:block;height:4px;background:rgba(25,23,19,.14)}
+.ph-bar i{display:block;height:100%;width:0%;background:var(--verm);transition:width .12s}
+.ph.is-done .ph-bar i{background:var(--ink-soft)}
+/* lensa aksi */
+.lens{min-height:46px;padding:8px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  font:500 11px/1.5 var(--mono);border-bottom:1px solid rgba(25,23,19,.18);border-left:4px solid var(--verm);background:var(--paper3)}
+.m-i .lens-ih{border-left-color:var(--teal)}
+.lens b{font-weight:600;color:var(--verm-deep)}
+.lens .err{color:var(--verm-deep);font-weight:600}
+/* area kode objek */
+.obj{padding:10px 14px 12px}
+.mini-label{font:600 9px/1 var(--mono);letter-spacing:.16em;color:var(--ink-faint);display:block;margin-bottom:6px}
+.obj-list{position:relative;height:196px;overflow:auto;border:1px solid rgba(25,23,19,.28);background:var(--paper3)}
+.obj-empty,.rh-empty{padding:10px;font:500 11px/1.6 var(--mono);color:var(--ink-faint)}
+.ins{display:grid;grid-template-columns:36px 58px 1fr 40px;gap:4px;font:500 11px/19px var(--mono);padding:0 8px;border-bottom:1px solid rgba(25,23,19,.06);white-space:pre}
+.ins-n{color:var(--ink-faint)}
+.ins-op{font-weight:600}
+.ins-a{color:var(--ink-soft)}
+.ins-l{color:var(--ink-faint);text-align:right}
+.ins.on{background:var(--verm-tint)}
+.ins.on .ins-n{color:var(--verm-deep);font-weight:700}
+/* kepala bacaan interpreter */
+.readhead{padding:10px 14px 12px;display:flex;flex-direction:column;flex:1;min-height:250px}
+.rh-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.rh-stats{font:600 10px/1 var(--mono);color:var(--teal-deep);letter-spacing:.05em}
+.rh-src{font:600 13px/1.5 var(--mono);background:var(--paper3);border:1px solid rgba(25,23,19,.28);border-left:4px solid var(--teal);padding:7px 10px;margin:7px 0;min-height:36px;white-space:pre-wrap;word-break:break-word}
+.rh-tokens{display:flex;flex-wrap:wrap;gap:4px;min-height:22px;margin-bottom:8px}
+.tk{font:500 10px/1 var(--mono);padding:4px 6px;border:1px solid rgba(25,23,19,.3);background:var(--paper3)}
+.tk-kw{color:var(--verm);font-weight:600;border-color:var(--verm)}
+.tk-num{color:var(--teal);font-weight:600}
+.tk-str{color:var(--gold)}
+.tk-op{color:var(--ink-soft)}
+.tk-id{color:var(--ink)}
+.rh-trace{margin-top:auto}
+.tr-step{font:500 11px/1.7 var(--mono);padding-left:12px;border-left:2px dashed rgba(14,107,92,.4)}
+.tr-step .arr{color:var(--teal);font-weight:700}
+.tr-note{font:600 11px/1.7 var(--mono);color:var(--teal-deep);padding-left:12px;border-left:2px dashed rgba(14,107,92,.4)}
+.tr-err{font:600 11px/1.7 var(--mono);color:var(--verm-deep)}
+/* meta row */
+.mach-meta{display:grid;gap:0;border-top:1.5px solid var(--ink)}
+.m-c .mach-meta{grid-template-columns:1.1fr 1.6fr .9fr}
+.m-i .mach-meta{grid-template-columns:1.8fr .8fr}
+.meta-cell{padding:8px 14px;border-right:1px solid rgba(25,23,19,.18)}
+.meta-cell:last-child{border-right:0}
+.meta-cell label{font:600 9px/1 var(--mono);letter-spacing:.14em;color:var(--ink-faint);display:block;margin-bottom:5px}
+.meta-val{font:500 11px/1.5 var(--mono);min-height:18px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.stk-v{padding:2px 6px;border:1.5px solid var(--ink);background:var(--paper3);font-weight:600}
+.stk-v.top{border-color:var(--verm);color:var(--verm-deep)}
+.var-chip{padding:2px 6px;border:1px solid rgba(25,23,19,.35);background:var(--paper3)}
+.var-chip b{color:var(--verm-deep)}
+.m-i .var-chip b{color:var(--teal-deep)}
+.emptyv{color:var(--ink-faint)}
+/* konsol */
+.console{margin-top:auto}
+.con-label{font:600 9px/1 var(--mono);letter-spacing:.16em;color:var(--ink-faint);padding:8px 14px 5px}
+.con-out{height:118px;overflow:auto;background:#23201A;color:#E9E4D3;font:500 11px/1.75 var(--mono);padding:8px 12px;border-top:1.5px solid var(--ink)}
+.con-line{white-space:pre-wrap;word-break:break-word}
+.con-sys{color:#E8A18B;font-style:italic}
+.m-i .con-sys{color:#8FC9B9}
+
+/* ============ SEKSI 04 — RINGKASAN ============ */
+.sum-card{padding:0;overflow:hidden}
+.sum-table{width:100%;border-collapse:collapse}
+.sum-table th,.sum-table td{padding:9px 16px;font:500 12px/1.4 var(--mono);border-bottom:1px solid rgba(25,23,19,.15);text-align:right}
+.sum-table th:first-child,.sum-table td:first-child{text-align:left;font:600 10px/1.4 var(--mono);letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase}
+.sum-table thead th{font:700 12px/1 var(--mono);letter-spacing:.14em;border-bottom:1.5px solid var(--ink)}
+.sum-table thead th.hc{color:var(--verm)}
+.sum-table thead th.hi{color:var(--teal)}
+.sum-table tfoot td{border-bottom:0;font-weight:600}
+.concl{margin-top:18px;padding:16px 20px;border:1.5px solid var(--ink);border-left:8px solid var(--ink);background:var(--paper3);box-shadow:5px 5px 0 rgba(25,23,19,.8)}
+.concl .stamp{display:inline-block;font:700 10px/1 var(--mono);letter-spacing:.2em;background:var(--ink);color:var(--paper);padding:5px 9px;margin-bottom:10px}
+.concl h3{font:700 19px/1.25 var(--sans);margin-bottom:8px}
+.concl p{font-size:14px;line-height:1.65;color:var(--ink-soft);max-width:920px}
+.concl-facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cf{font:600 10.5px/1.4 var(--mono);padding:5px 9px;border:1px solid var(--ink);background:var(--paper2)}
+.cf.v{border-color:var(--verm);color:var(--verm-deep)}
+.cf.t{border-color:var(--teal);color:var(--teal-deep)}
+
+/* ============ FOOTER / TOAST ============ */
+footer{margin-top:44px;border-top:1px solid rgba(25,23,19,.3);padding:22px 0 44px}
+.foot-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;font:500 10.5px/1.7 var(--mono);color:var(--ink-faint)}
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:var(--ink);color:var(--paper);
+  font:500 12px/1 var(--mono);padding:12px 18px;border:1.5px solid var(--ink);box-shadow:4px 4px 0 rgba(25,23,19,.4);
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:90vw}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* scrollbar tipis */
+.obj-list::-webkit-scrollbar,.con-out::-webkit-scrollbar,#srcTa::-webkit-scrollbar,.rh-trace div::-webkit-scrollbar{width:8px;height:8px}
+.obj-list::-webkit-scrollbar-thumb,.con-out::-webkit-scrollbar-thumb,#srcTa::-webkit-scrollbar-thumb{background:rgba(25,23,19,.3)}
+.con-out::-webkit-scrollbar-thumb{background:#4A443A}
+
+/* ============ RESPONSIF ============ */
+@media (max-width:960px){
+  .src-grid,.machines,.foot-grid,.mast-sub{grid-template-columns:1fr}
+  .legend{white-space:normal}
+  .machines{gap:16px}
+  .speed-wrap{margin-left:0;width:100%;justify-content:space-between}
+  .mach-meta{grid-template-columns:1fr 1fr!important}
+  .meta-cell:nth-child(2){border-right:0}
+  .meta-cell:nth-child(3){grid-column:1/-1;border-top:1px solid rgba(25,23,19,.18)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== MASTHEAD ==================== -->
+<header class="masthead container">
+  <div class="mast-top">
+    <div class="tags">
+      <span class="tag">SIM · 01</span>
+      <span class="tag ghost">SIMULASI EKSEKUSI PROGRAM</span>
+    </div>
+    <div class="tags">
+      <span class="tag ghost">MODEL: TOKEN → AST → KODE OBJEK</span>
+    </div>
+  </div>
+  <h1><em class="v">KOMPILER</em><span class="slash">/</span><em class="t">INTERPRETER</em></h1>
+  <div class="rule-double"></div>
+  <div class="mast-sub">
+    <p>Satu program sumber, dua strategi penerjemahan. <b>Kompilator</b> menerjemahkan seluruh program menjadi kode objek lebih dulu — membayar ongkos di muka, lalu menikmati eksekusi yang murah. <b>Interpreter</b> tidak menunggu: ia membaca dan menerjemahkan baris demi baris, sambil menjalankannya. Jalankan simulasi dan lihat keduanya berlari pada satu garis waktu.</p>
+    <div class="legend">
+      <div class="row"><span class="lg-line v"></span> jalur kompilasi — terjemahkan semua, baru jalankan</div>
+      <div class="row"><span class="lg-line t"></span> jalur interpretasi — terjemahkan sambil berjalan</div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ==================== 01 · PROGRAM SUMBER ==================== -->
+  <div class="sec-label"><span class="sec-no">01</span> PROGRAM SUMBER — BAHASA MINI<span class="fill"></span></div>
+  <div class="src-grid">
+    <div class="card editor-card">
+      <div class="editor-wrap">
+        <div class="gutter"><div class="gutter-inner" id="gutterInner"></div></div>
+        <div class="code-area">
+          <pre id="srcHl" aria-hidden="true"></pre>
+          <textarea id="srcTa" wrap="off" spellcheck="false" aria-label="Editor program sumber"></textarea>
+        </div>
+      </div>
+      <div class="editor-foot">
+        SINTAKS — <b>cetak "teks " ekspresi</b> · <b>nama = ekspresi</b> · <b>ulangi N kali … akhir</b> · <b># komentar</b> · operator <b>+ − × ÷ ( )</b> · kata <b>cetak / ulangi / kali / akhir</b> adalah kata kunci
+      </div>
+    </div>
+    <aside>
+      <nav class="file-index" id="fileIndex" aria-label="Indeks berkas uji"></nav>
+      <div class="pi" id="piBox">
+        <div class="pi-tag" id="piTag"></div>
+        <h3 id="piTitle"></h3>
+        <p id="piWatch"></p>
+        <div class="mod">* berkas telah dimodifikasi — teks berbeda dari arsip</div>
+      </div>
+      <button class="btn-run" id="btnRun"><i data-lucide="play"></i>JALANKAN SIMULASI</button>
+      <button class="btn-ghost" id="btnReload">muat ulang berkas asli</button>
+    </aside>
+  </div>
+
+  <!-- ==================== 02 · LINTASAN WAKTU ==================== -->
+  <div class="sec-label" id="arena"><span class="sec-no">02</span> LINTASAN WAKTU — PROGRESS TERHADAP WAKTU SIMULASI<span class="fill"></span></div>
+  <div class="card track-card">
+    <div class="track-head">
+      <div class="track-legend">
+        <div class="row"><span class="lg-line v"></span> KOMPILER</div>
+        <div class="row"><span class="lg-line t"></span> INTERPRETER</div>
+      </div>
+      <div class="tlive-wrap"><span class="mini">WAKTU SIMULASI</span><span id="tLive">t = 0u</span></div>
+    </div>
+    <svg id="raceSvg"></svg>
+  </div>
+  <div class="control-bar">
+    <button class="ctl-btn primary" id="btnMaster" data-state="idle" aria-label="Kontrol utama">
+      <span class="s s-idle"><i data-lucide="play"></i>JALANKAN</span>
+      <span class="s s-run"><i data-lucide="pause"></i>JEDA</span>
+      <span class="s s-pause"><i data-lucide="play"></i>LANJUT</span>
+      <span class="s s-done"><i data-lucide="rotate-ccw"></i>ULANGI</span>
+    </button>
+    <button class="ctl-btn" id="btnStep"><i data-lucide="skip-forward"></i>LANGKAH</button>
+    <button class="ctl-btn" id="btnFF"><i data-lucide="fast-forward"></i>KE AKHIR</button>
+    <button class="ctl-btn" id="btnReset"><i data-lucide="rotate-ccw"></i>RESET</button>
+    <div class="speed-wrap">
+      <label for="speed">TEMPO</label>
+      <input type="range" id="speed" min="0" max="100" value="50">
+      <span id="speedLbl">400u/dtk</span>
+    </div>
+  </div>
+
+  <!-- ==================== 03 · DUA MESIN ==================== -->
+  <div class="sec-label"><span class="sec-no">03</span> DUA MESIN, SATU PROGRAM<span class="fill"></span></div>
+  <div class="machines">
+
+    <!-- PANEL KOMPILATOR -->
+    <article class="machine m-c">
+      <header class="mach-head">
+        <div class="mach-id"><i data-lucide="hammer"></i>KOMPILER</div>
+        <div class="badge" id="stC">MENUNGGU</div>
+        <div class="mach-time" id="tC">0u</div>
+      </header>
+      <div class="phases" id="phasesC">
+        <div class="ph" data-k="scan"><span class="ph-n">SCAN</span><span class="ph-bar"><i></i></span></div>
+        <div class="ph" data-k="parse"><span class="ph-n">PARSE</span><span class="ph-bar"><i></i></span></div>
+        <div class="ph" data-k="gen"><span class="ph-n">SUSUN</span><span class="ph-bar"><i></i></span></div>
+        <div class="ph" data-k="run"><span class="ph-n">EKSEKUSI</span><span class="ph-bar"><i></i></span></div>
+      </div>
+      <div class="lens" id="lensC">menunggu — tekan JALANKAN SIMULASI</div>
+      <div class="obj">
+        <span class="mini-label" id="objLabelC">KODE OBJEK — MESIN STACK</span>
+        <div class="obj-list" id="objListC"><div class="obj-empty">instruksi akan disusun di sini selama fase kompilasi…</div></div>
+      </div>
+      <div class="mach-meta">
+        <div class="meta-cell"><label>STACK</label><div class="meta-val" id="stackC"><span class="emptyv">—</span></div></div>
+        <div class="meta-cell"><label>VARIABEL</label><div class="meta-val" id="varsC"><span class="emptyv">—</span></div></div>
+        <div class="meta-cell"><label>PENGULANGAN</label><div class="meta-val" id="loopC"><span class="emptyv">—</span></div></div>
+      </div>
+      <div class="console">
+        <div class="con-label">KONSOL OUTPUT</div>
+        <div class="con-out" id="outC"></div>
+      </div>
+    </article>
+
+    <!-- PANEL INTERPRETER -->
+    <article class="machine m-i">
+      <header class="mach-head">
+        <div class="mach-id"><i data-lucide="book-open"></i>INTERPRETER</div>
+        <div class="badge" id="stI">MENUNGGU</div>
+        <div class="mach-time" id="tI">0u</div>
+      </header>
+      <div class="readhead">
+        <div class="rh-top">
+          <span class="mini-label">KEPALA BACAAN — BARIS <span id="rhNo">–</span></span>
+          <span class="rh-stats" id="rhStats">menunggu program…</span>
+        </div>
+        <div class="rh-src" id="rhSrc">tidak ada baris yang sedang dibaca</div>
+        <div class="rh-tokens" id="rhTok"></div>
+        <div class="rh-trace">
+          <span class="mini-label">JEJAK EVALUASI</span>
+          <div id="rhTrace"><span class="emptyv">—</span></div>
+        </div>
+      </div>
+      <div class="mach-meta">
+        <div class="meta-cell"><label>VARIABEL</label><div class="meta-val" id="varsI"><span class="emptyv">—</span></div></div>
+        <div class="meta-cell"><label>PENGULANGAN</label><div class="meta-val" id="loopI"><span class="emptyv">—</span></div></div>
+      </div>
+      <div class="console">
+        <div class="con-label">KONSOL OUTPUT</div>
+        <div class="con-out" id="outI"></div>
+      </div>
+    </article>
+  </div>
+
+  <!-- ==================== 04 · RINGKASAN ==================== -->
+  <div class="sec-label"><span class="sec-no">04</span> RINGKASAN PERBANDINGAN<span class="fill"></span></div>
+  <div class="card sum-card">
+    <table class="sum-table">
+      <thead><tr><th></th><th class="hc">KOMPILER</th><th class="hi">INTERPRETER</th></tr></thead>
+      <tbody>
+        <tr><td>waktu kompilasi</td><td id="sCc">—</td><td id="sCi">—</td></tr>
+        <tr><td>waktu eksekusi</td><td id="sEc">—</td><td id="sEi">—</td></tr>
+        <tr><td>total waktu</td><td id="sTc">—</td><td id="sTi">—</td></tr>
+        <tr><td>langkah kerja</td><td id="sWc">—</td><td id="sWi">—</td></tr>
+        <tr><td>baris output</td><td id="sOc">—</td><td id="sOi">—</td></tr>
+      </tbody>
+      <tfoot><tr><td>status</td><td id="sSc">menunggu</td><td id="sSi">menunggu</td></tr></tfoot>
+    </table>
+  </div>
+  <div class="concl" id="conclWrap" hidden>
+    <span class="stamp">KESIMPULAN SIMULASI</span>
+    <h3 id="conclHead"></h3>
+    <p id="conclBody"></p>
+    <div class="concl-facts" id="conclFacts"></div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="container foot-grid">
+    <div>MODEL BIAYA — kompilator: 3u/token (pindai) · 2u/token (urai) · 2u/instruksi (susun) · 1u/instruksi (eksekusi) &nbsp;|&nbsp; interpreter: 4u/token (baca ulang setiap kali) · 2u/simpul (evaluasi)</div>
+    <div>1u = satu unit waktu simulasi. Angka bersifat ilustratif untuk memperlihatkan sifat dasar kedua strategi — bukan benchmark dunia nyata.</div>
+  </div>
+</footer>
+
+<div id="toast" role="status"></div>
+
+<script>
+/* ================================================================
+   SIMULASI KOMPILER vs INTERPRETER
+   Kedua mesin benar-benar bekerja: tokenizer, parser, generator
+   kode objek (stack machine), dan evaluator — semuanya ditulis
+   di sini. Setiap mesin menghasilkan "trace" peristiwa berdurasi,
+   lalu diputar ulang pada satu garis waktu bersama.
+   ================================================================ */
+
+// ---------- util ----------
+const qs = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt = v => typeof v==='string' ? v : (Number.isInteger(v) ? String(v) : String(Math.round(v*1e6)/1e6));
+const fmtT = v => Math.round(v);
+const countNodes = n => !n ? 0 : n.k==='num'||n.k==='var' ? 1 : n.k==='neg' ? 1+countNodes(n.e) : 1+countNodes(n.l)+countNodes(n.r);
+
+// model biaya waktu (unit simulasi)
+const COST = { cScan:3, cParse:2, cGen:2, cExec:1, cPrint:2, iRead:4, iEval:2 };
+const KEYWORDS = new Set(['cetak','ulangi','kali','akhir']);
+
+// ---------- tokenizer ----------
+function tokenizeLine(src, line){
+  const toks=[]; let i=0;
+  while(i < src.length){
+    const ch = src[i];
+    if(ch===' '||ch==='\t'||ch==='\r'){ i++; continue; }
+    if(ch==='#') break; // komentar sampai akhir baris
+    if(ch==='"'){
+      let j=i+1, s='';
+      while(j<src.length && src[j]!=='"'){ s+=src[j]; j++; }
+      if(j>=src.length) return {tokens:null, error:{line, msg:'string tidak ditutup tanda kutip "'}};
+      toks.push({t:'STR', v:s}); i=j+1; continue;
+    }
+    if(/[0-9]/.test(ch)){
+      let j=i, s='';
+      while(j<src.length && /[0-9.]/.test(src[j])){ s+=src[j]; j++; }
+      if((s.match(/\./g)||[]).length > 1) return {tokens:null, error:{line, msg:'angka tidak valid: '+s}};
+      toks.push({t:'NUM', v:parseFloat(s)}); i=j; continue;
+    }
+    if(/[A-Za-z_]/.test(ch)){
+      let j=i, s='';
+      while(j<src.length && /[A-Za-z0-9_]/.test(src[j])){ s+=src[j]; j++; }
+      toks.push(KEYWORDS.has(s) ? {t:'KW', v:s} : {t:'ID', v:s});
+      i=j; continue;
+    }
+    if('+-*/=()'.includes(ch)){ toks.push({t:'OP', v:ch}); i++; continue; }
+    return {tokens:null, error:{line, msg:"karakter tidak dikenal: '"+ch+"'"}};
+  }
+  return {tokens:toks, error:null};
+}
+
+// ---------- parser ekspresi (descending rekursif) ----------
+function parseExprToks(toks,p,line){
+  let r = parseTermToks(toks,p,line); if(r.err) return r;
+  let node=r.node; p=r.pos;
+  while(p<toks.length && toks[p].t==='OP' && (toks[p].v==='+'||toks[p].v==='-')){
+    const op = toks[p++].v;
+    const rr = parseTermToks(toks,p,line); if(rr.err) return rr;
+    node = {k:'bin', op, l:node, r:rr.node}; p = rr.pos;
+  }
+  return {node, pos:p};
+}
+function parseTermToks(toks,p,line){
+  let r = parseFactorToks(toks,p,line); if(r.err) return r;
+  let node=r.node; p=r.pos;
+  while(p<toks.length && toks[p].t==='OP' && (toks[p].v==='*'||toks[p].v==='/')){
+    const op = toks[p++].v;
+    const rr = parseFactorToks(toks,p,line); if(rr.err) return rr;
+    node = {k:'bin', op, l:node, r:rr.node}; p = rr.pos;
+  }
+  return {node, pos:p};
+}
+function parseFactorToks(toks,p,line){
+  if(p>=toks.length) return {err:{line, msg:'ekspresi berakhir tiba-tiba'}};
+  const t = toks[p];
+  if(t.t==='NUM') return {node:{k:'num', v:t.v}, pos:p+1};
+  if(t.t==='ID')  return {node:{k:'var', name:t.v}, pos:p+1};
+  if(t.t==='OP' && t.v==='('){
+    const r = parseExprToks(toks,p+1,line); if(r.err) return r;
+    if(r.pos>=toks.length || toks[r.pos].v!==')') return {err:{line, msg:'tanda kurung tidak ditutup'}};
+    return {node:r.node, pos:r.pos+1};
+  }
+  if(t.t==='OP' && t.v==='-'){
+    const r = parseFactorToks(toks,p+1,line); if(r.err) return r;
+    return {node:{k:'neg', e:r.node}, pos:r.pos};
+  }
+  return {err:{line, msg:"token tak terduga: '"+t.v+"'"}};
+}
+
+// ---------- parser pernyataan (per baris) ----------
+function parseLine(tokens, line){
+  if(!tokens.length) return {stmt:{k:'blank', line}};
+  const t0 = tokens[0];
+  if(t0.t==='KW'){
+    if(t0.v==='akhir'){
+      if(tokens.length>1) return {err:{line, msg:'akhir tidak menerima token tambahan'}};
+      return {stmt:{k:'end', line}};
+    }
+    if(t0.v==='ulangi'){
+      if(tokens.length<3 || tokens[1].t!=='NUM' || tokens[2].t!=='KW' || tokens[2].v!=='kali')
+        return {err:{line, msg:'bentuk yang benar: ulangi <angka> kali'}};
+      const n = tokens[1].v;
+      if(!Number.isInteger(n) || n<0) return {err:{line, msg:'jumlah pengulangan harus bilangan bulat ≥ 0'}};
+      if(tokens.length>3) return {err:{line, msg:"token berlebih setelah 'ulangi N kali'"}};
+      return {stmt:{k:'repeat', count:n, line}};
+    }
+    if(t0.v==='cetak'){
+      let p=1, prefix=null;
+      if(p<tokens.length && tokens[p].t==='STR'){ prefix = tokens[p].v; p++; }
+      const start = p;
+      const r = parseExprToks(tokens,p,line); if(r.err) return r;
+      if(r.pos<tokens.length) return {err:{line, msg:'token berlebih setelah pernyataan cetak'}};
+      const expr = r.pos>start ? r.node : null;
+      if(prefix==null && expr==null) return {err:{line, msg:'cetak butuh teks atau ekspresi'}};
+      return {stmt:{k:'print', prefix, expr, line}};
+    }
+    return {err:{line, msg:"'kali' hanya dipakai dalam 'ulangi N kali'"}};
+  }
+  if(t0.t==='ID' && tokens.length>=2 && tokens[1].t==='OP' && tokens[1].v==='='){
+    const r = parseExprToks(tokens,2,line); if(r.err) return r;
+    if(r.pos<tokens.length) return {err:{line, msg:'token berlebih setelah ekspresi'}};
+    return {stmt:{k:'assign', name:t0.v, expr:r.node, line}};
+  }
+  return {err:{line, msg: t0.t==='STR' ? 'string hanya boleh di dalam cetak' : "pernyataan tidak dikenal (dimulai '"+t0.v+"')"}};
+}
+
+// ringkasan pernyataan untuk tampilan lensa
+function exprStr(n){
+  if(!n) return '';
+  if(n.k==='num') return fmt(n.v);
+  if(n.k==='var') return n.name;
+  if(n.k==='neg') return '-'+exprStr(n.e);
+  return exprStr(n.l)+' '+n.op+' '+exprStr(n.r);
+}
+function stmtStr(st){
+  if(!st) return '';
+  switch(st.k){
+    case 'assign': return 'assign · '+st.name+' ← '+exprStr(st.expr);
+    case 'print':  return 'cetak · '+(st.prefix!=null?'"'+st.prefix+'" ':'')+exprStr(st.expr);
+    case 'repeat': return 'ulangi '+st.count+'× (blok '+st.body.length+' pernyataan)';
+    case 'end':    return 'akhir blok';
+    default:       return 'baris kosong / komentar';
+  }
+}
+
+// evaluator dengan jejak langkah (dipakai interpreter)
+function evalExpr(node, vars){
+  const steps=[];
+  function ev(n){
+    switch(n.k){
+      case 'num': return n.v;
+      case 'var':
+        if(!(n.name in vars)) throw {msg:"variabel '"+n.name+"' belum didefinisikan"};
+        return vars[n.name];
+      case 'neg': { const v=ev(n.e), r=-v; steps.push('-'+fmt(v)+' → '+fmt(r)); return r; }
+      case 'bin': {
+        const a=ev(n.l), b=ev(n.r);
+        if(n.op==='/' && b===0) throw {msg:'pembagian dengan nol'};
+        const r = n.op==='+'?a+b : n.op==='-'?a-b : n.op==='*'?a*b : a/b;
+        steps.push(fmt(a)+' '+n.op+' '+fmt(b)+' → '+fmt(r));
+        return r;
+      }
+    }
+  }
+  try{ const v=ev(node); return {value:v, steps}; }
+  catch(e){ return {err: e.msg || 'kesalahan evaluasi', steps}; }
+}
+
+/* ================================================================
+   KOMPILATOR — membangun trace peristiwa:
+   scan → parse → codegen → eksekusi kode objek
+   ================================================================ */
+function buildCompilerTrace(lines){
+  const evs=[]; let time=0;
+  const push=(dur,kind,data)=>{ const e=Object.assign({dur,kind},data); evs.push(e); time+=dur; return e; };
+  let fail=null, failedPushed=false;
+  const code=[], outs=[];
+
+  // --- fase SCAN ---
+  const parsed=[];
+  for(let li=0; li<lines.length; li++){
+    const res = tokenizeLine(lines[li], li+1);
+    const ntok = Math.max(1, res.tokens ? res.tokens.length : 1);
+    push(COST.cScan*ntok, 'scan', {line:li+1, li, toks:res.tokens||[], err:res.error?res.error.msg:null,
+      scanIdx:li, scanTotal:lines.length});
+    parsed.push(res);
+    if(res.error){ fail={phase:'compile', line:li+1, msg:res.error.msg}; break; }
+  }
+
+  // --- fase PARSE (sekaligus membentuk pohon program) ---
+  if(!fail){
+    const prog=[]; const bstack=[{body:prog, line:0}];
+    for(let li=0; li<parsed.length; li++){
+      const res = parsed[li];
+      const ntok = Math.max(1, res.tokens.length);
+      let stmt=null, err=null;
+      const pr = parseLine(res.tokens, li+1);
+      if(pr.err) err = pr.err; else stmt = pr.stmt;
+      push(COST.cParse*ntok, 'parse', {line:li+1, li, sStr: stmt?stmtStr(stmt):null, err: err?err.msg:null});
+      if(err){ fail={phase:'compile', line:li+1, msg:err.msg}; break; }
+      if(stmt.k==='blank') continue;
+      if(stmt.k==='repeat'){ const node=Object.assign({}, stmt, {body:[]}); bstack[bstack.length-1].body.push(node); bstack.push({body:node.body, line:li+1}); continue; }
+      if(stmt.k==='end'){
+        if(bstack.length===1){ fail={phase:'compile', line:li+1, msg:"'akhir' tanpa 'ulangi' yang membuka blok"}; break; }
+        bstack.pop(); continue;
+      }
+      bstack[bstack.length-1].body.push(stmt);
+    }
+    if(!fail && bstack.length>1){
+      const bl = bstack[bstack.length-1].line;
+      fail = {phase:'compile', line:bl, msg:"'ulangi' di baris "+bl+" tidak ditutup dengan 'akhir'"};
+    }
+
+    // --- fase CODEGEN (stack machine) ---
+    if(!fail){
+      const genStmt = (st, code) => {
+        switch(st.k){
+          case 'assign':
+            genE(st.expr, code, st.line);
+            code.push({op:'STORE', arg:st.name, line:st.line});
+            break;
+          case 'print':
+            if(st.prefix!=null) code.push({op:'PUSHS', arg:st.prefix, line:st.line});
+            if(st.expr) genE(st.expr, code, st.line);
+            code.push({op:(st.prefix!=null && st.expr)?'PRINT2':'PRINT', line:st.line});
+            break;
+          case 'repeat': {
+            const loopIdx = code.length;
+            code.push({op:'LOOP', arg:st.count, line:st.line});
+            st.body.forEach(b => genStmt(b, code));
+            code.push({op:'END', arg:loopIdx+1, line:st.line});
+            break;
+          }
+        }
+      };
+      const genE = (n, code, line) => {
+        switch(n.k){
+          case 'num': code.push({op:'PUSH', arg:n.v, line}); break;
+          case 'var': code.push({op:'LOAD', arg:n.name, line}); break;
+          case 'neg': genE(n.e, code, line); code.push({op:'NEG', line}); break;
+          case 'bin': genE(n.l, code, line); genE(n.r, code, line); code.push({op:{'+':'ADD','-':'SUB','*':'MUL','/':'DIV'}[n.op], line}); break;
+        }
+      };
+      for(let si=0; si<prog.length; si++){
+        const start = code.length;
+        genStmt(prog[si], code);
+        const instrs = code.slice(start);
+        push(Math.max(1, COST.cGen*instrs.length), 'codegen',
+          {line:prog[si].line, instrs, firstIdx:start, genIdx:si, genTotal:prog.length});
+      }
+
+      // --- fase EKSEKUSI kode objek ---
+      const stack=[], cvars={}, loops=[]; let pcI=0, rfail=null;
+      const execEvents=[];
+      while(pcI < code.length){
+        const ins = code[pcI];
+        let dur = COST.cExec;
+        const d = {pc:pcI, ins, stackSnap:null, varSet:null, out:null, err:null, loop:null};
+        switch(ins.op){
+          case 'PUSH': case 'PUSHS': stack.push(ins.arg); break;
+          case 'LOAD':
+            if(!(ins.arg in cvars)) rfail = {msg:"variabel '"+ins.arg+"' belum didefinisikan"};
+            else stack.push(cvars[ins.arg]);
+            break;
+          case 'STORE': cvars[ins.arg]=stack.pop(); d.varSet={name:ins.arg, val:cvars[ins.arg]}; break;
+          case 'ADD': { const b=stack.pop(), a=stack.pop(); stack.push(a+b); break; }
+          case 'SUB': { const b=stack.pop(), a=stack.pop(); stack.push(a-b); break; }
+          case 'MUL': { const b=stack.pop(), a=stack.pop(); stack.push(a*b); break; }
+          case 'DIV': { const b=stack.pop(), a=stack.pop(); if(b===0){ rfail={msg:'pembagian dengan nol'}; break; } stack.push(a/b); break; }
+          case 'NEG': stack.push(-stack.pop()); break;
+          case 'PRINT':  { const v=stack.pop(); d.out=fmt(v); outs.push(d.out); dur=COST.cPrint; break; }
+          case 'PRINT2': { const v=stack.pop(), s=stack.pop(); d.out=s+fmt(v); outs.push(d.out); dur=COST.cPrint; break; }
+          case 'LOOP': loops.push({n:ins.arg, total:ins.arg}); break;
+          case 'END': {
+            const L = loops[loops.length-1];
+            L.n--;
+            if(L.n>0){ pcI = ins.arg-1; d.loop={iter:L.total-L.n, total:L.total}; }
+            else { loops.pop(); d.loop={iter:L.total, total:L.total}; }
+            break;
+          }
+        }
+        if(rfail) d.err = rfail.msg;
+        d.stackSnap = stack.slice();
+        const e = push(dur, 'exec', d);
+        execEvents.push(e);
+        if(rfail) break;
+        pcI++;
+      }
+      if(rfail){ push(1,'cfail',{phase:'run', line:code[pcI]?code[pcI].line:null, msg:rfail.msg}); failedPushed=true; }
+      else push(1,'cdone',{});
+      // progres program hanya dihitung dari fase eksekusi
+      execEvents.forEach((e,i)=> e.prog=(i+1)/execEvents.length);
+      if(!rfail) evs[evs.length-1].prog = 1;
+    }
+  }
+  if(fail && !failedPushed) push(1,'cfail', fail);
+  evs.forEach(e=>{ if(e.prog==null) e.prog=0; });
+  return {evs, code, fail, outs, total:time};
+}
+
+/* ================================================================
+   INTERPRETER — membaca & mengurai ulang baris demi baris,
+   termasuk di setiap iterasi pengulangan.
+   ================================================================ */
+function buildInterpreterTrace(lines){
+  const evs=[]; let time=0;
+  const push=(dur,kind,data)=>{ const e=Object.assign({dur,kind},data); evs.push(e); time+=dur; return e; };
+  const vars={}, loopStack=[]; let pc=0, fail=null, reads=0, execLines=0; const outs=[];
+
+  while(pc < lines.length){
+    const li=pc, line=li+1, src=lines[li];
+    const res = tokenizeLine(src, line);
+    reads++;
+    const ntok = Math.max(1, res.tokens ? res.tokens.length : 1);
+    push(COST.iRead*ntok, 'iread', {line, li, toks:res.tokens||[], err:res.error?res.error.msg:null, total:lines.length});
+    if(res.error){ fail={line, msg:res.error.msg}; break; }
+    const pr = parseLine(res.tokens, line);
+    if(pr.err){ fail={line, msg:pr.err.msg}; break; }
+    const st = pr.stmt;
+    if(st.k==='blank'){ pc++; continue; }
+
+    if(st.k==='repeat'){
+      loopStack.push({bodyStart:pc+1, iter:0, total:st.count});
+      push(2,'ieval',{line, note:'buka blok ulangi ×'+st.count, trace:[]});
+      execLines++; pc++; continue;
+    }
+    if(st.k==='end'){
+      const fr = loopStack[loopStack.length-1];
+      if(!fr){ fail={line, msg:"'akhir' tanpa 'ulangi' yang membuka blok"}; break; }
+      fr.iter++;
+      if(fr.iter < fr.total){
+        pc = fr.bodyStart;
+        push(1,'ieval',{line, note:'iterasi '+(fr.iter+1)+'/'+fr.total+' — kembali ke baris '+(fr.bodyStart+1), trace:[], loop:{iter:fr.iter+1,total:fr.total}});
+      } else {
+        loopStack.pop(); pc++;
+        push(1,'ieval',{line, note:'tutup blok ulangi ('+fr.total+'×)', trace:[], loop:null});
+      }
+      continue;
+    }
+    execLines++;
+    if(st.k==='assign'){
+      const r = evalExpr(st.expr, vars);
+      const dur = COST.iEval*countNodes(st.expr)+1;
+      if(r.err){ push(dur,'ieval',{line, note:'gagal', trace:[], err:r.err}); fail={line, msg:r.err}; break; }
+      vars[st.name] = r.value;
+      push(dur,'ieval',{line, note:'simpan '+st.name+' ← '+fmt(r.value), trace:r.steps, varSet:{name:st.name, val:r.value}});
+    } else { // print
+      let val=null, steps=[];
+      const dur = COST.iEval*countNodes(st.expr)+1;
+      if(st.expr){
+        const r = evalExpr(st.expr, vars);
+        if(r.err){ push(dur,'ieval',{line, note:'gagal', trace:[], err:r.err}); fail={line, msg:r.err}; break; }
+        val = r.value; steps = r.steps;
+      }
+      const text = (st.prefix!=null?st.prefix:'') + (val!=null?fmt(val):'');
+      outs.push(text);
+      push(dur,'ieval',{line, note:'cetak', trace:steps, out:text});
+    }
+    pc++;
+  }
+  if(fail) push(1,'ifail', fail); else push(1,'idone',{});
+  evs.forEach((e,i)=> e.prog=(i+1)/evs.length);
+  return {evs, fail, outs, vars, reads, execLines, total:time};
+}
+
+/* ================================================================
+   PRESET BERKAS UJI
+   ================================================================ */
+const PRESETS = [
+  {
+    no:'B-01', name:'Perulangan Berat', hint:'24 iterasi · beban kerja berat',
+    watch:'Interpreter harus membaca ulang dan mengurai baris yang sama di setiap iterasi pengulangan. Kompilator membayar ongkos di muka — perhatikan kurvanya diam datar selama fase kompilasi, lalu menembus garis finish jauh lebih cepat.',
+    code:
+`# program yang sama, dua mesin berbeda
+cetak "Mulai perhitungan"
+ulangi 24 kali
+  a = 6
+  b = a * 4 + 2
+  cetak "b = " b
+akhir
+cetak "Selesai"`
+  },
+  {
+    no:'B-02', name:'Program Kilat', hint:'4 baris · dijalankan sekali',
+    watch:'Program mungil yang hanya berjalan sekali. Biaya kompilasi tidak sempat terbayar — lihat siapa yang lebih dulu menyentuh garis finish. Tapi perhatikan juga waktu eksekusi murninya: siapa yang sebenarnya lebih gesit.',
+    code:
+`# program kecil, dijalankan sekali
+x = 2 + 3 * 4
+y = x / 2
+cetak "x = " x
+cetak "y = " y`
+  },
+  {
+    no:'B-03', name:'Kesalahan Sintaks', hint:'rusak di baris ke-6',
+    watch:'Ada kesalahan sintaks di baris ke-6 (operator +*). Kompilator akan menolak seluruh berkas — nol baris output. Interpreter sudah lebih dulu menjalankan separuh program sebelum tersandung. Bandingkan kedua konsol.',
+    code:
+`# ada kesalahan sintaks di baris 6
+cetak "Mulai"
+a = 10
+b = a * 2 + 5
+cetak "b = " b
+c = a +* 3
+cetak c`
+  },
+  {
+    no:'B-04', name:'Kesalahan Runtime', hint:'sintaks sempurna, isi tidak',
+    watch:'Sintaksnya sempurna, tetapi pembagian dengan nol menunggu di baris ke-5. Kompilator tidak bisa melihat isi variabel saat menerjemahkan — nilainya baru ada ketika program berjalan. Kedua mesin gagal di titik yang sama.',
+    code:
+`# sintaks sempurna, isi variabel tidak
+a = 120
+b = 0
+cetak "Membagi dengan nol..."
+c = a / b
+cetak "Hasil: " c`
+  },
+];
+
+/* ================================================================
+   REFERENSI DOM
+   ================================================================ */
+const D = {
+  ta:qs('#srcTa'), hl:qs('#srcHl'), gut:qs('#gutterInner'),
+  fileIndex:qs('#fileIndex'), piBox:qs('#piBox'), piTag:qs('#piTag'), piTitle:qs('#piTitle'), piWatch:qs('#piWatch'),
+  btnRun:qs('#btnRun'), btnReload:qs('#btnReload'),
+  raceSvg:qs('#raceSvg'), tLive:qs('#tLive'),
+  btnMaster:qs('#btnMaster'), btnStep:qs('#btnStep'), btnFF:qs('#btnFF'), btnReset:qs('#btnReset'),
+  speed:qs('#speed'), speedLbl:qs('#speedLbl'),
+  stC:qs('#stC'), tC:qs('#tC'), lensC:qs('#lensC'), objListC:qs('#objListC'), objLabelC:qs('#objLabelC'),
+  stackC:qs('#stackC'), varsC:qs('#varsC'), loopC:qs('#loopC'), outC:qs('#outC'),
+  stI:qs('#stI'), tI:qs('#tI'), rhNo:qs('#rhNo'), rhSrc:qs('#rhSrc'), rhTok:qs('#rhTok'),
+  rhTrace:qs('#rhTrace'), rhStats:qs('#rhStats'), varsI:qs('#varsI'), loopI:qs('#loopI'), outI:qs('#outI'),
+  sCc:qs('#sCc'), sCi:qs('#sCi'), sEc:qs('#sEc'), sEi:qs('#sEi'), sTc:qs('#sTc'), sTi:qs('#sTi'),
+  sWc:qs('#sWc'), sWi:qs('#sWi'), sOc:qs('#sOc'), sOi:qs('#sOi'), sSc:qs('#sSc'), sSi:qs('#sSi'),
+  conclWrap:qs('#conclWrap'), conclHead:qs('#conclHead'), conclBody:qs('#conclBody'), conclFacts:qs('#conclFacts'),
+  toast:qs('#toast'),
+};
+const Dph = {};
+document.querySelectorAll('#phasesC .ph').forEach(el=>{
+  Dph[el.dataset.k] = {el, bar:el.querySelector('.ph-bar i')};
+});
+const PH_ORDER = ['scan','parse','gen','run'];
+
+/* ================================================================
+   STATE SIMULASI
+   ================================================================ */
+const sim = { running:false, finished:false, clock:0, speed:400, mC:null, mI:null, cross:null };
+let hlLines=[], gLines=[];
+let curPreset=0;
+const marks = {C:null, I:null};
+const errMarks = {C:null, I:null};
+let activeRowC=null;
+
+/* ================================================================
+   EDITOR — highlight, gutter, penanda baris
+   ================================================================ */
+function hlLine(line){
+  let out='', last=0;
+  const re = /(#.*$)|("[^"]*$)|("[^"]*")|(\d+(?:\.\d+)?)|([A-Za-z_][A-Za-z0-9_]*)|([+\-*/=()])/g;
+  let m;
+  while((m = re.exec(line))){
+    if(m.index>last) out += esc(line.slice(last, m.index));
+    const s = m[0];
+    let cls='c-op';
+    if(m[1]) cls='c-com';
+    else if(m[2]) cls='c-str c-bad';
+    else if(m[3]) cls='c-str';
+    else if(m[4]) cls='c-num';
+    else if(m[5]) cls = KEYWORDS.has(s) ? 'c-kw' : 'c-id';
+    out += '<span class="'+cls+'">'+esc(s)+'</span>';
+    last = m.index + s.length;
+  }
+  out += esc(line.slice(last));
+  return out;
+}
+function refreshEditor(){
+  const src = D.ta.value;
+  const lines = src.split('\n');
+  D.hl.innerHTML = lines.map(l=>'<div class="hl-line">'+hlLine(l)+'</div>').join('') + '\n';
+  D.gut.innerHTML = lines.map((_,i)=>'<div class="g-line" data-n="'+(i+1)+'">'+(i+1)+'</div>').join('');
+  hlLines = Array.from(D.hl.children);
+  gLines  = Array.from(D.gut.children);
+  marks.C = marks.I = errMarks.C = errMarks.I = null;
+}
+function clearMark(kind){
+  if(marks[kind]){ marks[kind].hl.classList.remove('mk-'+kind.toLowerCase()); marks[kind].g.classList.remove('g-'+kind.toLowerCase()); marks[kind]=null; }
+}
+function markLine(kind, line){
+  clearMark(kind);
+  const i = line-1;
+  if(i<0 || i>=hlLines.length) return;
+  hlLines[i].classList.add('mk-'+kind.toLowerCase());
+  gLines[i].classList.add('g-'+kind.toLowerCase());
+  marks[kind] = {hl:hlLines[i], g:gLines[i]};
+}
+function markErrLine(kind, line){
+  const i = line-1;
+  if(i<0 || i>=hlLines.length) return;
+  hlLines[i].classList.add('mk-err');
+  gLines[i].classList.add('g-err');
+  errMarks[kind] = {hl:hlLines[i], g:gLines[i]};
+}
+D.ta.addEventListener('input', ()=>{ refreshEditor(); D.piBox.classList.add('modified'); if(sim.finished||sim.running){} });
+D.ta.addEventListener('scroll', ()=>{
+  D.hl.scrollTop = D.ta.scrollTop; D.hl.scrollLeft = D.ta.scrollLeft;
+  D.gut.style.transform = 'translateY('+(-D.ta.scrollTop)+'px)';
+});
+
+/* ================================================================
+   RENDER KOMPONEN PANEL
+   ================================================================ */
+function setBadge(el, txt, mode){
+  el.textContent = txt;
+  el.className = 'badge' + (mode==='run' ? ' b-run' : mode==='ok' ? ' b-ok' : mode==='bad' ? ' b-bad' : '');
+}
+function chipsHTML(toks){
+  if(!toks.length) return '<span class="emptyv">— baris kosong / komentar —</span>';
+  return toks.map(t=>{
+    const cls = t.t==='KW'?'tk-kw' : t.t==='NUM'?'tk-num' : t.t==='STR'?'tk-str' : t.t==='OP'?'tk-op' : 'tk-id';
+    const txt = t.t==='STR' ? '"'+t.v+'"' : t.v;
+    return '<span class="tk '+cls+'" title="'+t.t+'">'+esc(txt)+'</span>';
+  }).join('');
+}
+function appendOut(el, text, sys){
+  const div = document.createElement('div');
+  div.className = 'con-line' + (sys?' con-sys':'');
+  div.textContent = (sys?' ':'> ') + text;
+  el.appendChild(div);
+  while(el.children.length>400) el.removeChild(el.firstChild);
+}
+function renderStack(snap){
+  if(!snap || !snap.length){ D.stackC.innerHTML = '<span class="emptyv">—</span>'; return; }
+  D.stackC.innerHTML = snap.map((v,i)=>'<span class="stk-v'+(i===snap.length-1?' top':'')+'">'+esc(fmt(v))+'</span>').join('');
+}
+function renderVars(el, vars, accent){
+  const keys = Object.keys(vars);
+  if(!keys.length){ el.innerHTML = '<span class="emptyv">—</span>'; return; }
+  el.innerHTML = keys.map(k=>'<span class="var-chip"><b>'+esc(k)+'</b>='+esc(fmt(vars[k]))+'</span>').join('');
+}
+function renderLoop(el, txt){ el.innerHTML = txt ? '<span class="var-chip">'+esc(txt)+'</span>' : '<span class="emptyv">—</span>'; }
+function appendInstrs(instrs, firstIdx){
+  if(D.objListC.querySelector('.obj-empty')) D.objListC.innerHTML='';
+  instrs.forEach((ins,k)=>{
+    const row = document.createElement('div');
+    row.className='ins';
+    const arg = ins.arg!=null ? (ins.op==='END' ? '→'+String(ins.arg).padStart(3,'0') : (ins.op==='PUSHS' ? '"'+ins.arg+'"' : ins.arg)) : '';
+    row.innerHTML = '<span class="ins-n">'+String(firstIdx+k).padStart(3,'0')+'</span>'
+      + '<span class="ins-op">'+ins.op+'</span>'
+      + '<span class="ins-a">'+esc(String(arg))+'</span>'
+      + '<span class="ins-l">'+(ins.line!=null?'L'+ins.line:'')+'</span>';
+    D.objListC.appendChild(row);
+  });
+  D.objLabelC.textContent = 'KODE OBJEK — '+D.objListC.children.length+' INSTRUKSI · MESIN STACK';
+}
+function setPc(pc){
+  if(activeRowC) activeRowC.classList.remove('on');
+  const rows = D.objListC.children;
+  if(rows[pc]){ rows[pc].classList.add('on'); activeRowC = rows[pc]; }
+}
+function updatePhases(m){
+  const ph = m.state.ph, idx = PH_ORDER.indexOf(m.state.phase);
+  PH_ORDER.forEach((k,i)=>{
+    const p = Dph[k];
+    p.el.classList.toggle('is-active', i===idx);
+    p.el.classList.toggle('is-done', i<idx || (m.state.phase==='done'));
+    p.bar.style.width = Math.round((ph[k]||0)*100)+'%';
+  });
+}
+
+/* ================================================================
+   PENERAPAN PERISTIWA KE PANEL
+   ================================================================ */
+function applyEvent(m, ev){
+  if(m.id==='C') applyEventC(m, ev); else applyEventI(m, ev);
+}
+
+function applyEventC(m, ev){
+  const S = m.state;
+  switch(ev.kind){
+    case 'scan':
+      S.phase='scan'; S.ph.scan=(ev.scanIdx+1)/ev.scanTotal;
+      setBadge(D.stC,'MEMINDAI','run'); updatePhases(m);
+      D.lensC.innerHTML = '<b>SCAN</b> L'+ev.line+' · '+ev.toks.length+' token · '+ev.dur+'u '
+        + (ev.err?'<span class="err">✗ '+esc(ev.err)+'</span>':'')
+        + '<span>'+chipsHTML(ev.toks.slice(0,14))+(ev.toks.length>14?' <span class="emptyv">+'+(ev.toks.length-14)+'</span>':'')+'</span>';
+      markLine('C', ev.line);
+      break;
+    case 'parse':
+      S.phase='parse'; S.ph.parse=(ev.li+1)/ev.totLines;
+      setBadge(D.stC,'MENGURAI','run'); updatePhases(m);
+      D.lensC.innerHTML = '<b>PARSE</b> L'+ev.line+' · '+ev.dur+'u — '
+        + (ev.err ? '<span class="err">✗ '+esc(ev.err)+'</span>' : esc(ev.sStr||'baris kosong'));
+      markLine('C', ev.line);
+      break;
+    case 'codegen':
+      S.phase='gen'; S.ph.gen=(ev.genIdx+1)/ev.genTotal;
+      setBadge(D.stC,'MENYUSUN','run'); updatePhases(m);
+      D.lensC.innerHTML = '<b>CODEGEN</b> L'+ev.line+' · +'+ev.instrs.length+' instruksi · '+ev.dur+'u';
+      appendInstrs(ev.instrs, ev.firstIdx);
+      markLine('C', ev.line);
+      break;
+    case 'exec':
+      if(S.compileTime==null) S.compileTime = m.time;
+      S.phase='run'; S.ph.run=(ev.pc+1)/m.code.length; S.instrDone++;
+      setBadge(D.stC,'MENGEKSEKUSI','run'); updatePhases(m);
+      setPc(ev.pc);
+      renderStack(ev.stackSnap);
+      if(ev.varSet){ S.vars[ev.varSet.name]=ev.varSet.val; renderVars(D.varsC, S.vars); }
+      if(ev.out!=null){ S.out.push(ev.out); appendOut(D.outC, ev.out); }
+      if(ev.loop){ S.loopTxt='iter '+ev.loop.iter+'/'+ev.loop.total; renderLoop(D.loopC, S.loopTxt); }
+      D.lensC.innerHTML = '<b>EXEC</b> '+String(ev.pc).padStart(3,'0')+' · '+ev.ins.op
+        + (ev.ins.arg!=null?' '+esc(String(ev.ins.arg)):'')+' · '+ev.dur+'u'
+        + (ev.err?' <span class="err">✗ '+esc(ev.err)+'</span>':'');
+      markLine('C', ev.ins.line||0);
+      // deteksi momen menyusul interpreter
+      if(!sim.cross && ev.prog>0 && sim.mI && sim.mI.points.length){
+        const pI = sim.mI.points[sim.mI.points.length-1].p;
+        if(pI>0.05 && ev.prog>pI) sim.cross = {t:m.time+ev.dur, p:ev.prog};
+      }
+      break;
+    case 'cfail':
+      if(S.compileTime==null) S.compileTime = m.time;
+      S.fail = {phase:ev.phase, line:ev.line, msg:ev.msg};
+      setBadge(D.stC, ev.phase==='run'?'GAGAL SAAT EKSEKUSI':'KOMPILASI GAGAL', 'bad');
+      D.lensC.innerHTML = '<span class="err">✗ '+esc(ev.msg)+(ev.line!=null?' — baris '+ev.line:'')+'</span>';
+      appendOut(D.outC, (ev.phase==='run'?'eksekusi berhenti: ':'kompilasi dibatalkan: ')+ev.msg+(ev.line!=null?' (baris '+ev.line+')':''), true);
+      if(ev.line!=null) markErrLine('C', ev.line);
+      updatePhases(m);
+      break;
+    case 'cdone':
+      S.ok=true; S.phase='done'; S.ph.run=1;
+      setBadge(D.stC,'SELESAI','ok'); updatePhases(m);
+      D.lensC.innerHTML = '<b>SELESAI</b> — '+fmtT(m.time)+'u total · '+S.instrDone+' instruksi dieksekusi';
+      appendOut(D.outC, '— program selesai —', true);
+      break;
+  }
+}
+
+function applyEventI(m, ev){
+  const S = m.state;
+  switch(ev.kind){
+    case 'iread':
+      S.reads++;
+      setBadge(D.stI,'BERJALAN','run');
+      D.rhNo.textContent = ev.line;
+      D.rhSrc.textContent = (m.rawLines[ev.li]||'').trim() || '·';
+      D.rhTok.innerHTML = chipsHTML(ev.toks);
+      D.rhStats.textContent = 'baris '+ev.line+'/'+ev.total+' · '+ev.toks.length+' token · baca '+ev.dur+'u';
+      markLine('I', ev.line);
+      if(ev.err){
+        D.rhTrace.innerHTML = '<div class="tr-err">✗ '+esc(ev.err)+'</div>';
+      }
+      break;
+    case 'ieval':
+      S.execLines++;
+      if(ev.loop!=null){ S.loopTxt = ev.loop ? 'iter '+ev.loop.iter+'/'+ev.loop.total : null; renderLoop(D.loopI, S.loopTxt); }
+      else if(ev.note && ev.note.indexOf('buka blok')===0){ S.loopTxt = null; renderLoop(D.loopI, null); }
+      let html = '';
+      if(ev.trace && ev.trace.length){
+        html += ev.trace.map(s=>'<div class="tr-step">'+esc(s.replace('→','<span class="arr">→</span>'))+'</div>').join('');
+      }
+      if(ev.err) html += '<div class="tr-err">✗ '+esc(ev.err)+'</div>';
+      else if(ev.note) html += '<div class="tr-note">'+esc(ev.note)+(ev.out!=null?' → “'+esc(ev.out)+'”':'')+'</div>';
+      D.rhTrace.innerHTML = html || '<span class="emptyv">—</span>';
+      if(ev.varSet){ S.vars[ev.varSet.name]=ev.varSet.val; renderVars(D.varsI, S.vars); }
+      if(ev.out!=null){ S.out.push(ev.out); appendOut(D.outI, ev.out); }
+      if(ev.line) markLine('I', ev.line);
+      break;
+    case 'ifail':
+      S.fail = {line:ev.line, msg:ev.msg};
+      setBadge(D.stI,'ERROR','bad');
+      D.rhTrace.innerHTML = '<div class="tr-err">✗ '+esc(ev.msg)+' — baris '+ev.line+'</div>';
+      appendOut(D.outI, 'eksekusi berhenti: '+ev.msg+' (baris '+ev.line+')', true);
+      if(ev.line!=null) markErrLine('I', ev.line);
+      break;
+    case 'idone':
+      S.ok=true;
+      setBadge(D.stI,'SELESAI','ok');
+      D.rhTrace.innerHTML = '<div class="tr-note">— selesai: '+fmtT(m.time)+'u · '+S.reads+' baris dibaca —</div>';
+      appendOut(D.outI, '— program selesai —', true);
+      break;
+  }
+}
+
+/* ================================================================
+   LINTASAN WAKTU (SVG)
+   ================================================================ */
+function niceMax(v){
+  const steps=[60,100,150,200,300,400,600,800,1000,1500,2000,3000,4000,6000,8000,10000,15000,20000,30000,40000,60000,100000];
+  for(const s of steps) if(v<=s) return s;
+  return Math.ceil(v/100000)*100000;
+}
+function renderTrack(){
+  const svg = D.raceSvg;
+  const W = svg.clientWidth||900, H=150;
+  const pl=50, pr=16, pt=16, pb=24, iw=W-pl-pr, ih=H-pt-pb;
+  const tMax = niceMax(Math.max(sim.clock, sim.mC?sim.mC.time:0, sim.mI?sim.mI.time:0, 60));
+  const X=t=>pl+(t/tMax)*iw, Y=p=>pt+(1-p)*ih;
+  let s='';
+  for(let g=0; g<=4; g++){
+    const p=g/4, y=Y(p).toFixed(1);
+    s+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(25,23,19,.16)" stroke-dasharray="'+(g===0?'none':'3 4')+'"/>';
+    s+='<text x="'+(pl-8)+'" y="'+(+y+3)+'" text-anchor="end" class="tk-lab">'+Math.round(p*100)+'%</text>';
+  }
+  s+='<text x="'+pl+'" y="'+(H-8)+'" class="tk-lab">0u</text>';
+  s+='<text x="'+(W-pr)+'" y="'+(H-8)+'" text-anchor="end" class="tk-lab">'+tMax+'u</text>';
+  if(!sim.mC){
+    s+='<text x="'+(pl+iw/2)+'" y="'+(pt+ih/2)+'" text-anchor="middle" class="tk-lab">tekan JALANKAN SIMULASI untuk memulai</text>';
+    svg.innerHTML=s; return;
+  }
+  if(sim.mC.state.compileTime>0){
+    const ct=sim.mC.state.compileTime, x2=X(ct), y0=Y(0);
+    s+='<rect x="'+pl+'" y="'+(y0-7)+'" width="'+(x2-pl)+'" height="7" fill="rgba(193,62,27,.22)"/>';
+    if(x2-pl>90) s+='<text x="'+((pl+x2)/2)+'" y="'+(y0-12)+'" text-anchor="middle" class="tk-lab" fill="#9E2F12">kompilasi '+fmtT(ct)+'u</text>';
+  }
+  const path=(pts,cls)=>{
+    if(!pts || pts.length<2) return '';
+    let d='M '+X(pts[0].t).toFixed(1)+' '+Y(pts[0].p).toFixed(1);
+    for(let k=1;k<pts.length;k++) d+=' L '+X(pts[k].t).toFixed(1)+' '+Y(pts[k].p).toFixed(1);
+    return '<path d="'+d+'" class="'+cls+'"/>';
+  };
+  s+=path(sim.mI.points,'tk-path-i');
+  s+=path(sim.mC.points,'tk-path-c');
+  const marker=(m,col)=>{
+    if(!m || !m.points.length) return '';
+    const last=m.points[m.points.length-1], x=X(last.t), y=Y(last.p);
+    let r='<circle cx="'+x+'" cy="'+y+'" r="4" fill="'+col+'" stroke="#F1EDE2" stroke-width="1.5"/>';
+    if(m.done){
+      r+='<line x1="'+x+'" x2="'+x+'" y1="'+pt+'" y2="'+(H-pb)+'" stroke="'+col+'" stroke-dasharray="4 4" stroke-width="1.5"/>';
+      r+='<text x="'+x+'" y="'+(pt-4)+'" text-anchor="middle" class="tk-lab" fill="'+col+'">'+fmtT(last.t)+'u</text>';
+      if(m.state.fail) r+='<path d="M '+(x-5)+' '+(y-5)+' L '+(x+5)+' '+(y+5)+' M '+(x-5)+' '+(y+5)+' L '+(x+5)+' '+(y-5)+'" stroke="'+col+'" stroke-width="2.5"/>';
+    }
+    return r;
+  };
+  s+=marker(sim.mI,'#0E6B5C');
+  s+=marker(sim.mC,'#C13E1B');
+  if(sim.cross){
+    const x=X(sim.cross.t), y=Y(sim.cross.p);
+    s+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="none" stroke="#191713" stroke-width="1.5"/>';
+    s+='<text x="'+(x+11)+'" y="'+(y-9)+'" class="tk-lab" fill="#191713">menyusul</text>';
+  }
+  svg.innerHTML=s;
+}
+
+/* ================================================================
+   MESIN WAKTU — playback paralel dua trace
+   ================================================================ */
+function advance(units){
+  const target = sim.clock + units;
+  for(const m of [sim.mC, sim.mI]){
+    if(!m || m.done) continue;
+    while(!m.done && m.time <= target + 1e-9){
+      const ev = m.evs[m.i];
+      applyEvent(m, ev);
+      m.time += ev.dur; m.i++;
+      m.points.push({t:m.time, p:ev.prog||0});
+      if(m.i >= m.evs.length) m.done = true;
+    }
+  }
+  sim.clock = Math.max(sim.clock, target);
+  if(sim.mC.done && sim.mI.done) sim.clock = Math.max(sim.mC.time, sim.mI.time);
+}
+function stepOnce(){
+  pauseSim();
+  if(!sim.mC || !sim.mI) return;
+  const cands = [sim.mC, sim.mI].filter(m=>!m.done).sort((a,b)=>a.time-b.time);
+  if(!cands.length) return;
+  const m = cands[0], ev = m.evs[m.i];
+  applyEvent(m, ev);
+  m.time += ev.dur; m.i++;
+  m.points.push({t:m.time, p:ev.prog||0});
+  if(m.i >= m.evs.length) m.done = true;
+  sim.clock = Math.max(sim.clock, sim.mC.time, sim.mI.time);
+  renderTick(); checkFinish();
+}
+function fastForward(){
+  if(!sim.mC || !sim.mI) return;
+  pauseSim();
+  let guard = 500000;
+  while((!sim.mC.done || !sim.mI.done) && guard-->0){
+    const cands = [sim.mC, sim.mI].filter(m=>!m.done).sort((a,b)=>a.time-b.time);
+    const m = cands[0], ev = m.evs[m.i];
+    applyEvent(m, ev);
+    m.time += ev.dur; m.i++;
+    m.points.push({t:m.time, p:ev.prog||0});
+    if(m.i >= m.evs.length) m.done = true;
+  }
+  sim.clock = Math.max(sim.clock, sim.mC.time, sim.mI.time);
+  renderTick(); checkFinish();
+}
+
+function renderTick(){
+  D.tLive.textContent = 't = '+fmtT(sim.clock)+'u';
+  if(sim.mC) D.tC.textContent = fmtT(sim.mC.time)+'u';
+  if(sim.mI) D.tI.textContent = fmtT(sim.mI.time)+'u';
+  renderTrack();
+  // jaga baris instruksi aktif tetap terlihat
+  if(activeRowC){
+    const c = D.objListC, top = activeRowC.offsetTop, bot = top + activeRowC.offsetHeight;
+    if(top < c.scrollTop+4 || bot > c.scrollTop + c.clientHeight - 4)
+      c.scrollTop = top - c.clientHeight/2 + 10;
+  }
+  D.outC.scrollTop = D.outC.scrollHeight;
+  D.outI.scrollTop = D.outI.scrollHeight;
+  updateSummary();
+}
+function checkFinish(){
+  if(sim.finished) return;
+  if(sim.mC && sim.mI && sim.mC.done && sim.mI.done){
+    sim.finished = true; sim.running = false;
+    setMaster('done');
+    renderTick();
+    buildConclusion();
+  }
+}
+
+/* ================================================================
+   RINGKASAN & KESIMPULAN
+   ================================================================ */
+function updateSummary(){
+  const c=sim.mC, i=sim.mI;
+  if(!c || !i){
+    ['sCc','sCi','sEc','sEi','sTc','sTi','sWc','sWi','sOc','sOi'].forEach(k=>D[k].textContent='—');
+    D.sSc.textContent='menunggu'; D.sSi.textContent='menunggu';
+    return;
+  }
+  const cs=c.state, is=i.state;
+  D.sCc.textContent = cs.compileTime!=null ? fmtT(cs.compileTime)+'u' : (c.done?'0u':'mengompilasi…');
+  D.sCi.textContent = '— (tanpa fase)';
+  D.sEc.textContent = cs.compileTime!=null ? fmtT(c.time-cs.compileTime)+'u' : '—';
+  D.sEi.textContent = fmtT(i.time)+'u';
+  D.sTc.textContent = fmtT(c.time)+'u';
+  D.sTi.textContent = fmtT(i.time)+'u';
+  D.sWc.textContent = cs.instrDone ? cs.instrDone+' instruksi' : '—';
+  D.sWi.textContent = is.reads ? is.reads+' kali baca' : '—';
+  D.sOc.textContent = cs.out.length+' baris';
+  D.sOi.textContent = is.out.length+' baris';
+  D.sSc.textContent = cs.ok?'selesai':cs.fail?(cs.fail.phase==='run'?'gagal (runtime)':'gagal (sintaks)'):(c.done?'berhenti':'berjalan…');
+  D.sSi.textContent = is.ok?'selesai':is.fail?'gagal (baris '+is.fail.line+')':(i.done?'berhenti':'berjalan…');
+}
+function buildConclusion(){
+  const c=sim.mC, i=sim.mI;
+  const cs=c.state, is=i.state;
+  const ct=c.time, it=i.time;
+  const cCom = cs.compileTime||0, cExe = ct-cCom, iExe = it;
+  const rasio = cExe>0 ? (iExe/cExe) : null;
+  let head='', body='';
+  if(cs.fail && cs.fail.phase==='compile'){
+    head='Kompilator menolak seluruh program';
+    body='Satu kesalahan sintaks di baris '+cs.fail.line+' membatalkan semuanya: nol instruksi dijalankan, konsol tetap kosong. '
+      +'Interpreter menempuh jalan sebaliknya — ia sudah menjalankan '+is.execLines+' pernyataan dan mencetak '+is.out.length+' baris output sebelum tersandung di baris yang sama. '
+      +'Inilah perbedaan mendasarnya: kompilator memeriksa seluruh program di muka; interpreter menemukan masalah justru pada saat menginjaknya.';
+  } else if(!cs.ok && !is.ok){
+    head='Keduanya gagal di titik yang sama';
+    body='Sintaks program lolos pemeriksaan, tetapi '+ (cs.fail && cs.fail.msg ? '“'+cs.fail.msg+'”' : 'sebuah kesalahan runtime')
+      +' menunggu di baris '+cs.fail.line+' — sesuatu yang tidak bisa dipastikan kompilator ketika menerjemahkan, karena nilainya baru ada saat program berjalan. '
+      +'Kompilator memang melesat setelah fase kompilasi ('+fmtT(cExe)+'u vs '+fmtT(iExe)+'u eksekusi), namun keduanya tetap berhenti di baris yang sama: sintaks yang benar bukan jaminan program berjalan.';
+  } else if(cs.ok && is.ok && it < ct){
+    head='Interpreter justru tiba lebih dulu';
+    body='Program ini terlalu kecil untuk membayar ongkos kompilasi '+fmtT(cCom)+'u: total waktu kompilator ('+fmtT(ct)+'u) kalah dari interpreter ('+fmtT(it)+'u). '
+      +'Namun lihat waktu eksekusi murninya — '+fmtT(cExe)+'u lawan '+fmtT(iExe)+'u'+(rasio?', sekitar '+(Math.round(rasio*10)/10)+'× lebih cepat':'')
+      +'. Untuk program kecil yang dijalankan sekali, interpretasi lebih murah; untuk program besar atau yang dijalankan berulang kali, kompilasi menang telak.';
+  } else if(cs.ok && is.ok){
+    head='Kompilator menang: '+fmtT(ct)+'u lawan '+fmtT(it)+'u';
+    body='Setelah membayar '+fmtT(cCom)+'u di muka untuk tiga fase penerjemahan (pindai, urai, susun kode), kode objek siap pakai membuat setiap langkah eksekusi jauh lebih murah. '
+      +'Di lintasan waktu terlihat jelas: kurva kompilator tertinggal datar selama fase kompilasi, lalu menembus finish '+fmtT(it-ct)+'u lebih cepat. '
+      +(rasio?'Eksekusi murninya '+(Math.round(rasio*10)/10)+'× lebih cepat dari interpreter. ':'')
+      +'Semakin besar dan semakin sering program dijalankan, semakin besar selisih ini.';
+  } else {
+    head='Kompilator menyelesaikan program';
+    body='Kompilator menuntaskan seluruh eksekusi dalam '+fmtT(ct)+'u'+(cCom?(' (kompilasi '+fmtT(cCom)+'u + eksekusi '+fmtT(cExe)+'u)':'')
+      +'. Interpreter berhenti karena kesalahan'+(is.fail?(' di baris '+is.fail.line+': '+is.fail.msg):'')+'.';
+  }
+  D.conclHead.textContent = head;
+  D.conclBody.textContent = body;
+  const facts=[];
+  if(!(cs.fail && cs.fail.phase==='compile')) facts.push({t:'eksekusi murni — '+fmtT(cExe)+'u vs '+fmtT(iExe)+'u'+(rasio?' ('+(Math.round(rasio*10)/10)+'×)':''), c:'v'});
+  facts.push({t:'output program — '+cs.out.length+' vs '+is.out.length+' baris', c:''});
+  facts.push({t:'total waktu — '+fmtT(ct)+'u vs '+fmtT(it)+'u', c:'t'});
+  if(cs.fail) facts.push({t:'kompilator: '+(cs.fail.phase==='run'?'error runtime':'error sintaks')+' di baris '+cs.fail.line, c:'v'});
+  if(is.fail) facts.push({t:'interpreter: error di baris '+is.fail.line, c:'t'});
+  D.conclFacts.innerHTML = facts.map(f=>'<span class="cf '+f.c+'">'+esc(f.t)+'</span>').join('');
+  D.conclWrap.hidden = false;
+}
+
+/* ================================================================
+   RESET & JALANKAN
+   ================================================================ */
+function resetArena(){
+  sim.running=false; sim.finished=false; sim.clock=0; sim.mC=null; sim.mI=null; sim.cross=null;
+  setMaster('idle');
+  D.ta.readOnly=false;
+  // panel kompilator
+  setBadge(D.stC,'MENUNGGU',''); D.tC.textContent='0u';
+  PH_ORDER.forEach(k=>{ Dph[k].el.className='ph'; Dph[k].bar.style.width='0%'; });
+  D.lensC.innerHTML='menunggu — tekan JALANKAN SIMULASI';
+  D.objListC.innerHTML='<div class="obj-empty">instruksi akan disusun di sini selama fase kompilasi…</div>';
+  D.objLabelC.textContent='KODE OBJEK — MESIN STACK';
+  D.stackC.innerHTML='<span class="emptyv">—</span>';
+  D.varsC.innerHTML='<span class="emptyv">—</span>';
+  D.loopC.innerHTML='<span class="emptyv">—</span>';
+  D.outC.innerHTML='';
+  activeRowC=null;
+  // panel interpreter
+  setBadge(D.stI,'MENUNGGU',''); D.tI.textContent='0u';
+  D.rhNo.textContent='–';
+  D.rhSrc.textContent='tidak ada baris yang sedang dibaca';
+  D.rhTok.innerHTML='';
+  D.rhTrace.innerHTML='<span class="emptyv">—</span>';
+  D.rhStats.textContent='menunggu program…';
+  D.varsI.innerHTML='<span class="emptyv">—</span>';
+  D.loopI.innerHTML='<span class="emptyv">—</span>';
+  D.outI.innerHTML='';
+  // penanda editor
+  hlLines.forEach(l=>l.className='hl-line');
+  gLines.forEach(g=>g.className='g-line');
+  marks.C=marks.I=errMarks.C=errMarks.I=null;
+  // ringkasan
+  D.conclWrap.hidden=true;
+  updateSummary();
+  D.tLive.textContent='t = 0u';
+  renderTrack();
+}
+function runSim(){
+  const lines = D.ta.value.replace(/\t/g,'  ').split('\n');
+  const meaningful = lines.some(l=>l.trim() && !l.trim().startsWith('#'));
+  if(!meaningful){ showToast('Program kosong — tulis beberapa pernyataan, atau pilih berkas uji.'); return; }
+  resetArena();
+  D.ta.readOnly=true;
+  const tC = buildCompilerTrace(lines);
+  const tI = buildInterpreterTrace(lines);
+  sim.mC = {id:'C', evs:tC.evs, code:tC.code, i:0, time:0, done:false,
+    points:[{t:0,p:0}],
+    rawLines:lines,
+    state:{phase:'idle', ph:{scan:0,parse:0,gen:0,run:0}, vars:{}, out:[], instrDone:0, compileTime:null, ok:false, fail:tC.fail}};
+  sim.mC.evs.forEach(e=>{ if(e.kind==='parse') e.totLines = lines.length; });
+  sim.mI = {id:'I', evs:tI.evs, i:0, time:0, done:false,
+    points:[{t:0,p:0}],
+    rawLines:lines,
+    state:{vars:{}, out:[], reads:0, execLines:0, ok:false, fail:tI.fail}};
+  sim.running=true;
+  setMaster('running');
+  qs('#arena').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function setMaster(state){
+  D.btnMaster.dataset.state = state;
+  D.btnStep.disabled = D.btnFF.disabled = D.btnReset.disabled = !sim.mC;
+}
+function pauseSim(){ if(sim.running){ sim.running=false; setMaster('paused'); } }
+function resumeSim(){ if(!sim.finished && sim.mC){ sim.running=true; setMaster('running'); } }
+
+/* ================================================================
+   KONTROL
+   ================================================================ */
+D.btnRun.addEventListener('click', runSim);
+D.btnMaster.addEventListener('click', ()=>{
+  const st = D.btnMaster.dataset.state;
+  if(st==='idle' || st==='done') runSim();
+  else if(st==='running') pauseSim();
+  else if(st==='paused') resumeSim();
+});
+D.btnStep.addEventListener('click', stepOnce);
+D.btnFF.addEventListener('click', fastForward);
+D.btnReset.addEventListener('click', ()=>{ resetArena(); });
+D.speed.addEventListener('input', ()=>{
+  const v = +D.speed.value;
+  sim.speed = Math.round(Math.exp(Math.log(40) + (v/100)*(Math.log(4000)-Math.log(40))));
+  D.speedLbl.textContent = sim.speed+'u/dtk';
+});
+D.btnReload.addEventListener('click', ()=>{ loadPreset(curPreset); showToast('Berkas asli dimuat ulang.'); });
+
+let toastTimer=null;
+function showToast(msg){
+  D.toast.textContent = msg;
+  D.toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>D.toast.classList.remove('show'), 2600);
+}
+
+/* ================================================================
+   PRESET
+   ================================================================ */
+function renderFileIndex(){
+  D.fileIndex.innerHTML = '<div class="fi-head">INDEKS BERKAS UJI</div>' +
+    PRESETS.map((p,i)=>
+      '<button class="fi-item'+(i===curPreset?' is-active':'')+'" data-i="'+i+'">'
+      +'<span class="fi-no">'+p.no+'</span><span class="fi-name">'+esc(p.name)+'</span><span class="fi-hint">'+esc(p.hint)+'</span></button>'
+    ).join('');
+  D.fileIndex.querySelectorAll('.fi-item').forEach(btn=>{
+    btn.addEventListener('click', ()=>loadPreset(+btn.dataset.i));
+  });
+}
+function loadPreset(i){
+  curPreset = i;
+  const p = PRESETS[i];
+  D.ta.value = p.code;
+  refreshEditor();
+  D.piTag.textContent = p.no+' · BERKAS UJI';
+  D.piTitle.textContent = p.name;
+  D.piWatch.textContent = p.watch;
+  D.piBox.classList.remove('modified');
+  renderFileIndex();
+  resetArena();
+  D.ta.scrollTop = 0;
+  D.hl.scrollTop = 0; D.hl.scrollLeft = 0;
+  D.gut.style.transform = 'translateY(0)';
+}
+
+/* ================================================================
+   LOOP UTAMA & INISIALISASI
+   ================================================================ */
+let lastTs = null;
+function frame(ts){
+  if(lastTs==null) lastTs = ts;
+  const dt = Math.min(0.05, (ts-lastTs)/1000);
+  lastTs = ts;
+  if(sim.running && sim.mC && sim.mI){
+    advance(sim.speed*dt);
+    renderTick();
+    checkFinish();
+  }
+  requestAnimationFrame(frame);
+}
+window.addEventListener('resize', renderTrack);
+
+renderFileIndex();
+loadPreset(0);
+requestAnimationFrame(frame);
+if(typeof lucide !== 'undefined') lucide.createIcons();
+</script>
+</body>
+</html>
