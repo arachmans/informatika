@@ -65,7 +65,14 @@ h1 .c{color:var(--cpp)} h1 .n{color:var(--ink);margin:0 6px} h1 .p{color:var(--p
 .btn.re:hover:not(:disabled){background:var(--accbg)}
 .srcstat{margin-left:auto;font-size:11px;color:var(--faint)}
 
-.editor{display:flex;position:relative;height:250px;background:#fffef9;border:1px solid var(--line);
+/* ---------------------------------------------------------------------------
+   EDITOR — tinggi 300px (±14 baris terlihat).
+   PERBAIKAN "line 13+ tak terlihat": transform scroll TIDAK lagi dipasang di
+   pre .syn (elemen pemotong overflow:hidden — jendela potongnya ikut geser
+   sehingga konten di bawah fold tak pernah muncul), melainkan di <code> DI
+   DALAMNYA — teknik yang sama dengan gutter (.gut-in di dalam .gutter).
+--------------------------------------------------------------------------- */
+.editor{display:flex;position:relative;height:300px;background:#fffef9;border:1px solid var(--line);
   border-radius:6px;overflow:hidden}
 .editor:focus-within{border-color:var(--line2)}
 .gutter{width:46px;flex:none;overflow:hidden;text-align:right;padding:10px 10px 10px 0;
@@ -73,10 +80,11 @@ h1 .c{color:var(--cpp)} h1 .n{color:var(--ink);margin:0 6px} h1 .p{color:var(--p
   color:var(--faint);font:500 13px/20px var(--mono);user-select:none}
 .gut-in{will-change:transform}
 .cwrap{position:relative;flex:1;overflow:hidden}
-.cwrap .hll,.cwrap .syn{position:absolute;inset:0;margin:0;pointer-events:none;will-change:transform}
-.hll{z-index:1} .syn{z-index:2;overflow:hidden}
+.cwrap .hll,.cwrap .syn{position:absolute;inset:0;margin:0;pointer-events:none}
+.hll{z-index:1;will-change:transform} .syn{z-index:2;overflow:hidden}
 .syn code,.cwrap textarea{display:block;padding:10px 12px;font:500 13px/20px var(--mono);
   white-space:pre;tab-size:4;letter-spacing:0}
+.syn code{will-change:transform}
 .cwrap textarea{position:absolute;inset:0;z-index:3;background:transparent;color:transparent;
   caret-color:var(--ink);border:0;outline:0;resize:none;overflow:auto}
 .cwrap textarea::selection{background:rgba(80,60,20,.18)}
@@ -209,13 +217,12 @@ let SPEED=1;
 const dslay=ms=>new Promise(r=>setTimeout(r,Math.max(1,ms/SPEED)));
 const hex12=n=>n.toString(16).padStart(12,'0');
 
-/* batas pengaman simulasi — loop/output tak terbatas tidak boleh membekukan browser */
-const CXX_ITER_CAP=200000;   /* maksimum total iterasi loop per eksekusi C++  */
-const CXX_OPS_CAP=3000000;   /* maksimum total statement per eksekusi C++    */
-const PY_ITER_CAP=200000;    /* maksimum total iterasi loop Python           */
-const PY_RANGE_CAP=100000;   /* maksimum item per range()                    */
-const OUT_CHAR_CAP=60000;    /* maksimum karakter output per eksekusi        */
-const SHOW_LINE_CAP=400;     /* maksimum baris stdout yang dianimasikan      */
+const CXX_ITER_CAP=200000;
+const CXX_OPS_CAP=3000000;
+const PY_ITER_CAP=200000;
+const PY_RANGE_CAP=100000;
+const OUT_CHAR_CAP=60000;
+const SHOW_LINE_CAP=400;
 
 const ICONS={
   play:'<svg viewBox="0 0 24 24"><path d="M8 5.14v13.72c0 .8.87 1.3 1.56.88l10.9-6.86a1.04 1.04 0 0 0 0-1.76L9.56 4.26A1.04 1.04 0 0 0 8 5.14z"/></svg>',
@@ -275,7 +282,14 @@ function hlLine(line,lang,st){
 
 /* ============================================================
    EDITOR (textarea transparan + pre highlight)
-============================================================ */
+   ---------------------------------------------------------------------------
+   Sync scroll yang benar: textarea adalah elemen yang digulir; lapisan
+   sintaks (<code> di dalam pre .syn) dan lapisan highlight digeser dengan
+   transform yang sama. Transform HARUS dipasang pada <code> (konten di
+   dalam elemen pemotong), bukan pada .syn — memindahkan elemen pemotong
+   hanya memindahkan jendela potongnya bersama konten, tidak pernah
+   menyingkap baris di bawahnya.
+--------------------------------------------------------------------------- */
 class Editor{
   constructor(root,lang){
     this.lang=lang;
@@ -298,9 +312,13 @@ class Editor{
         this.setVal(this.ta.value.slice(0,s)+'    '+this.ta.value.slice(ep),s+4);}
     });
   }
-  setVal(v,caret){ this.ta.value=v; this.render();
+  setVal(v,caret){
+    this.ta.value=v;
+    this.ta.scrollTop=0; this.ta.scrollLeft=0;   /* preset baru → mulai dari atas */
+    this.render();
     if(caret!=null){this.ta.selectionStart=this.ta.selectionEnd=caret; this.ta.focus();}
-    this.onChange&&this.onChange(); }
+    this.onChange&&this.onChange();
+  }
   get value(){return this.ta.value;}
   render(){
     const lines=this.ta.value.split('\n'); const st={block:false};
@@ -308,11 +326,22 @@ class Editor{
     this.gut.innerHTML=lines.map((_,i)=>`<div>${i+1}</div>`).join('');
     this.sync();
   }
+  /* geser KONTEN di dalam jendela potong — bukan jendela potongnya */
   sync(){ const x=this.ta.scrollLeft,y=this.ta.scrollTop;
-    this.preEl.style.transform=`translate(${-x}px,${-y}px)`;
+    this.codeEl.style.transform=`translate(${-x}px,${-y}px)`;
     this.hll.style.transform=`translate(${-x}px,${-y}px)`;
     this.gut.style.transform=`translateY(${-y}px)`; }
-  setActiveLine(n){ this.cur.style.top=(10+(n-1)*20)+'px'; this.cur.style.opacity=1; }
+  setActiveLine(n){
+    if(!(n>0))n=1;
+    const topPx=10+(n-1)*20;
+    this.cur.style.top=topPx+'px'; this.cur.style.opacity=1;
+    /* ikuti baris aktif: gulir otomatis bila keluar pandangan (VM Python) */
+    const y=this.ta.scrollTop, h=this.ta.clientHeight;
+    if(topPx<y+10||topPx>y+h-30){
+      this.ta.scrollTop=Math.max(0,topPx-Math.round(h/2));
+      this.sync();
+    }
+  }
   clearActive(){ this.cur.style.opacity=0; }
 }
 
@@ -1230,11 +1259,6 @@ class CxxParser{
     throw new CxxCompileError("expected primary-expression before '"+(tk.v||'...')+"'",tk.ln);
   }
 }
-/* ---------------------------------------------------------------------------
-   NORMALISASI AST — parseStmt() untuk isi if/while/for mengembalikan SATU
-   statement; evaluator & emitter membutuhkan array. Pass ini membungkus
-   setiap body/orelse tunggal menjadi [stmt] tepat setelah parsing.
---------------------------------------------------------------------------- */
 function cxxNorm(st){
   if(!st||typeof st!=='object')return;
   if(Array.isArray(st)){ st.forEach(cxxNorm); return; }
@@ -1314,17 +1338,7 @@ function cxxSemanticCheck(tu){
 
 /* ============================================================
    C++ — evaluator (eksekusi "binary")
-   ---------------------------------------------------------------------------
-   PERBAIKAN "looping tanpa henti": i++ diparse sebagai EKSPRESI postfix
-   (parsePostfix memakannya lebih dulu), sehingga klausa pembaruan for
-   menjadi ExprStmt(Postfix) — bukan statement Postfix. Kasus ekspresi
-   lama hanya mengembalikan nilai tanpa efek samping → i tidak pernah
-   berubah → loop tak berujung. Kini Postfix/Prefix membawa efek samping
-   yang sesungguhnya (nilai lama dikembalikan, variabel diperbarui),
-   sehingga for(...;...;i++) DAN cout << i++ keduanya benar.
-   Ditambah: batas iterasi per loop — loop yang memang tanpa henti
-   (kesalahan pengguna) berhenti dengan pesan error yang jelas.
---------------------------------------------------------------------------- */
+============================================================ */
 class CxxReturn{constructor(v){this.v=v;}}
 class CxxBreak{} class CxxContinue{}
 const COUT={__cout:1}, ENDL={__endl:1};
@@ -1429,7 +1443,6 @@ function cxxStmt(s,env,ctx){
       const v=cxxEval(s.value,env,ctx);
       cxxEnvSet(env,s.target.name,cxxArith(s.op[0],cur,v));
       break; }
-    /* Postfix/Prefix sebagai statement: efek sampingnya ada di cxxEval */
     case 'Postfix': case 'Prefix': cxxEval(s,env,ctx); break;
     case 'ExprStmt': cxxEval(s.value,env,ctx); break;
     case 'Return':{
@@ -1449,7 +1462,6 @@ function cxxStmt(s,env,ctx){
       }
       break;
     case 'For':{
-      /* continue pada for C++ tetap menjalankan bagian update (i++) */
       if(s.init)cxxStmt(s.init,env,ctx);
       while(true){
         if(++ctx.iters>CXX_ITER_CAP)
@@ -1488,7 +1500,6 @@ function cxxEval(e,env,ctx){
       return cxxEnvGet(env,e.name);
     case 'Unary': return -(+cxxEval(e.v,env,ctx));
     case 'Not': return !truthyC(cxxEval(e.v,env,ctx));
-    /* i++ → kembalikan nilai lama, simpan nilai baru (semantik C++ asli) */
     case 'Postfix':{
       if(e.target&&e.target.type==='Name'){
         const old=cxxEnvGet(env,e.target.name);
@@ -1506,7 +1517,6 @@ function cxxEval(e,env,ctx){
       }
       return cxxEval(e.target,env,ctx);
     }
-    /* ++i → perbarui lalu kembalikan nilai baru */
     case 'Prefix':{
       if(e.target&&e.target.type==='Name'){
         const nv=e.op==='++'?+cxxEnvGet(env,e.target.name)+1:+cxxEnvGet(env,e.target.name)-1;
@@ -1623,7 +1633,6 @@ function cxxAsmText(tu){
   rodata.forEach(r=>R.push(r));
   return R.join('\n');
 
-  /* ---------- emitter per fungsi ---------- */
   function emitFunc(f){
     const slots=new Map(); let off=0;
     const slot=(n,t,vec)=>{
@@ -1830,8 +1839,6 @@ function cxxAsmText(tu){
           ins('mov','eax, DWORD PTR [rbp'+sl.off+']',e.name); return 'int'; }
         case 'Unary': emitExpr(e.v); ins('neg','eax'); return 'int';
         case 'Not': emitExpr(e.v); ins('test','eax, eax'); ins('sete','al'); ins('movzx','eax, al'); return 'int';
-        /* i++ : muat nilai lama ke eax, simpan nilai baru — inilah instruksi
-           yang sebelumnya hilang dari listing dan membuat loop tak berujung */
         case 'Postfix':{
           if(e.target&&e.target.type==='Name'){
             const sl=SO(e.target.name);
@@ -2327,7 +2334,7 @@ function internalErr(S,stage,err){
 }
 
 /* ============================================================
-   DRIVER C++ — setiap tahap terisolasi, UI selalu pulih
+   DRIVER C++
 ============================================================ */
 async function runCpp(){
   const S=Sides.cpp;
@@ -2336,7 +2343,6 @@ async function runCpp(){
   resetVisual(S);
   const src=S.editor.value;
   try{
-    /* 1 — PRA-PROSES */
     chipOn(S,'pp',420); autoTab(S,'pp');
     let pre;
     try{ pre=cxxPreprocess(src); }
@@ -2344,7 +2350,6 @@ async function runCpp(){
     const t1=(await revealInto(S,'pp',pre.text,2,360))+60;
     chipDone(S,'pp',t1);
 
-    /* 2 — KOMPILASI: parse + normalisasi + semantik + assembly */
     chipOn(S,'cc',1500); autoTab(S,'cc');
     let tu;
     try{ tu=cxxParse(src); cxxSemanticCheck(tu); }
@@ -2368,7 +2373,6 @@ async function runCpp(){
     const t2=(await revealInto(S,'cc',asmText,4,760+asmText.split('\n').length*2))+120;
     chipDone(S,'cc',t2);
 
-    /* 3 — ASSEMBLE */
     chipOn(S,'as',620); autoTab(S,'as');
     let objText;
     try{ objText=objPanelText(tu,asmText); }
@@ -2376,7 +2380,6 @@ async function runCpp(){
     const t3=(await revealInto(S,'as',objText,3,430))+70;
     chipDone(S,'as',t3);
 
-    /* 4 — LINK */
     chipOn(S,'ld',640); autoTab(S,'ld');
     let exe;
     try{ exe=exePanelText(tu,asmText); }
@@ -2387,7 +2390,6 @@ async function runCpp(){
     updateBinChip(S,'ok');
     S.rerunBtn.hidden=false;
 
-    /* 5 — EKSEKUSI binary */
     chipOn(S,'run',800);
     autoTab(S,'stdout'); conH(S,'stdout');
     setLive(S,'CPU menjalankan a.out — instruksi mesin, bukan lagi baris C++');
@@ -2492,7 +2494,6 @@ async function runPy(){
   resetVisual(S);
   const src=S.editor.value;
   try{
-    /* 1 — LEKSIKAL */
     chipOn(S,'lex',420); autoTab(S,'tok');
     let tokens;
     try{ tokens=pyTokenize(src); }
@@ -2502,7 +2503,6 @@ async function runPy(){
     await dslay(380);
     chipDone(S,'lex',380);
 
-    /* 2 — PARSING */
     chipOn(S,'parse',540); autoTab(S,'ast');
     let mod;
     try{ mod=new PyParser(tokens).parseModule(); }
@@ -2522,7 +2522,6 @@ async function runPy(){
     const t2=(await revealInto(S,'ast',astText,2,420))+60;
     chipDone(S,'parse',t2);
 
-    /* 3 — BYTECODE */
     chipOn(S,'gen',520); autoTab(S,'bc');
     let dis;
     try{ dis=pyDisasmText(mod); }
@@ -2530,7 +2529,6 @@ async function runPy(){
     const t3=(await revealInto(S,'bc',dis.text,3,440))+50;
     chipDone(S,'gen',t3);
 
-    /* 4 — VM LOOP: baris demi baris */
     chipOn(S,'vm',4000);
     autoTab(S,'stdout'); conH(S,'stdout');
     const ctx={buf:'',steps:0,iters:0,frames:1,line:1,waitMs:0,outChars:0,truncOut:false,
@@ -2546,8 +2544,6 @@ async function runPy(){
       const info=r.value;
       if(info){
         ctx.line=info.line;
-        /* throttle DOM: update highlight setiap langkah hanya di awal,
-           setelah itu tiap 100 langkah — loop besar tidak membekukan UI */
         if(ctx.steps<=2500||ctx.steps%100===0){
           S.editor.setActiveLine(info.line);
           setLive(S,'baris '+info.line+' · '+info.note+' · '+ctx.frames+' frame · '+ctx.steps+' langkah VM');
