@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Percabangan Python — Visualisasi Interaktif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ FONDASI ═══════════════ */
+:root{
+  --paper:#F1EDE1; --panel:#FBF8EF; --panelh:#F1EAD9;
+  --ink:#26221B; --ink2:#77705F; --ink3:#9A9079;
+  --acc:#D34A1E; --accD:#9E3512; --t:#1E7A4A; --f:#B0402A;
+  --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans); color:var(--ink); background:var(--paper);
+  background-image:
+    linear-gradient(rgba(38,34,27,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38,34,27,.05) 1px, transparent 1px);
+  background-size:26px 26px;
+  -webkit-font-smoothing:antialiased;
+}
+.container{max-width:1280px;margin:0 auto;padding-left:24px;padding-right:24px}
+.mono{font-family:var(--mono)}
+button{font-family:inherit}
+
+/* ═══════════════ MASTHEAD ═══════════════ */
+.masthead{
+  display:grid;grid-template-columns:1.15fr .85fr;gap:48px;
+  padding-top:54px;padding-bottom:32px;border-bottom:2.5px solid var(--ink);
+  animation:up .5s both;
+}
+.kicker{font:600 11px var(--mono);letter-spacing:.22em;color:var(--ink2);
+  display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.kicker::before{content:'';width:34px;height:7px;background:var(--acc);flex:none}
+h1{font-size:clamp(34px,4.3vw,56px);line-height:1.05;letter-spacing:-.015em;font-weight:700}
+h1 em{font-style:normal;color:var(--accD);display:block}
+.mh-right{align-self:end;display:flex;flex-direction:column;gap:18px;padding-bottom:4px}
+.intro{font-size:15px;line-height:1.68;color:#4A4437;max-width:46ch}
+.howto{list-style:none;display:flex;flex-direction:column;gap:8px;
+  border-left:2.5px solid var(--ink);padding-left:16px}
+.howto b{font:700 12px var(--mono);color:var(--accD);margin-right:10px}
+.howto li{font-size:13.5px}
+.keys{font:500 11px var(--mono);color:var(--ink2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+kbd{border:1.5px solid var(--ink);border-bottom-width:3px;padding:2px 7px;
+  background:var(--panel);font:600 10.5px var(--mono);color:var(--ink)}
+.keys .dot{color:#C9C0AB}
+@keyframes up{from{opacity:0;transform:translateY(12px)}}
+
+/* ═══════════════ TAB SKENARIO ═══════════════ */
+.tabs{max-width:1280px;margin:0 auto;padding:0 24px;border-bottom:1.5px solid var(--ink);
+  display:flex;gap:6px;flex-wrap:wrap;animation:up .5s .08s both}
+.tab{background:none;border:none;border-bottom:4px solid transparent;cursor:pointer;
+  padding:16px 20px 13px;display:flex;flex-direction:column;gap:2px;text-align:left;
+  margin-bottom:-1.5px}
+.tab .tno{font:600 10.5px var(--mono);letter-spacing:.16em;color:var(--ink3)}
+.tab .tt{font-size:16.5px;font-weight:700;color:var(--ink2)}
+.tab .td{font-size:12px;color:var(--ink3)}
+.tab:hover .tt{color:var(--ink)}
+.tab.on{border-bottom-color:var(--acc)}
+.tab.on .tt{color:var(--ink)}
+.tab.on .tno{color:var(--accD)}
+
+/* ═══════════════ GRID UTAMA ═══════════════ */
+.grid{padding-top:26px;padding-bottom:10px;display:grid;
+  grid-template-columns:412px 1fr;gap:20px;align-items:start}
+.col-l{display:flex;flex-direction:column;gap:20px}
+.col-l .panel:nth-child(1){animation:up .5s .12s both}
+.col-l .panel:nth-child(2){animation:up .5s .18s both}
+.col-l .panel:nth-child(3){animation:up .5s .24s both}
+.col-l .panel:nth-child(4){animation:up .5s .30s both}
+.col-r>.panel{position:sticky;top:16px;animation:up .5s .16s both}
+
+/* ═══════════════ PANEL ═══════════════ */
+.panel{border:2px solid var(--ink);background:var(--panel)}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:10px 14px;border-bottom:2px solid var(--ink);background:var(--panelh)}
+.ph-t{font:600 11px var(--mono);letter-spacing:.16em}
+.ph-t .no{color:var(--accD);margin-right:8px}
+.ph-x{font:500 10.5px var(--mono);letter-spacing:.06em;color:var(--ink2);text-align:right}
+
+/* ── 01 kode ── */
+.blurb{padding:12px 16px;font-size:13px;line-height:1.6;color:var(--ink2);
+  border-bottom:1.5px dashed #D8D0BC}
+.blurb code,.snote code{font:12px var(--mono);background:#EFE7D2;border:1px solid #DCD3BC;
+  padding:1px 5px;border-radius:3px;white-space:nowrap;color:var(--ink)}
+.code{font:13.5px/1.75 var(--mono);padding:12px 8px 16px}
+.cl{display:flex;padding:0 10px 0 0;border-left:3px solid transparent;min-height:24px}
+.cl .ln{width:32px;text-align:right;margin-right:14px;color:var(--ink3);flex:none;user-select:none}
+.cl .ct{white-space:pre;flex:1}
+.cl.on{background:#F7DACC;border-left-color:var(--acc)}
+.cl.on .ln{color:var(--accD);font-weight:700}
+.cl.dim{opacity:.28}
+.cl.hint{background:#EFE6CC}
+
+.tk-k{color:#A03A12;font-weight:600}
+.tk-s{color:#1E7A4A}
+.tk-n{color:#8A6410}
+.tk-fn{font-weight:700}
+.tk-o{color:#5A5244}
+
+/* ── 02 input ── */
+.field{padding:13px 16px 8px}
+.field+.field{border-top:1.5px dashed #D8D0BC}
+.frow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.frow label{font:500 13.5px var(--mono)}
+.fval{font:600 14px var(--mono);background:#EFE7D0;border:1.5px solid #D8D0BA;padding:2px 9px}
+.fmeta{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--ink3);
+  padding:0 2px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:26px;
+  background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:3px;background:#CFC6AF}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:16px;height:16px;background:var(--acc);border:2px solid var(--ink);
+  border-radius:2px;margin-top:-6.5px}
+input[type=range]::-moz-range-track{height:3px;background:#CFC6AF}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--acc);
+  border:2px solid var(--ink);border-radius:2px}
+.seg{display:inline-flex;border:1.5px solid var(--ink)}
+.seg button{font:600 12px var(--mono);padding:5px 13px;background:transparent;
+  cursor:pointer;color:var(--ink2)}
+.seg button+button{border-left:1.5px solid var(--ink)}
+.seg button.onT{background:var(--t);color:#F3EEE1}
+.seg button.onF{background:var(--ink);color:#F3EEE1}
+
+/* ── 03 kendali ── */
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 16px 12px}
+.btn{font:600 12px var(--mono);letter-spacing:.08em;padding:10px 14px;
+  border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;
+  display:inline-flex;gap:8px;align-items:center}
+.btn:hover{background:var(--ink);color:var(--panel)}
+.btn.primary{background:var(--acc);color:#FFF7EE}
+.btn.primary:hover{background:var(--accD)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.ic{width:14px;height:14px;fill:currentColor;flex:none}
+.ic.st{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ic.st *{fill:none}
+.speed{margin-left:auto;display:flex;border:1.5px solid var(--ink)}
+.sp{font:600 10px var(--mono);letter-spacing:.08em;padding:8px 10px;background:transparent;
+  border:none;cursor:pointer;color:var(--ink2)}
+.sp+.sp{border-left:1.5px solid var(--ink)}
+.sp.on{background:var(--ink);color:var(--panel)}
+.progress{height:4px;margin:0 16px 16px;background:#E2DBC8;position:relative;overflow:hidden}
+#pbar{position:absolute;top:0;left:0;bottom:0;width:0;background:var(--acc);
+  transition:width .35s ease}
+
+/* ── 04 state & konsol ── */
+.vars{padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px;min-height:46px;
+  border-bottom:2px solid var(--ink);align-items:center}
+.vars .empty,.console .cempty{font:italic 12px var(--mono);color:var(--ink3)}
+.chip{border:1.5px solid var(--ink);padding:4px 10px;background:#F6F1E2;font:13px var(--mono)}
+.chip .vn{color:var(--ink2)}
+.chip b{color:var(--accD);font-weight:700}
+.chip.flash{animation:flash .8s}
+@keyframes flash{from{background:#F7D0BE}}
+.console{background:var(--ink);color:#F3EEE1;padding:13px 16px;min-height:86px;
+  max-height:150px;overflow-y:auto;font:13px/1.6 var(--mono)}
+.console .co{padding:1px 0;animation:cin .3s}
+.console .co i{font-style:normal;color:#E8763F;margin-right:9px}
+@keyframes cin{from{opacity:0;transform:translateX(-6px)}}
+.console::-webkit-scrollbar,.flow-scroll::-webkit-scrollbar{width:10px}
+.console::-webkit-scrollbar-thumb,.flow-scroll::-webkit-scrollbar-thumb{background:#B9B09A}
+.flow-scroll::-webkit-scrollbar-thumb{background:#C9C0AB;border:3px solid var(--panel)}
+.console .cempty{color:#8B857A}
+
+/* ═══════════════ PANEL DIAGRAM ALUR ═══════════════ */
+.flow{position:relative}
+.flow::before,.flow::after{content:'+';position:absolute;font:400 15px var(--mono);
+  color:var(--ink2);z-index:2;line-height:1}
+.flow::before{top:-9px;left:-8px}
+.flow::after{bottom:-9px;right:-8px}
+.stepstrip{display:flex;gap:14px;padding:13px 16px;min-height:66px;align-items:flex-start;
+  border-bottom:1.5px dashed #D8D0BC}
+.badge{flex:none;border:1.5px solid var(--ink);padding:4px 9px;font:700 10px var(--mono);
+  letter-spacing:.12em;background:var(--panelh);margin-top:2px}
+.badge[data-k="eval"]{background:var(--acc);border-color:var(--accD);color:#FFF7EE}
+.badge[data-k="branch"]{background:var(--ink);color:var(--panel)}
+.snote{font-size:13.5px;line-height:1.55}
+.snote b{font-weight:700}
+.snote .t{color:var(--t)} .snote .f{color:var(--f)}
+.snote em{font-style:italic}
+.snote.in{animation:nin .35s}
+@keyframes nin{from{opacity:0;transform:translateY(5px)}}
+.flow-scroll{overflow-y:auto;padding:6px 12px 12px;
+  max-height:clamp(360px, calc(100vh - 380px), 640px)}
+#flow{display:block;width:100%;height:auto}
+
+.flow-f{display:flex;gap:20px;padding:11px 16px;border-top:2px solid var(--ink);
+  font:500 11px var(--mono);color:var(--ink2)}
+.flow-f .lg{display:flex;align-items:center}
+.flow-f i{display:inline-block;width:26px;border-top:3px solid var(--acc);
+  margin-right:9px;vertical-align:middle}
+.flow-f i.l2{border-top:3px dotted #6B6355}
+.flow-f .lg.off{opacity:.35}
+
+/* ── elemen SVG ── */
+#flow .edge .base{stroke:#26221B;stroke-width:2;fill:none;stroke-linejoin:round}
+#flow .edge .ovl{stroke:var(--acc);stroke-width:3.5;fill:none;stroke-linejoin:round}
+#flow .elbg{fill:var(--panel);opacity:.95}
+#flow .elbl text{font:700 11.5px var(--mono);fill:#8B857A}
+#flow .elbl.t text{fill:var(--t)}
+#flow .elbl.f text{fill:var(--f)}
+#flow .elbl.on text{fill:var(--ink)}
+#flow .node .shape{fill:#FBF8EF;stroke:#26221B;stroke-width:2}
+#flow .node.dec .shape{stroke-width:2.5}
+#flow .node text{font:500 14px var(--mono);fill:#26221B;text-anchor:middle}
+#flow .node.term .shape{fill:#26221B}
+#flow .node.term text{fill:#F3EEE1;font:700 12.5px var(--mono);letter-spacing:.14em}
+#flow .node.active .shape{stroke:var(--accD);stroke-width:3.2;fill:#F7DFD2}
+#flow .node.term.active .shape{fill:var(--acc);stroke:var(--accD)}
+#flow .node.visited .shape{stroke:var(--acc)}
+#flow .node.visited .shape{fill:#F9EDE3}
+#flow .node.hint .shape{stroke-dasharray:5 4;stroke:var(--acc)}
+#token{transition:opacity .25s}
+#token .core{fill:var(--acc);stroke:#FFFDF6;stroke-width:2.5}
+#token .ring{fill:none;stroke:var(--acc);stroke-width:1.5;opacity:.55;
+  transform-box:fill-box;transform-origin:center;animation:ring 1.8s ease-out infinite}
+@keyframes ring{0%{transform:scale(.55);opacity:.7}75%{transform:scale(1.9);opacity:0}100%{opacity:0}}
+#evalpop{opacity:0;transition:opacity .3s}
+#evalpop.show{opacity:1}
+#evalpop .ebg{fill:#FFFDF6;stroke-width:2}
+#evalpop .etxt{font:700 13.5px var(--mono);text-anchor:middle}
+#evalpop.t .ebg{stroke:var(--t)} #evalpop.t .etxt{fill:var(--t)}
+#evalpop.f .ebg{stroke:var(--f)} #evalpop.f .etxt{fill:var(--f)}
+#ghost path{stroke:#6B6355;stroke-width:2;stroke-dasharray:2 8;stroke-linecap:round;
+  fill:none;opacity:.5}
+
+/* ═══════════════ REFERENSI ═══════════════ */
+.ref{padding-top:36px;padding-bottom:14px;border-top:2.5px solid var(--ink);margin-top:26px}
+.ref-h{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:26px}
+.ref-h h2{font:600 12px var(--mono);letter-spacing:.2em}
+.ref-h span{font:400 11px var(--mono);color:var(--ink3)}
+.ref-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:44px}
+.ref h3{font-size:17px;font-weight:700;margin-bottom:14px}
+.an{display:flex;gap:18px;font:13px var(--mono);padding:6px 0;
+  border-bottom:1px dashed #D8D0BC;align-items:baseline}
+.an code{white-space:pre;flex:none}
+.an span{margin-left:auto;text-align:right;font:12.5px var(--sans);color:var(--ink2);
+  max-width:44%}
+.an b{color:var(--accD);font:700 11px var(--mono);margin-right:7px}
+.op{display:flex;justify-content:space-between;gap:18px;padding:7px 0;
+  border-bottom:1px solid #E4DDCB;font:12.5px var(--mono);align-items:baseline}
+.op b{font-weight:700;flex:none}
+.op span{margin-left:auto;font:12.5px var(--sans);color:var(--ink2);text-align:right}
+
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  padding:26px 24px 64px;margin-top:34px;border-top:1.5px solid var(--ink);
+  max-width:1280px;margin-left:auto;margin-right:auto;
+  font:500 10.5px var(--mono);letter-spacing:.12em;color:var(--ink2)}
+
+/* ═══════════════ RESPONSIF ═══════════════ */
+@media (max-width:1000px){
+  .masthead{grid-template-columns:1fr;gap:26px;padding-top:38px}
+  .grid{grid-template-columns:1fr}
+  .col-r>.panel{position:static}
+  .flow-scroll{max-height:62vh}
+  .ref-grid{grid-template-columns:1fr}
+  .speed{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead container">
+  <div>
+    <div class="kicker">PYTHON · STRUKTUR KENDALI — VISUALISASI INTERAKTIF</div>
+    <h1>Percabangan Python,<em>diurai selangkah demi selangkah.</em></h1>
+  </div>
+  <div class="mh-right">
+    <p class="intro">Atur nilai variabel, jalankan programnya langkah demi langkah, dan saksikan
+      jalur mana yang dipilih komputer — lengkap dengan jejak tinta yang tertinggal,
+      siap dibandingkan dengan percobaan berikutnya.</p>
+    <ol class="howto">
+      <li><b>1</b>Pilih skenario di bawah — dari yang paling sederhana sampai if bersarang</li>
+      <li><b>2</b>Atur nilai variabel input dengan penggeser</li>
+      <li><b>3</b>Tekan <strong>Jalankan</strong>, atau melangkah satu per satu dan baca catatannya</li>
+    </ol>
+    <div class="keys"><kbd>Space</kbd> jalankan / jeda <span class="dot">·</span>
+      <kbd>→</kbd> satu langkah <span class="dot">·</span> <kbd>R</kbd> reset</div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+
+<main class="container grid">
+  <div class="col-l">
+
+    <section class="panel">
+      <div class="panel-h">
+        <span class="ph-t"><b class="no">01</b> KODE SUMBER</span>
+        <span class="ph-x" id="codeMeta"></span>
+      </div>
+      <p class="blurb" id="blurb"></p>
+      <div class="code" id="code"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-h">
+        <span class="ph-t"><b class="no">02</b> VARIABEL INPUT</span>
+        <span class="ph-x">ubah nilai = jalur berubah</span>
+      </div>
+      <div id="fields"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-h">
+        <span class="ph-t"><b class="no">03</b> KENDALI EKSEKUSI</span>
+        <span class="ph-x" id="stepCount">LANGKAH 00/00</span>
+      </div>
+      <div class="ctrl">
+        <button class="btn" id="btnReset"></button>
+        <button class="btn" id="btnStep"></button>
+        <button class="btn primary" id="btnRun"></button>
+        <div class="speed" id="speed">
+          <button class="sp" data-d="1800">LAMBAT</button>
+          <button class="sp on" data-d="1100">NORMAL</button>
+          <button class="sp" data-d="620">CEPAT</button>
+        </div>
+      </div>
+      <div class="progress"><i id="pbar"></i></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-h">
+        <span class="ph-t"><b class="no">04</b> STATE &amp; KONSOL</span>
+        <span class="ph-x">stdout</span>
+      </div>
+      <div class="vars" id="vars"></div>
+      <div class="console" id="console"></div>
+    </section>
+
+  </div>
+
+  <div class="col-r">
+    <section class="panel flow">
+      <div class="panel-h">
+        <span class="ph-t"><b class="no">05</b> DIAGRAM ALUR</span>
+        <span class="ph-x" id="figMeta"></span>
+      </div>
+      <div class="stepstrip">
+        <span class="badge" id="badge" data-k="">SIAP</span>
+        <div class="snote" id="snote"></div>
+      </div>
+      <div class="flow-scroll" id="flowScroll">
+        <svg id="flow" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="flow-f">
+        <span class="lg"><i class="l1"></i> jalur eksekusi aktif</span>
+        <span class="lg off" id="lgGhost"><i class="l2"></i> jejak run sebelumnya</span>
+      </div>
+    </section>
+  </div>
+</main>
+
+<section class="ref container">
+  <div class="ref-h">
+    <h2>REFERENSI CEPAT</h2>
+    <span>tempel di dinding, simpan di kepala</span>
+  </div>
+  <div class="ref-grid">
+    <div>
+      <h3>Anatomi percabangan</h3>
+      <div class="an"><code><span class="tk-k">if</span> suhu <span class="tk-o">>=</span> <span class="tk-n">35</span>:</code>
+        <span><b>1</b>kata kunci + kondisi, ditutup titik dua</span></div>
+      <div class="an"><code>    kategori = <span class="tk-s">"Panas"</span></code>
+        <span><b>2</b>blok if — inden 4 spasi, jalan hanya jika True</span></div>
+      <div class="an"><code><span class="tk-k">elif</span> suhu <span class="tk-o">>=</span> <span class="tk-n">20</span>:</code>
+        <span><b>3</b>kondisi cadangan — diuji bila di atasnya False</span></div>
+      <div class="an"><code>    kategori = <span class="tk-s">"Sejuk"</span></code><span></span></div>
+      <div class="an"><code><span class="tk-k">else</span>:</code>
+        <span><b>4</b>tanpa kondisi — penampung terakhir</span></div>
+      <div class="an"><code>    kategori = <span class="tk-s">"Dingin"</span></code><span></span></div>
+    </div>
+    <div>
+      <h3>Operator untuk kondisi</h3>
+      <div class="op"><b>a == b</b><span>sama dengan</span></div>
+      <div class="op"><b>a != b</b><span>tidak sama dengan</span></div>
+      <div class="op"><b>a &gt; b · a &lt; b</b><span>lebih besar / lebih kecil</span></div>
+      <div class="op"><b>a &gt;= b · a &lt;= b</b><span>minimal / maksimal</span></div>
+      <div class="op"><b>a and b</b><span>True hanya jika keduanya True</span></div>
+      <div class="op"><b>a or b</b><span>True jika salah satu True</span></div>
+      <div class="op"><b>not a</b><span>kebalikan dari a</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>ALAT BANTU BELAJAR · SEMUA SIMULASI BERJALAN LOKAL DI PERAMBAN</span>
+  <span>PYTHON 3 · if / elif / else</span>
+</footer>
+
+<script>
+/* ═══════════════ UTILITAS ═══════════════ */
+const $ = s => document.querySelector(s);
+const SVGNS = 'http://www.w3.org/2000/svg';
+function E(tag, attrs, parent){
+  const n = document.createElementNS(SVGNS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// pewarna sintaks sederhana untuk potongan Python
+function hl(src){
+  const re=/("[^"]*")|(\b\d+\b)|\b(if|elif|else|and|or|not|True|False)\b|\b(print)\b|(==|!=|>=|<=|=|<|>|\+|-|\*|\/|%)/g;
+  let out='', last=0, m;
+  while((m=re.exec(src))){
+    out += esc(src.slice(last, m.index));
+    const cls = m[1]?'s' : m[2]?'n' : m[3]?'k' : m[4]?'fn' : 'o';
+    out += `<span class="tk-${cls}">${esc(m[0])}</span>`;
+    last = m.index + m[0].length;
+  }
+  return out + esc(src.slice(last));
+}
+
+/* ═══════════════ DATA SKENARIO ═══════════════ */
+const SC = [
+
+/* ── 01 · if / else ─────────────────────────── */
+{
+ name:'if / else', tag:'Dua jalan, pilih satu', fig:'FIG. 01',
+ blurb:'Bentuk paling sederhana: satu kondisi membelah alur jadi dua jalur. Blok <code>if</code> jalan saat kondisi True, blok <code>else</code> saat False — tidak pernah keduanya.',
+ vb:640,
+ vars:[{name:'nilai',type:'num',min:0,max:100,step:1,def:80}],
+ code:[
+  'nilai = 80','',
+  'if nilai >= 75:',
+  '    print("LULUS")',
+  '    predikat = "Baik"',
+  'else:',
+  '    print("REMEDIAL")',
+  '    predikat = "Perlu belajar"',
+  '','print("Selesai")'],
+ nodes:[
+  {id:'start',type:'term',x:500,y:40,w:150,h:44,text:['MULAI']},
+  {id:'d1',type:'dec',x:500,y:160,w:270,h:104,text:['nilai ≥ 75 ?'],ep:[500,252]},
+  {id:'pT',type:'proc',x:250,y:330,w:250,h:64,text:['print("LULUS")','predikat = "Baik"']},
+  {id:'pF',type:'proc',x:750,y:330,w:250,h:64,text:['print("REMEDIAL")','predikat = "Perlu belajar"']},
+  {id:'pX',type:'proc',x:500,y:470,w:230,h:50,text:['print("Selesai")']},
+  {id:'end',type:'term',x:500,y:585,w:160,h:44,text:['SELESAI']}],
+ edges:[
+  {id:'eS', pts:[[500,62],[500,107]]},
+  {id:'eT', pts:[[370,160],[250,160],[250,297]], lbl:{txt:'True', cls:'t', x:312, y:149}},
+  {id:'eF', pts:[[630,160],[750,160],[750,297]], lbl:{txt:'False',cls:'f', x:688, y:149}},
+  {id:'eTx',pts:[[250,362],[250,470],[383,470]]},
+  {id:'eFx',pts:[[750,362],[750,470],[617,470]]},
+  {id:'eE', pts:[[500,495],[500,561]]}],
+ trace(inp){
+  const v=inp.nilai, ok=v>=75, S=[];
+  S.push({line:0,node:'start',kind:'start',
+   note:`Program dimulai. Baris 1 memberi nilai awal variabel: <code>nilai = ${v}</code> — angka ini diambil dari panel Input, silakan ubah nanti.`,
+   fx:{assign:{nilai:String(v)}}});
+  S.push({line:2,node:'d1',edgeIn:'eS',kind:'eval',
+   eval:{text:`${v} ≥ 75`,result:ok},
+   note:`Baris 3 — sampai di percabangan. Kondisi <code>nilai >= 75</code> diuji: <code>${v} >= 75</code> → <b class="${ok?'t':'f'}">${ok}</b>.`});
+  if(ok){
+   S.push({line:3,node:'pT',edgeIn:'eT',kind:'branch',fx:{dim:[5,6,7]},
+    note:`Kondisi <b class="t">True</b> — Python menjalankan blok <code>if</code> (baris 4–5) dan <em>melompati</em> seluruh blok <code>else</code> (baris 6–7, kini diredupkan).`});
+   S.push({line:3,node:'pT',kind:'act',fx:{console:'LULUS'},
+    note:`Baris 4 — <code>print("LULUS")</code> mengirim teks ke konsol.`});
+   S.push({line:4,node:'pT',kind:'act',fx:{assign:{predikat:'"Baik"'}},
+    note:`Baris 5 — variabel <code>predikat</code> dibuat dan diisi <code>"Baik"</code>. Pantau di panel State.`});
+   S.push({line:9,node:'pX',edgeIn:'eTx',kind:'act',fx:{console:'Selesai'},
+    note:`Blok percabangan selesai. Alur keluar dan jatuh ke baris pertama <em>setelah</em> if/else — baris 10 dijalankan apa pun cabangnya.`});
+  }else{
+   S.push({line:6,node:'pF',edgeIn:'eF',kind:'branch',fx:{dim:[3,4]},
+    note:`Kondisi <b class="f">False</b> — blok <code>if</code> (baris 4–5) <em>dilompati</em> (diredupkan); blok <code>else</code> yang mengambil alih.`});
+   S.push({line:6,node:'pF',kind:'act',fx:{console:'REMEDIAL'},
+    note:`Baris 7 — <code>print("REMEDIAL")</code> mengirim teks ke konsol.`});
+   S.push({line:7,node:'pF',kind:'act',fx:{assign:{predikat:'"Perlu belajar"'}},
+    note:`Baris 8 — variabel <code>predikat</code> diisi <code>"Perlu belajar"</code>.`});
+   S.push({line:9,node:'pX',edgeIn:'eFx',kind:'act',fx:{console:'Selesai'},
+    note:`Blok percabangan selesai. Alur keluar dan lanjut ke baris 10 — di luar percabangan, kode berjalan seperti biasa.`});
+  }
+  S.push({line:9,node:'end',edgeIn:'eE',kind:'end',
+   note:`Program selesai. Jejak merah adalah jalur yang barusan ditempuh. <em>Coba ubah <code>nilai</code> lalu jalankan lagi</em> — jejak lama tertinggal sebagai garis putus-putus untuk dibandingkan.`});
+  return S;
+ }
+},
+
+/* ── 02 · if / elif / else ─────────────────── */
+{
+ name:'if / elif / else', tag:'Uji berurutan, menang pertama', fig:'FIG. 02',
+ blurb:'<code>elif</code> dirantai dari atas ke bawah. Kondisi diuji satu per satu — blok pertama yang True menang, selebihnya <em>tidak pernah dibaca</em>. <code>else</code> adalah jaring pengaman terakhir.',
+ vb:770,
+ vars:[{name:'suhu',type:'num',min:5,max:42,step:1,def:31}],
+ code:[
+  'suhu = 31','',
+  'if suhu >= 35:',
+  '    kategori = "Sangat panas"',
+  'elif suhu >= 28:',
+  '    kategori = "Panas"',
+  'elif suhu >= 20:',
+  '    kategori = "Sejuk"',
+  'else:',
+  '    kategori = "Dingin"',
+  '','print(kategori)'],
+ nodes:[
+  {id:'start',type:'term',x:500,y:38,w:150,h:44,text:['MULAI']},
+  {id:'d1',type:'dec',x:500,y:130,w:270,h:104,text:['suhu ≥ 35 ?'],ep:[500,222]},
+  {id:'d2',type:'dec',x:500,y:270,w:270,h:104,text:['suhu ≥ 28 ?'],ep:[500,362]},
+  {id:'d3',type:'dec',x:500,y:410,w:270,h:104,text:['suhu ≥ 20 ?'],ep:[770,496]},
+  {id:'pA',type:'proc',x:810,y:130,w:230,h:48,text:['kategori = "Sangat panas"']},
+  {id:'pB',type:'proc',x:810,y:270,w:230,h:48,text:['kategori = "Panas"']},
+  {id:'pC',type:'proc',x:810,y:410,w:230,h:48,text:['kategori = "Sejuk"']},
+  {id:'pD',type:'proc',x:500,y:550,w:220,h:48,text:['kategori = "Dingin"']},
+  {id:'pP',type:'proc',x:500,y:668,w:200,h:48,text:['print(kategori)']},
+  {id:'end',type:'term',x:500,y:742,w:160,h:44,text:['SELESAI']}],
+ edges:[
+  {id:'eS', pts:[[500,60],[500,77]]},
+  {id:'eT1',pts:[[630,130],[694,130]], lbl:{txt:'True', cls:'t', x:662, y:119}},
+  {id:'eF1',pts:[[500,182],[500,214]], lbl:{txt:'False',cls:'f', x:514, y:201, a:'start'}},
+  {id:'eT2',pts:[[630,270],[694,270]], lbl:{txt:'True', cls:'t', x:662, y:259}},
+  {id:'eF2',pts:[[500,322],[500,354]], lbl:{txt:'False',cls:'f', x:514, y:341, a:'start'}},
+  {id:'eT3',pts:[[630,410],[694,410]], lbl:{txt:'True', cls:'t', x:662, y:399}},
+  {id:'eF3',pts:[[500,462],[500,523]], lbl:{txt:'False',cls:'f', x:514, y:494, a:'start'}},
+  {id:'eAx',pts:[[925,130],[964,130],[964,668],[604,668]]},
+  {id:'eBx',pts:[[925,270],[964,270],[964,668],[604,668]]},
+  {id:'eCx',pts:[[925,410],[964,410],[964,668],[604,668]]},
+  {id:'eDx',pts:[[500,574],[500,640]]},
+  {id:'eE', pts:[[500,692],[500,716]]}],
+ trace(inp){
+  const s=inp.suhu, S=[];
+  S.push({line:0,node:'start',kind:'start',
+   note:`Program dimulai. Variabel <code>suhu</code> diisi dari panel input: <code>suhu = ${s}</code>.`,
+   fx:{assign:{suhu:String(s)}}});
+  S.push({line:2,node:'d1',edgeIn:'eS',kind:'eval',
+   eval:{text:`${s} ≥ 35`,result:s>=35},
+   note:`Baris 3 — kondisi pertama diuji: <code>suhu >= 35</code> → <code>${s} >= 35</code> → <b class="${s>=35?'t':'f'}">${s>=35}</b>.`});
+  const merge=(edge,kat)=>({line:11,node:'pP',edgeIn:edge,kind:'act',fx:{console:kat},
+   note:`Alur keluar dari seluruh rantai percabangan dan lanjut ke baris 12 — <code>print(kategori)</code> mencetak <code>${kat}</code> ke konsol.`});
+  if(s>=35){
+   S.push({line:3,node:'pA',edgeIn:'eT1',kind:'branch',fx:{dim:[4,5,6,7,8,9]},
+    note:`Kondisi pertama <b class="t">True</b> — bloknya langsung menang. Semua <code>elif</code> dan <code>else</code> di bawahnya <em>tidak pernah diuji</em> (diredupkan).`});
+   S.push({line:3,node:'pA',kind:'act',fx:{assign:{kategori:'"Sangat panas"'}},
+    note:`Baris 4 — <code>kategori = "Sangat panas"</code>.`});
+   S.push(merge('eAx','Sangat panas'));
+  }else{
+   S.push({line:4,node:'d2',edgeIn:'eF1',kind:'eval',
+    eval:{text:`${s} ≥ 28`,result:s>=28},fx:{dim:[3]},
+    note:`Baris 3 <b class="f">False</b> — bloknya dilewati. Python turun ke <code>elif</code> pertama (baris 5): <code>${s} >= 28</code> → <b class="${s>=28?'t':'f'}">${s>=28}</b>.`});
+   if(s>=28){
+    S.push({line:5,node:'pB',edgeIn:'eT2',kind:'branch',fx:{dim:[6,7,8,9]},
+     note:`<code>elif</code> pertama ini <b class="t">True</b> — bloknya menang. Kondisi <code>elif</code> kedua dan <code>else</code> di bawahnya tidak lagi diuji.`});
+    S.push({line:5,node:'pB',kind:'act',fx:{assign:{kategori:'"Panas"'}},
+     note:`Baris 6 — <code>kategori = "Panas"</code>. Padahal <code>${s} >= 20</code> juga True, tapi Python berhenti di kecocokan <em>pertama</em>.`});
+    S.push(merge('eBx','Panas'));
+   }else{
+    S.push({line:6,node:'d3',edgeIn:'eF2',kind:'eval',
+     eval:{text:`${s} ≥ 20`,result:s>=20},fx:{dim:[5]},
+     note:`Baris 5 juga <b class="f">False</b> — turun lagi ke <code>elif</code> kedua (baris 7): <code>${s} >= 20</code> → <b class="${s>=20?'t':'f'}">${s>=20}</b>.`});
+    if(s>=20){
+     S.push({line:7,node:'pC',edgeIn:'eT3',kind:'branch',fx:{dim:[8,9]},
+      note:`Kondisi terakhir ini <b class="t">True</b> — bloknya dijalankan, dan <code>else</code> dilewati.`});
+     S.push({line:7,node:'pC',kind:'act',fx:{assign:{kategori:'"Sejuk"'}},
+      note:`Baris 8 — <code>kategori = "Sejuk"</code>.`});
+     S.push(merge('eCx','Sejuk'));
+    }else{
+     S.push({line:9,node:'pD',edgeIn:'eF3',kind:'branch',fx:{dim:[7]},
+      note:`Semua kondisi <b class="f">False</b> — tidak ada yang cocok. Blok <code>else</code> (baris 9) adalah jaring pengaman yang pasti dijalankan.`});
+     S.push({line:9,node:'pD',kind:'act',fx:{assign:{kategori:'"Dingin"'}},
+      note:`Baris 9 — <code>kategori = "Dingin"</code>.`});
+     S.push(merge('eDx','Dingin'));
+    }
+   }
+  }
+  S.push({line:11,node:'end',edgeIn:'eE',kind:'end',
+   note:`Program selesai. Coba ubah <code>suhu</code> ke angka lain — misalnya <code>25</code> atau <code>18</code> — lalu jalankan lagi dan bandingkan jejaknya.`});
+  return S;
+ }
+},
+
+/* ── 03 · if bersarang ─────────────────────── */
+{
+ name:'if bersarang', tag:'Keputusan di dalam keputusan', fig:'FIG. 03',
+ blurb:'<code>if</code> di dalam <code>if</code>. Blok bersarang hanya bisa dijangkau bila seluruh kondisi di atasnya True — indentasi (4 spasi per tingkat) adalah peta kedalamannya.',
+ vb:650,
+ vars:[{name:'umur',type:'num',min:10,max:25,step:1,def:20},
+       {name:'punya_ktp',type:'bool',def:true}],
+ code:[
+  'umur = 20','punya_ktp = True','',
+  'if umur >= 17:',
+  '    if punya_ktp:',
+  '        print("Boleh memilih")',
+  '    else:',
+  '        print("Urus KTP dulu")',
+  'else:',
+  '    print("Belum cukup umur")',
+  '','print("Terima kasih")'],
+ nodes:[
+  {id:'start',type:'term',x:500,y:38,w:150,h:44,text:['MULAI']},
+  {id:'d1',type:'dec',x:500,y:150,w:270,h:104,text:['umur ≥ 17 ?'],ep:[282,240]},
+  {id:'d2',type:'dec',x:500,y:330,w:270,h:104,text:['punya_ktp ?'],ep:[500,414]},
+  {id:'pF1',type:'proc',x:810,y:150,w:240,h:50,text:['print("Belum cukup umur")']},
+  {id:'pT2',type:'proc',x:185,y:330,w:230,h:50,text:['print("Boleh memilih")']},
+  {id:'pF2',type:'proc',x:810,y:330,w:230,h:50,text:['print("Urus KTP dulu")']},
+  {id:'pP',type:'proc',x:500,y:480,w:230,h:50,text:['print("Terima kasih")']},
+  {id:'end',type:'term',x:500,y:590,w:160,h:44,text:['SELESAI']}],
+ edges:[
+  {id:'eS',  pts:[[500,60],[500,97]]},
+  {id:'eT1', pts:[[500,202],[500,276]], lbl:{txt:'True', cls:'t', x:516, y:238, a:'start'}},
+  {id:'eF1', pts:[[630,150],[688,150]], lbl:{txt:'False',cls:'f', x:658, y:138}},
+  {id:'eT2', pts:[[370,330],[301,330]], lbl:{txt:'True', cls:'t', x:337, y:318}},
+  {id:'eF2', pts:[[630,330],[693,330]], lbl:{txt:'False',cls:'f', x:660, y:318}},
+  {id:'eFx1',pts:[[930,150],[964,150],[964,480],[617,480]]},
+  {id:'eTx2',pts:[[185,355],[185,480],[383,480]]},
+  {id:'eFx2',pts:[[810,355],[810,480],[617,480]]},
+  {id:'eE',  pts:[[500,505],[500,564]]}],
+ trace(inp){
+  const u=inp.umur, k=inp.punya_ktp, S=[];
+  S.push({line:0,node:'start',kind:'start',
+   note:`Program dimulai. Dua variabel disiapkan dari panel input: <code>umur = ${u}</code> dan <code>punya_ktp = ${k}</code>.`,
+   fx:{assign:{umur:String(u),punya_ktp:k?'True':'False'}}});
+  S.push({line:3,node:'d1',edgeIn:'eS',kind:'eval',
+   eval:{text:`${u} ≥ 17`,result:u>=17},
+   note:`Baris 4 — <b>if luar</b> diuji lebih dulu: <code>umur >= 17</code> → <code>${u} >= 17</code> → <b class="${u>=17?'t':'f'}">${u>=17}</b>.`});
+  if(u>=17){
+   S.push({line:4,node:'d2',edgeIn:'eT1',kind:'eval',
+    eval:{text:'punya_ktp',result:k},fx:{dim:[8,9]},
+    note:`Kondisi luar <b class="t">True</b> — alur masuk ke blok if luar. Di dalamnya (lebih menjorok) ada <b>if kedua</b> yang baru kini diuji: <code>if punya_ktp:</code> → <b class="${k?'t':'f'}">${k}</b>. Blok <code>else</code> luar diredupkan.`});
+   if(k){
+    S.push({line:5,node:'pT2',edgeIn:'eT2',kind:'branch',fx:{dim:[6,7]},
+     note:`<code>punya_ktp</code> bernilai <b class="t">True</b> — blok if kedua dijalankan (baris 6). <code>else</code> di level inden yang sama hanyalah alternatifnya.`});
+    S.push({line:5,node:'pT2',kind:'act',fx:{console:'Boleh memilih'},
+     note:`Baris 6 — <code>print("Boleh memilih")</code>.`});
+    S.push({line:11,node:'pP',edgeIn:'eTx2',kind:'act',fx:{console:'Terima kasih'},
+     note:`Kedua percabangan selesai. Baris 12 ada di luar semuanya — selalu dijalankan.`});
+   }else{
+    S.push({line:7,node:'pF2',edgeIn:'eF2',kind:'branch',fx:{dim:[5]},
+     note:`<code>punya_ktp</code> bernilai <b class="f">False</b> — if kedua gagal, blok <code>else</code> di level inden yang sama (baris 8) yang mengambil alih.`});
+    S.push({line:7,node:'pF2',kind:'act',fx:{console:'Urus KTP dulu'},
+     note:`Baris 8 — <code>print("Urus KTP dulu")</code>.`});
+    S.push({line:11,node:'pP',edgeIn:'eFx2',kind:'act',fx:{console:'Terima kasih'},
+     note:`Kedua percabangan selesai. Baris 12 tetap dijalankan — ia berada di luar if bersarang.`});
+   }
+  }else{
+   S.push({line:9,node:'pF1',edgeIn:'eF1',kind:'branch',fx:{dim:[4,5,6,7]},
+    note:`Kondisi luar <b class="f">False</b> — program <em>tidak pernah melihat</em> if yang ada di dalamnya. Seluruh blok menjorok baris 4–8 diloncati sekaligus, langsung ke <code>else</code> luar (baris 9).`});
+   S.push({line:9,node:'pF1',kind:'act',fx:{console:'Belum cukup umur'},
+    note:`Baris 10 — <code>print("Belum cukup umur")</code>.`});
+   S.push({line:11,node:'pP',edgeIn:'eFx1',kind:'act',fx:{console:'Terima kasih'},
+    note:`Percabangan selesai. Baris 12 — <code>print("Terima kasih")</code> — selalu dijalankan.`});
+  }
+  S.push({line:11,node:'end',edgeIn:'eE',kind:'end',
+   note:`Program selesai. Coba kombinasikan: <code>umur = 16</code>, atau <code>umur = 20</code> dengan <code>punya_ktp = False</code> — perhatikan seberapa dalam jejaknya menjangkau.`});
+  return S;
+ }
+},
+
+/* ── 04 · and / or ─────────────────────────── */
+{
+ name:'and / or', tag:'Menggabungkan kondisi', fig:'FIG. 04',
+ blurb:'Satu <code>if</code> boleh memuat beberapa uji sekaligus. <code>and</code> menuntut <em>semua</em> sisi True; <code>or</code> puas dengan <em>salah satu</em>. Hasil gabungan inilah yang menentukan cabang.',
+ vb:790,
+ vars:[{name:'nilai',type:'num',min:0,max:100,step:1,def:85},
+       {name:'absen',type:'num',min:0,max:10,step:1,def:2}],
+ code:[
+  'nilai = 85','absen = 2','',
+  'if nilai >= 80 and absen <= 3:',
+  '    predikat = "A"',
+  'elif nilai >= 80 or absen == 0:',
+  '    predikat = "B"',
+  'else:',
+  '    predikat = "C"',
+  '','print(predikat)'],
+ nodes:[
+  {id:'start',type:'term',x:500,y:38,w:150,h:44,text:['MULAI']},
+  {id:'d1',type:'dec',x:500,y:160,w:290,h:110,text:['nilai ≥ 80','and absen ≤ 3'],ep:[285,258]},
+  {id:'pA',type:'proc',x:810,y:160,w:200,h:48,text:['predikat = "A"']},
+  {id:'d2',type:'dec',x:500,y:350,w:290,h:110,text:['nilai ≥ 80','or absen == 0'],ep:[285,448]},
+  {id:'pB',type:'proc',x:810,y:350,w:200,h:48,text:['predikat = "B"']},
+  {id:'pC',type:'proc',x:500,y:540,w:200,h:48,text:['predikat = "C"']},
+  {id:'pP',type:'proc',x:500,y:660,w:200,h:48,text:['print(predikat)']},
+  {id:'end',type:'term',x:500,y:740,w:160,h:44,text:['SELESAI']}],
+ edges:[
+  {id:'eS', pts:[[500,60],[500,104]]},
+  {id:'eT1',pts:[[645,160],[704,160]], lbl:{txt:'True', cls:'t', x:672, y:148}},
+  {id:'eF1',pts:[[500,215],[500,291]], lbl:{txt:'False',cls:'f', x:515, y:258, a:'start'}},
+  {id:'eT2',pts:[[645,350],[704,350]], lbl:{txt:'True', cls:'t', x:672, y:338}},
+  {id:'eF2',pts:[[500,405],[500,517]], lbl:{txt:'False',cls:'f', x:515, y:467, a:'start'}},
+  {id:'eAx',pts:[[910,160],[964,160],[964,660],[604,660]]},
+  {id:'eBx',pts:[[910,350],[964,350],[964,660],[604,660]]},
+  {id:'eCx',pts:[[500,564],[500,632]]},
+  {id:'eE', pts:[[500,684],[500,714]]}],
+ trace(inp){
+  const n=inp.nilai, a=inp.absen, S=[];
+  const A=n>=80, Bl=a<=3, R1=A&&Bl, Oa=a===0, R2=A||Oa;
+  const b=v=>`<b class="${v?'t':'f'}">${v}</b>`;
+  S.push({line:0,node:'start',kind:'start',
+   note:`Program dimulai. Dua variabel diisi dari panel input: <code>nilai = ${n}</code> dan <code>absen = ${a}</code>.`,
+   fx:{assign:{nilai:String(n),absen:String(a)}}});
+  S.push({line:3,node:'d1',edgeIn:'eS',kind:'eval',
+   eval:{text:`${n} ≥ 80 and ${a} ≤ 3`,result:R1},
+   note:`Baris 4 — kondisi <code>if</code> menggabungkan dua uji dengan <code>and</code>: <code>${n} >= 80</code> → ${b(A)} · <code>${a} <= 3</code> → ${b(Bl)}. <code>and</code> hanya True jika <em>keduanya</em> True → ${b(R1)}.`});
+  if(R1){
+   S.push({line:4,node:'pA',edgeIn:'eT1',kind:'branch',fx:{dim:[5,6,7,8]},
+    note:`Hasil gabungan <b class="t">True</b> — blok if dijalankan; <code>elif</code> dan <code>else</code> tidak pernah diuji.`});
+   S.push({line:4,node:'pA',kind:'act',fx:{assign:{predikat:'"A"'}},
+    note:`Baris 5 — <code>predikat = "A"</code>.`});
+   S.push({line:10,node:'pP',edgeIn:'eAx',kind:'act',fx:{console:'A'},
+    note:`Alur keluar dari percabangan — <code>print(predikat)</code> mencetak <code>A</code>.`});
+  }else{
+   S.push({line:5,node:'d2',edgeIn:'eF1',kind:'eval',
+    eval:{text:`${n} ≥ 80 or ${a} == 0`,result:R2},fx:{dim:[4]},
+    note:`<code>and</code> gagal, jadi Python turun ke <code>elif</code> (baris 6) yang memakai <code>or</code>: <code>${n} >= 80</code> → ${b(A)} · <code>${a} == 0</code> → ${b(Oa)}. <code>or</code> cukup <em>salah satu</em> True → ${b(R2)}.`});
+   if(R2){
+    S.push({line:6,node:'pB',edgeIn:'eT2',kind:'branch',fx:{dim:[7,8]},
+     note:`<code>or</code> menghasilkan <b class="t">True</b> — blok <code>elif</code> dijalankan, blok <code>else</code> dilewati.`});
+    S.push({line:6,node:'pB',kind:'act',fx:{assign:{predikat:'"B"'}},
+     note:`Baris 7 — <code>predikat = "B"</code>.`});
+    S.push({line:10,node:'pP',edgeIn:'eBx',kind:'act',fx:{console:'B'},
+     note:`Alur keluar dari percabangan — <code>print(predikat)</code> mencetak <code>B</code>.`});
+   }else{
+    S.push({line:8,node:'pC',edgeIn:'eF2',kind:'branch',fx:{dim:[6]},
+     note:`Semua kondisi <b class="f">False</b> — blok <code>else</code> yang dijalankan.`});
+    S.push({line:8,node:'pC',kind:'act',fx:{assign:{predikat:'"C"'}},
+     note:`Baris 9 — <code>predikat = "C"</code>.`});
+    S.push({line:10,node:'pP',edgeIn:'eCx',kind:'act',fx:{console:'C'},
+     note:`Alur keluar dari percabangan — <code>print(predikat)</code> mencetak <code>C</code>.`});
+   }
+  }
+  S.push({line:10,node:'end',edgeIn:'eE',kind:'end',
+   note:`Program selesai. Coba <code>absen = 5</code> (membuat <code>and</code> gagal tapi <code>or</code> berhasil), atau <code>nilai = 70</code> + <code>absen = 4</code> (semua gagal) — dan lihat jalurnya berpindah cabang.`});
+  return S;
+ }
+}
+];
+
+/* ═══════════════ REFERENSI DOM ═══════════════ */
+const codeEl=$('#code'), fieldsEl=$('#fields'), consEl=$('#console'), varsEl=$('#vars');
+const flowEl=$('#flow'), flowScroll=$('#flowScroll'), snoteEl=$('#snote'), badgeEl=$('#badge');
+const stepCountEl=$('#stepCount'), pbarEl=$('#pbar'), lgGhost=$('#lgGhost');
+const btnReset=$('#btnReset'), btnStep=$('#btnStep'), btnRun=$('#btnRun');
+
+const IC={
+ play:'<svg viewBox="0 0 24 24" class="ic"><path d="M8 5v14l11-7z"/></svg>',
+ pause:'<svg viewBox="0 0 24 24" class="ic"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
+ step:'<svg viewBox="0 0 24 24" class="ic"><path d="M6 5v14l9-7z"/><path d="M17.5 5h2.4v14h-2.4z"/></svg>',
+ reset:'<svg viewBox="0 0 24 24" class="ic st"><polyline points="2 4 2 10 8 10"/><path d="M4.6 15a9 9 0 1 0 2-9.4L2 10"/></svg>'
+};
+const KIND={start:'MULAI',eval:'UJI KONDISI',branch:'PILIH CABANG',act:'EKSEKUSI',end:'SELESAI'};
+
+/* ═══════════════ STATE RUNTIME ═══════════════ */
+let scIndex=0, sc=null, trace=[], iStep=-1;
+let busy=false, running=false, autoTimer=null, SPEED=1100;
+let trailEdges=[], ghostEdges=null, activeNode=null, stateVars={};
+let codeEls=[], edgeEls={}, nodeEls={}, edgeById={}, token=null, ghostG=null, evalG=null;
+let labelList=[], lineNode=new Map(), nodeLines=new Map();
+let evalTextEl=null, evalRectEl=null;
+
+/* ═══════════════ RENDER ═══════════════ */
+function buildTabs(){
+  const t=$('#tabs'); t.innerHTML='';
+  SC.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='tab'+(i===scIndex?' on':'');
+    b.innerHTML=`<span class="tno">0${i+1}</span><span class="tt">${s.name}</span><span class="td">${s.tag}</span>`;
+    b.addEventListener('click',()=>{ if(i!==scIndex) loadScenario(i); });
+    t.appendChild(b);
+  });
+}
+
+function renderCode(){
+  codeEl.innerHTML=''; codeEls=[];
+  sc.code.forEach((ln,i)=>{
+    const d=document.createElement('div'); d.className='cl';
+    d.innerHTML=`<span class="ln">${i+1}</span><span class="ct">${hl(ln)||'\u00A0'}</span>`;
+    d.addEventListener('mouseenter',()=>{
+      const nid=lineNode.get(i);
+      if(nid && nodeEls[nid]) nodeEls[nid].classList.add('hint');
+    });
+    d.addEventListener('mouseleave',()=>{
+      Object.values(nodeEls).forEach(g=>g.classList.remove('hint'));
+    });
+    codeEl.appendChild(d); codeEls.push(d);
+  });
+}
+
+function buildFields(){
+  fieldsEl.innerHTML='';
+  sc.vars.forEach(v=>{
+    const f=document.createElement('div'); f.className='field';
+    if(v.type==='num'){
+      f.innerHTML=`<div class="frow"><label>${v.name}</label><span class="fval">${v.def}</span></div>
+        <input type="range" min="${v.min}" max="${v.max}" step="${v.step}" value="${v.def}" data-var="${v.name}">
+        <div class="fmeta"><span>${v.min}</span><span>${v.max}</span></div>`;
+      const r=f.querySelector('input'), fv=f.querySelector('.fval');
+      r.addEventListener('input',()=>{ fv.textContent=r.value; onVarChange(); });
+    }else{
+      f.innerHTML=`<div class="frow"><label>${v.name}</label>
+        <div class="seg" data-var="${v.name}" data-val="${v.def}">
+          <button type="button" class="${v.def===true?'onT':''}" data-v="true">True</button>
+          <button type="button" class="${v.def===false?'onF':''}" data-v="false">False</button>
+        </div></div>`;
+      const seg=f.querySelector('.seg');
+      seg.querySelectorAll('button').forEach(bt=>{
+        bt.addEventListener('click',()=>{
+          seg.dataset.val=bt.dataset.v;
+          seg.querySelectorAll('button').forEach(x=>x.classList.remove('onT','onF'));
+          bt.classList.add(bt.dataset.v==='true'?'onT':'onF');
+          onVarChange();
+        });
+      });
+    }
+    fieldsEl.appendChild(f);
+  });
+}
+
+function renderFlow(){
+  flowEl.innerHTML=''; edgeEls={}; nodeEls={}; labelList=[];
+  flowEl.setAttribute('viewBox',`0 0 1000 ${sc.vb}`);
+  const defs=E('defs',{},flowEl);
+  [['arrI','#26221B'],['arrA','#D34A1E']].forEach(([id,fill])=>{
+    const m=E('marker',{id,markerUnits:'userSpaceOnUse',markerWidth:'12',markerHeight:'12',
+      refX:'10',refY:'5',orient:'auto'},defs);
+    E('path',{d:'M0,0 L11,5 L0,10 Z',fill},m);
+  });
+  ghostG=E('g',{id:'ghost'},flowEl);
+
+  sc.edges.forEach(ed=>{
+    edgeById[ed.id]=ed;
+    const g=E('g',{class:'edge'},flowEl);
+    const d='M '+ed.pts.map(p=>p[0]+' '+p[1]).join(' L ');
+    const base=E('path',{class:'base',d,'marker-end':'url(#arrI)'},g);
+    const ovl=E('path',{class:'ovl',d},g);
+    if(ed.lbl){
+      const lg=E('g',{class:'elbl '+ed.lbl.cls},g);
+      const bg=E('rect',{class:'elbg'},lg);
+      const tx=E('text',{x:ed.lbl.x,y:ed.lbl.y,
+        'text-anchor':ed.lbl.a||'middle'},lg);
+      tx.textContent=ed.lbl.txt;
+      lg.insertBefore(bg,tx);
+      labelList.push({bg,tx});
+    }
+    edgeEls[ed.id]={g,base,ovl};
+  });
+
+  sc.nodes.forEach(nd=>{
+    const g=E('g',{class:'node '+nd.type,'data-id':nd.id},flowEl);
+    if(nd.type==='dec'){
+      E('path',{class:'shape',d:`M ${nd.x} ${nd.y-nd.h/2} L ${nd.x+nd.w/2} ${nd.y} L ${nd.x} ${nd.y+nd.h/2} L ${nd.x-nd.w/2} ${nd.y} Z`},g);
+    }else{
+      E('rect',{class:'shape',x:nd.x-nd.w/2,y:nd.y-nd.h/2,width:nd.w,height:nd.h,
+        rx:nd.type==='term'?nd.h/2:3},g);
+    }
+    const t=E('text',{x:nd.x},g);
+    nd.text.forEach((s,i)=>{
+      E('tspan',{x:nd.x, y:nd.y+(nd.text.length===1?5:(i===0?-3:17))},t).textContent=s;
+    });
+    g.addEventListener('mouseenter',()=>{
+      const li=nodeLines.get(nd.id);
+      if(li!=null && codeEls[li]) codeEls[li].classList.add('hint');
+    });
+    g.addEventListener('mouseleave',()=>{
+      codeEls.forEach(c=>c.classList.remove('hint'));
+    });
+    nodeEls[nd.id]=g;
+  });
+
+  evalG=E('g',{id:'evalpop'},flowEl);
+  evalRectEl=E('rect',{class:'ebg',rx:'5'},evalG);
+  evalTextEl=E('text',{class:'etxt',y:'5'},evalG);
+
+  const tg=E('g',{id:'token',style:'opacity:0'},flowEl);
+  E('circle',{class:'ring',r:'8'},tg);
+  E('circle',{class:'core',r:'6.5'},tg);
+  token=tg;
+
+  // sembunyikan semua overlay jalur di awal
+  Object.values(edgeEls).forEach(e=>{
+    const L=e.ovl.getTotalLength();
+    e.ovl.setAttribute('stroke-dasharray',L);
+    e.ovl.setAttribute('stroke-dashoffset',L);
+  });
+  measureLabels();
+}
+
+function measureLabels(){
+  labelList.forEach(l=>{
+    try{
+      const b=l.tx.getBBox();
+      l.bg.setAttribute('x',b.x-5); l.bg.setAttribute('y',b.y-2.5);
+      l.bg.setAttribute('width',b.width+10); l.bg.setAttribute('height',b.height+5);
+    }catch(e){}
+  });
+}
+
+function renderGhost(){
+  if(!ghostG) return;
+  ghostG.innerHTML='';
+  if(ghostEdges && ghostEdges.length){
+    ghostEdges.forEach(id=>{
+      const ed=edgeById[id];
+      if(ed) E('path',{d:'M '+ed.pts.map(p=>p[0]+' '+p[1]).join(' L ')},ghostG);
+    });
+    lgGhost.classList.remove('off');
+  }else{
+    lgGhost.classList.add('off');
+  }
+}
+
+/* ═══════════════ INPUT & TRACE ═══════════════ */
+function readInputs(){
+  const out={};
+  fieldsEl.querySelectorAll('[data-var]').forEach(el=>{
+    const name=el.dataset.var;
+    if(el.tagName==='INPUT') out[name]=Number(el.value);
+    else out[name]=el.dataset.val==='true';
+  });
+  return out;
+}
+function rebuildTrace(){
+  trace=sc.trace(readInputs());
+  lineNode.clear(); nodeLines.clear();
+  trace.forEach(s=>{
+    if(s.line!=null){
+      lineNode.set(s.line,s.node);
+      if(!nodeLines.has(s.node)) nodeLines.set(s.node,s.line);
+    }
+  });
+}
+function onVarChange(){
+  rebuildTrace();
+  resetRun({ghost:true});
+}
+
+/* ═══════════════ EKSEKUSI ═══════════════ */
+function placeToken(x,y){
+  token.setAttribute('transform',`translate(${x},${y})`);
+  token.style.opacity='1';
+}
+function centerOn(g){
+  const wr=flowScroll.getBoundingClientRect();
+  const br=g.querySelector('.shape').getBoundingClientRect();
+  const target=flowScroll.scrollTop+(br.top+br.height/2-wr.top)-wr.height/2;
+  flowScroll.scrollTo({top:Math.max(0,target),behavior:'smooth'});
+}
+function setActiveNode(id){
+  if(activeNode && nodeEls[activeNode]){
+    nodeEls[activeNode].classList.remove('active');
+    nodeEls[activeNode].classList.add('visited');
+  }
+  activeNode=id;
+  const g=nodeEls[id];
+  g.classList.add('active');
+  centerOn(g);
+}
+function showEval(s){
+  const nd=sc.nodes.find(n=>n.id===s.node);
+  const ep=nd.ep||[nd.x,nd.y+nd.h/2+38];
+  evalTextEl.textContent=`${s.eval.text} → ${s.eval.result}`;
+  try{
+    const w=evalTextEl.getComputedTextLength();
+    evalRectEl.setAttribute('x',-w/2-12); evalRectEl.setAttribute('width',w+24);
+    evalRectEl.setAttribute('y',-17); evalRectEl.setAttribute('height',34);
+  }catch(e){}
+  evalG.setAttribute('transform',`translate(${ep[0]},${ep[1]})`);
+  evalG.classList.remove('t','f');
+  evalG.classList.add(s.eval.result?'t':'f');
+  evalG.classList.add('show');
+}
+function hideEval(){ evalG.classList.remove('show'); }
+function pushConsole(txt){
+  const em=consEl.querySelector('.cempty'); if(em) em.remove();
+  const d=document.createElement('div'); d.className='co';
+  d.innerHTML=`<i>»</i>${esc(txt)}`;
+  consEl.appendChild(d); consEl.scrollTop=consEl.scrollHeight;
+}
+function renderVars(flashKey){
+  const keys=Object.keys(stateVars);
+  if(!keys.length){
+    varsEl.innerHTML='<span class="empty">belum ada variabel — jalankan program</span>';
+    return;
+  }
+  varsEl.innerHTML=keys.map(k=>
+    `<span class="chip mono${k===flashKey?' flash':''}"><span class="vn">${k}</span> = <b>${esc(stateVars[k])}</b></span>`
+  ).join('');
+}
+
+function applyStep(s){
+  codeEls.forEach(c=>c.classList.remove('on'));
+  if(s.line!=null && codeEls[s.line]){
+    codeEls[s.line].classList.add('on');
+    codeEls[s.line].scrollIntoView({block:'nearest'});
+  }
+  if(s.fx && s.fx.dim) s.fx.dim.forEach(li=>{
+    if(codeEls[li]) codeEls[li].classList.add('dim');
+  });
+  if(s.fx && s.fx.console) pushConsole(s.fx.console);
+  if(s.fx && s.fx.assign){
+    const keys=Object.keys(s.fx.assign);
+    keys.forEach(k=>stateVars[k]=s.fx.assign[k]);
+    renderVars(keys[0]);
+  }
+  setActiveNode(s.node);
+  const nd=sc.nodes.find(n=>n.id===s.node);
+  if(!s.edgeIn) placeToken(nd.x,nd.y);
+  if(s.eval) showEval(s); else hideEval();
+
+  badgeEl.textContent=KIND[s.kind]||'EKSEKUSI';
+  badgeEl.dataset.k=s.kind;
+  snoteEl.innerHTML=s.note;
+  snoteEl.classList.remove('in'); void snoteEl.offsetWidth; snoteEl.classList.add('in');
+
+  stepCountEl.textContent=`LANGKAH ${String(iStep+1).padStart(2,'0')}/${trace.length}`;
+  pbarEl.style.width=((iStep+1)/trace.length*100)+'%';
+
+  if(iStep===trace.length-1){
+    running=false; clearTimeout(autoTimer);
+    setRunBtn('ulang'); btnStep.disabled=true;
+  }
+}
+
+function animateEdge(id){
+  return new Promise(res=>{
+    const e=edgeEls[id], path=e.base, ovl=e.ovl;
+    const L=path.getTotalLength();
+    ovl.style.strokeDasharray=L;
+    ovl.style.strokeDashoffset=L;
+    path.setAttribute('marker-end','url(#arrA)');
+    e.g.querySelectorAll('.elbl').forEach(x=>x.classList.add('on'));
+    trailEdges.push(id);
+    const dur=420, t0=performance.now();
+    const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+    (function fr(t){
+      const k=Math.min(1,(t-t0)/dur);
+      const p=path.getPointAtLength(ease(k)*L);
+      token.setAttribute('transform',`translate(${p.x},${p.y})`);
+      token.style.opacity='1';
+      ovl.style.strokeDashoffset=L*(1-ease(k));
+      if(k<1) requestAnimationFrame(fr); else res();
+    })(t0);
+  });
+}
+
+async function stepForward(){
+  if(busy || iStep>=trace.length-1) return false;
+  busy=true;
+  const s=trace[++iStep];
+  if(s.edgeIn) await animateEdge(s.edgeIn);
+  applyStep(s);
+  busy=false;
+  return true;
+}
+
+/* ═══════════════ KENDALI ═══════════════ */
+function setRunBtn(mode){
+  btnRun.innerHTML = mode==='pause' ? IC.pause+'<span>JEDA</span>'
+    : mode==='ulang' ? IC.reset+'<span>ULANGI</span>'
+    : IC.play+'<span>JALANKAN</span>';
+}
+function stopAuto(){
+  running=false; clearTimeout(autoTimer);
+  setRunBtn(iStep>=trace.length-1&&iStep>=0?'ulang':'run');
+}
+async function toggleRun(){
+  if(running){ stopAuto(); return; }
+  if(iStep>=trace.length-1) resetRun({ghost:true});
+  running=true; setRunBtn('pause'); autoLoop();
+}
+async function autoLoop(){
+  if(!running) return;
+  if(busy){ autoTimer=setTimeout(autoLoop,120); return; }
+  const ok=await stepForward();
+  if(!running) return;
+  if(!ok || iStep>=trace.length-1){ stopAuto(); return; }
+  autoTimer=setTimeout(autoLoop,Math.max(80,SPEED-420));
+}
+function resetRun(opts={}){
+  stopAuto();
+  if(opts.ghost && trailEdges.length){ ghostEdges=[...trailEdges]; renderGhost(); }
+  iStep=-1; busy=false;
+  trailEdges=[]; stateVars={}; activeNode=null;
+  Object.values(nodeEls).forEach(g=>g.classList.remove('active','visited','hint'));
+  Object.values(edgeEls).forEach(e=>{
+    e.base.setAttribute('marker-end','url(#arrI)');
+    e.ovl.removeAttribute('style');
+    e.g.querySelectorAll('.elbl').forEach(x=>x.classList.remove('on'));
+  });
+  if(token) token.style.opacity='0';
+  hideEval();
+  codeEls.forEach(c=>c.classList.remove('on','dim'));
+  consEl.innerHTML='<span class="cempty">menunggu eksekusi…</span>';
+  renderVars();
+  badgeEl.textContent='SIAP'; badgeEl.dataset.k='';
+  snoteEl.innerHTML='Tekan <b>Jalankan</b> untuk eksekusi otomatis, atau <b>Langkah</b> untuk maju selangkah. Arahkan kursor ke baris kode / node untuk melihat pasangannya.';
+  snoteEl.classList.remove('in');
+  stepCountEl.textContent=`LANGKAH 00/${trace.length}`;
+  pbarEl.style.width='0';
+  btnStep.disabled=false;
+  setRunBtn('run');
+}
+
+function loadScenario(i){
+  scIndex=i; sc=SC[i];
+  trailEdges=[]; ghostEdges=null;
+  buildTabs();
+  $('#blurb').innerHTML=sc.blurb;
+  $('#codeMeta').textContent='skenario: '+sc.name;
+  $('#figMeta').textContent=sc.fig+' · ALUR EKSEKUSI';
+  renderCode(); buildFields(); renderFlow(); renderGhost();
+  rebuildTrace();
+  resetRun({ghost:false});
+}
+
+/* ═══════════════ INIT ═══════════════ */
+btnReset.innerHTML=IC.reset+'<span>RESET</span>';
+btnStep.innerHTML=IC.step+'<span>LANGKAH</span>';
+
+btnReset.addEventListener('click',()=>resetRun({ghost:true}));
+btnStep.addEventListener('click',()=>{ if(!busy) stepForward(); });
+btnRun.addEventListener('click',toggleRun);
+
+ $('#speed').querySelectorAll('.sp').forEach(b=>{
+  b.addEventListener('click',()=>{
+    SPEED=Number(b.dataset.d);
+    $('#speed').querySelectorAll('.sp').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+
+window.addEventListener('keydown',e=>{
+  if(e.target.closest('input,button,select,textarea')) return;
+  if(e.code==='Space'){ e.preventDefault(); running?stopAuto():toggleRun(); }
+  else if(e.key==='ArrowRight'){ e.preventDefault(); if(!busy) stepForward(); }
+  else if(e.key==='r'||e.key==='R'){ resetRun({ghost:true}); }
+});
+
+loadScenario(0);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(measureLabels);
+</script>
+</body>
+</html>
