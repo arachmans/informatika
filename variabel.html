@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variabel & Tipe Data Python — Jurnal Visual</title>
+<script>
+  /* Jaring pengaman anti-blank: kelas 'js' hanya menyembunyikan seksi
+     selama skrip utama dipastikan berjalan; jika gagal, kelas dilepas otomatis. */
+  document.documentElement.classList.add('js');
+  window.__pyFallback = setTimeout(function(){
+    document.documentElement.classList.remove('js');
+  }, 1200);
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=JetBrains+Mono:ital,wght@0,400..800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --paper:#f2ecdd; --paper-hi:#faf6ea; --panel:#f7f2e4;
+    --ink:#26231c; --ink-soft:#6e6754; --line:rgba(38,35,28,.08);
+    --accent:#c14b3a; --accent-d:#9a3a2c;
+    --c-int:#3e7a52; --c-float:#35678c; --c-str:#c14b3a; --c-bool:#a37f2a;
+    --c-list:#9a5b2b; --c-tuple:#6f6252; --c-dict:#8c4a62; --c-set:#6d7a34; --c-none:#8a8578;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  html{scroll-behavior:smooth;scroll-padding-top:72px}
+  body{
+    font-family:var(--serif); color:var(--ink); padding-top:58px;
+    background-color:var(--paper);
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:26px 26px;
+  }
+  ::selection{background:var(--accent);color:#fff8ef}
+  button{font-family:var(--mono)}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+  /* ===== NAV ===== */
+  .nav{position:fixed;inset:0 0 auto;height:58px;display:flex;align-items:center;gap:26px;padding:0 26px;
+    background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(7px);
+    border-bottom:1.5px solid var(--ink);z-index:50}
+  .brand{font:800 15px var(--mono)}
+  .brand b{color:var(--accent)}
+  .brand .vol{font:700 9.5px var(--mono);letter-spacing:.2em;color:var(--ink-soft);margin-left:8px}
+  .nav .links{margin-left:auto;display:flex;gap:2px}
+  .nav a{font:700 10.5px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);text-decoration:none;padding:8px 10px;border-radius:5px;transition:.15s}
+  .nav a:hover{color:var(--ink);background:rgba(38,35,28,.06)}
+  .nav a.act{color:var(--accent-d);box-shadow:inset 0 -2px 0 var(--accent)}
+
+  /* ===== HERO ===== */
+  .hero{padding:70px 0 30px}
+  .hero-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:48px;align-items:center}
+  .eyebrow{font:700 11px var(--mono);letter-spacing:.28em;color:var(--accent-d)}
+  .title{font:600 clamp(34px,4.6vw,56px)/1.08 var(--serif);letter-spacing:-.5px;margin:16px 0 18px}
+  .title em{font-style:italic;color:var(--accent);font-weight:700}
+  .hero-sub{font:15px/1.7 var(--serif);color:var(--ink-soft);max-width:56ch}
+  .hero-code{font:800 clamp(28px,3vw,42px) var(--mono);display:flex;align-items:baseline;gap:12px;min-height:100px;flex-wrap:wrap}
+  .hero-val{display:inline-flex;flex-direction:column;gap:5px}
+  .hero-val .tag{font:700 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
+  .hero-val .val{font-weight:800}
+  .hero-val.in .val{animation:valIn .45s cubic-bezier(.2,.7,.3,1)}
+  @keyframes valIn{from{opacity:0;transform:translateY(12px) scale(.95)}}
+  .hero-desc{margin-top:12px;font:italic 14px/1.55 var(--serif);color:var(--ink-soft);min-height:44px}
+  .hero-tip{margin-top:14px;padding-top:12px;border-top:1.5px dashed rgba(38,35,28,.25);font:11.5px/1.6 var(--mono);color:var(--ink-soft)}
+  .hero-tip b{color:var(--accent-d)}
+  .hero-index{margin-top:52px;border-top:1.5px solid var(--ink)}
+  .hero-index a{display:grid;grid-template-columns:52px 200px 1fr;align-items:center;gap:12px;padding:15px 6px;border-bottom:1.5px solid var(--ink);text-decoration:none;color:var(--ink);transition:.18s}
+  .hero-index a:hover{background:rgba(38,35,28,.05);padding-left:16px}
+  .hero-index .n{font:800 20px var(--mono);color:var(--accent)}
+  .hero-index .t{font:700 17px var(--serif)}
+  .hero-index .d{font:italic 13px var(--serif);color:var(--ink-soft)}
+
+  /* ===== PANEL & CHIPS & TOMBOL ===== */
+  .panel{background:var(--panel);border:1.5px solid var(--ink);border-radius:10px;box-shadow:5px 5px 0 rgba(38,35,28,.1);overflow:hidden}
+  .panel-cap{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1.5px solid var(--ink);font:700 10px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);background:rgba(38,35,28,.045)}
+  .panel-cap .right{margin-left:auto;letter-spacing:.08em}
+  .panel-body{padding:16px}
+  .mini-btn{font:700 9.5px var(--mono);letter-spacing:.1em;padding:4px 9px;border:1px solid rgba(38,35,28,.4);background:none;border-radius:4px;cursor:pointer;color:var(--ink-soft)}
+  .mini-btn:hover{color:var(--ink);background:rgba(38,35,28,.07)}
+  .chip{--c:var(--ink);font-family:var(--mono);font-size:12px;font-weight:700;padding:3px 9px;border-radius:5px;
+    border:1.5px solid color-mix(in srgb,var(--c) 60%,transparent);
+    background:color-mix(in srgb,var(--c) 10%,var(--paper-hi));color:var(--c);white-space:nowrap;display:inline-block}
+  .chip.big{font-size:15px;padding:6px 12px}
+  .chip-int{--c:var(--c-int)} .chip-float{--c:var(--c-float)} .chip-str{--c:var(--c-str)}
+  .chip-bool{--c:var(--c-bool)} .chip-list{--c:var(--c-list)} .chip-tuple{--c:var(--c-tuple)}
+  .chip-dict{--c:var(--c-dict)} .chip-set{--c:var(--c-set)} .chip-none{--c:var(--c-none)}
+  .t-int{--c:var(--c-int)} .t-float{--c:var(--c-float)} .t-str{--c:var(--c-str)} .t-bool{--c:var(--c-bool)}
+  .t-list{--c:var(--c-list)} .t-tuple{--c:var(--c-tuple)} .t-dict{--c:var(--c-dict)} .t-set{--c:var(--c-set)}
+  .t-none{--c:var(--c-none)} .t-error{--c:var(--accent)}
+  .c-int{color:var(--c-int)} .c-float{color:var(--c-float)} .c-str{color:var(--c-str)} .c-bool{color:var(--c-bool)}
+  .c-list{color:var(--c-list)} .c-tuple{color:var(--c-tuple)} .c-dict{color:var(--c-dict)} .c-set{color:var(--c-set)} .c-none{color:var(--c-none)}
+  .btn{font:700 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:11px 15px;border:1.5px solid var(--ink);
+    background:var(--paper-hi);color:var(--ink);border-radius:6px;cursor:pointer;box-shadow:3px 3px 0 rgba(38,35,28,.18);transition:.12s}
+  .btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 rgba(38,35,28,.22)}
+  .btn:active{transform:translate(1px,1px);box-shadow:none}
+  .btn:disabled{opacity:.4;cursor:default;transform:none;box-shadow:3px 3px 0 rgba(38,35,28,.1)}
+  .btn.acc{background:var(--accent);color:#fff8ef;border-color:var(--accent-d)}
+  .btn.ghost{background:transparent;box-shadow:none;border-style:dashed}
+  .btn.danger{border-color:var(--accent);color:var(--accent-d)}
+  .btn.sm{padding:7px 11px;font-size:10px}
+  .row-btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .empty{font:italic 12px var(--mono);color:var(--ink-soft);padding:6px 0}
+
+  /* ===== SECTION ===== */
+  .sec{padding:92px 0 10px}
+  .sec-head{display:flex;gap:24px;align-items:flex-start;margin-bottom:26px}
+  .sec-num{font:900 62px/.9 var(--serif);color:transparent;-webkit-text-stroke:1.6px var(--accent);letter-spacing:-2px;flex:none}
+  .sec-t h2{font:650 clamp(24px,3vw,34px) var(--serif);letter-spacing:-.3px}
+  .sec-sub{margin-top:8px;max-width:72ch;font:14px/1.65 var(--serif);color:var(--ink-soft)}
+  .sec-sub code{font:12.5px var(--mono);background:rgba(38,35,28,.07);padding:1px 5px;border-radius:4px}
+  /* reveal hanya disembunyikan bila JS pasti berjalan (kelas .js di <html>) */
+  .js .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .js .reveal.in{opacity:1;transform:none}
+
+  /* ===== 01 BINDING ===== */
+  .bind-grid{display:grid;grid-template-columns:5fr 7fr;gap:22px;align-items:start}
+  .code-line{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:6px;cursor:pointer;border-left:3px solid transparent;transition:.15s}
+  .code-line:hover{background:rgba(38,35,28,.05)}
+  .code-line code{font:600 13.5px var(--mono)}
+  .code-line .ln{font:11px var(--mono);color:var(--ink-soft);width:16px;text-align:right;flex:none}
+  .code-line.done{border-left-color:var(--accent)}
+  .code-line.done .ln{color:var(--accent-d);font-weight:800}
+  .code-line.next{outline:1.5px dashed color-mix(in srgb,var(--accent) 60%,transparent)}
+  .obs{margin-top:14px;padding:12px;border-top:1.5px dashed rgba(38,35,28,.25);font:12px/1.65 var(--mono);color:var(--ink-soft);min-height:72px}
+  .obs b{color:var(--accent-d);letter-spacing:.1em}
+  .bind-wrap{position:relative;padding:14px 4px;min-height:360px}
+  .bind-cols{display:grid;grid-template-columns:110px 1fr;gap:56px}
+  .bind-col-cap{font:700 9.5px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);padding-bottom:10px}
+  .ns-col{display:flex;flex-direction:column;gap:30px;padding-top:8px}
+  .obj-col{display:flex;flex-direction:column;gap:26px;align-items:flex-start;padding-top:2px}
+  .ns-item{font:700 15px var(--mono);padding:7px 12px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper-hi);width:fit-content;box-shadow:2px 2px 0 rgba(38,35,28,.15)}
+  .obj-item{display:flex;align-items:center;gap:10px;transition:opacity .4s}
+  .obj-item .chip{font-size:14px;padding:5px 10px}
+  .obj-meta{font:italic 10.5px var(--mono);color:var(--ink-soft)}
+  .obj-item.orphan{opacity:.35}
+  .obj-item.orphan .chip{border-style:dashed}
+  #bindSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .bind-line{fill:none;stroke:var(--c);stroke-width:2;stroke-dasharray:5 5;animation:flow 1s linear infinite;opacity:.85}
+  .bind-line.multi{stroke-width:3.5}
+  @keyframes flow{to{stroke-dashoffset:-10}}
+
+  /* ===== 02 SPESIMEN ===== */
+  .spec-grid{display:grid;grid-template-columns:252px 1fr;gap:22px;align-items:start}
+  .spec-nav-wrap .panel-body{padding:0}
+  .spec-nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;background:none;border:0;border-bottom:1px dashed rgba(38,35,28,.18);cursor:pointer;text-align:left;transition:.15s}
+  .spec-nav-item:last-child{border-bottom:0}
+  .spec-nav-item:hover{background:rgba(38,35,28,.05)}
+  .spec-nav-item.act{background:color-mix(in srgb,var(--accent) 8%,transparent);box-shadow:inset 3px 0 0 var(--accent)}
+  .spec-nav-item .ex{margin-left:auto;font:12px var(--mono);color:var(--ink-soft)}
+  .spec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px}
+  .spec-head h3{font:700 27px var(--serif)}
+  .spec-lit{font:700 13px var(--mono);color:var(--ink-soft)}
+  .spec-desc{font:13.5px/1.6 var(--serif);color:var(--ink-soft);margin:6px 0 16px;max-width:62ch}
+  .spec-note{margin-top:18px;padding-top:12px;border-top:1.5px dashed rgba(38,35,28,.22);font:11.5px/1.65 var(--mono);color:var(--ink-soft)}
+  .spec-note b{color:var(--accent-d)}
+  #specBody{min-height:440px}
+  .big-num-wrap{max-height:170px;overflow:auto;border:1.5px solid var(--ink);border-radius:8px;background:var(--paper-hi);padding:14px;scrollbar-width:thin}
+  .big-num{font:800 30px/1.25 var(--mono);word-break:break-all}
+  .big-num.flash{animation:flash .6s}
+  @keyframes flash{0%{background:color-mix(in srgb,var(--accent) 28%,transparent)}}
+  .spec-stat{margin-top:10px;font:12px var(--mono);color:var(--ink-soft)}
+  .spec-stat b{color:var(--ink)}
+  .f-line{font:600 17px var(--mono);margin-bottom:8px}
+  .f-line.big{font-size:21px}
+  .f-line .dim{color:var(--ink-soft)}
+  .f-line .bad{color:var(--accent);font-weight:800}
+  .f-cmp{font:800 24px var(--mono);margin-top:12px;min-height:40px}
+  .f-cmp .cmp-bad{color:var(--accent)}
+  .f-cmp .cmp-ok{color:var(--c-int)}
+  .f-cmp i{display:block;font:italic 400 12px var(--serif);color:var(--ink-soft)}
+  .row-input{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .row-input label{font:700 15px var(--mono)}
+  .row-input input{font:700 15px var(--mono);padding:8px 10px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper-hi);min-width:0;flex:1}
+  .str-chain{display:flex;flex-wrap:wrap;gap:5px;margin:14px 0 10px}
+  .str-cell{width:40px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper-hi);text-align:center;padding:3px 0 2px;transition:.15s}
+  .str-idx{font:9px var(--mono);color:var(--ink-soft)}
+  .str-idx.neg{color:color-mix(in srgb,var(--accent) 75%,var(--ink))}
+  .str-ch{font:700 17px var(--mono);min-height:22px}
+  .str-cell.sel{background:color-mix(in srgb,var(--c-str) 14%,var(--paper-hi));border-color:var(--c-str)}
+  .str-cell.out{opacity:.25}
+  .slice-ctl{display:grid;grid-template-columns:auto 1fr 1fr;gap:14px;align-items:center;padding:10px 12px;border:1.5px dashed rgba(38,35,28,.3);border-radius:8px}
+  .slice-ctl label{font:700 13px var(--mono)}
+  .slice-ctl input[type=range]{accent-color:var(--accent);width:100%}
+  .slice-out{margin-top:10px;font:600 14px var(--mono)}
+  .slice-out i{font:italic 400 12px var(--serif);color:var(--ink-soft)}
+  .bool-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .bool-card{border:2px solid var(--ink);border-radius:10px;padding:18px;text-align:center;font:800 26px var(--mono);background:var(--paper-hi);transition:.25s;opacity:.45}
+  .bool-card.lit{opacity:1;transform:scale(1.03);box-shadow:3px 3px 0 rgba(38,35,28,.16)}
+  .bool-card.lit.t{border-color:var(--c-int);color:var(--c-int);background:color-mix(in srgb,var(--c-int) 9%,var(--paper-hi))}
+  .bool-card.lit.f{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--paper-hi))}
+  .bool-hint{font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+  .bool-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .bool-val{font:700 13px var(--mono);padding:6px 11px;border:1.5px solid rgba(38,35,28,.4);border-radius:99px;background:none;cursor:pointer;transition:.15s}
+  .bool-val:hover{border-color:var(--ink);background:rgba(38,35,28,.06)}
+  .bool-val.sel{border-color:var(--accent);color:var(--accent-d);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+  .bool-note{margin-top:12px;font:12px/1.6 var(--mono);color:var(--ink-soft);min-height:36px}
+  .arr-wrap,.tuple-cells{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end}
+  .arr-cell{border:1.5px solid var(--ink);border-radius:6px;background:var(--paper-hi);min-width:48px;text-align:center;padding:4px 8px}
+  .arr-cell .idx{font:9px var(--mono);color:var(--ink-soft)}
+  .arr-cell .val{font:700 16px var(--mono)}
+  .arr-cell.flash{animation:flash .6s}
+  .arr-cell.bye{animation:bye .3s forwards}
+  @keyframes bye{to{opacity:0;transform:scale(.4)}}
+  .row-ops{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px;font:700 13px var(--mono)}
+  .row-ops input{font:700 13px var(--mono);padding:6px 8px;border:1.5px solid var(--ink);border-radius:5px;background:var(--paper-hi);width:74px}
+  .inline-msg{margin-top:10px;font:11.5px/1.55 var(--mono);color:var(--ink-soft);min-height:18px}
+  .inline-msg.bad{color:var(--accent-d)}
+  .inline-msg b{color:var(--accent-d)}
+  .lock-frame{position:relative;border:3px double var(--c-tuple);border-radius:10px;padding:22px 16px 16px;background:color-mix(in srgb,var(--c-tuple) 6%,var(--paper-hi))}
+  .lock-tag{position:absolute;top:-10px;left:14px;background:var(--panel);padding:0 9px;font:700 10px var(--mono);letter-spacing:.16em;color:var(--c-tuple);display:flex;gap:7px;align-items:center}
+  .tuple-cells{justify-content:center;font:700 20px var(--mono);color:var(--c-tuple)}
+  .lock-frame.shake{animation:shake .4s}
+  .term{background:#262219;color:#efe9d8;border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;font:13px/1.6 var(--mono);min-height:86px}
+  .term .prompt{color:#e0684f;font-weight:700}
+  .term-out.ok{color:#9fd6ac}
+  .term-out.err{color:#f08b74}
+  .term.mini{min-height:0;font-size:12px;margin-top:12px}
+  .dict-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1.5px solid rgba(38,35,28,.35);border-radius:8px;background:var(--paper-hi);margin-bottom:7px;flex-wrap:wrap}
+  .dict-row .chip{font-size:13px}
+  .dict-row.flash{animation:flash .6s}
+  .darr{color:var(--c-dict);font:800 14px var(--mono)}
+  .xbtn{margin-left:auto;font:800 15px var(--mono);width:26px;height:26px;border:1.5px solid rgba(38,35,28,.4);border-radius:5px;background:none;cursor:pointer;color:var(--ink-soft);line-height:1}
+  .xbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .set-stage{position:relative}
+  .set-pouch{position:relative;border:2px dashed color-mix(in srgb,var(--c-set) 60%,transparent);border-radius:20px;padding:24px 16px;min-height:100px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c-set) 5%,transparent)}
+  .set-pouch .chip{font-size:14px;padding:5px 11px}
+  .set-pouch .chip.flash{animation:flash .6s}
+  .reject-chip{position:absolute;left:50%;top:50%;z-index:5;pointer-events:none}
+
+  /* ===== 03 LAB ===== */
+  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+  .lab-main{display:flex;flex-direction:column;gap:22px;min-width:0}
+  .lab-input-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .lab-input-row .mono-label{font:700 11px var(--mono);letter-spacing:.14em;color:var(--ink-soft)}
+  #labInput{font:700 16px var(--mono);padding:10px 12px;border:1.5px solid var(--ink);border-radius:6px;background:var(--paper-hi);flex:1;min-width:200px}
+  .detect{font:700 11px var(--mono);color:var(--c);white-space:nowrap}
+  .lab-chips{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:10px}
+  .chips-label{font:700 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  .ex-chip,.trap{font:600 11.5px var(--mono);padding:4px 10px;border-radius:99px;border:1px solid rgba(38,35,28,.35);background:none;cursor:pointer;color:var(--ink);transition:.15s}
+  .ex-chip:hover{background:rgba(38,35,28,.08)}
+  .trap{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent-d);font-weight:700}
+  .trap:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+  .tgt-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  /* var(--c, fallback) agar kelas t-* tetap menang — sebelumnya default --c menimpanya */
+  .tgt{font:700 13px var(--mono);padding:9px 14px;border-radius:6px;
+    border:1.5px solid var(--c,var(--ink));color:var(--c,var(--ink));
+    background:color-mix(in srgb,var(--c,var(--ink)) 8%,var(--paper-hi));
+    cursor:pointer;transition:.12s;box-shadow:2px 2px 0 rgba(38,35,28,.14)}
+  .tgt:hover{background:color-mix(in srgb,var(--c,var(--ink)) 20%,var(--paper-hi));transform:translate(-1px,-1px)}
+  .tgt:active{transform:none;box-shadow:none}
+  .tgt:disabled{opacity:.45;cursor:default;transform:none}
+  .lab-stage{position:relative;display:grid;grid-template-columns:minmax(130px,1fr) auto minmax(130px,1fr);gap:18px;align-items:center;min-height:240px;margin-bottom:16px}
+  .dock{border:1.5px dashed color-mix(in srgb,var(--ink) 45%,transparent);border-radius:10px;padding:12px;background:color-mix(in srgb,var(--paper-hi) 65%,transparent);min-height:126px;display:flex;flex-direction:column;gap:9px}
+  .dock-cap{display:flex;justify-content:space-between;font:700 10px var(--mono);letter-spacing:.18em;color:var(--ink-soft)}
+  .dock-type{color:var(--c)}
+  .dock-val{display:flex;align-items:center;min-height:46px}
+  .dock-val .dim{font:italic 12px var(--mono);color:var(--ink-soft)}
+  .dock-sub{font:italic 10.5px var(--mono);color:var(--ink-soft)}
+  .machine{width:250px}
+  .m-body{position:relative;border:1.5px solid var(--ink);background:var(--paper-hi);border-radius:10px;padding:14px 16px 44px;box-shadow:4px 4px 0 rgba(38,35,28,.14)}
+  #gearSvg{display:block;width:100%;height:auto}
+  #gearSvg path{fill:none;stroke:var(--ink);stroke-width:2;transform-box:fill-box;transform-origin:center}
+  #gearSvg circle{fill:var(--paper-hi);stroke:var(--ink);stroke-width:2}
+  .m-fn{position:absolute;left:50%;bottom:9px;transform:translateX(-50%);font:700 11px var(--mono);letter-spacing:.1em;color:var(--accent-d);border:1.5px solid color-mix(in srgb,var(--accent) 60%,transparent);border-radius:4px;padding:2px 9px;background:color-mix(in srgb,var(--accent) 8%,var(--paper-hi));white-space:nowrap}
+  .m-door{position:absolute;top:50%;transform:translateY(-50%);width:12px;height:32px;background:var(--ink)}
+  .m-door.l{left:-6px;border-radius:6px 0 0 6px}
+  .m-door.r{right:-6px;border-radius:0 6px 6px 0}
+  .m-belt{margin-top:8px;height:10px;border:1.5px solid var(--ink);border-radius:3px;background:repeating-linear-gradient(45deg,transparent 0 7px,rgba(38,35,28,.28) 7px 14px)}
+  .m-cap{margin-top:7px;text-align:center;font:700 9.5px var(--mono);letter-spacing:.24em;color:var(--ink-soft)}
+  .machine.working #gearA{animation:spin .55s linear infinite}
+  .machine.working #gearB{animation:spin .55s linear infinite reverse}
+  .machine.working .m-belt{animation:beltmove .35s linear infinite}
+  .machine.working .m-body{animation:jit .14s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes beltmove{to{background-position:19.8px 0}}
+  @keyframes jit{0%,100%{transform:translate(0,0)}25%{transform:translate(.7px,-.7px)}75%{transform:translate(-.7px,.7px)}}
+  /* fallback var(--c) — chip terbang selalu diberi kelas t-*, warnanya kini benar */
+  .fly-chip{position:absolute;z-index:30;font:800 14px var(--mono);padding:7px 12px;border-radius:6px;
+    border:1.5px solid var(--c,var(--ink));color:var(--c,var(--ink));background:var(--paper-hi);
+    box-shadow:3px 3px 0 rgba(38,35,28,.2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none}
+  .err-chip{font:800 15px var(--mono);color:var(--accent-d);border:1.5px dashed var(--accent);padding:6px 12px;border-radius:6px;background:color-mix(in srgb,var(--accent) 7%,transparent)}
+  .shake{animation:shake .4s}
+  @keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  .lab-note{margin-top:14px;border-left:3px solid var(--accent);padding:10px 14px;background:color-mix(in srgb,var(--accent) 6%,transparent);border-radius:0 6px 6px 0;font:12.5px/1.65 var(--mono)}
+  .lab-note b{color:var(--accent-d);letter-spacing:.1em}
+  .repl-panel{display:flex;flex-direction:column}
+  .repl-panel .panel-body{display:flex;flex-direction:column;max-height:760px;padding:12px}
+  .repl{background:#262219;border:1.5px solid var(--ink);border-radius:8px;padding:12px;font:12px/1.6 var(--mono);color:#efe9d8;overflow-y:auto;flex:1;min-height:280px;scrollbar-width:thin}
+  .repl-entry{margin-bottom:10px}
+  .r-in{color:#efe9d8}
+  .r-in::before{content:'>>> ';color:#e0684f;font-weight:700}
+  .r-out.ok{color:#9fd6ac}
+  .r-out.err{color:#f08b74}
+  .repl-empty{font:italic 12px var(--mono);color:#8a8271}
+
+  footer{margin-top:100px;border-top:1.5px solid var(--ink);padding:26px 0 44px;font:12px/1.8 var(--mono);color:var(--ink-soft)}
+  footer b{color:var(--accent-d)}
+
+  /* ===== RESPONSIF ===== */
+  @media (max-width:960px){
+    .hero-grid{grid-template-columns:1fr;gap:34px}
+    .bind-grid,.spec-grid,.lab-grid{grid-template-columns:1fr}
+    .hero-index{grid-template-columns:52px 1fr}
+    .hero-index .d{display:none}
+    .repl-panel .panel-body{max-height:340px}
+    .spec-nav-wrap .panel-body{display:flex;flex-wrap:wrap;padding:8px}
+    .spec-nav-item{border-bottom:0;border-radius:6px}
+  }
+  @media (max-width:640px){
+    .lab-stage{grid-template-columns:1fr;gap:14px}
+    .machine{margin:0 auto}
+    .sec-num{font-size:44px}
+    .bind-cols{gap:30px;grid-template-columns:90px 1fr}
+    .nav{gap:10px;padding:0 14px}
+    .nav a{padding:6px 5px;font-size:9px;letter-spacing:.06em}
+    .brand .vol{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="brand">py<b>·</b>notes<span class="vol">VOL.01 — VARIABEL &amp; TIPE</span></div>
+  <nav class="links">
+    <a href="#s1">01 Nama &amp; Objek</a>
+    <a href="#s2">02 Spesimen Tipe</a>
+    <a href="#s3">03 Lab Konversi</a>
+  </nav>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">JURNAL VISUAL · PYTHON · VARIABEL &amp; TIPE DATA</div>
+      <h1 class="title">Variabel hanyalah <em>nama</em>.<br>Nilainya hidup di <em>objek</em>.</h1>
+      <p class="hero-sub">Tiga eksperimen interaktif untuk memahami bagaimana Python menyimpan nilai, mengelompokkannya ke dalam tipe data — dan bagaimana satu nilai berubah wujud saat dikonversi, termasuk saat Python menolaknya.</p>
+      <div class="hero-index">
+        <a href="#s1"><span class="n">01</span><span class="t">Nama &amp; Objek</span><span class="d">ke mana garis referensi menunjuk?</span></a>
+        <a href="#s2"><span class="n">02</span><span class="t">Spesimen Tipe</span><span class="d">delapan tipe, delapan wujud berbeda</span></a>
+        <a href="#s3"><span class="n">03</span><span class="t">Lab Konversi</span><span class="d">lempar nilai ke mesin, lihat wujud barunya</span></a>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-cap">FIG. 0 — SPESIMEN HIDUP</div>
+      <div class="panel-body">
+        <div class="hero-code">x&nbsp;=&nbsp;<span class="hero-val in" id="heroVal"></span></div>
+        <div class="hero-desc" id="heroDesc"></div>
+        <div class="hero-tip">nilai di sini berganti wujud setiap beberapa detik — di Python, <b>tipenya ikut berganti</b>, dan di situlah letak konversi tipe data.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 NAMA & OBJEK ============ -->
+<section id="s1" class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">01</div>
+      <div class="sec-t">
+        <h2>Nama &amp; Objek</h2>
+        <p class="sec-sub">Variabel Python bukan kotak yang "berisi" nilai — ia adalah label yang dijahit ke objek di memori. Jalankan skrip di kiri baris demi baris (atau klik langsung sebuah baris), lalu saksikan garis referensinya bergerak. Perhatikan: <code>y = x</code> tidak menyalin nilai — ia hanya mengarahkan nama kedua ke objek yang sama.</p>
+      </div>
+    </div>
+    <div class="bind-grid reveal">
+      <div class="panel">
+        <div class="panel-cap">FIG. 1.1 — SKRIP EKSPERIMEN</div>
+        <div class="panel-body">
+          <div id="bindCode"></div>
+          <div class="row-btns">
+            <button class="btn acc" id="btnStep">JALANKAN LANGKAH BERIKUTNYA</button>
+            <button class="btn ghost" id="btnReset">RESET</button>
+          </div>
+          <div class="obs" id="obsNote"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-cap">FIG. 1.2 — MEMORI: NAMA → OBJEK</div>
+        <div class="panel-body">
+          <div class="bind-wrap" id="bindWrap">
+            <svg id="bindSvg"></svg>
+            <div class="bind-cols">
+              <div class="bind-col-cap">ruang nama</div>
+              <div class="bind-col-cap">objek di memori</div>
+            </div>
+            <div class="bind-cols">
+              <div class="ns-col" id="nsCol"></div>
+              <div class="obj-col" id="objCol"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 SPESIMEN TIPE ============ -->
+<section id="s2" class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">02</div>
+      <div class="sec-t">
+        <h2>Spesimen Tipe</h2>
+        <p class="sec-sub">Delapan tipe bawaan, delapan wujud berbeda. Pilih dari indeks di kiri, lalu sentuh spesimennya: kuadratkan integer sampai ratusan digit, potong string dengan penggeser irisan, kunci tuple, atau coba menyelundupkan duplikat ke dalam set.</p>
+      </div>
+    </div>
+    <div class="spec-grid reveal">
+      <div class="panel spec-nav-wrap">
+        <div class="panel-cap">FIG. 2.1 — INDEKS SPESIMEN</div>
+        <div class="panel-body" id="specNav"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-cap">FIG. 2.2 — SPESIMEN: <span id="specCapT">INT</span></div>
+        <div class="panel-body" id="specBody"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 LAB KONVERSI ============ -->
+<section id="s3" class="sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-num">03</div>
+      <div class="sec-t">
+        <h2>Lab Konversi — Mesin Perubahan Wujud</h2>
+        <p class="sec-sub">Ketik literal Python apa pun — angka, teks dalam kutip, list, tuple, dict, set — lalu lemparkan ke mesin dengan menekan salah satu fungsi konversi. Nilai akan digiling dan keluar dalam wujud baru… atau ditolak dengan error yang persis seperti Python aslinya.</p>
+      </div>
+    </div>
+    <div class="lab-grid reveal">
+      <div class="lab-main">
+        <div class="panel">
+          <div class="panel-cap">FIG. 3.1 — NILAI PERCOBAAN</div>
+          <div class="panel-body">
+            <div class="lab-input-row">
+              <span class="mono-label">NILAI:</span>
+              <input id="labInput" value="42" spellcheck="false" autocomplete="off">
+              <span class="detect t-int" id="detect">terdeteksi: int</span>
+            </div>
+            <div class="lab-chips" id="exRow">
+              <span class="chips-label">contoh:</span>
+            </div>
+            <div class="lab-chips" id="trapRow">
+              <span class="chips-label">jebakan klasik:</span>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-cap">FIG. 3.2 — MESIN KONVERSI</div>
+          <div class="panel-body">
+            <div class="tgt-row" id="tgtRow"></div>
+            <div class="lab-stage" id="labStage">
+              <div class="dock" id="dockIn">
+                <div class="dock-cap"><span>MASUK</span><span class="dock-type t-int" id="inType">int</span></div>
+                <div class="dock-val" id="inVal"></div>
+                <div class="dock-sub">ubah nilai di panel atas</div>
+              </div>
+              <div class="machine" id="machine">
+                <div class="m-body">
+                  <svg id="gearSvg" viewBox="0 0 100 70"></svg>
+                  <div class="m-fn" id="mFn">—</div>
+                  <div class="m-door l" id="doorL"></div>
+                  <div class="m-door r" id="doorR"></div>
+                </div>
+                <div class="m-belt"></div>
+                <div class="m-cap">MESIN KONVERSI</div>
+              </div>
+              <div class="dock" id="dockOut">
+                <div class="dock-cap"><span>KELUAR</span><span class="dock-type" id="outType">—</span></div>
+                <div class="dock-val" id="outVal"><span class="dim">menunggu percobaan…</span></div>
+                <button class="btn sm" id="useOut" hidden>GUNAKAN HASIL SEBAGAI NILAI BARU</button>
+              </div>
+            </div>
+            <div class="term">
+              <div class="term-line"><span class="prompt">&gt;&gt;&gt;</span> <span id="codeExpr">…</span></div>
+              <div class="term-out" id="codeOut"></div>
+            </div>
+            <div class="lab-note" id="labNote"><b>CATATAN LAB</b> — Pilih salah satu fungsi konversi di atas; nilai akan dilempar ke mesin dan keluar dalam wujud baru.</div>
+          </div>
+        </div>
+      </div>
+      <aside class="panel repl-panel">
+        <div class="panel-cap">FIG. 3.3 — LOG REPL <span class="right"><button class="mini-btn" id="replClear">BERSIHKAN</button></span></div>
+        <div class="panel-body">
+          <div class="repl" id="repl"><div class="repl-empty">riwayat percobaanmu akan tercatat di sini…</div></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <b>py·notes VOL.01</b> — dibuat sebagai alat bantu belajar; seluruh logika konversi meniru semantik Python asli dan berjalan sepenuhnya di peramban Anda.<br>
+    Coba juga: ketik <span style="font-weight:700">[1, "a", 3.5]</span> di Lab Konversi, lalu tekan tombol <span style="font-weight:700">str()</span> dan <span style="font-weight:700">set()</span>.
+  </div>
+</footer>
+
+<script>
+/* ================================================================
+   UTILITAS DASAR
+================================================================ */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+/* Pengaman modul: kegagalan satu modul tidak boleh mematikan modul lain
+   (inilah yang sebelumnya membuat seluruh halaman tampak blank). */
+function safe(name, fn){ try { fn(); } catch (e) { console.error('[py·notes] modul "' + name + '" gagal dimuat:', e); } }
+
+/* ================================================================
+   REVEAL & NAV — didaftarkan PALING AWAL, sebelum modul apa pun,
+   supaya visibilitas seksi tidak pernah bergantung pada modul lain.
+================================================================ */
+safe('reveal', () => {
+  if ('IntersectionObserver' in window){
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    }), { threshold: .1 });
+    $$('.reveal').forEach(x => io.observe(x));
+    const navLinks = $$('.nav .links a');
+    const secIO = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) navLinks.forEach(a => a.classList.toggle('act', a.getAttribute('href') === '#' + e.target.id));
+    }), { rootMargin: '-40% 0px -55% 0px' });
+    ['s1','s2','s3'].forEach(id => secIO.observe(document.getElementById(id)));
+  } else {
+    $$('.reveal').forEach(x => x.classList.add('in'));
+  }
+  /* skrip utama dipastikan hidup → matikan timer jaring pengaman anti-blank */
+  if (window.__pyFallback != null){ clearTimeout(window.__pyFallback); window.__pyFallback = null; }
+});
+
+/* ================================================================
+   SISTEM TIPE PYTHON (representasi nilai ber-tag)
+================================================================ */
+function typeName(v){ return v.t === 'none' ? 'NoneType' : v.t; }
+function floatRepr(n){
+  if (Number.isInteger(n) && Math.abs(n) < 1e16) return n.toFixed(1);
+  return String(n);
+}
+function pyRepr(v){
+  switch (v.t){
+    case 'int':   return v.v.toString();
+    case 'float': return floatRepr(v.v);
+    case 'str':   return "'" + v.v.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+    case 'bool':  return v.v ? 'True' : 'False';
+    case 'none':  return 'None';
+    case 'list':  return '[' + v.v.map(pyRepr).join(', ') + ']';
+    case 'tuple': return v.v.length === 1 ? '(' + pyRepr(v.v[0]) + ',)' : '(' + v.v.map(pyRepr).join(', ') + ')';
+    case 'dict':  return '{' + v.v.map(p => pyRepr(p[0]) + ': ' + pyRepr(p[1])).join(', ') + '}';
+    case 'set':   return v.v.length ? '{' + v.v.map(pyRepr).join(', ') + '}' : 'set()';
+  }
+}
+const pyStr = v => v.t === 'str' ? v.v : pyRepr(v);
+function truthy(v){
+  switch (v.t){
+    case 'bool':  return v.v;
+    case 'int':   return v.v !== 0n;
+    case 'float': return v.v !== 0;
+    case 'str': case 'list': case 'tuple': case 'set': case 'dict': return v.v.length > 0;
+    default: return false;
+  }
+}
+
+/* ================================================================
+   PARSER LITERAL PYTHON (untuk input pengguna)
+================================================================ */
+function splitTop(s){
+  const parts = []; let depth = 0, cur = '', q = null;
+  for (let i = 0; i < s.length; i++){
+    const c = s[i];
+    if (q){ if (c === '\\'){ cur += c + (s[i+1] || ''); i++; continue; } cur += c; if (c === q) q = null; continue; }
+    if (c === '\\'){ cur += c + (s[i+1] || ''); i++; continue; }
+    if (c === "'" || c === '"'){ q = c; cur += c; continue; }
+    if ('([{'.includes(c)){ depth++; cur += c; continue; }
+    if (')]}'.includes(c)){ depth--; cur += c; continue; }
+    if (c === ',' && depth === 0){ parts.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  parts.push(cur);
+  return parts;
+}
+function findTopColon(s){
+  let depth = 0, q = null;
+  for (let i = 0; i < s.length; i++){
+    const c = s[i];
+    if (q){ if (c === '\\'){ i++; continue; } if (c === q) q = null; continue; }
+    if (c === "'" || c === '"'){ q = c; continue; }
+    if ('([{'.includes(c)){ depth++; continue; }
+    if (')]}'.includes(c)){ depth--; continue; }
+    if (c === ':' && depth === 0) return i;
+  }
+  return -1;
+}
+function parseLiteral(text){
+  const s = text.trim();
+  if (s === '') return { err: 'kosong' };
+  if (s === 'True')  return { val: { t:'bool', v:true } };
+  if (s === 'False') return { val: { t:'bool', v:false } };
+  if (s === 'None')  return { val: { t:'none' } };
+  if (/^[+-]?\d+$/.test(s)) return { val: { t:'int', v: BigInt(s) } };
+  if (/^[+-]?(\d+\.\d*|\.\d+|\d+)([eE][+-]?\d+)?$/.test(s) && /[.eE]/.test(s))
+    return { val: { t:'float', v: Number(s) } };
+  if (/^".*"$/.test(s) || /^'.*'$/.test(s)){
+    const inner = s.slice(1, -1).replace(/\\'/g,"'").replace(/\\"/g,'"').replace(/\\\\/g,'\\').replace(/\\n/g,'\n').replace(/\\t/g,'\t');
+    return { val: { t:'str', v: inner } };
+  }
+  if (s[0] === '[' && s.endsWith(']')){
+    const inner = s.slice(1, -1).trim();
+    const items = inner === '' ? [] : splitTop(inner).map(parseLiteral);
+    if (items.some(x => x.err)) return { err: 'baca' };
+    return { val: { t:'list', v: items.map(x => x.val) } };
+  }
+  if (s[0] === '(' && s.endsWith(')')){
+    const inner = s.slice(1, -1).trim();
+    if (inner === '') return { val: { t:'tuple', v: [] } };
+    const items = splitTop(inner).map(parseLiteral);
+    if (items.some(x => x.err)) return { err: 'baca' };
+    const vals = items.map(x => x.val);
+    if (vals.length === 1 && !/,\s*$/.test(inner)) return { val: vals[0] };
+    return { val: { t:'tuple', v: vals } };
+  }
+  if (s[0] === '{' && s.endsWith('}')){
+    const inner = s.slice(1, -1).trim();
+    if (inner === '') return { val: { t:'dict', v: [] } };
+    const parts = splitTop(inner);
+    if (parts.some(p => findTopColon(p) >= 0)){
+      const pairs = [];
+      for (const p of parts){
+        const i = findTopColon(p);
+        if (i < 0) return { err: 'baca' };
+        const k = parseLiteral(p.slice(0, i)), val = parseLiteral(p.slice(i + 1));
+        if (k.err || val.err) return { err: 'baca' };
+        const kk = pyRepr(k.val);
+        const ex = pairs.find(pr => pyRepr(pr[0]) === kk);
+        if (ex) ex[1] = val.val; else pairs.push([k.val, val.val]);
+      }
+      return { val: { t:'dict', v: pairs } };
+    }
+    const items = parts.map(parseLiteral);
+    if (items.some(x => x.err)) return { err: 'baca' };
+    const seen = new Set(), out = [];
+    for (const it of items.map(x => x.val)){ const k = pyRepr(it); if (!seen.has(k)){ seen.add(k); out.push(it); } }
+    return { val: { t:'set', v: out } };
+  }
+  return { err: 'baca' };
+}
+function parseFriendly(s){
+  const r = parseLiteral(String(s).trim());
+  return r.err ? { t:'str', v: String(s).trim() } : r.val;
+}
+
+/* ================================================================
+   MESIN SEMANTIK KONVERSI (meniru Python)
+================================================================ */
+function iterItems(v){
+  switch (v.t){
+    case 'str': return [...v.v].map(c => ({ t:'str', v:c }));
+    case 'list': case 'tuple': case 'set': return v.v.slice();
+    case 'dict': return v.v.map(p => p[0]);
+    default: return null;
+  }
+}
+function convert(v, target){
+  switch (target){
+    case 'str':   return { ok:true, val:{ t:'str', v: pyStr(v) } };
+    case 'int':   return toInt(v);
+    case 'float': return toFloat(v);
+    case 'bool':  return { ok:true, val:{ t:'bool', v: truthy(v) } };
+    case 'list': case 'tuple': return toIter(v, target);
+    case 'set':   return toSet(v);
+    case 'dict':  return toDict(v);
+  }
+}
+function toInt(v){
+  if (v.t === 'int')  return { ok:true, val:{ t:'int', v: v.v } };
+  if (v.t === 'bool') return { ok:true, val:{ t:'int', v: v.v ? 1n : 0n } };
+  if (v.t === 'float'){
+    if (!isFinite(v.v)) return { ok:false, err:{ etype:'OverflowError', msg:'cannot convert float infinity to integer' } };
+    return { ok:true, val:{ t:'int', v: BigInt(Math.trunc(v.v)) } };
+  }
+  if (v.t === 'str'){
+    const s = v.v.trim();
+    if (/^[+-]?\d+$/.test(s)) return { ok:true, val:{ t:'int', v: BigInt(s) } };
+    return { ok:false, err:{ etype:'ValueError', msg:`invalid literal for int() with base 10: '${v.v}'` } };
+  }
+  return { ok:false, err:{ etype:'TypeError', msg:`int() argument must be a string, a bytes-like object or a real number, not '${typeName(v)}'` } };
+}
+function toFloat(v){
+  if (v.t === 'float') return { ok:true, val:{ t:'float', v: v.v } };
+  if (v.t === 'int')   return { ok:true, val:{ t:'float', v: Number(v.v) } };
+  if (v.t === 'bool')  return { ok:true, val:{ t:'float', v: v.v ? 1.0 : 0.0 } };
+  if (v.t === 'str'){
+    const s = v.v.trim();
+    if (/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s)) return { ok:true, val:{ t:'float', v: Number(s) } };
+    return { ok:false, err:{ etype:'ValueError', msg:`could not convert string to float: '${v.v}'` } };
+  }
+  return { ok:false, err:{ etype:'TypeError', msg:`float() argument must be a string or a real number, not '${typeName(v)}'` } };
+}
+function toIter(v, t){
+  const items = iterItems(v);
+  if (items === null) return { ok:false, err:{ etype:'TypeError', msg:`'${typeName(v)}' object is not iterable` } };
+  return { ok:true, val:{ t, v: items } };
+}
+function toSet(v){
+  const items = iterItems(v);
+  if (items === null) return { ok:false, err:{ etype:'TypeError', msg:`'${typeName(v)}' object is not iterable` } };
+  const seen = new Set(), out = [];
+  for (const it of items){ const k = pyRepr(it); if (!seen.has(k)){ seen.add(k); out.push(it); } }
+  return { ok:true, val:{ t:'set', v: out } };
+}
+function toDict(v){
+  if (v.t === 'dict') return { ok:true, val:{ t:'dict', v: v.v.map(p => [p[0], p[1]]) } };
+  if (v.t === 'list' || v.t === 'tuple' || v.t === 'set' || v.t === 'str'){
+    const items = v.t === 'str' ? [...v.v].map(c => ({ t:'str', v:c })) : v.v;
+    const out = [], seen = new Set();
+    for (let i = 0; i < items.length; i++){
+      const e = items[i]; let k, val;
+      if (e.t === 'list' || e.t === 'tuple'){
+        if (e.v.length !== 2) return { ok:false, err:{ etype:'ValueError', msg:`dictionary update sequence element #${i} has length ${e.v.length}; 2 is required` } };
+        [k, val] = e.v;
+      } else if (e.t === 'str'){
+        if (e.v.length !== 2) return { ok:false, err:{ etype:'ValueError', msg:`dictionary update sequence element #${i} has length ${e.v.length}; 2 is required` } };
+        k = { t:'str', v: e.v[0] }; val = { t:'str', v: e.v[1] };
+      } else {
+        return { ok:false, err:{ etype:'TypeError', msg:`cannot convert dictionary update sequence element #${i} to a sequence` } };
+      }
+      const kk = pyRepr(k);
+      if (!seen.has(kk)){ seen.add(kk); out.push([k, val]); }
+      else { out.find(p => pyRepr(p[0]) === kk)[1] = val; }
+    }
+    return { ok:true, val:{ t:'dict', v: out } };
+  }
+  return { ok:false, err:{ etype:'TypeError', msg:`'${typeName(v)}' object is not iterable` } };
+}
+
+/* ================================================================
+   CATATAN EDUKATIF (penjelas per konversi)
+================================================================ */
+const OK_NOTES = {
+  'int->float':'Perhatikan akhiran ".0" — besarannya sama, tapi tipe kini float (desimal 64-bit), bukan lagi int.',
+  'int->str':'Angka berubah jadi teks: "42" tidak bisa lagi dihitung — "42" + 1 akan melempar TypeError.',
+  'int->bool':'Aturan singkat: 0 → False, selain itu True. bool memang subclass dari int (True + True == 2).',
+  'float->int':'int() pada float MEMOTONG ke arah nol (truncation), bukan membulatkan: 3.9 → 3, -3.9 → -3.',
+  'float->str':'Inilah repr float: digit penuh dari representasi biner 64-bit-nya, ditampilkan apa adanya.',
+  'float->bool':'Hanya 0.0 yang falsy — float lain, sekecil apa pun, bernilai True.',
+  'str->int':'String bilangan bulat yang valid diterima — spasi di tepi boleh, titik desimal tidak.',
+  'str->float':'String desimal valid menjadi float — tipe hasilnya tetap float walau isinya terlihat bulat.',
+  'str->bool':'Jebakan favorit ujian: SEMUA string non-kosong adalah True — termasuk "False" dan "0".',
+  'str->list':'String adalah urutan karakter — list() memecahnya menjadi satu karakter per elemen.',
+  'str->tuple':'Sama seperti list(), tapi hasilnya dikunci: tidak bisa diubah lagi setelah dibuat.',
+  'str->set':'Duplikat karakter dibuang; urutan anggota tidak dijamin.',
+  'bool->int':'True → 1, False → 0. Karena bool adalah subclass int, arah ini selalu mulus.',
+  'bool->float':'True → 1.0, False → 0.0.',
+  'bool->str':'Hasilnya teks "True"/"False" — dengan huruf kapital di awal.',
+  'list->str':'str() pada wadah menghasilkan representasinya — elemen di dalam tetap ditulis dengan kutip (repr).',
+  'list->bool':'Wadah kosong → False; selama ada satu elemen saja → True.',
+  'list->tuple':'Isi sama, wadah beda: tuple tidak bisa dimodifikasi setelah dibuat.',
+  'list->set':'Duplikat lenyap otomatis — dan urutan anggota tidak lagi dijamin.',
+  'list->list':'list() dari list menghasilkan SALINAN DANGKAL: wadah baru, isi yang sama.',
+  'tuple->list':'Membuka kunci: isi tuple yang kaku kini bisa ditambah, diubah, dan dihapus.',
+  'tuple->str':'Tuple ditampilkan utuh dengan tanda kurung — perhatikan repr elemen di dalamnya.',
+  'tuple->bool':'Sama seperti list: tuple kosong () falsy; berisi apa pun → True.',
+  'dict->list':'list() dari dictionary hanya mengambil KUNCI-kuncinya — nilai-nilainya dibuang.',
+  'dict->tuple':'Tuple berisi kunci-kunci dictionary.',
+  'dict->set':'Set berisi kunci-kunci dictionary; nilai tidak ikut.',
+  'dict->str':'Representasi teks dictionary: pasangan kunci: nilai dipisah koma.',
+  'set->list':'Urutan bisa berbeda dari saat diketik — set memang tidak menyimpan urutan.',
+  'set->str':'repr set memakai { … }; set kosong ditulis set() karena {} sudah dipakai dict.',
+  'set->bool':'Set kosong falsy; sisanya True.',
+  'none->bool':'None — "tidak ada nilai" — selalu False.',
+  'none->str':'str(None) menghasilkan teks "None".',
+};
+function okNote(v, target, res){
+  const note = OK_NOTES[v.t + '->' + target];
+  if (note) return note;
+  if (v.t === target) return 'Identitas — nilai dikonversi ke tipenya sendiri; tidak ada yang berubah.';
+  return `Konversi mulus: nilai kini bertipe ${res.val.t}.`;
+}
+function errNote(v, target, err){
+  const f = v.t;
+  if (err.etype === 'ValueError' && target === 'int' && f === 'str')
+    return `String hanya boleh berisi bilangan bulat yang valid (boleh bertanda, boleh ber-spasi di tepi) — titik desimal seperti pada ${esc(trunc(pyRepr(v), 24))} ditolak. Rute aman: float() dulu, baru int().`;
+  if (err.etype === 'ValueError' && target === 'float' && f === 'str')
+    return 'Format angka desimal tidak cocok — huruf, simbol, atau dua titik akan ditolak oleh float().';
+  if (target === 'dict' && err.etype === 'ValueError')
+    return 'dict() meminta urutan PASANGAN: tiap elemen harus tepat 2 bagian (kunci, nilai) — mis. dict([("a", 1)]).';
+  if ((err.msg || '').includes('not iterable'))
+    return `${typeName(v)} adalah objek tunggal — bukan urutan. Hanya str, list, tuple, set, dan dict yang bisa dipecah menjadi ${target}.`;
+  if (target === 'int' || target === 'float')
+    return `${target}() hanya menerima angka atau string angka — ${f === 'none' ? 'None bukan keduanya' : 'tipe ' + f + ' tidak termasuk'}.`;
+  return `Kombinasi ini tidak punya jalur konversi di Python — ${err.etype} dilempar saat mesin mencoba.`;
+}
+
+/* ================================================================
+   HERO — SPESIMEN HIDUP
+================================================================ */
+safe('hero', () => {
+  const HERO = [
+    { lit:'42',          type:'int',   desc:'bilangan bulat — dan presisinya tak terbatas: 2 ** 1024 tetap dihitung eksak.' },
+    { lit:'3.14',        type:'float', desc:'desimal 64-bit — praktis, tapi 0.1 + 0.2 tidak persis 0.3.' },
+    { lit:'"Lima"',      type:'str',   desc:'teks — urutan karakter yang tak bisa diubah per hurufnya.' },
+    { lit:'True',        type:'bool',  desc:'hanya ada dua penghuni di tipe ini: True dan False.' },
+    { lit:'[1, 2, 3]',   type:'list',  desc:'urutan yang bisa tumbuh dan berubah (mutable).' },
+    { lit:'("x", "y")',  type:'tuple', desc:'urutan terkunci — dibuat sekali, tak bisa diubah.' },
+    { lit:"{'a': 1}",    type:'dict',  desc:'pemetaan kunci → nilai, pengambilannya super cepat.' },
+  ];
+  let heroIdx = 0;
+  function heroShow(i){
+    heroIdx = i; const d = HERO[i]; const box = $('#heroVal');
+    box.classList.remove('in'); void box.offsetWidth;
+    box.innerHTML = `<span class="tag">tipe: ${d.type}</span><span class="val c-${d.type}">${esc(d.lit)}</span>`;
+    box.classList.add('in');
+    $('#heroDesc').textContent = d.desc;
+  }
+  heroShow(0);
+  setInterval(() => heroShow((heroIdx + 1) % HERO.length), 3000);
+});
+
+/* ================================================================
+   01 — NAMA & OBJEK
+================================================================ */
+safe('binding', () => {
+  const SCRIPT = [
+    { code:'x = 42',           note:'Literal 42 membuat objek int baru di memori — lalu nama x dijahit ke sana. refs: 1.' },
+    { code:'nama = "Budi"',    note:'Objek kedua lahir: string "Budi". Sekarang dua nama, dua objek — masing-masing refs: 1.' },
+    { code:'y = x',            note:'y = x menyalin REFERENSINYA, bukan nilainya. x dan y kini menunjuk objek int yang sama (refs: 2, garis menebal).' },
+    { code:'x = nama',         note:'x dilepas dari 42 dan dijahit ke "Budi". Objek 42 tak lagi direferensikan — ditampilkan redup, siap dipungut garbage collector.' },
+    { code:'data = [1, 2, 3]', note:'List pun objek — satu wadah berisi tiga int. Refcount "Budi" tetap 2 (x dan nama).' },
+    { code:'nama = data',      note:'"Budi" kehilangan referensi terakhirnya. Empat nama kini hanya merawat dua objek hidup.' },
+  ];
+  let executed = 0;
+
+  function execState(k){
+    const names = new Map(), objects = new Map(); let nextId = 1;
+    for (let i = 0; i < k; i++){
+      const m = SCRIPT[i].code.match(/^(\w+)\s*=\s*(.+)$/);
+      const target = m[1], rhs = m[2].trim();
+      const lit = parseLiteral(rhs);
+      let objId;
+      if (!lit.err){ objId = nextId++; objects.set(objId, { id: objId, val: lit.val }); }
+      else objId = names.get(rhs);
+      names.set(target, objId);
+    }
+    return { names, objects };
+  }
+  function renderBinding(state){
+    const refCount = {};
+    for (const [, id] of state.names) refCount[id] = (refCount[id] || 0) + 1;
+    const nsCol = $('#nsCol'), objCol = $('#objCol');
+    nsCol.innerHTML = ''; objCol.innerHTML = '';
+    if (state.names.size === 0){
+      nsCol.innerHTML = '<div class="empty">— belum ada nama —</div>';
+      objCol.innerHTML = '<div class="empty">— memori masih kosong —</div>';
+      $('#bindSvg').innerHTML = '';
+      return;
+    }
+    for (const n of state.names.keys()) nsCol.append(el('div','ns-item', esc(n)));
+    for (const obj of state.objects.values()){
+      const orphan = !refCount[obj.id];
+      objCol.append(el('div','obj-item' + (orphan ? ' orphan' : ''),
+        `<span class="chip chip-${obj.val.t}">${esc(pyRepr(obj.val))}</span><span class="obj-meta">${orphan ? 'tanpa referensi' : 'refs: ' + refCount[obj.id]}</span>`));
+    }
+    requestAnimationFrame(() => drawLines(state, refCount));
+  }
+  function drawLines(state, refCount){
+    const svg = $('#bindSvg'), wrap = $('#bindWrap');
+    svg.innerHTML = '';
+    const wr = wrap.getBoundingClientRect();
+    const nsEls = new Map([...$('#nsCol').children].map(c => [c.textContent, c]));
+    const objList = [...$('#objCol').children];
+    const objArr = [...state.objects.values()];
+    const NS = 'http://www.w3.org/2000/svg';
+    for (const [n, id] of state.names){
+      const a = nsEls.get(n);
+      const b = objList[objArr.findIndex(o => o.id === id)];
+      if (!a || !b) continue;
+      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      const x1 = ra.right - wr.left, y1 = ra.top + ra.height/2 - wr.top;
+      const x2 = rb.left - wr.left - 2, y2 = rb.top + rb.height/2 - wr.top;
+      const mx = (x1 + x2) / 2;
+      const type = state.objects.get(id).val.t;
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`);
+      p.setAttribute('class', `bind-line t-${type}` + (refCount[id] > 1 ? ' multi' : ''));
+      svg.append(p);
+      const stroke = getComputedStyle(p).stroke;
+      const d1 = document.createElementNS(NS, 'circle');
+      d1.setAttribute('cx', x1); d1.setAttribute('cy', y1); d1.setAttribute('r', 3);
+      d1.setAttribute('fill', stroke);
+      const d2 = document.createElementNS(NS, 'circle');
+      d2.setAttribute('cx', x2 - 2); d2.setAttribute('cy', y2); d2.setAttribute('r', 3.5);
+      d2.setAttribute('fill', stroke);
+      svg.append(d1, d2);
+    }
+  }
+  function runTo(k){
+    k = Math.max(0, Math.min(SCRIPT.length, k)); executed = k;
+    [...$('#bindCode').children].forEach((ln, i) => {
+      ln.classList.toggle('done', i < k);
+      ln.classList.toggle('next', i === k);
+    });
+    renderBinding(execState(k));
+    $('#obsNote').innerHTML = k === 0
+      ? 'Klik baris kode di atas (atau tekan tombol langkah) — lalu amati garis-garis referensi di panel MEMORI di sebelah kanan.'
+      : `<b>OBSERVASI ${k}:</b> ${SCRIPT[k-1].note}`;
+    $('#btnStep').disabled = k === SCRIPT.length;
+    $('#btnReset').disabled = k === 0;
+  }
+  SCRIPT.forEach((s, i) => {
+    const ln = el('div','code-line', `<span class="ln">${i+1}</span><code>${esc(s.code)}</code>`);
+    ln.onclick = () => runTo(i + 1);
+    $('#bindCode').append(ln);
+  });
+  $('#btnStep').onclick = () => runTo(executed + 1);
+  $('#btnReset').onclick = () => runTo(0);
+  runTo(0);
+  window.addEventListener('resize', () => {
+    const st = execState(executed);
+    const refCount = {};
+    for (const [, id] of st.names) refCount[id] = (refCount[id] || 0) + 1;
+    drawLines(st, refCount);
+  });
+});
+
+/* ================================================================
+   02 — SPESIMEN TIPE
+   PERBAIKAN UTAMA: semua renderer mencari elemen DI DALAM panelnya
+   sendiri (body.querySelector) — sebelumnya memakai pencarian global
+   $('#id') pada panel yang belum ditempel ke dokumen → null → error.
+================================================================ */
+safe('specimen', () => {
+  const TYPE_ORDER = ['int','float','str','bool','list','tuple','dict','set'];
+  const TYPE_META = {
+    int:   { lit:'x = 42',  ex:'42',            desc:'Bilangan bulat dengan presisi tak terbatas — tidak ada overflow seperti di kebanyakan bahasa lain. Bahkan 2 ** 1024 dihitung secara eksak.', note:'Coba tombol kuadratkan beberapa kali — di C atau Java angka sebesar ini overflow; di Python tidak pernah.' },
+    float: { lit:'x = 0.1', ex:'0.1',           desc:'Bilangan desimal 64-bit (IEEE 754). Praktis untuk hampir semua hal — tapi tidak eksak, dan di sinilah letak kejutannya.', note:'0.1 dalam biner adalah periodik — sama seperti 1/3 = 0.333… dalam desimal.' },
+    str:   { lit:'s = "Python"', ex:'"Python"', desc:'Urutan karakter yang immutable — tidak bisa diubah per karakter. Indeks dimulai dari 0; indeks negatif menghitung dari belakang.', note:'s[0] karakter pertama, s[-1] karakter terakhir. Irisan s[a:b] mengambil dari a hingga SEBELUM b.' },
+    bool:  { lit:'ok = True', ex:'True',        desc:'Hanya dua nilai: True dan False. Tapi bool() bisa menilai nilai lain juga — dan di sinilah aturan truthy/falsy bermain.', note:'Hafal daftar falsy: 0, 0.0, "", [], (), {}, set(), None, False. Selain itu — semuanya True.' },
+    list:  { lit:'data = [10, 20, 30]', ex:'[10, 20, 30]', desc:'Urutan mutable: bisa ditambah, diubah, dan dihapus kapan saja. Indeksnya mulai dari 0.', note:'list + list menggabungkan; list * 3 mengulang isinya; len() menghitung jumlah elemen.' },
+    tuple: { lit:'pos = (3, 5)', ex:'(3, 5)',   desc:'Urutan immutable — dibuat sekali, terkunci selamanya. Cocok untuk koordinat, konfigurasi, dan data yang tidak boleh berubah.', note:'Tuple berisi satu elemen butuh koma: (5,). Tanpa koma, (5) hanyalah angka 5 dalam tanda kurung.' },
+    dict:  { lit:'mhs = {"nama": "Budi", "umur": 20}', ex:'{"a": 1}', desc:'Pemetaan kunci → nilai. Kunci harus unik dan hashable; pengambilan datanya sangat cepat (O(1)).', note:'Pengambilan: mhs["nama"]. Kunci tidak ada → KeyError. Cek dulu dengan: "nama" in mhs.' },
+    set:   { lit:'tag = {"a", "b", "c"}', ex:'{"a", "b"}', desc:'Kantong nilai unik tanpa urutan. Anggota duplikat otomatis dibuang — sempurna untuk deduplikasi.', note:'Operasi himpunan: a | b (gabungan), a & b (irisan), a - b (selisih).' },
+  };
+  const specBodies = {};
+  const RENDERERS = {};
+
+  function buildSpec(t){
+    const m = TYPE_META[t];
+    const d = el('div','spec',
+      `<div class="spec-head"><h3>${t}</h3><span class="chip chip-${t}">tipe: ${t}</span><span class="spec-lit">${esc(m.lit)}</span></div>
+       <p class="spec-desc">${m.desc}</p><div class="spec-main"></div>
+       <div class="spec-note"><b>CATATAN LAB</b> — ${m.note}</div>`);
+    RENDERERS[t](d.querySelector('.spec-main'));
+    return d;
+  }
+  function selectSpec(t){
+    [...$('#specNav').children].forEach((b, i) => b.classList.toggle('act', TYPE_ORDER[i] === t));
+    $('#specCapT').textContent = t.toUpperCase();
+    if (!specBodies[t]) specBodies[t] = buildSpec(t);
+    [...$('#specBody').children].forEach(c => c.remove());
+    $('#specBody').append(specBodies[t]);
+  }
+  TYPE_ORDER.forEach(t => {
+    const b = el('button','spec-nav-item', `<span class="chip chip-${t}">${t}</span><span class="ex">${esc(TYPE_META[t].ex)}</span>`);
+    b.onclick = () => selectSpec(t);
+    $('#specNav').append(b);
+  });
+
+  /* --- int --- */
+  RENDERERS.int = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div class="big-num-wrap"><div class="big-num" id="intNum">2</div></div>
+      <div class="spec-stat" id="intStat"></div>
+      <div class="row-btns">
+        <button class="btn" id="intSq">x = x ** 2</button>
+        <button class="btn" id="intBig">x = 2 ** 1024</button>
+        <button class="btn ghost" id="intReset">RESET KE 2</button>
+      </div>`;
+    let x = 2n;
+    const draw = () => {
+      $b('#intNum').textContent = x.toString();
+      $b('#intStat').innerHTML = `panjang x = <b>${x.toString().length} digit</b> — dihitung eksak, tanpa overflow.`;
+      const n = $b('#intNum'); n.classList.remove('flash'); void n.offsetWidth; n.classList.add('flash');
+    };
+    $b('#intSq').onclick = () => { x = x * x; draw(); };
+    $b('#intBig').onclick = () => { x = 2n ** 1024n; draw(); };
+    $b('#intReset').onclick = () => { x = 2n; draw(); };
+    draw();
+  };
+
+  /* --- float --- */
+  RENDERERS.float = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div class="f-line">a = <span class="c-float">0.1</span> &nbsp;·&nbsp; b = <span class="c-float">0.2</span></div>
+      <div class="f-line big">a + b = <span class="dim" id="fOut">…</span></div>
+      <div class="f-cmp" id="fCmp"></div>
+      <div class="row-btns">
+        <button class="btn acc" id="fBtn1">HITUNG a + b</button>
+        <button class="btn" id="fBtn2" disabled>(a + b) == 0.3 ?</button>
+        <button class="btn" id="fBtn3" disabled>math.isclose(a + b, 0.3)</button>
+      </div>`;
+    $b('#fBtn1').onclick = () => {
+      const sum = 0.1 + 0.2, s = sum.toString(), tgt = '0.3';
+      let i = 0; while (i < s.length && s[i] === tgt[i]) i++;
+      $b('#fOut').innerHTML = `<span class="c-float">${esc(s.slice(0, i))}</span><span class="bad">${esc(s.slice(i))}</span>`;
+      $b('#fBtn2').disabled = false;
+    };
+    $b('#fBtn2').onclick = () => {
+      $b('#fCmp').innerHTML = `<span class="cmp-bad">False</span><i>kesalahan pembulatan biner membuat == gagal — jangan bandingkan float dengan ==</i>`;
+      $b('#fBtn3').disabled = false;
+    };
+    $b('#fBtn3').onclick = () => {
+      $b('#fCmp').innerHTML = `<span class="cmp-ok">True</span><i>math.isclose() — cara yang benar membandingkan bilangan float</i>`;
+    };
+  };
+
+  /* --- str --- */
+  RENDERERS.str = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div class="row-input"><label>s =</label><input id="strIn" value="Python" maxlength="20" spellcheck="false"></div>
+      <div class="str-chain" id="strChain"></div>
+      <div class="slice-ctl">
+        <label>s[<span id="sA">0</span> : <span id="sB">6</span>]</label>
+        <input type="range" id="rA" min="0" max="6" value="0">
+        <input type="range" id="rB" min="0" max="6" value="6">
+      </div>
+      <div class="slice-out" id="sliceOut"></div>`;
+    let s = 'Python';
+    const chain = $b('#strChain');
+    function build(){
+      [...s].forEach((ch, i) => {
+        chain.append(el('div','str-cell',
+          `<div class="str-idx">${i}</div><div class="str-ch">${esc(ch === ' ' ? '␣' : ch)}</div><div class="str-idx neg">${i - [...s].length}</div>`));
+      });
+      $b('#rA').max = $b('#rB').max = String([...s].length);
+      $b('#rA').value = 0; $b('#rB').value = [...s].length;
+      upd();
+    }
+    function upd(){
+      const a = +$b('#rA').value, b = +$b('#rB').value;
+      $b('#sA').textContent = a; $b('#sB').textContent = b;
+      [...chain.children].forEach((c, i) => {
+        const inSlice = i >= a && i < b;
+        c.classList.toggle('sel', inSlice);
+        c.classList.toggle('out', !inSlice);
+      });
+      const inner = [...s].slice(a, b).join('');
+      $b('#sliceOut').innerHTML = a <= b
+        ? `s[${a}:${b}] → <span class="c-str">'${esc(inner)}'</span>`
+        : `s[${a}:${b}] → <span class="c-str">''</span> <i>(batas kiri melewati kanan — irisan kosong)</i>`;
+    }
+    $b('#strIn').oninput = e => { s = e.target.value; chain.innerHTML = ''; build(); };
+    $b('#rA').oninput = upd; $b('#rB').oninput = upd;
+    build();
+  };
+
+  /* --- bool --- */
+  RENDERERS.bool = body => {
+    const $b = sel => body.querySelector(sel);
+    const $ab = sel => [...body.querySelectorAll(sel)];
+    const CASES = [
+      { lit:'0', v:{t:'int',v:0n},      why:'angka nol → falsy' },
+      { lit:'1', v:{t:'int',v:1n},      why:'angka bukan nol → truthy' },
+      { lit:'42', v:{t:'int',v:42n},    why:'angka bukan nol → truthy' },
+      { lit:'0.0', v:{t:'float',v:0},   why:'float nol → falsy' },
+      { lit:'""', v:{t:'str',v:''},     why:'string kosong → falsy' },
+      { lit:'"0"', v:{t:'str',v:'0'},   why:'string NON-KOSONG → truthy — isinya "0" tetap teks yang berisi!' },
+      { lit:'"False"', v:{t:'str',v:'False'}, why:'string non-kosong → truthy — isinya tidak diperiksa!' },
+      { lit:'" "', v:{t:'str',v:' '},   why:'spasi tetap karakter — string tidak kosong → truthy' },
+      { lit:'[]', v:{t:'list',v:[]},    why:'wadah kosong → falsy' },
+      { lit:'[0]', v:{t:'list',v:[{t:'int',v:0n}]}, why:'list berisi 0 tetap TIDAK kosong → truthy' },
+      { lit:'()', v:{t:'tuple',v:[]},   why:'tuple kosong → falsy' },
+      { lit:'None', v:{t:'none'},       why:'None selalu falsy' },
+    ];
+    body.innerHTML = `
+      <div class="bool-pair">
+        <div class="bool-card t" id="bT">True</div>
+        <div class="bool-card f" id="bF">False</div>
+      </div>
+      <div class="bool-hint">klik sebuah nilai untuk menilai truthiness-nya:</div>
+      <div class="bool-grid" id="bGrid"></div>
+      <div class="bool-note" id="bNote">bool() mengikuti daftar falsy: 0, 0.0, "", wadah kosong, dan None. Selain itu — semuanya True.</div>`;
+    CASES.forEach(c => {
+      const b = el('button','bool-val', esc(c.lit));
+      b.onclick = () => {
+        $ab('#bGrid .bool-val').forEach(x => x.classList.remove('sel'));
+        b.classList.add('sel');
+        const r = truthy(c.v);
+        $b('#bT').classList.toggle('lit', r);
+        $b('#bF').classList.toggle('lit', !r);
+        $b('#bNote').innerHTML = `bool(${esc(c.lit)}) → <b style="color:${r ? 'var(--c-int)' : 'var(--accent-d)'}">${r}</b> · ${c.why}`;
+      };
+      $b('#bGrid').append(b);
+    });
+  };
+
+  /* --- list --- */
+  RENDERERS.list = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div class="arr-wrap" id="arrWrap"></div>
+      <div class="spec-stat" id="arrStat"></div>
+      <div class="row-ops">
+        data.append( <input id="apVal" value="40" size="6"> )
+        <button class="btn sm" id="apBtn">JALANKAN</button> &nbsp;&nbsp;
+        <button class="btn sm" id="popBtn">data.pop()</button>
+      </div>
+      <div class="row-ops">
+        data[<input id="asIdx" value="0" size="2">] = <input id="asVal" value="99" size="6">
+        <button class="btn sm" id="asBtn">UBAH ELEMEN</button>
+      </div>
+      <div class="inline-msg" id="arrMsg"></div>`;
+    let data = [{t:'int',v:10n},{t:'int',v:20n},{t:'int',v:30n}];
+    const msg = (txt, bad) => {
+      const m = $b('#arrMsg'); m.innerHTML = txt; m.className = 'inline-msg' + (bad ? ' bad' : '');
+      clearTimeout(m._t); m._t = setTimeout(() => { m.textContent = ''; m.className = 'inline-msg'; }, 2800);
+    };
+    function render(){
+      $b('#arrWrap').innerHTML = data.length
+        ? data.map((v, i) => `<div class="arr-cell" data-i="${i}"><div class="idx">${i}</div><div class="val">${esc(pyRepr(v))}</div></div>`).join('')
+        : '<div class="empty">list kosong — dan kosong berarti falsy!</div>';
+      $b('#arrStat').innerHTML = `len(data) = <b>${data.length}</b>`;
+    }
+    const flashCell = i => {
+      const c = $b(`#arrWrap .arr-cell[data-i="${i}"]`);
+      if (c){ c.classList.add('flash'); setTimeout(() => c.classList.remove('flash'), 650); }
+    };
+    $b('#apBtn').onclick = () => { data.push(parseFriendly($b('#apVal').value)); render(); flashCell(data.length - 1); msg('append berhasil — list bertambah panjang.'); };
+    $b('#popBtn').onclick = () => {
+      if (!data.length) return msg('<b>IndexError</b> — pop dari list kosong.', true);
+      const gone = data.pop();
+      const cells = [...body.querySelectorAll('#arrWrap .arr-cell')];
+      if (cells.length){ const c = cells[cells.length - 1]; c.classList.add('bye'); setTimeout(render, 280); }
+      else render();
+      msg(`pop() mengembalikan ${esc(trunc(pyRepr(gone), 20))}.`);
+    };
+    $b('#asBtn').onclick = () => {
+      const i = parseInt($b('#asIdx').value, 10);
+      if (isNaN(i) || i < 0 || i >= data.length) return msg('<b>IndexError</b>: list index out of range', true);
+      data[i] = parseFriendly($b('#asVal').value); render(); flashCell(i);
+      msg(`data[${i}] berhasil diubah — inilah bedanya dengan tuple.`);
+    };
+    $b('#apVal').addEventListener('keydown', e => { if (e.key === 'Enter') $b('#apBtn').click(); });
+    render();
+  };
+
+  /* --- tuple --- */
+  RENDERERS.tuple = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div class="lock-frame" id="tupFrame">
+        <span class="lock-tag">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          IMMUTABLE — SEKALI DIBUAT, TERKUNCI
+        </span>
+        <div class="tuple-cells">(3,&nbsp;5)</div>
+      </div>
+      <div class="row-btns">
+        <button class="btn danger" id="tupTry">COBA UBAH: pos[0] = 99</button>
+        <button class="btn ghost" id="tup2list">MUNGKIN list( pos ) ?</button>
+      </div>
+      <div class="term mini" id="tupTerm" hidden></div>
+      <div class="inline-msg" id="tupMsg"></div>`;
+    $b('#tupTry').onclick = () => {
+      const f = $b('#tupFrame'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+      const t = $b('#tupTerm'); t.hidden = false;
+      t.innerHTML = `<span class="prompt">&gt;&gt;&gt;</span> pos[0] = 99<br><span class="term-out err">TypeError: 'tuple' object does not support item assignment</span>`;
+      $b('#tupMsg').innerHTML = 'Python menolak keras — error ini muncul <b>saat baris dijalankan</b>. Konversi satu arah: tuple → list selalu bisa.';
+    };
+    $b('#tup2list').onclick = () => {
+      const t = $b('#tupTerm'); t.hidden = false;
+      t.innerHTML = `<span class="prompt">&gt;&gt;&gt;</span> pos = list( pos )<br><span class="term-out ok">[3, 5]</span>`;
+      $b('#tupMsg').innerHTML = 'Jalan keluarnya: <b>salin ke list</b>, ubah di sana, lalu (bila perlu) kembalikan dengan tuple( … ).';
+    };
+  };
+
+  /* --- dict --- */
+  RENDERERS.dict = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div id="dictRows"></div>
+      <div class="spec-stat" id="dictStat"></div>
+      <div class="row-ops">
+        kunci <input id="kIn" value="kota" size="8"> : nilai <input id="vIn" value="Bandung" size="10">
+        <button class="btn sm" id="dAdd">TAMBAH / PERBARUI</button>
+      </div>
+      <div class="inline-msg" id="dictMsg"></div>`;
+    let pairs = [
+      [{t:'str',v:'nama'},{t:'str',v:'Budi'}],
+      [{t:'str',v:'umur'},{t:'int',v:20n}],
+    ];
+    const msg = (txt, bad) => {
+      const m = $b('#dictMsg'); m.innerHTML = txt; m.className = 'inline-msg' + (bad ? ' bad' : '');
+      clearTimeout(m._t); m._t = setTimeout(() => { m.textContent = ''; m.className = 'inline-msg'; }, 2800);
+    };
+    function render(){
+      $b('#dictRows').innerHTML = pairs.length
+        ? pairs.map((p, i) => `<div class="dict-row" data-i="${i}">
+            <span class="chip chip-${p[0].t}">${esc(trunc(pyRepr(p[0]), 22))}</span><span class="darr">→</span>
+            <span class="chip chip-${p[1].t}">${esc(trunc(pyRepr(p[1]), 22))}</span>
+            <button class="xbtn" title="hapus pasangan ini">×</button></div>`).join('')
+        : '<div class="empty">dict kosong — falsy!</div>';
+      $b('#dictStat').innerHTML = `len(mhs) = <b>${pairs.length}</b> · kunci dijamin unik`;
+    }
+    $b('#dictRows').addEventListener('click', e => {
+      const x = e.target.closest('.xbtn'); if (!x) return;
+      const i = +x.closest('.dict-row').dataset.i;
+      const removed = pairs.splice(i, 1)[0];
+      render();
+      msg(`del mhs[${esc(trunc(pyRepr(removed[0]), 18))}] — pasangan dihapus.`);
+    });
+    $b('#dAdd').onclick = () => {
+      if (!$b('#kIn').value.trim()) return msg('kunci tidak boleh kosong', true);
+      const k = parseFriendly($b('#kIn').value), v = parseFriendly($b('#vIn').value);
+      const kk = pyRepr(k);
+      const ex = pairs.find(p => pyRepr(p[0]) === kk);
+      if (ex){
+        ex[1] = v; render();
+        const idx = pairs.indexOf(ex);
+        const row = [...body.querySelectorAll('#dictRows .dict-row')].find(r => +r.dataset.i === idx);
+        if (row){ row.classList.add('flash'); setTimeout(() => row.classList.remove('flash'), 650); }
+        msg(`kunci ${esc(trunc(kk, 16))} sudah ada — <b>nilainya diganti</b>, kunci tetap satu.`);
+      } else {
+        pairs.push([k, v]); render();
+        const rows = [...body.querySelectorAll('#dictRows .dict-row')];
+        const row = rows[rows.length - 1];
+        if (row){ row.classList.add('flash'); setTimeout(() => row.classList.remove('flash'), 650); }
+        msg('pasangan baru masuk.');
+      }
+    };
+    $b('#vIn').addEventListener('keydown', e => { if (e.key === 'Enter') $b('#dAdd').click(); });
+    render();
+  };
+
+  /* --- set --- */
+  RENDERERS.set = body => {
+    const $b = sel => body.querySelector(sel);
+    body.innerHTML = `
+      <div class="set-stage">
+        <div class="set-pouch" id="pouch"></div>
+      </div>
+      <div class="spec-stat" id="setStat"></div>
+      <div class="row-ops">
+        tag.add( <input id="setIn" value="'d'" size="6"> )
+        <button class="btn sm" id="setAdd">TAMBAH</button>
+        <button class="btn danger sm" id="setDup">COBA SELUNDUPKAN DUPLIKAT</button>
+      </div>
+      <div class="inline-msg" id="setMsg"></div>`;
+    let items = [{t:'str',v:'a'},{t:'str',v:'b'},{t:'str',v:'c'}];
+    const msg = (txt, bad) => {
+      const m = $b('#setMsg'); m.innerHTML = txt; m.className = 'inline-msg' + (bad ? ' bad' : '');
+      clearTimeout(m._t); m._t = setTimeout(() => { m.textContent = ''; m.className = 'inline-msg'; }, 3000);
+    };
+    function render(flashIdx){
+      $b('#pouch').innerHTML = items.length
+        ? items.map((v, i) => `<span class="chip chip-${v.t}" style="transform:rotate(${(i * 37 % 9) - 4}deg)">${esc(pyRepr(v))}</span>`).join('')
+        : '<div class="empty">set kosong — falsy!</div>';
+      $b('#setStat').innerHTML = `len(tag) = <b>${items.length}</b> — dijamin tanpa duplikat`;
+      if (flashIdx != null){
+        const ch = $b('#pouch').children[flashIdx];
+        if (ch){ ch.classList.add('flash'); setTimeout(() => ch.classList.remove('flash'), 650); }
+      }
+    }
+    function reject(v){
+      const stage = body.querySelector('.set-stage');
+      const chip = el('span', `reject-chip chip chip-${v.t}`, esc(pyRepr(v)));
+      chip.style.transform = 'translate(-50%,-50%)';
+      stage.append(chip);
+      chip.animate([
+        { transform:'translate(-50%,-50%) scale(1)',   opacity:1 },
+        { transform:'translate(-50%,-62%) scale(1)',   opacity:1, offset:.3 },
+        { transform:'translate(35%,-170%) rotate(38deg) scale(.75)', opacity:0 }
+      ], { duration:850, easing:'cubic-bezier(.4,0,.6,1)' }).onfinish = () => chip.remove();
+    }
+    function add(v, silent){
+      const k = pyRepr(v);
+      if (items.some(it => pyRepr(it) === k)){
+        reject(v);
+        msg(`${esc(trunc(k, 20))} <b>ditolak</b> — set tidak menerima duplikat. len(tag) tetap ${items.length}.`, true);
+      } else {
+        items.push(v); render(items.length - 1);
+        if (!silent) msg(`${esc(trunc(k, 20))} masuk — anggota unik yang baru.`);
+      }
+    }
+    $b('#setAdd').onclick = () => add(parseFriendly($b('#setIn').value));
+    $b('#setIn').addEventListener('keydown', e => { if (e.key === 'Enter') $b('#setAdd').click(); });
+    $b('#setDup').onclick = () => {
+      if (!items.length) return msg('set sedang kosong — tambahkan anggota dulu.', true);
+      add(items[Math.floor(Math.random() * items.length)]);
+    };
+    render();
+  };
+
+  selectSpec('int');
+});
+
+/* ================================================================
+   03 — LAB KONVERSI
+================================================================ */
+safe('lab', () => {
+  const TARGETS = ['str','int','float','bool','list','tuple','set','dict'];
+  const EXAMPLES = ['42', '"halo"', '3.75', '[1, "a"]', '{"nama": "Budi"}', '("x", "y")', '0', '""', '[1, 2, 2, 3]', '"3.7"', 'True', '"AB"'];
+  const TRAPS = [
+    { label:'int("3.7")',   val:'"3.7"',        target:'int' },
+    { label:'int(3.9)',     val:'3.9',          target:'int' },
+    { label:'bool("False")',val:'"False"',      target:'bool' },
+    { label:'bool("0")',    val:'"0"',          target:'bool' },
+    { label:'list("halo")', val:'"halo"',       target:'list' },
+    { label:'set("halo")',  val:'"halo"',       target:'set' },
+    { label:'dict("ab")',   val:'"ab"',         target:'dict' },
+    { label:'dict(["ab"])', val:'["ab"]',       target:'dict' },
+    { label:'str([1, "a"])',val:'[1, "a"]',     target:'str' },
+    { label:'int(True)',    val:'True',         target:'int' },
+    { label:'float(7)',     val:'7',            target:'float' },
+    { label:'int(" 42 ")',  val:'" 42 "',       target:'int' },
+    { label:'list({"a": 1, "b": 2})', val:'{"a": 1, "b": 2}', target:'list' },
+  ];
+  let currentVal = null, busy = false, lastRes = null;
+
+  function gearD(cx, cy, rO, rI, n, phase = 0){
+    const pts = []; const step = Math.PI / n;
+    for (let i = 0; i < n * 2; i++){
+      const r = i % 2 ? rI : rO, a = phase + i * step;
+      pts.push((cx + r * Math.cos(a)).toFixed(2) + ',' + (cy + r * Math.sin(a)).toFixed(2));
+    }
+    return 'M' + pts.join(' L') + ' Z';
+  }
+  (function buildGears(){
+    const svg = $('#gearSvg'), NS = 'http://www.w3.org/2000/svg';
+    const gA = document.createElementNS(NS, 'path');
+    gA.id = 'gearA'; gA.setAttribute('d', gearD(30, 35, 22, 15, 9));
+    const gB = document.createElementNS(NS, 'path');
+    gB.id = 'gearB'; gB.setAttribute('d', gearD(70, 35, 22, 15, 9, Math.PI / 9));
+    const cA = document.createElementNS(NS, 'circle');
+    cA.setAttribute('cx', 30); cA.setAttribute('cy', 35); cA.setAttribute('r', 4);
+    const cB = document.createElementNS(NS, 'circle');
+    cB.setAttribute('cx', 70); cB.setAttribute('cy', 35); cB.setAttribute('r', 4);
+    svg.append(gA, gB, cA, cB);
+  })();
+
+  TARGETS.forEach(t => {
+    const b = el('button', `tgt t-${t}`, t + '()');
+    b.onclick = () => doConvert(t);
+    b.onmouseenter = () => { if (!busy) $('#mFn').textContent = t + '()'; };
+    b.onmouseleave = () => { if (!busy) $('#mFn').textContent = '—'; };
+    $('#tgtRow').append(b);
+  });
+  EXAMPLES.forEach(v => {
+    const c = el('button', 'ex-chip', esc(v));
+    c.onclick = () => { $('#labInput').value = v; readLabInput(); };
+    $('#exRow').append(c);
+  });
+  TRAPS.forEach(t => {
+    const c = el('button', 'trap', esc(t.label));
+    c.onclick = () => {
+      if (busy) return;
+      $('#labInput').value = t.val; readLabInput();
+      if (currentVal) doConvert(t.target);
+    };
+    $('#trapRow').append(c);
+  });
+
+  function readLabInput(){
+    const r = parseLiteral($('#labInput').value);
+    const det = $('#detect');
+    if (r.err){
+      det.className = 'detect t-error';
+      det.textContent = '✕ tidak terbaca sebagai literal';
+      return;
+    }
+    currentVal = r.val;
+    det.className = 'detect t-' + currentVal.t;
+    det.textContent = 'terdeteksi: ' + typeName(currentVal);
+    $('#inType').textContent = currentVal.t;
+    $('#inType').className = 'dock-type t-' + currentVal.t;
+    $('#inVal').innerHTML = `<span class="chip chip-${currentVal.t} big">${esc(trunc(pyRepr(currentVal), 36))}</span>`;
+  }
+  $('#labInput').addEventListener('input', readLabInput);
+  $('#labInput').addEventListener('keydown', e => { if (e.key === 'Enter' && currentVal) doConvert('str'); });
+
+  function flyChip(stage, fromEl, toEl, text, colorCls, dur){
+    const c = el('div', 'fly-chip ' + colorCls);
+    c.textContent = text;
+    stage.append(c);
+    const s = stage.getBoundingClientRect(), f = fromEl.getBoundingClientRect(), t = toEl.getBoundingClientRect();
+    const x0 = f.left - s.left + f.width / 2, y0 = f.top - s.top + f.height / 2;
+    const x1 = t.left - s.left + t.width / 2, y1 = t.top - s.top + t.height / 2;
+    c.style.left = x0 + 'px'; c.style.top = y0 + 'px';
+    const anim = c.animate([
+      { transform:'translate(-50%,-50%)' },
+      { transform:`translate(calc(-50% + ${x1 - x0}px), calc(-50% + ${y1 - y0}px))` }
+    ], { duration: dur, easing:'cubic-bezier(.55,.06,.28,1)', fill:'forwards' });
+    return { el: c, anim };
+  }
+  async function doConvert(target){
+    if (busy || !currentVal) return;
+    busy = true;
+    $$('#tgtRow .tgt').forEach(b => b.disabled = true);
+    try {
+      const stage = $('#labStage'), machine = $('#machine');
+      const v = currentVal, res = convert(v, target);
+
+      $('#mFn').textContent = target + '()';
+      const f1 = flyChip(stage, $('#inVal'), $('#doorL'), trunc(pyRepr(v), 34), 't-' + v.t, 420);
+      await f1.anim.finished;
+      f1.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill:'forwards' });
+      await wait(160); f1.el.remove();
+
+      machine.classList.add('working');
+      await wait(720);
+      machine.classList.remove('working');
+
+      const isErr = !res.ok;
+      const f2 = flyChip(stage, $('#doorR'), $('#outVal'),
+        isErr ? res.err.etype : trunc(pyRepr(res.val), 30),
+        isErr ? 't-error' : 't-' + res.val.t, 480);
+      await f2.anim.finished;
+      renderOut(v, target, res);
+      f2.el.remove();
+    } catch (e) {
+      console.error('[py·notes] konversi gagal:', e);
+    } finally {
+      busy = false;
+      $$('#tgtRow .tgt').forEach(b => b.disabled = false);
+    }
+  }
+  function renderOut(v, target, res){
+    lastRes = res;
+    const expr = `${target}(${pyRepr(v)})`;
+    $('#codeExpr').textContent = trunc(expr, 140);
+    const out = $('#codeOut');
+    const ov = $('#outVal');
+    ov.classList.remove('shake');
+    if (res.ok){
+      out.className = 'term-out ok';
+      out.textContent = trunc(pyRepr(res.val), 180);
+      $('#outType').textContent = res.val.t;
+      $('#outType').className = 'dock-type t-' + res.val.t;
+      ov.innerHTML = `<span class="chip chip-${res.val.t} big">${esc(trunc(pyRepr(res.val), 34))}</span>`;
+      $('#useOut').hidden = false;
+    } else {
+      out.className = 'term-out err';
+      out.textContent = `${res.err.etype}: ${trunc(res.err.msg, 180)}`;
+      $('#outType').textContent = 'error';
+      $('#outType').className = 'dock-type t-error';
+      ov.innerHTML = `<span class="err-chip">${esc(res.err.etype)}</span>`;
+      void ov.offsetWidth; ov.classList.add('shake');
+      $('#useOut').hidden = true;
+    }
+    $('#labNote').innerHTML = `<b>CATATAN LAB</b> — ${res.ok ? okNote(v, target, res) : errNote(v, target, res.err)}`;
+    logRepl(expr, res);
+  }
+  function logRepl(expr, res){
+    const repl = $('#repl');
+    const ph = repl.querySelector('.repl-empty'); if (ph) ph.remove();
+    const e = el('div', 'repl-entry',
+      `<div class="r-in">${esc(trunc(expr, 58))}</div>` +
+      (res.ok
+        ? `<div class="r-out ok">${esc(trunc(pyRepr(res.val), 58))}</div>`
+        : `<div class="r-out err">${esc(res.err.etype)}: ${esc(trunc(res.err.msg, 64))}</div>`));
+    repl.append(e);
+    while (repl.children.length > 40) repl.firstChild.remove();
+    repl.scrollTop = repl.scrollHeight;
+  }
+  $('#replClear').onclick = () => { $('#repl').innerHTML = '<div class="repl-empty">riwayat percobaanmu akan tercatat di sini…</div>'; };
+  $('#useOut').onclick = () => {
+    if (!lastRes || !lastRes.ok || busy) return;
+    $('#labInput').value = pyRepr(lastRes.val);
+    readLabInput();
+  };
+  readLabInput();
+});
+</script>
+</body>
+</html>
