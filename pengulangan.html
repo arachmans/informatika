@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoopLab — Visualisasi Looping Python</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      ink:'#0B1220', panel:'#0F1930', panel2:'#0D1526', line:'#22314F',
+      soft:'#E7EEF9', faint:'#8FA2C0',
+      py:{ yellow:'#FFD449', blue:'#5CA8FF' },
+      mint:'#59D98E', coral:'#FF6B6B', amber:'#FFA657', aqua:'#45D6C0'
+    },
+    fontFamily: {
+      display:['"Space Grotesk"','sans-serif'],
+      body:['"IBM Plex Sans"','sans-serif'],
+      mono:['"JetBrains Mono"','monospace']
+    }
+  }}
+}
+</script>
+
+<style>
+  [v-cloak]{ display:none !important; }
+  body{
+    background-color:#0B1220;
+    background-image:
+      radial-gradient(900px 500px at 12% -8%, rgba(92,168,255,.14), transparent 60%),
+      radial-gradient(800px 500px at 95% 15%, rgba(255,212,73,.08), transparent 55%),
+      radial-gradient(rgba(148,163,184,.06) 1px, transparent 1px);
+    background-size:auto,auto,26px 26px;
+    overflow-x:hidden;
+  }
+  ::selection{ background:#FFD449; color:#0B1220; }
+  ::-webkit-scrollbar{ width:8px; height:8px }
+  ::-webkit-scrollbar-thumb{ background:#22314F; border-radius:8px }
+  ::-webkit-scrollbar-track{ background:transparent }
+
+  .tok-kw{ color:#FFD449; font-weight:600 }
+  .tok-str{ color:#6FDB9B }
+  .tok-com{ color:#5C6E8C; font-style:italic }
+  .tok-num{ color:#8FB6FF }
+  .tok-fn{ color:#63B3FF }
+
+  @keyframes popIn{ 0%{transform:scale(.6);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+  .pop{ animation:popIn .3s cubic-bezier(.2,.9,.3,1.4) both }
+  @keyframes blink{ 50%{opacity:0} }
+  .cursor-blink{ animation:blink 1s steps(1) infinite }
+  @keyframes flowdash{ to{ stroke-dashoffset:-24 } }
+  .edge-on{ stroke-dasharray:8 4; animation:flowdash .6s linear infinite }
+  @keyframes nodePulse{ 0%,100%{filter:drop-shadow(0 0 0 rgba(255,212,73,0))} 50%{filter:drop-shadow(0 0 8px rgba(255,212,73,.6))} }
+  .node-on rect{ stroke:#FFD449 !important; fill:#1B2C4D !important; animation:nodePulse 1.4s ease-in-out infinite }
+  .node-on text{ fill:#FFD449 !important }
+  @keyframes floaty{ 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-22px) rotate(3deg)} }
+  .glyph{ position:absolute; font-family:"JetBrains Mono"; color:#5CA8FF; opacity:.07; user-select:none; pointer-events:none; animation:floaty 9s ease-in-out infinite }
+  @keyframes marquee{ to{ transform:translateX(-50%) } }
+  .marquee-track{ animation:marquee 28s linear infinite }
+  .marquee:hover .marquee-track{ animation-play-state:paused }
+  @keyframes draw{ to{ stroke-dashoffset:0 } }
+  .squiggle{ stroke-dasharray:200; stroke-dashoffset:200; animation:draw 1.1s .5s ease forwards }
+  @keyframes riseIn{ from{opacity:0; transform:translateY(14px)} to{opacity:1;transform:none} }
+  .rise{ animation:riseIn .6s ease both }
+  .rise-2{ animation-delay:.12s } .rise-3{ animation-delay:.24s }
+
+  .btn-ctl{ transition:transform .15s ease, box-shadow .15s ease, background .15s ease }
+  .btn-ctl:hover:not(:disabled){ transform:translateY(-2px) }
+  .btn-ctl:active:not(:disabled){ transform:translateY(0) }
+  .btn-ctl:disabled{ opacity:.35; cursor:not-allowed }
+  .card-hover{ transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease }
+  .card-hover:hover{ transform:translateY(-4px); border-color:#3A5285; box-shadow:0 14px 34px -18px rgba(92,168,255,.35) }
+  .pill{ transition:all .18s ease }
+  .pill:hover{ transform:translateY(-2px) }
+  input[type=range]{ accent-color:#FFD449 }
+</style>
+</head>
+
+<body class="font-body text-soft antialiased min-h-screen">
+
+<div id="boot-note" class="fixed bottom-4 right-4 z-40 bg-panel border border-line rounded-lg px-4 py-2 font-mono text-xs text-faint">
+  ⏳ Memuat LoopLab…
+</div>
+
+<div id="fatal" style="display:none; position:fixed; inset:0; z-index:50; background:rgba(11,18,32,.95); align-items:center; justify-content:center; padding:2rem; text-align:center; font-family:monospace; color:#FF6B6B;">
+  <div>
+    <p style="font-size:1.1rem; margin-bottom:1rem;">⚠ LoopLab gagal dijalankan:</p>
+    <code id="fatal-msg" style="color:#E7EEF9; background:#0D1526; padding:.75rem 1rem; border-radius:.5rem; display:inline-block; max-width:90vw;"></code>
+  </div>
+</div>
+
+<noscript><p style="padding:2rem; font-family:monospace; color:#FF6B6B;">Halaman ini membutuhkan JavaScript.</p></noscript>
+
+<div id="app" v-cloak>
+
+  <span class="glyph text-7xl font-bold" style="top:14%; left:3%">for</span>
+  <span class="glyph text-8xl font-bold" style="top:55%; right:4%; animation-delay:-3s">while</span>
+  <span class="glyph text-6xl" style="top:78%; left:12%; animation-delay:-6s; color:#FFD449">:</span>
+  <span class="glyph text-7xl" style="top:32%; right:16%; animation-delay:-1.5s; color:#59D98E">∞</span>
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 pb-20 relative">
+
+    <header class="rise mt-6 bg-panel border border-line rounded-xl flex items-center gap-3 px-4 py-2.5">
+      <span class="flex gap-1.5">
+        <span class="w-3 h-3 rounded-full bg-coral/90"></span>
+        <span class="w-3 h-3 rounded-full bg-py-yellow/90"></span>
+        <span class="w-3 h-3 rounded-full bg-mint/90"></span>
+      </span>
+      <span class="font-mono text-sm text-faint ml-2">visualisasi_loop.py</span>
+      <span class="font-mono text-xs text-faint/60 hidden sm:inline">— interpreter visual</span>
+      <span class="ml-auto flex gap-2 font-mono text-[11px]">
+        <span class="px-2 py-0.5 rounded border border-line text-py-blue">Python 3</span>
+        <span class="px-2 py-0.5 rounded border border-line text-mint hidden sm:inline">Vue 3</span>
+        <span class="px-2 py-0.5 rounded border border-line text-aqua hidden sm:inline">Tailwind</span>
+      </span>
+    </header>
+
+    <section class="mt-12 grid lg:grid-cols-[1.45fr_1fr] gap-10 items-end">
+      <div class="rise rise-2">
+        <p class="font-mono text-sm text-py-yellow"># perulangan • for • while • break • continue</p>
+        <h1 class="font-display font-bold leading-[1.04] text-4xl sm:text-6xl mt-3">
+          Lihat loop Python
+          <span class="relative inline-block text-py-yellow">berputar<svg class="absolute -bottom-2 left-0 w-full h-3" viewBox="0 0 130 10" preserveAspectRatio="none"><path d="M2 7 Q 13 2 24 7 T 46 7 T 68 7 T 90 7 T 112 7 T 134 7" fill="none" stroke="#FFD449" stroke-width="2.5" stroke-linecap="round" class="squiggle"/></svg></span>,<br>
+          baris demi baris.
+        </h1>
+        <p class="mt-5 text-faint max-w-xl leading-relaxed">
+          Pilih skenario, tekan <span class="font-mono text-py-yellow">▶ Jalankan</span> atau telusuri langkah demi langkah, dan perhatikan bagaimana variabel berubah dan output tercetak.
+        </p>
+      </div>
+
+      <div class="rise rise-3 bg-panel border border-line rounded-2xl p-5 grid grid-cols-3 gap-3 font-mono">
+        <div>
+          <p class="text-[10px] tracking-widest text-faint uppercase">Baris aktif</p>
+          <p class="text-3xl font-bold text-py-blue mt-1">{{ step.line }}</p>
+        </div>
+        <div>
+          <p class="text-[10px] tracking-widest text-faint uppercase">Iterasi</p>
+          <p class="text-3xl font-bold text-py-yellow mt-1">{{ pipCount }}<span class="text-base text-faint">/{{ sc.total }}</span></p>
+        </div>
+        <div>
+          <p class="text-[10px] tracking-widest text-faint uppercase">Langkah</p>
+          <p class="text-3xl font-bold text-mint mt-1">{{ stepIdx + 1 }}<span class="text-base text-faint">/{{ sc.steps.length }}</span></p>
+        </div>
+        <div class="col-span-3 pt-2 border-t border-line/60 flex items-center justify-between">
+          <span class="text-[10px] tracking-widest text-faint uppercase">Fase</span>
+          <span class="text-xs px-2.5 py-1 rounded-full border" :class="phaseBadge(phase).chip">{{ phaseBadge(phase).label }}</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="mt-10 flex flex-wrap gap-2.5">
+      <button v-for="(s,i) in scenarios" :key="s.id" @click="select(i)" type="button"
+        class="pill font-mono text-sm px-4 py-2 rounded-full border"
+        :class="i===active ? 'bg-py-yellow text-ink border-py-yellow font-bold shadow-[0_6px_20px_-6px_rgba(255,212,73,.5)]'
+                             : 'bg-panel border-line text-faint hover:border-py-yellow/60 hover:text-soft'">
+        {{ s.icon }} {{ s.name }}
+      </button>
+    </div>
+    <p class="mt-3 text-sm text-faint max-w-2xl">{{ sc.blurb }}</p>
+
+    <section class="mt-6 grid lg:grid-cols-[1.05fr_1fr] gap-5">
+
+      <div class="bg-panel2 border border-line rounded-2xl overflow-hidden flex flex-col">
+        <div class="flex items-center gap-2 px-4 py-2.5 border-b border-line">
+          <span class="w-2.5 h-2.5 rounded-full bg-py-blue/80"></span>
+          <span class="font-mono text-xs text-faint">main.py</span>
+          <span class="ml-auto text-xs px-2.5 py-0.5 rounded-full border" :class="phaseBadge(phase).chip">{{ phaseBadge(phase).label }}</span>
+        </div>
+        <div class="font-mono text-[13.5px] leading-[1.75] py-3 overflow-x-auto">
+          <div v-for="(ln,i) in codeLines" :key="i"
+               class="flex px-2 transition-colors duration-200"
+               :class="(i+1)===step.line ? 'bg-py-yellow/10 border-l-2 border-py-yellow' : 'border-l-2 border-transparent hover:bg-white/[.03]'">
+            <span class="w-8 shrink-0 text-right pr-3 select-none text-faint/40">{{ i+1 }}</span>
+            <span class="whitespace-pre" v-html="hl(ln)"></span>
+            <span v-if="(i+1)===step.line" class="ml-auto pr-2 text-py-yellow">◀</span>
+          </div>
+        </div>
+        <div class="mt-auto border-t border-line px-4 py-3.5 bg-panel">
+          <p class="font-mono text-[13px] leading-relaxed"><span class="text-py-yellow mr-1">»</span>{{ step.desc }}</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-4">
+
+        <!-- DIAGRAM ALIR YANG DIPERBAIKI -->
+        <div class="bg-panel border border-line rounded-2xl p-5">
+          <p class="font-mono text-[10px] tracking-widest text-faint uppercase mb-3">Diagram alur eksekusi</p>
+          <svg viewBox="0 0 600 220" class="w-full">
+            <defs>
+              <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L8,4 L0,8 z" fill="#7F96BF"/>
+              </marker>
+              <marker id="arr-bright" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L8,4 L0,8 z" fill="#FFD449"/>
+              </marker>
+            </defs>
+            
+            <!-- Node Mulai -->
+            <g :class="activeNode==='start' ? 'node-on' : ''">
+              <rect x="20" y="80" width="100" height="50" rx="12" fill="#12203A" stroke="#2A3D61" stroke-width="2.5"/>
+              <text x="70" y="110" text-anchor="middle" font-size="14" font-weight="600" fill="#C7D5EC" font-family="JetBrains Mono">Mulai</text>
+            </g>
+            
+            <!-- Edge: Mulai → Cek Kondisi -->
+            <line x1="120" y1="105" x2="180" y2="105" stroke="#7F96BF" stroke-width="2.5" marker-end="url(#arr)"/>
+            
+            <!-- Node Cek Kondisi -->
+            <g :class="activeNode==='check' ? 'node-on' : ''">
+              <rect x="180" y="80" width="180" height="50" rx="12" fill="#12203A" stroke="#2A3D61" stroke-width="2.5"/>
+              <text x="270" y="110" text-anchor="middle" font-size="13" fill="#C7D5EC" font-family="JetBrains Mono">{{ sc.flow.cek }}</text>
+            </g>
+            
+            <!-- Edge: Cek → Isi (ya) -->
+            <line x1="360" y1="105" x2="420" y2="105" stroke-width="2.5" marker-end="url(#arr-bright)"
+                  :stroke="edge('true')" :class="edgeOn('true') ? 'edge-on' : ''"/>
+            <text x="390" y="95" text-anchor="middle" font-size="11" fill="#59D98E" font-weight="600" font-family="JetBrains Mono">✓ ya</text>
+            
+            <!-- Node Isi Loop -->
+            <g :class="activeNode==='body' ? 'node-on' : ''">
+              <rect x="420" y="80" width="150" height="50" rx="12" fill="#12203A" stroke="#2A3D61" stroke-width="2.5"/>
+              <text x="495" y="110" text-anchor="middle" font-size="13" fill="#C7D5EC" font-family="JetBrains Mono">Isi loop</text>
+            </g>
+            
+            <!-- Edge: Isi → Cek (loop back) -->
+            <path d="M495 80 C 495 30, 270 30, 270 75" fill="none" stroke-width="2.5" marker-end="url(#arr)"
+                  :stroke="edge('loop')" :class="edgeOn('loop') ? 'edge-on' : ''"/>
+            <text x="382" y="45" text-anchor="middle" font-size="11" fill="#7F96BF" font-family="JetBrains Mono">↺ ulangi</text>
+            
+            <!-- Edge: Cek → Selesai (tidak) -->
+            <line x1="270" y1="130" x2="270" y2="170" stroke-width="2.5" marker-end="url(#arr)"
+                  :stroke="edge('exit')" :class="edgeOn('exit') ? 'edge-on' : ''"/>
+            <text x="285" y="155" font-size="11" fill="#FF6B6B" font-weight="600" font-family="JetBrains Mono">✗ tidak</text>
+            
+            <!-- Node Selesai -->
+            <g :class="activeNode==='end' ? 'node-on' : ''">
+              <rect x="200" y="170" width="140" height="45" rx="12" fill="#12203A" stroke="#2A3D61" stroke-width="2.5"/>
+              <text x="270" y="197" text-anchor="middle" font-size="13" fill="#C7D5EC" font-family="JetBrains Mono">Selesai</text>
+            </g>
+            
+            <!-- Edge khusus break: Isi → Selesai (jalan pintas) -->
+            <path d="M495 130 C 495 180, 340 190, 335 192" fill="none" stroke="#FF6B6B" stroke-width="3"
+                  stroke-dasharray="6 4" marker-end="url(#arr)" 
+                  :opacity="sc.id==='break' ? 1 : 0"
+                  :class="activeNode==='end' && phase==='break' ? 'edge-on' : ''"/>
+            <text v-if="sc.id==='break'" x="430" y="175" font-size="11" fill="#FF6B6B" font-weight="700" font-family="JetBrains Mono">BREAK!</text>
+            
+            <!-- Edge khusus continue: Isi → Cek (lewati sisa) -->
+            <path d="M420 115 C 380 135, 310 125, 280 115" fill="none" stroke="#FFA657" stroke-width="2.5"
+                  stroke-dasharray="6 4" marker-end="url(#arr)"
+                  :opacity="sc.id==='continue' ? 1 : 0"
+                  :class="activeNode==='check' && phase==='continue' ? 'edge-on' : ''"/>
+            <text v-if="sc.id==='continue'" x="350" y="140" text-anchor="middle" font-size="11" fill="#FFA657" font-weight="700" font-family="JetBrains Mono">CONTINUE →</text>
+          </svg>
+        </div>
+
+        <div class="bg-panel border border-line rounded-2xl p-4">
+          <div class="flex items-center justify-between">
+            <p class="font-mono text-[10px] tracking-widest text-faint uppercase">Variabel &amp; state</p>
+            <div class="flex gap-1.5" v-if="!sc.nested">
+              <span v-for="k in sc.total" :key="k" class="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                :class="k < pipCount ? 'bg-mint' : k === pipCount ? 'bg-py-yellow animate-pulse scale-125' : 'bg-line'"></span>
+            </div>
+            <span v-else class="font-mono text-xs text-faint">sel: <span class="text-mint">{{ cellsDone }}</span>/12</span>
+          </div>
+
+          <div class="mt-3 flex flex-wrap gap-2" v-if="Object.keys(step.vars||{}).length">
+            <div v-for="(v,name) in step.vars" :key="name + '-' + stepIdx"
+                 class="pop font-mono text-sm bg-panel2 border border-line rounded-lg px-3 py-1.5 flex items-center gap-2">
+              <span class="text-py-blue">{{ name }}</span><span class="text-faint">=</span>
+              <template v-if="v && v.list">
+                <span class="flex gap-1">
+                  <span v-for="(it,idx) in v.list" :key="idx" class="px-1.5 rounded transition-all duration-300"
+                    :class="v.active===idx ? 'bg-py-yellow text-ink font-bold scale-110' : v.active!==null && idx>v.active ? 'text-faint/40 line-through' : 'text-faint'">{{ it }}</span>
+                </span>
+              </template>
+              <span v-else :class="typeof v==='string' ? 'text-mint' : 'text-py-yellow'">{{ fmt(v) }}</span>
+            </div>
+          </div>
+          <p v-else class="mt-3 font-mono text-xs text-faint/60">(belum ada variabel)</p>
+
+          <div v-if="sc.nested" class="mt-4">
+            <p class="font-mono text-[10px] tracking-widest text-faint uppercase mb-2">Grid baris × kolom</p>
+            <div v-for="b in sc.nested.rows" :key="b" class="flex gap-1.5 mb-1.5">
+              <span v-for="c in sc.nested.cols" :key="c"
+                class="w-9 h-9 rounded-md border font-mono text-xs flex items-center justify-center transition-all duration-300"
+                :class="cellCls(b-1, c-1)">✦</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#0A0F1A] border border-line rounded-2xl overflow-hidden flex-1 min-h-[150px] flex flex-col">
+          <div class="px-4 py-2 border-b border-line/60 font-mono text-[11px] text-faint flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-mint"></span> output — terminal
+          </div>
+          <div ref="consoleBox" class="font-mono text-[13px] leading-relaxed p-4 overflow-y-auto max-h-44 text-mint/90">
+            <p v-for="(o,i) in (step.out||[])" :key="i" class="whitespace-pre">{{ o }}</p>
+            <p v-if="!(step.out||[]).length" class="text-faint/40 italic">… belum ada output</p>
+            <span class="inline-block w-2.5 h-4 bg-mint cursor-blink align-middle mt-1"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-5 bg-panel border border-line rounded-2xl px-4 sm:px-5 py-4 flex flex-wrap items-center gap-3">
+      <button type="button" @click="togglePlay" :disabled="atEnd && !playing"
+        class="btn-ctl font-display font-bold px-5 py-2.5 rounded-lg"
+        :class="playing ? 'bg-py-blue text-ink' : 'bg-py-yellow text-ink shadow-[0_8px_24px_-8px_rgba(255,212,73,.6)]'">
+        {{ playing ? '⏸ Jeda' : '▶ Jalankan' }}
+      </button>
+      <button type="button" @click="prevStep" :disabled="stepIdx===0"
+        class="btn-ctl font-mono text-sm px-4 py-2.5 rounded-lg border border-line text-faint hover:text-soft hover:border-py-blue">⏮ Mundur</button>
+      <button type="button" @click="nextStep" :disabled="atEnd"
+        class="btn-ctl font-mono text-sm px-4 py-2.5 rounded-lg border border-line text-faint hover:text-soft hover:border-py-blue">Langkah ⏭</button>
+      <button type="button" @click="reset"
+        class="btn-ctl font-mono text-sm px-4 py-2.5 rounded-lg border border-line text-faint hover:text-coral hover:border-coral">⟲ Ulang</button>
+
+      <div class="flex items-center gap-3 ml-auto">
+        <span class="font-mono text-xs text-faint">kecepatan</span>
+        <input type="range" min="0.5" max="2" step="0.25" v-model.number="speed" class="w-32">
+        <span class="font-mono text-sm text-py-yellow w-10">{{ speed }}×</span>
+      </div>
+
+      <div class="w-full flex items-center justify-between pt-2 border-t border-line/60">
+        <p class="font-mono text-[11px] text-faint">pintasan: <kbd class="px-1.5 py-0.5 rounded bg-panel2 border border-line">Spasi</kbd> · <kbd class="px-1.5 py-0.5 rounded bg-panel2 border border-line">→</kbd> · <kbd class="px-1.5 py-0.5 rounded bg-panel2 border border-line">←</kbd> · <kbd class="px-1.5 py-0.5 rounded bg-panel2 border border-line">R</kbd></p>
+        <p class="font-mono text-[11px] text-faint">langkah {{ stepIdx + 1 }} / {{ sc.steps.length }}</p>
+      </div>
+      <div class="w-full h-1 bg-line rounded-full overflow-hidden -mb-1">
+        <div class="h-full bg-py-yellow transition-all duration-300" :style="{width: ((stepIdx+1)/sc.steps.length*100)+'%'}"></div>
+      </div>
+    </section>
+
+    <p class="mt-20 font-mono text-sm text-py-yellow">// pahami konsepnya</p>
+    <h2 class="font-display font-bold text-3xl sm:text-4xl mt-2">Loop yang sama, dipakai di mana-mana</h2>
+
+    <div class="mt-8 grid md:grid-cols-3 gap-5">
+
+      <article class="card-hover md:col-span-2 bg-panel border border-line rounded-2xl p-6">
+        <h3 class="font-display font-bold text-xl">for vs while — kapan pakai yang mana?</h3>
+        <div class="mt-4 grid sm:grid-cols-2 gap-4">
+          <div class="bg-panel2 border border-line rounded-xl p-4">
+            <p class="font-mono text-py-blue text-sm">for</p>
+            <p class="text-sm text-faint mt-1">Sudah tahu <strong class="text-soft">apa saja yang mau dikunjungi</strong>: isi list, rentang angka, karakter string.</p>
+            <pre class="font-mono text-xs mt-3 text-soft leading-relaxed" v-html="hl(snips.forCth)"></pre>
+          </div>
+          <div class="bg-panel2 border border-line rounded-xl p-4">
+            <p class="font-mono text-py-yellow text-sm">while</p>
+            <p class="text-sm text-faint mt-1">Belum tahu berapa kali — <strong class="text-soft">berhenti saat kondisi tak lagi terpenuhi</strong>.</p>
+            <pre class="font-mono text-xs mt-3 text-soft leading-relaxed" v-html="hl(snips.whileCth)"></pre>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-faint">Aturan praktis: kalau bisa dihitung jumlahnya → <span class="font-mono text-py-blue">for</span>. Kalau menunggu sesuatu berubah → <span class="font-mono text-py-yellow">while</span>.</p>
+      </article>
+
+      <article class="card-hover bg-panel border border-line rounded-2xl p-6">
+        <h3 class="font-display font-bold text-xl">3 komponen setiap loop</h3>
+        <ol class="mt-4 space-y-3">
+          <li class="flex gap-3"><span class="font-display font-bold text-py-yellow text-lg">1</span><div><p class="font-semibold text-sm">Inisialisasi</p><p class="text-xs text-faint">siapkan nilai awal, mis. <code class="font-mono text-py-blue">x = 1</code></p></div></li>
+          <li class="flex gap-3"><span class="font-display font-bold text-py-yellow text-lg">2</span><div><p class="font-semibold text-sm">Kondisi</p><p class="text-xs text-faint">alasan untuk terus — dan alasan untuk <em>berhenti</em></p></div></li>
+          <li class="flex gap-3"><span class="font-display font-bold text-py-yellow text-lg">3</span><div><p class="font-semibold text-sm">Update</p><p class="text-xs text-faint">langkah mendekat ke akhir, mis. <code class="font-mono text-py-blue">x += 1</code></p></div></li>
+        </ol>
+        <p class="mt-4 text-xs text-faint border-t border-line/60 pt-3">Hilangkan nomor 3 → selamat datang di infinite loop. 👇</p>
+      </article>
+
+      <article class="card-hover bg-panel border border-line rounded-2xl p-6">
+        <h3 class="font-display font-bold text-xl">break &amp; continue</h3>
+        <p class="text-sm text-faint mt-3">Bayangkan loop sebagai lift yang naik lantai demi lantai:</p>
+        <div class="mt-4 space-y-3 text-sm">
+          <p><span class="font-mono px-2 py-0.5 rounded bg-coral/15 text-coral border border-coral/40">break</span> keluar dari lift <strong>sekarang juga</strong> — seluruh sisa lantai dibatalkan.</p>
+          <p><span class="font-mono px-2 py-0.5 rounded bg-amber/15 text-amber border border-amber/40">continue</span> lewati lantai ini saja, lift <strong>lanjut naik</strong>.</p>
+        </div>
+        <p class="text-xs text-faint mt-4">Coba keduanya di skenario di atas dan lihat garis merah / oranye menyala di diagram.</p>
+      </article>
+
+      <article class="card-hover md:col-span-2 bg-panel border border-coral/40 rounded-2xl p-6 relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 text-[110px] font-display font-bold text-coral/10 select-none leading-none">∞</div>
+        <h3 class="font-display font-bold text-xl text-coral">⚠ Zona bahaya: infinite loop</h3>
+        <pre class="font-mono text-sm mt-4 bg-panel2 border border-line rounded-xl p-4 leading-relaxed" v-html="hl(snips.bahaya)"></pre>
+        <p class="text-sm text-faint mt-4">Kondisinya <span class="font-mono text-coral">True</span> selamanya, tidak ada <span class="font-mono text-soft">break</span>, tidak ada update → komputer mencetak tanpa henti. Pastikan setiap <span class="font-mono text-py-yellow">while</span> punya jalan keluar.</p>
+      </article>
+    </div>
+
+    <footer class="mt-16 border-t border-line/60 pt-6 flex flex-wrap items-center gap-3 font-mono text-xs text-faint">
+      <span class="w-2 h-2 rounded-full bg-py-yellow"></span>
+      <span>LoopLab — Vue 3 + Tailwind CSS</span>
+      <span class="ml-auto">skenario: range · list · while · break · continue · nested</span>
+    </footer>
+  </div>
+</div>
+
+<script>
+function showFatal(msg){
+  var f = document.getElementById('fatal');
+  f.style.display = 'flex';
+  document.getElementById('fatal-msg').textContent = String(msg);
+}
+
+if (typeof Vue === 'undefined') {
+  showFatal('Vue gagal dimuat dari CDN — periksa koneksi internet Anda.');
+} else {
+(function(){
+  const { createApp } = Vue;
+
+  function hl(src){
+    let s = String(src).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const re = /(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(for|while|in|if|elif|else|break|continue|def|return|True|False|None|not|and|or)\b|\b(range|print|len|input|append|str|int)\b|(\b\d+(?:\.\d+)?\b)/g;
+    return s.replace(re,(m,com,str,kw,fn,num)=>{
+      if(com) return '<span class="tok-com">'+com+'</span>';
+      if(str) return '<span class="tok-str">'+str+'</span>';
+      if(kw)  return '<span class="tok-kw">'+kw+'</span>';
+      if(fn)  return '<span class="tok-fn">'+fn+'</span>';
+      if(num) return '<span class="tok-num">'+num+'</span>';
+      return m;
+    });
+  }
+
+  const SC = [];
+
+  /* 1. for + range */
+  (function(){
+    const code =
+      '# range(4) menyiapkan deret: 0, 1, 2, 3\n' +
+      'for i in range(4):\n' +
+      '    print("i =", i)\n' +
+      '\n' +
+      'print("Loop selesai!")';
+    const steps=[{line:1,phase:'start',vars:{},out:[],iter:null,desc:'Program mulai. range(4) sudah menyiapkan deret 0, 1, 2, 3 untuk dikunjungi satu per satu.'}];
+    const out=[];
+    for(let k=0;k<4;k++){
+      steps.push({line:2,phase:'check',vars:{i:k},out:out.slice(),iter:k,desc:'Cek kondisi: masih ada item di range? Ya → variabel i diisi '+k+'.'});
+      out.push('i = '+k);
+      steps.push({line:3,phase:'body',vars:{i:k},out:out.slice(),iter:k,desc:'Isi loop dijalankan: print("i =", '+k+') → baris baru muncul di konsol.'});
+    }
+    steps.push({line:5,phase:'done',vars:{i:3},out:out.concat(['Loop selesai!']),iter:4,desc:'Range habis → kondisi False. Loop berhenti, program lanjut ke baris 5.'});
+    SC.push({id:'range',icon:'🔁',name:'for + range',code,total:4,steps,flow:{cek:'Masih ada item?'},
+      blurb:'Bentuk loop paling dasar: kunjungi setiap nilai yang dihasilkan range(). Perhatikan panah "↺ ulangi" yang membawa eksekusi kembali ke pengecekan kondisi.'});
+  })();
+
+  /* 2. for + list */
+  (function(){
+    const items=['apel','mangga','jeruk'];
+    const code =
+      'buah = ["apel", "mangga", "jeruk"]\n' +
+      '\n' +
+      'for b in buah:\n' +
+      '    print("Aku suka", b)\n' +
+      '\n' +
+      'print("Semua sudah dicoba!")';
+    const steps=[{line:1,phase:'start',vars:{buah:{list:items.slice(),active:null}},out:[],desc:'Baris 1: list buah dibuat — isinya 3 item.'}];
+    const out=[];
+    items.forEach(function(it,idx){
+      steps.push({line:3,phase:'check',vars:{buah:{list:items,active:idx},b:it},out:out.slice(),iter:idx,desc:'Cek: item ke-'+(idx+1)+' masih ada → b diisi "'+it+'" (lihat item yang menyala).'});
+      out.push('Aku suka '+it);
+      steps.push({line:4,phase:'body',vars:{buah:{list:items,active:idx},b:it},out:out.slice(),iter:idx,desc:'Isi loop dijalankan untuk "'+it+'".'});
+    });
+    steps.push({line:6,phase:'done',vars:{buah:{list:items,active:null}},out:out.concat(['Semua sudah dicoba!']),iter:3,desc:'Semua item sudah dikunjungi → loop selesai, lanjut ke baris 6.'});
+    SC.push({id:'list',icon:'🧺',name:'for + list',code,total:3,steps,flow:{cek:'Masih ada item?'},
+      blurb:'for tidak butuh angka — ia bisa menyusuri isi list. Item yang sedang diproses menyala kuning; item yang sudah lewat meredup.'});
+  })();
+
+  /* 3. while */
+  (function(){
+    const code =
+      'x = 1\n' +
+      'total = 0\n' +
+      '\n' +
+      'while total < 20:\n' +
+      '    total = total + x\n' +
+      '    print("total =", total)\n' +
+      '    x = x + 1\n' +
+      '\n' +
+      'print("Berhenti di total", total)';
+    const steps=[
+      {line:1,phase:'start',vars:{x:1},out:[],desc:'Inisialisasi: x = 1 — inilah "penambah" di setiap putaran.'},
+      {line:2,phase:'start',vars:{x:1,total:0},out:[],desc:'Inisialisasi: total = 0 — wadah penampung hasil.'}];
+    const out=[]; let x=1,total=0,it=0;
+    while(true){
+      if(total<20){
+        steps.push({line:4,phase:'check',vars:{x,total},out:out.slice(),iter:it,desc:'Cek kondisi: total ('+total+') < 20? Ya → masuk ke isi loop.'});
+        const lama=total; total+=x;
+        steps.push({line:5,phase:'update',vars:{x,total},out:out.slice(),iter:it,desc:'total diperbarui: '+lama+' + '+x+' = '+total+'.'});
+        out.push('total = '+total);
+        steps.push({line:6,phase:'body',vars:{x,total},out:out.slice(),iter:it,desc:'print() menampilkan total terbaru ke konsol.'});
+        x+=1;
+        steps.push({line:7,phase:'update',vars:{x,total},out:out.slice(),iter:it,desc:'x dinaikkan menjadi '+x+' — komponen "update" yang membuat loop bisa selesai.'});
+        it++;
+      } else {
+        steps.push({line:4,phase:'check',vars:{x,total},out:out.slice(),iter:it,desc:'Cek kondisi: total ('+total+') < 20? TIDAK → loop berhenti di sini.'});
+        break;
+      }
+    }
+    out.push('Berhenti di total '+total);
+    steps.push({line:9,phase:'done',vars:{x,total},out:out.slice(),iter:it,desc:'Keluar dari loop. Perhatikan: total berhenti di 21 — kondisi dicek SETELAH melewati batas, bukan pas 20.'});
+    SC.push({id:'while',icon:'⏳',name:'while',code,total:6,steps,flow:{cek:'total < 20 ?'},
+      blurb:'while terus berputar selama kondisinya True. Amati bagaimana total melompat: 0 → 1 → 3 → 6 → 10 → 15 → 21, lalu kondisi menjadi False.'});
+  })();
+
+  /* 4. break - DIPERBAIKI dengan for loop biasa */
+  (function(){
+    const items=[3,7,1,9,4,6];
+    const code =
+      'angka = [3, 7, 1, 9, 4, 6]\n' +
+      '\n' +
+      'for n in angka:\n' +
+      '    if n == 9:\n' +
+      '        print("Ketemu!", n)\n' +
+      '        break\n' +
+      '    print(n, "bukan target")\n' +
+      '\n' +
+      'print("Loop dihentikan")';
+    const steps=[{line:1,phase:'start',vars:{angka:{list:items.slice(),active:null}},out:[],desc:'List angka dibuat. Kita berburu angka 9.'}];
+    const out=[];
+    
+    // Gunakan for loop biasa agar bisa break dengan benar
+    for(let idx=0; idx<items.length; idx++){
+      const n = items[idx];
+      
+      steps.push({line:3,phase:'check',vars:{angka:{list:items,active:idx},n:n},out:out.slice(),iter:idx,desc:'Cek item berikutnya: n = '+n+'.'});
+      
+      if(n===9){
+        steps.push({line:4,phase:'cond',vars:{angka:{list:items,active:idx},n:n},out:out.slice(),iter:idx,desc:'Cek if: '+n+' == 9? YA! Masuk ke blok if.'});
+        out.push('Ketemu! '+n);
+        steps.push({line:5,phase:'body',vars:{angka:{list:items,active:idx},n:n},out:out.slice(),iter:idx,desc:'Target ditemukan dan dicetak.'});
+        steps.push({line:6,phase:'break',vars:{angka:{list:items,active:idx},n:n},out:out.slice(),iter:idx,desc:'BREAK! Loop dihentikan paksa. Angka 4 dan 6 TIDAK PERNAH diproses — lihat mereka dicoret di panel variabel.'});
+        break; // Keluar dari loop JavaScript
+      } else {
+        steps.push({line:4,phase:'cond',vars:{angka:{list:items,active:idx},n:n},out:out.slice(),iter:idx,desc:'Cek if: '+n+' == 9? Tidak → blok if dilewati.'});
+        out.push(n+' bukan target');
+        steps.push({line:7,phase:'body',vars:{angka:{list:items,active:idx},n:n},out:out.slice(),iter:idx,desc:'print() mencatat bahwa ini bukan target, lalu kembali ke baris 3.'});
+      }
+    }
+    
+    out.push('Loop dihentikan');
+    steps.push({line:9,phase:'done',vars:{angka:{list:items,active:3}},out:out.slice(),iter:4,desc:'Program lanjut tepat setelah loop berakhir — break tidak mematikan seluruh program, hanya loop.'});
+    SC.push({id:'break',icon:'🛑',name:'break',code,total:6,steps,flow:{cek:'Masih ada item?'},
+      blurb:'break = rem darurat. Begitu dieksekusi, loop langsung tamat. Perhatikan: angka 4 dan 6 dicoret karena tidak pernah diproses setelah break dijalankan.'});
+  })();
+
+  /* 5. continue */
+  (function(){
+    const code =
+      'for n in range(1, 8):\n' +
+      '    if n % 2 == 1:\n' +
+      '        continue      # lewati angka ganjil\n' +
+      '    print("genap:", n)\n' +
+      '\n' +
+      'print("Selesai")';
+    const steps=[{line:1,phase:'start',vars:{},out:[],desc:'range(1, 8) menyiapkan angka 1 sampai 7. Misi: cetak yang genap saja.'}];
+    const out=[];
+    for(let n=1;n<8;n++){
+      steps.push({line:1,phase:'check',vars:{n},out:out.slice(),iter:n-1,desc:'Cek range: masih ada angka → n = '+n+'.'});
+      if(n%2===1){
+        steps.push({line:2,phase:'cond',vars:{n},out:out.slice(),iter:n-1,desc:'Cek if: '+n+' % 2 == 1? Ya, '+n+' itu ganjil.'});
+        steps.push({line:3,phase:'continue',vars:{n},out:out.slice(),iter:n-1,desc:'continue! Sisa isi loop (baris 4) dilewati — langsung lompat cek item berikutnya. Ikuti garis oranye di diagram.'});
+      } else {
+        steps.push({line:2,phase:'cond',vars:{n},out:out.slice(),iter:n-1,desc:'Cek if: '+n+' % 2 == 1? Tidak, '+n+' genap → lanjut.'});
+        out.push('genap: '+n);
+        steps.push({line:4,phase:'body',vars:{n},out:out.slice(),iter:n-1,desc:'print() mencetak angka genap.'});
+      }
+    }
+    out.push('Selesai');
+    steps.push({line:6,phase:'done',vars:{n:7},out:out.slice(),iter:7,desc:'Range habis. Loop berjalan 7 kali, tapi print() hanya dieksekusi 3 kali.'});
+    SC.push({id:'continue',icon:'⏭️',name:'continue',code,total:7,steps,flow:{cek:'Masih ada angka?'},
+      blurb:'continue tidak menghentikan loop — ia hanya melewatkan putaran saat itu. Bandingkan jumlah iterasi (7) dengan jumlah output (3).'});
+  })();
+
+  /* 6. nested loop */
+  (function(){
+    const code =
+      'for baris in range(3):\n' +
+      '    for kolom in range(4):\n' +
+      '        print("*", end=" ")\n' +
+      '    print()      # ganti baris\n' +
+      '\n' +
+      'print("Grid selesai")';
+    const steps=[]; const out=[]; let cur='';
+    for(let b=0;b<3;b++){
+      steps.push({line:1,phase:'check',vars:{baris:b,kolom:null},out:out.slice(),iter:b*4,grid:{b:b,c:-1},desc:'Loop luar: baris = '+b+'. Sekarang loop DALAM mulai bekerja.'});
+      for(let c=0;c<4;c++){
+        steps.push({line:2,phase:'check',vars:{baris:b,kolom:c},out:out.slice(),iter:b*4+c,grid:{b:b,c:c},desc:'Loop dalam: kolom = '+c+' (baris '+b+').'});
+        cur+='* ';
+        steps.push({line:3,phase:'body',vars:{baris:b,kolom:c},out:cur?out.concat([cur]):out.slice(),iter:b*4+c,grid:{b:b,c:c},desc:'Cetak satu bintang. Loop dalam berputar 4× untuk SETIAP 1 putaran loop luar.'});
+      }
+      out.push(cur.trim()); cur='';
+      steps.push({line:4,phase:'update',vars:{baris:b,kolom:null},out:out.slice(),iter:(b+1)*4,grid:{b:b,c:4},desc:'print() kosong → pindah ke baris baru. Loop luar lanjut ke baris berikutnya.'});
+    }
+    out.push('Grid selesai');
+    steps.push({line:6,phase:'done',vars:{baris:2},out:out.slice(),iter:12,grid:{b:3,c:-1},desc:'Selesai! Total eksekusi isi loop = 3 × 4 = 12 kali.'});
+    SC.push({id:'nested',icon:'🧆',name:'Nested Loop',code,total:12,nested:{rows:3,cols:4},steps,flow:{cek:'range luar & dalam?'},
+      blurb:'Loop di dalam loop. Loop luar berjalan 3 kali, dan setiap putarannya loop dalam berputar 4 kali — amati grid yang terisi sel demi sel.'});
+  })();
+
+  try {
+    createApp({
+      data(){ return {
+        scenarios: SC,
+        active: 0,
+        stepIdx: 0,
+        playing: false,
+        speed: 1,
+        snips: {
+          forCth:   'for nama in daftar:\n    sapa(nama)',
+          whileCth: 'while belum_benar:\n    coba_lagi()',
+          bahaya:   'while True:\n    print("tolong aku keluar...")'
+        },
+        ticker: [
+          'detak jantungmu ≈ 60 loop/menit','jarum detik berputar 1.440×/hari','playlist mode: repeat 🔁',
+          'mesin cuci: bilas → putar → ulangi','alarm snooze: while(masih_ngantuk)','for i in range(hari): bangun()',
+          'lampu lalu lintas berganti terus','while hidup: belajar()'
+        ]
+      }},
+      computed:{
+        sc(){ return this.scenarios[this.active]; },
+        step(){ return this.sc.steps[this.stepIdx] || this.sc.steps[0]; },
+        phase(){ return this.step.phase; },
+        codeLines(){ return this.sc.code.split('\n'); },
+        atEnd(){ return this.stepIdx >= this.sc.steps.length - 1; },
+        activeNode(){
+          if(this.phase==='start') return 'start';
+          if(this.phase==='check'||this.phase==='cond'||this.phase==='continue') return 'check';
+          if(this.phase==='done'||this.phase==='break') return 'end';
+          return 'body';
+        },
+        pipCount(){
+          const it = this.step.iter;
+          if(it === null || it === undefined) return 0;
+          if(this.phase==='check' || this.phase==='cond') return it;
+          return Math.min(it + 1, this.sc.total);
+        },
+        cellsDone(){
+          const g = this.step.grid; if(!g) return 0;
+          const cols = this.sc.nested.cols;
+          return g.b*cols + Math.max(g.c,0) + (this.phase==='body' && g.c>=0 ? 1:0);
+        }
+      },
+      methods:{
+        hl,
+        select(i){ this.active = i; this.stepIdx = 0; this.playing = false; },
+        nextStep(){ if(!this.atEnd) this.stepIdx++; else this.playing = false; },
+        prevStep(){ if(this.stepIdx > 0){ this.stepIdx--; this.playing = false; } },
+        reset(){ this.stepIdx = 0; this.playing = false; },
+        togglePlay(){
+          if(this.atEnd && !this.playing){ this.stepIdx = 0; }
+          this.playing = !this.playing;
+        },
+        phaseBadge(p){
+          const map = {
+            start:['mulai','bg-py-blue/15 text-py-blue border-py-blue/50'],
+            check:['cek kondisi','bg-py-yellow/15 text-py-yellow border-py-yellow/50'],
+            cond:['cek if','bg-aqua/15 text-aqua border-aqua/50'],
+            body:['isi loop','bg-mint/15 text-mint border-mint/50'],
+            update:['update','bg-aqua/15 text-aqua border-aqua/50'],
+            break:['BREAK!','bg-coral/20 text-coral border-coral/60 font-bold'],
+            continue:['CONTINUE →','bg-amber/15 text-amber border-amber/50'],
+            done:['selesai ✓','bg-mint/15 text-mint border-mint/50']
+          };
+          const m = map[p] || ['…','border-line text-faint'];
+          return { label:m[0], chip:m[1] };
+        },
+        fmt(v){
+          if(typeof v==='string') return '"'+v+'"';
+          if(v===null||v===undefined) return '—';
+          return String(v);
+        },
+        edge(kind){
+          const dim='#2A3D61', blue='#5CA8FF', green='#59D98E', red='#FF6B6B';
+          if(kind==='true')  return (this.phase==='check'||this.phase==='cond') ? green : dim;
+          if(kind==='loop')  return (this.phase==='body'||this.phase==='update') ? blue : dim;
+          if(kind==='exit')  return (this.phase==='done'||this.phase==='break') ? red : dim;
+          return dim;
+        },
+        edgeOn(kind){
+          if(kind==='true') return this.phase==='check'||this.phase==='cond';
+          if(kind==='loop') return this.phase==='body'||this.phase==='update';
+          if(kind==='exit') return this.phase==='done'||this.phase==='break';
+          return false;
+        },
+        cellCls(b,c){
+          const g=this.step.grid; if(!g) return 'border-line text-faint/20 bg-panel2';
+          if(b<g.b) return 'border-mint/60 bg-mint/15 text-mint';
+          if(b===g.b){
+            if(c<g.c) return 'border-mint/60 bg-mint/15 text-mint';
+            if(c===g.c) return this.phase==='body'
+              ? 'border-py-yellow bg-py-yellow text-ink font-bold scale-110'
+              : 'border-py-yellow/60 text-py-yellow animate-pulse';
+          }
+          return 'border-line text-faint/20 bg-panel2';
+        }
+      },
+      watch:{
+        playing(v){
+          if(!v) return;
+          const tick = () => {
+            if(!this.playing) return;
+            if(this.stepIdx >= this.sc.steps.length - 1){ this.playing = false; return; }
+            this.stepIdx++;
+            setTimeout(tick, 1050 / this.speed);
+          };
+          setTimeout(tick, 250);
+        },
+        stepIdx(){
+          this.$nextTick(()=>{
+            const el = this.$refs.consoleBox;
+            if(el) el.scrollTop = el.scrollHeight;
+          });
+        }
+      },
+      mounted(){
+        const note = document.getElementById('boot-note');
+        if(note) note.remove();
+
+        window.addEventListener('keydown', e=>{
+          if(/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+          if(e.code==='Space'){ e.preventDefault(); this.togglePlay(); }
+          if(e.key==='ArrowRight'){ this.playing=false; this.nextStep(); }
+          if(e.key==='ArrowLeft'){ this.prevStep(); }
+          if(e.key==='r'||e.key==='R'){ this.reset(); }
+        });
+        console.log('✅ LoopLab siap —', SC.length, 'skenario dimuat');
+      }
+    }).mount('#app');
+  } catch (err) {
+    showFatal(err);
+    console.error(err);
+  }
+})();
+}
+</script>
+
+</body>
+</html>
