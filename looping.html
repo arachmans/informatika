@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualisasi Looping Python — for, while, break &amp; continue</title>
+<meta name="description" content="Halaman interaktif untuk belajar perulangan Python (for, while, loop bersarang, break & continue) secara visual, langkah demi langkah.">
+<meta name="theme-color" content="#070b16">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  [v-cloak] { display: none !important; }
+  .tok-kw  { color: #c678dd; }
+  .tok-str { color: #98c379; }
+  .tok-fv  { color: #e5c07b; }
+  .tok-num { color: #d19a66; }
+  .tok-fn  { color: #61afef; }
+  .tok-com { color: #5c6370; font-style: italic; }
+  .pulse-ring { animation: pulseRing 1.3s ease-in-out infinite; }
+  @keyframes pulseRing {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.16); }
+    50%      { box-shadow: 0 0 0 7px rgba(255,255,255,0); }
+  }
+  .pop-enter-active { transition: all .22s ease; }
+  .pop-enter-from { transform: translateY(-6px) scale(.9); opacity: 0; }
+  .fade-enter-active, .fade-leave-active { transition: opacity .18s ease; }
+  .fade-enter-from, .fade-leave-to { opacity: 0; }
+  .out-enter-active { transition: all .3s ease; }
+  .out-enter-from { opacity: 0; transform: translateX(-8px); }
+  .scroll-slim::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scroll-slim::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  .scroll-slim::-webkit-scrollbar-track { background: transparent; }
+  kbd { padding: 1px 5px; background: #1e293b; border: 1px solid #334155; border-bottom-width: 2px; border-radius: 4px; font-family: "JetBrains Mono", monospace; font-size: 10px; color: #94a3b8; }
+</style>
+</head>
+<body class="bg-[#070b16] font-sans text-slate-200 antialiased selection:bg-sky-500/30">
+
+<div id="app" v-cloak class="relative min-h-screen">
+
+  <!-- dekorasi latar -->
+  <div class="pointer-events-none fixed inset-0 overflow-hidden">
+    <div class="absolute -top-48 -left-40 h-[480px] w-[480px] rounded-full bg-sky-500/10 blur-3xl"></div>
+    <div class="absolute top-1/3 -right-48 h-[480px] w-[480px] rounded-full bg-violet-500/10 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/4 h-[420px] w-[420px] rounded-full bg-emerald-500/[0.07] blur-3xl"></div>
+  </div>
+
+  <!-- header -->
+  <header class="relative mx-auto max-w-6xl px-4 pb-8 pt-12 text-center">
+    <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-900/60 px-4 py-1.5 text-xs text-slate-400">
+      <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400"></span>
+      Media belajar interaktif — Python Dasar
+    </div>
+    <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+      Visualisasi
+      <span class="bg-gradient-to-r from-sky-400 via-emerald-400 to-violet-400 bg-clip-text text-transparent">Looping Python</span>
+    </h1>
+    <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-base">
+      Lihat cara kerja <code class="rounded bg-slate-800/80 px-1.5 py-0.5 font-mono text-[13px] text-sky-300">for</code> dan
+      <code class="rounded bg-slate-800/80 px-1.5 py-0.5 font-mono text-[13px] text-amber-300">while</code> secara visual:
+      baris kode yang sedang dieksekusi, nilai variabel, dan output konsol berjalan serentak — langkah demi langkah.
+    </p>
+  </header>
+
+  <!-- tab modul -->
+  <nav class="relative mx-auto max-w-6xl px-4 pb-2">
+    <div class="flex flex-wrap items-center justify-center gap-2">
+      <button v-for="m in modules" :key="m.id" @click="selectModule(m.id)"
+        class="flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-200"
+        :class="activeId === m.id ? [THEMES[m.theme].chipActive, 'shadow-lg shadow-black/30'] : 'border-slate-700/60 bg-slate-900/50 text-slate-400 hover:border-slate-600 hover:text-slate-200'">
+        <span class="h-2 w-2 rounded-full" :class="THEMES[m.theme].solid"></span>
+        {{ m.label }}
+      </button>
+    </div>
+  </nav>
+
+<main class="relative mx-auto max-w-6xl px-4 pb-8 pt-6">
+  <div class="grid items-start gap-6 lg:grid-cols-2">
+
+    <!-- ===== kolom kiri: konsep, kode, penjelasan ===== -->
+    <section class="space-y-5">
+
+      <div class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+        <div class="flex items-center gap-2.5">
+          <span class="h-2.5 w-2.5 rounded-full" :class="theme.solid"></span>
+          <h2 class="text-lg font-semibold text-white">{{ mod.title }}</h2>
+        </div>
+        <p class="mt-2.5 text-sm leading-relaxed text-slate-400">{{ mod.concept }}</p>
+        <div class="mt-3 border-t border-slate-700/40 pt-2.5 font-mono text-[11px] text-slate-500">{{ mod.cheat }}</div>
+      </div>
+
+      <!-- editor kode -->
+      <div class="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#0d1424] shadow-2xl shadow-black/40">
+        <div class="flex items-center gap-2 border-b border-slate-700/60 bg-slate-800/70 px-4 py-3">
+          <span class="h-3 w-3 rounded-full bg-rose-500/80"></span>
+          <span class="h-3 w-3 rounded-full bg-amber-400/80"></span>
+          <span class="h-3 w-3 rounded-full bg-emerald-500/80"></span>
+          <span class="ml-3 font-mono text-xs text-slate-400">{{ mod.file }}</span>
+          <span class="ml-auto rounded-md bg-slate-700/50 px-2 py-0.5 font-mono text-[10px] text-slate-400">Python 3</span>
+        </div>
+        <div class="py-3 font-mono text-[13px] leading-6">
+          <div v-for="(ln, idx) in mod.code" :key="idx"
+            class="flex min-h-[1.75rem] items-center border-l-2 px-3 transition-all duration-200"
+            :class="activeLine === idx+1 ? [theme.lineBg, theme.lineBorder, 'opacity-100'] : 'border-transparent opacity-60'">
+            <span class="w-8 shrink-0 select-none pr-3 text-right text-[11px]"
+              :class="activeLine === idx+1 ? theme.text : 'text-slate-600'">
+              {{ activeLine === idx+1 ? '▸' : idx+1 }}
+            </span>
+            <span class="whitespace-pre" v-html="highlight(ln)"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- penjelasan langkah -->
+      <div class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Penjelasan langkah</span>
+          <span class="rounded-md bg-slate-800/80 px-2 py-0.5 font-mono text-[11px]" :class="theme.text">{{ stepIndex+1 }} / {{ steps.length }}</span>
+        </div>
+        <transition name="fade" mode="out-in">
+          <p :key="activeId + '-' + stepIndex" class="min-h-[3.5rem] text-sm leading-relaxed text-slate-200">{{ step.note }}</p>
+        </transition>
+      </div>
+    </section>
+
+<!-- ===== kolom kanan: visualisasi, variabel, output ===== -->
+<section class="space-y-5">
+
+  <!-- VIS: for + range -->
+  <div v-if="activeId==='for'" class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Visualisasi iterasi</span>
+      <span class="font-mono text-[11px] text-slate-500">range(1, 6) → [1, 2, 3, 4, 5]</span>
+    </div>
+    <div class="flex flex-wrap items-start justify-center gap-2 sm:gap-3">
+      <div v-for="n in 5" :key="'f'+n" class="flex flex-col items-center">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl border-2 font-mono text-lg font-bold transition-all duration-300 sm:h-14 sm:w-14"
+          :class="clsForBox(n)">{{ n }}</div>
+        <span class="mt-1 font-mono text-[10px] text-slate-600">iter-{{ n-1 }}</span>
+      </div>
+    </div>
+    <p class="mt-4 min-h-[1.25rem] text-center text-xs text-slate-500">
+      <template v-if="step.finished">Semua 5 nilai terpakai — perulangan selesai.</template>
+      <template v-else-if="step.iter &lt; 0">Tekan "Jalankan" untuk memulai — for siap mengambil elemen pertama.</template>
+      <template v-else-if="step.line === 1">for mengambil elemen ke-{{ step.vars.i }} dari range…</template>
+      <template v-else>Badan loop dieksekusi — print mencetak "Iterasi ke-{{ step.vars.i }}".</template>
+    </p>
+  </div>
+
+  <!-- VIS: while -->
+  <div v-else-if="activeId==='while'" class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Alur while</span>
+      <span class="font-mono text-[11px] text-slate-500">cek → jalankan → update → cek …</span>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-2">
+      <div class="rounded-xl border px-3.5 py-2 text-center transition-all duration-300"
+        :class="step.phase==='check' ? [theme.boxActive, 'scale-105'] : 'border-slate-700 bg-slate-800/40 text-slate-500'">
+        <div class="font-mono text-xs font-bold">i ≤ 5 ?</div>
+        <div class="text-[10px] opacity-80">cek kondisi</div>
+      </div>
+      <svg class="h-4 w-4 shrink-0 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <div class="rounded-xl border px-3.5 py-2 text-center transition-all duration-300"
+        :class="step.phase==='body' ? [theme.boxActive, 'scale-105'] : 'border-slate-700 bg-slate-800/40 text-slate-500'">
+        <div class="font-mono text-xs font-bold">print(...)</div>
+        <div class="text-[10px] opacity-80">badan loop</div>
+      </div>
+      <svg class="h-4 w-4 shrink-0 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <div class="rounded-xl border px-3.5 py-2 text-center transition-all duration-300"
+        :class="step.phase==='update' ? [theme.boxActive, 'scale-105'] : 'border-slate-700 bg-slate-800/40 text-slate-500'">
+        <div class="font-mono text-xs font-bold">i += 1</div>
+        <div class="text-[10px] opacity-80">update counter</div>
+      </div>
+    </div>
+    <div class="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-600">
+      <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M4.5 9a8 8 0 1 0 1.5-4.5"/></svg>
+      <span>kembali ke cek kondisi, berulang sampai kondisi bernilai False</span>
+    </div>
+    <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+      <div class="flex h-16 w-16 flex-col items-center justify-center rounded-xl border border-slate-700 bg-slate-800/60">
+        <span class="font-mono text-[10px] text-slate-500">i</span>
+        <transition name="pop" mode="out-in">
+          <span :key="'i' + step.vars.i" class="font-mono text-xl font-bold" :class="theme.text">{{ step.vars.i ?? '—' }}</span>
+        </transition>
+      </div>
+      <span class="text-2xl font-bold text-slate-500">≤</span>
+      <div class="flex h-16 w-16 flex-col items-center justify-center rounded-xl border border-slate-700 bg-slate-800/60">
+        <span class="font-mono text-[10px] text-slate-500">batas</span>
+        <span class="font-mono text-xl font-bold text-slate-300">5</span>
+      </div>
+      <transition name="pop" mode="out-in">
+        <span v-if="step.condText" :key="step.condText"
+          class="rounded-lg border px-3 py-2 font-mono text-xs font-bold transition-colors"
+          :class="step.cond ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300' : 'border-rose-500/50 bg-rose-500/15 text-rose-300'">
+          {{ step.condText }} → {{ step.cond }}
+        </span>
+      </transition>
+    </div>
+    <p class="mt-4 min-h-[1.25rem] text-center text-xs text-slate-500">
+      <template v-if="step.phase==='init'">Tekan "Jalankan" — while mengecek kondisi sebelum setiap iterasi.</template>
+      <template v-else-if="step.phase==='assign'">Baris 1 — counter awal dibuat: i = 1 (sekali saja, sebelum loop).</template>
+      <template v-else-if="step.phase==='check' && step.cond">Kondisi {{ step.condText }} → True — badan loop dijalankan.</template>
+      <template v-else-if="step.phase==='check' && !step.cond">Kondisi {{ step.condText }} → False — loop berhenti di sini.</template>
+      <template v-else-if="step.phase==='body'">Badan loop dieksekusi — print() mencetak "Angka {{ step.vars.i }}".</template>
+      <template v-else-if="step.phase==='update'">Counter diperbarui: i = {{ step.vars.i }} — kembali ke cek kondisi.</template>
+      <template v-else>Perulangan selesai — 5 iterasi berjalan, i berhenti di nilai 6.</template>
+    </p>
+  </div>
+
+<!-- VIS: for + list (akumulasi) -->
+  <div v-else-if="activeId==='list'" class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Menelusuri list</span>
+      <span class="font-mono text-[11px] text-slate-500">angka = [3, 7, 2, 9]</span>
+    </div>
+    <div class="flex flex-wrap items-start justify-center gap-2 sm:gap-3">
+      <div v-for="(v, idx) in [3,7,2,9]" :key="'k'+idx" class="flex flex-col items-center">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl border-2 font-mono text-lg font-bold transition-all duration-300 sm:h-14 sm:w-14"
+          :class="clsListChip(idx)">{{ v }}</div>
+        <span class="mt-1 font-mono text-[10px]" :class="idx === step.idx ? 'text-emerald-300' : 'text-slate-600'">[{{ idx }}]</span>
+      </div>
+    </div>
+    <div class="mt-5">
+      <div class="mb-1.5 flex items-center justify-between text-[11px]">
+        <span class="text-slate-500">Progres penjumlahan (pola akumulasi)</span>
+        <span class="font-mono text-slate-400">total = <span class="font-bold text-emerald-300">{{ step.total ?? 0 }}</span></span>
+      </div>
+      <div class="flex h-3.5 gap-0.5 overflow-hidden rounded-full bg-slate-800/80 p-0.5">
+        <div v-for="(v, idx) in [3,7,2,9]" :key="'s'+idx"
+          class="h-full rounded-full transition-all duration-500"
+          :class="barLit(idx) ? SEG[idx] : 'bg-slate-700/40'"
+          :style="{ width: (v/21*100) + '%' }"></div>
+      </div>
+      <div class="mt-1 flex">
+        <div v-for="(v, idx) in [3,7,2,9]" :key="'l'+idx" class="text-center font-mono text-[10px] text-slate-600" :style="{ width: (v/21*100) + '%' }">+{{ v }}</div>
+      </div>
+    </div>
+    <p class="mt-4 min-h-[1.25rem] text-center text-xs text-slate-500">
+      <template v-if="step.finished">List habis — semua elemen terjumlah: total = 21.</template>
+      <template v-else-if="step.idx == null || step.idx &lt; 0">Tekan "Jalankan" untuk mulai menelusuri list…</template>
+      <template v-else-if="step.added">Elemen index {{ step.idx }} sudah dijumlahkan — total sekarang {{ step.total }}.</template>
+      <template v-else>for mengambil elemen index {{ step.idx }}: n = {{ step.vars.n }} — siap dijumlahkan.</template>
+    </p>
+  </div>
+
+  <!-- VIS: nested loop -->
+  <div v-else-if="activeId==='nested'" class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Grid 3 × 3</span>
+      <span class="font-mono text-[11px] text-slate-500">{{ (step.visited || []).length }} / 9 sel menyala</span>
+    </div>
+    <div class="flex justify-center">
+      <div class="inline-grid gap-1.5" style="grid-template-columns: 3rem repeat(3, 3rem)">
+        <div></div>
+        <div v-for="j in 3" :key="'h'+j" class="flex h-5 items-center justify-center font-mono text-[10px] text-slate-500">j={{ j-1 }}</div>
+        <template v-for="ii in 3" :key="'r'+ii">
+          <div class="flex items-center justify-end pr-1.5 font-mono text-[10px] text-slate-500">i={{ ii-1 }}</div>
+          <div v-for="jj in 3" :key="'c'+ii+'-'+jj"
+            class="flex h-12 items-center justify-center rounded-lg border-2 font-mono text-xs transition-all duration-200"
+            :class="clsCell(ii-1, jj-1)">{{ cellMark(ii-1, jj-1) }}</div>
+        </template>
+      </div>
+    </div>
+    <p class="mt-4 min-h-[1.25rem] text-center text-xs text-slate-500">
+      <template v-if="step.finished">Selesai — 3 × 3 = 9 iterasi, semua sel sudah menyala.</template>
+      <template v-else-if="step.cell">Mencetak ({{ step.cell[0] }}, {{ step.cell[1] }}) — i = {{ step.vars.i }}, j = {{ step.vars.j }}</template>
+      <template v-else-if="step.vars.i !== undefined && step.vars.j !== undefined">Loop dalam berjalan: j = {{ step.vars.j }} untuk i = {{ step.vars.i }}</template>
+      <template v-else-if="step.vars.i !== undefined && (step.visited || []).length === (step.vars.i + 1) * 3">Loop dalam selesai untuk i = {{ step.vars.i }} — naik ke loop luar</template>
+      <template v-else-if="step.vars.i !== undefined">Loop luar mengambil i = {{ step.vars.i }} — loop dalam mulai dari j = 0</template>
+      <template v-else>Tekan "Jalankan" — untuk setiap i, loop j menyala dari kolom 0 ke 2.</template>
+    </p>
+  </div>
+
+  <!-- VIS: break & continue -->
+  <div v-else-if="activeId==='break'" class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+    <div class="mb-4 flex items-center justify-between">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Perjalanan i = 1 … 7</span>
+      <span class="font-mono text-[11px] text-slate-500">output: 1, 2, 4, 5</span>
+    </div>
+    <div class="flex flex-wrap items-start justify-center gap-2 sm:gap-2.5">
+      <div v-for="n in 7" :key="'b'+n" class="flex flex-col items-center">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl border-2 font-mono text-base font-bold transition-all duration-300"
+          :class="clsBreakBox(n)">{{ n }}</div>
+        <span class="mt-1 flex h-3.5 items-center font-mono text-[9px] uppercase tracking-wide" :class="clsBreakLabel(n)">{{ breakLabel(n) }}</span>
+      </div>
+    </div>
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-slate-500">
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded border-2 border-emerald-500/50 bg-emerald-500/20"></span>dicetak</span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded border-2 border-amber-500/50 bg-amber-500/20"></span>dilewati (continue)</span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded border-2 border-rose-500/60 bg-rose-500/25"></span>berhenti (break)</span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded border-2 border-dashed border-slate-600"></span>tidak terpakai</span>
+    </div>
+    <p class="mt-4 min-h-[1.25rem] text-center text-xs text-slate-500">
+      <template v-if="step.finished">break menutup perjalanan — i = 7 tidak pernah diproses.</template>
+      <template v-else-if="step.vars.i === undefined">Tekan "Jalankan" — i berjalan dari 1 menuju 7…</template>
+      <template v-else-if="step.line === 3">continue — iterasi i = {{ step.vars.i }} dilewati seluruhnya.</template>
+      <template v-else-if="step.line === 5">break — perulangan dihentikan tepat di i = {{ step.vars.i }}.</template>
+      <template v-else-if="step.line === 6">print(i) mencetak {{ step.vars.i }} ke konsol.</template>
+      <template v-else>Sedang memproses i = {{ step.vars.i }} — mengecek kondisi if…</template>
+    </p>
+  </div>
+
+  <!-- variabel -->
+  <div class="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5">
+    <div class="mb-3 flex items-center justify-between">
+      <span class="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Variabel (memori)</span>
+      <span class="font-mono text-[10px] text-slate-600">state program</span>
+    </div>
+    <div class="flex flex-wrap gap-3">
+      <div v-for="name in mod.varNames" :key="name" class="min-w-[6.5rem] rounded-xl border border-slate-700/60 bg-slate-800/60 px-4 py-2.5">
+        <div class="font-mono text-[11px] text-slate-500">{{ name }}</div>
+        <div class="mt-0.5 font-mono text-xl font-bold" :class="theme.text">
+          <transition name="pop" mode="out-in">
+            <span :key="activeId + '-' + String(getVar(name))">{{ getVar(name) }}</span>
+          </transition>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- output -->
+  <div class="overflow-hidden rounded-2xl border border-slate-700/60 bg-[#0a0f1c]">
+    <div class="flex items-center gap-2 border-b border-slate-700/60 bg-slate-800/70 px-4 py-2.5">
+      <svg class="h-4 w-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 17l6-5-6-5M12 19h8"/></svg>
+      <span class="text-xs font-semibold text-slate-300">Output — print()</span>
+      <span class="ml-auto font-mono text-[11px] text-slate-500">{{ step.output.length }} baris</span>
+    </div>
+    <div ref="outputBox" class="scroll-slim h-44 space-y-1 overflow-y-auto p-4 font-mono text-[13px]">
+      <div v-if="!step.output.length" class="italic text-slate-600">— belum ada output —</div>
+      <transition-group name="out">
+        <div v-for="(o, i) in step.output" :key="activeId + '-' + i"
+          :class="i === step.output.length - 1 ? 'text-emerald-300' : 'text-emerald-500/60'">{{ o }}</div>
+      </transition-group>
+    </div>
+  </div>
+</section>
+  </div>
+</main>
+
+<!-- kontrol pemutar (menempel di bawah) -->
+<div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-3 sm:px-4 sm:pb-4">
+  <div class="pointer-events-auto mx-auto max-w-6xl rounded-2xl border border-slate-700/60 bg-slate-900/90 px-4 py-3.5 shadow-2xl shadow-black/60 backdrop-blur-xl sm:px-5">
+    <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 sm:justify-between">
+      <div class="flex items-center gap-2">
+        <button @click="prevStep" title="Langkah sebelumnya (←)"
+          class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 transition hover:bg-slate-700 hover:text-white active:scale-95">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button @click="togglePlay"
+          class="flex h-10 items-center gap-2 rounded-xl px-4 font-semibold text-white shadow-lg transition hover:brightness-110 active:scale-95 sm:px-5"
+          :class="theme.solid" :title="playing ? 'Jeda (Space)' : 'Jalankan (Space)'">
+          <svg v-if="!playing" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg v-else class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+          <span class="text-sm">{{ playing ? 'Jeda' : 'Jalankan' }}</span>
+        </button>
+        <button @click="nextStep" title="Langkah berikutnya (→)"
+          class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-slate-300 transition hover:bg-slate-700 hover:text-white active:scale-95">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+        <button @click="reset" title="Ulang dari awal (R)"
+          class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/70 text-slate-400 transition hover:bg-slate-700 hover:text-white active:scale-95">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
+        </button>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="mr-1 hidden text-[11px] text-slate-500 sm:inline">Kecepatan</span>
+        <button v-for="s in speeds" :key="'sp'+String(s)" @click="speed = s"
+          class="rounded-lg border px-2.5 py-1 font-mono text-[11px] transition"
+          :class="speed === s ? theme.chipActive : 'border-slate-700 bg-slate-800/50 text-slate-400 hover:text-slate-200'">×{{ s }}</button>
+      </div>
+      <div class="w-full min-w-[200px] max-w-xs flex-1 sm:w-auto">
+        <div class="mb-1 flex items-center justify-between text-[11px]">
+          <span class="font-mono text-slate-500">langkah {{ stepIndex+1 }}/{{ steps.length }}</span>
+          <span v-if="isLast" class="font-semibold" :class="theme.text">selesai ✓</span>
+          <span v-else-if="playing" class="text-slate-400">berjalan…</span>
+          <span v-else class="text-slate-500">siap</span>
+        </div>
+        <div class="h-1.5 overflow-hidden rounded-full bg-slate-800">
+          <div class="h-full rounded-full transition-all duration-300" :class="theme.solid" :style="{ width: (progress*100) + '%' }"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-2 hidden text-center text-[11px] text-slate-500 sm:block">
+      Pintasan: <kbd>Space</kbd> jalankan/jeda · <kbd>→</kbd> maju · <kbd>←</kbd> mundur · <kbd>R</kbd> ulang dari awal
+    </div>
+  </div>
+</div>
+
+<footer class="relative pb-40 pt-2 text-center text-xs text-slate-600">
+  Dibuat dengan Vue 3 + Tailwind CSS · Semua contoh mengikuti sintaks Python 3 · Selamat belajar!
+</footer>
+</div><!-- /#app -->
+
+<script>
+/* ============================================================
+   Visualisasi Looping Python — Vue 3 + Tailwind CSS (CDN)
+   ============================================================ */
+const { createApp, ref, computed, watch, onMounted, onBeforeUnmount, nextTick } = Vue;
+
+/* ---------- tema warna per modul (kelas Tailwind lengkap) ---------- */
+const THEMES = {};
+(function () {
+  const colors = { sky: 'sky', amber: 'amber', emerald: 'emerald', violet: 'violet', rose: 'rose' };
+  for (const k in colors) {
+    const c = colors[k];
+    THEMES[k] = {
+      solid: 'bg-' + c + '-500 hover:brightness-110',
+      text: 'text-' + c + '-400',
+      bgSoft: 'bg-' + c + '-500/10',
+      chipActive: 'border-' + c + '-500/50 bg-' + c + '-500/15 text-' + c + '-300',
+      boxActive: 'border-' + c + '-400 bg-' + c + '-500/25 text-' + c + '-200 pulse-ring',
+      boxDone: 'border-' + c + '-500/40 bg-' + c + '-500/15 text-' + c + '-300/80',
+      lineBg: 'bg-' + c + '-500/10',
+      lineBorder: 'border-' + c + '-400',
+    };
+  }
+})();
+const SEG = ['bg-emerald-600', 'bg-emerald-500', 'bg-emerald-400', 'bg-emerald-300'];
+
+/* ---------- syntax highlighting Python sederhana ---------- */
+const PY_RE = /(f?"(?:[^"\\]|\\.)*"|f?'(?:[^'\\]|\\.)*'|#[^\n]*|\b(?:for|in|while|if|elif|else|break|continue|pass|and|or|not|True|False|None|def|return)\b|\b(?:print|range|len|input|int|str|list|dict|sum)\b|\b\d+(?:\.\d+)?\b)/g;
+const PY_BUILTIN = /^(print|range|len|input|int|str|list|dict|sum)$/;
+const hlCache = new Map();
+function highlight(raw) {
+  if (hlCache.has(raw)) return hlCache.get(raw);
+  const esc = raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const out = esc.replace(PY_RE, function (m) {
+    if (m.startsWith('#')) return '<span class="tok-com">' + m + '</span>';
+    if (/^f?['"]/.test(m)) {
+      let s = '<span class="tok-str">' + m + '</span>';
+      if (m[0] === 'f') s = s.replace(/(\{[^}]*\})/g, '<span class="tok-fv">$1</span>');
+      return s;
+    }
+    if (/^\d/.test(m)) return '<span class="tok-num">' + m + '</span>';
+    if (PY_BUILTIN.test(m)) return '<span class="tok-fn">' + m + '</span>';
+    return '<span class="tok-kw">' + m + '</span>';
+  });
+  hlCache.set(raw, out);
+  return out;
+}
+
+/* ---------- pembangun langkah (pre-computed steps) ---------- */
+const snap = function (arr) { return arr.slice(); };
+
+function buildForSteps() {
+  const steps = [];
+  const out = [];
+  steps.push({ line: 0, vars: {}, output: snap(out), iter: -1,
+    note: 'Program siap dijalankan. range(1, 6) menyiapkan urutan angka [1, 2, 3, 4, 5] — perhatikan bahwa batas atas (6) tidak ikut dihitung.' });
+  for (let i = 1; i <= 5; i++) {
+    steps.push({ line: 1, vars: { i: i }, output: snap(out), iter: i - 1,
+      note: 'Baris 1 — for mengambil elemen berikutnya dari range: sekarang i = ' + i + '. Lalu kontrol masuk ke badan loop (baris 2).' });
+    out.push('Iterasi ke-' + i);
+    steps.push({ line: 2, vars: { i: i }, output: snap(out), iter: i - 1,
+      note: 'Baris 2 — print(f"Iterasi ke-{' + i + '}") mencetak teks ke konsol. Sehabis badan loop, kontrol kembali otomatis ke baris 1.' });
+  }
+  steps.push({ line: 0, vars: { i: 5 }, output: snap(out), iter: 5, finished: true,
+    note: 'Range habis — perulangan berakhir setelah tepat 5 iterasi. Khas Python: variabel i tetap tersimpan di memori dengan nilai terakhirnya (5) walau loop sudah selesai.' });
+  return steps;
+}
+
+function buildWhileSteps() {
+  const steps = [];
+  const out = [];
+  steps.push({ line: 0, vars: {}, output: snap(out), phase: 'init', cond: null, condText: '',
+    note: 'Program siap. Berbeda dengan for, while mengulang selama sebuah kondisi masih True — kita harus mengelola variabel counter sendiri.' });
+  steps.push({ line: 1, vars: { i: 1 }, output: snap(out), phase: 'assign', cond: null, condText: '',
+    note: 'Baris 1 — variabel counter dibuat: i = 1. Baris ini hanya dijalankan sekali, sebelum perulangan dimulai.' });
+  for (let i = 1; i <= 5; i++) {
+    steps.push({ line: 2, vars: { i: i }, output: snap(out), phase: 'check', cond: true, condText: i + ' ≤ 5',
+      note: 'Baris 2 — cek kondisi: ' + i + ' <= 5 → True. Badan loop dijalankan.' });
+    out.push('Angka ' + i);
+    steps.push({ line: 3, vars: { i: i }, output: snap(out), phase: 'body', cond: true, condText: i + ' ≤ 5',
+      note: 'Baris 3 — print mencetak "Angka ' + i + '" ke konsol.' });
+    steps.push({ line: 4, vars: { i: i + 1 }, output: snap(out), phase: 'update', cond: true, condText: i + ' ≤ 5',
+      note: 'Baris 4 — i += 1 membuat i = ' + (i + 1) + '. Kontrol lompat kembali ke baris 2 untuk mengecek kondisi lagi.' });
+  }
+  steps.push({ line: 2, vars: { i: 6 }, output: snap(out), phase: 'check', cond: false, condText: '6 ≤ 5',
+    note: 'Baris 2 — cek kondisi: 6 <= 5 → False. Perulangan berhenti — baris 3 dan 4 tidak dijalankan lagi.' });
+  steps.push({ line: 0, vars: { i: 6 }, output: snap(out), phase: 'done', cond: false, condText: '6 ≤ 5', finished: true,
+    note: 'While selesai setelah 5 iterasi. Catatan penting: baris "i += 1"-lah yang membuat kondisi akhirnya False. Tanpa baris itu, kondisi akan selamanya True dan program berulang tanpa henti (infinite loop).' });
+  return steps;
+}
+
+function buildListSteps() {
+  const arr = [3, 7, 2, 9];
+  const steps = [];
+  const out = [];
+  steps.push({ line: 0, vars: {}, output: snap(out), idx: -1, total: null,
+    note: 'Program siap. Tujuannya: menjumlahkan seluruh angka di dalam list — pola "akumulasi" yang sangat sering dipakai dalam pengolahan data.' });
+  steps.push({ line: 1, vars: { angka: '[3, 7, 2, 9]' }, output: snap(out), idx: -1, total: null,
+    note: 'Baris 1 — list dibuat: angka = [3, 7, 2, 9]. List ini punya 4 elemen dengan index 0 sampai 3.' });
+  steps.push({ line: 2, vars: { angka: '[3, 7, 2, 9]', total: 0 }, output: snap(out), idx: -1, total: 0,
+    note: 'Baris 2 — penampung hasil dibuat: total = 0. Angka ini akan terus bertambah di dalam loop.' });
+  let total = 0;
+  arr.forEach(function (n, idx) {
+    steps.push({ line: 4, vars: { angka: '[3, 7, 2, 9]', total: total, n: n }, output: snap(out), idx: idx, total: total, added: 0,
+      note: 'Baris 4 — for mengambil elemen index ' + idx + ': n = ' + n + '. Elemen ini lalu diproses di baris 5.' });
+    total += n;
+    steps.push({ line: 5, vars: { angka: '[3, 7, 2, 9]', total: total, n: n }, output: snap(out), idx: idx, total: total, added: 1,
+      note: 'Baris 5 — total += ' + n + ' artinya total = ' + (total - n) + ' + ' + n + ' = ' + total + '. Setelah itu for mengambil elemen berikutnya.' });
+  });
+  steps.push({ line: 0, vars: { angka: '[3, 7, 2, 9]', total: 21, n: 9 }, output: snap(out), idx: 4, total: 21, finished: true,
+    note: 'List sudah habis — loop selesai. Hasil akhirnya total = 21 (3 + 7 + 2 + 9). Di Python, n tetap menyimpan elemen terakhir (9) setelah loop berakhir.' });
+  return steps;
+}
+
+function buildNestedSteps() {
+  const steps = [];
+  const out = [];
+  const visited = [];
+  steps.push({ line: 0, vars: {}, output: snap(out), cell: null, visited: [],
+    note: 'Program siap. Loop bersarang = loop di dalam loop: untuk SETIAP satu nilai i, loop j dijalankan penuh dari awal lagi.' });
+  for (let i = 0; i < 3; i++) {
+    steps.push({ line: 1, vars: { i: i }, output: snap(out), cell: null, visited: visited.slice(),
+      note: 'Baris 1 — loop luar mengambil i = ' + i + '. Sekarang seluruh loop dalam (baris 2–3) dijalankan penuh untuk nilai i ini.' });
+    for (let j = 0; j < 3; j++) {
+      steps.push({ line: 2, vars: { i: i, j: j }, output: snap(out), cell: null, visited: visited.slice(),
+        note: 'Baris 2 — loop dalam mengambil j = ' + j + ' (dengan i tetap ' + i + ').' });
+      visited.push([i, j]);
+      out.push('(' + i + ',' + j + ')');
+      steps.push({ line: 3, vars: { i: i, j: j }, output: snap(out), cell: [i, j], visited: visited.slice(),
+        note: 'Baris 3 — print(f"(' + i + ',' + j + ')") mencetak pasangan koordinat (' + i + ', ' + j + ') — perhatikan sel yang menyala di grid.' });
+    }
+    steps.push({ line: 2, vars: { i: i }, output: snap(out), cell: null, visited: visited.slice(),
+      note: 'j sudah mencapai 3 — range(3) habis, loop dalam SELESAI untuk i = ' + i + '. Kontrol kembali ke loop luar untuk mengambil i berikutnya.' });
+  }
+  steps.push({ line: 0, vars: { i: 2, j: 2 }, output: snap(out), cell: null, visited: visited.slice(), finished: true,
+    note: 'i sudah mencapai 3 — loop luar juga selesai. Total iterasi = 3 × 3 = 9, persis sebanyak sel pada grid. Perhatikan urutan output: baris demi baris (per i), kolom demi kolom (per j).' });
+  return steps;
+}
+
+function buildBreakSteps() {
+  const steps = [];
+  const out = [];
+  const mkStates = function () { return ['todo', 'todo', 'todo', 'todo', 'todo', 'todo', 'todo']; };
+  let states = mkStates();
+  steps.push({ line: 0, vars: {}, output: snap(out), states: states.slice(),
+    note: 'Program siap. for mencoba i = 1 s/d 7, tetapi ada dua kata kunci khusus: continue melewati satu iterasi saja, sedangkan break menghentikan seluruh perulangan seketika.' });
+  for (let i = 1; i <= 7; i++) {
+    states[i - 1] = 'active';
+    steps.push({ line: 1, vars: { i: i }, output: snap(out), states: states.slice(),
+      note: 'Baris 1 — for mengambil i = ' + i + '.' });
+    if (i === 3) {
+      steps.push({ line: 2, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 2 — pengecekan: i == 3 → True. Kontrol masuk ke blok if (baris 3).' });
+      steps.push({ line: 3, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 3 — continue! Sisa badan loop (baris 4–6) DILEWATI untuk i = ' + i + '. Kontrol langsung melompat ke baris 1 untuk mengambil i berikutnya. Angka 3 tidak pernah tercetak.' });
+      states[i - 1] = 'skip';
+    } else if (i === 6) {
+      steps.push({ line: 2, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 2 — pengecekan: i == 3 → False (karena i = 6). Lanjut ke baris 4.' });
+      steps.push({ line: 4, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 4 — pengecekan: i == 6 → True. Kontrol masuk ke blok if (baris 5).' });
+      steps.push({ line: 5, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 5 — break! Perulangan dihentikan paksa di tengah jalan. i = 7 tidak akan pernah diproses, dan print di baris 6 tidak pernah dijalankan untuk i = 6.' });
+      states[i - 1] = 'break';
+      states[6] = 'unreached';
+      break;
+    } else {
+      steps.push({ line: 2, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 2 — pengecekan: i == 3 → False (karena i = ' + i + '). Lanjut ke baris 4.' });
+      steps.push({ line: 4, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 4 — pengecekan: i == 6 → False (karena i = ' + i + '). Lanjut ke baris 6.' });
+      out.push(String(i));
+      steps.push({ line: 6, vars: { i: i }, output: snap(out), states: states.slice(),
+        note: 'Baris 6 — print(i) mencetak angka ' + i + ' ke konsol.' });
+      states[i - 1] = 'done';
+    }
+  }
+  steps.push({ line: 0, vars: { i: 6 }, output: snap(out), states: states.slice(), finished: true,
+    note: 'Selesai! Lihat outputnya: 1, 2, 4, 5. Angka 3 hilang karena continue, dan 6–7 tidak tercetak karena break menghentikan loop tepat saat i = 6. Ini perbedaan pentingnya: continue hanya melompati SATU iterasi, break mematikan SEMUA iterasi tersisa.' });
+  return steps;
+}
+
+/* ---------- definisi modul ---------- */
+const MODULES = [
+  {
+    id: 'for', theme: 'sky', label: 'for + range', file: 'loop_for.py',
+    title: 'Perulangan for dengan range()',
+    concept: 'Perintah for dipakai ketika jumlah pengulangan sudah diketahui. range(1, 6) menghasilkan deret 1, 2, 3, 4, 5 — batas atas (6) tidak ikut. Variabel i otomatis berganti nilai pada setiap putaran, sehingga kita tidak perlu menaikkannya sendiri seperti pada while.',
+    cheat: 'for variabel in range(awal, akhir):   # akhir tidak ikut',
+    code: [
+      'for i in range(1, 6):',
+      '    print(f"Iterasi ke-{i}")',
+    ],
+    varNames: ['i'],
+    steps: buildForSteps(),
+  },
+  {
+    id: 'while', theme: 'amber', label: 'while', file: 'loop_while.py',
+    title: 'Perulangan while — selama kondisi True',
+    concept: 'Perintah while mengulang selama kondisinya bernilai True. Kondisi dicek ulang sebelum setiap iterasi — begitu menjadi False, loop langsung berhenti. Karena itu kita wajib mengubah nilai i di dalam badan loop (baris i += 1); kalau lupa, kondisi tetap True selamanya dan program menjadi infinite loop.',
+    cheat: 'while kondisi:   # ulangi selama kondisi True',
+    code: [
+      'i = 1',
+      'while i <= 5:',
+      '    print(f"Angka {i}")',
+      '    i += 1',
+    ],
+    varNames: ['i'],
+    steps: buildWhileSteps(),
+  },
+  {
+    id: 'list', theme: 'emerald', label: 'for + list', file: 'loop_list.py',
+    title: 'for untuk menelusuri list — pola akumulasi',
+    concept: 'for juga bisa menelusuri isi list satu per satu, mulai dari index 0 sampai elemen terakhir. Pola total += n disebut akumulasi: variabel total menyimpan hasil penjumlahan yang terus bertambah setiap iterasi — pola yang sangat sering dipakai untuk menjumlahkan harga, skor, dan data lain.',
+    cheat: 'for item in nama_list:   # telusuri semua elemen',
+    code: [
+      'angka = [3, 7, 2, 9]',
+      'total = 0',
+      '',
+      'for n in angka:',
+      '    total += n',
+    ],
+    varNames: ['n', 'total'],
+    steps: buildListSteps(),
+  },
+  {
+    id: 'nested', theme: 'violet', label: 'loop bersarang', file: 'loop_nested.py',
+    title: 'Loop bersarang (nested loop)',
+    concept: 'Loop bersarang adalah loop di dalam loop. Untuk setiap satu nilai i, loop j dijalankan penuh dari awal — itulah kenapa total iterasinya 3 × 3 = 9. Urutan output mengikuti pola: selesaikan dulu semua j untuk i = 0, baru naik ke i = 1, dan seterusnya — persis seperti membaca grid baris demi baris.',
+    cheat: 'for i in ...: → for j in ...:   # j diselesaikan dulu untuk tiap i',
+    code: [
+      'for i in range(3):',
+      '    for j in range(3):',
+      '        print(f"({i},{j})")',
+    ],
+    varNames: ['i', 'j'],
+    steps: buildNestedSteps(),
+  },
+  {
+    id: 'break', theme: 'rose', label: 'break & continue', file: 'loop_break.py',
+    title: 'Mengendalikan loop: break & continue',
+    concept: 'Dua kata kunci untuk mengendalikan loop: continue melewati sisa badan loop untuk iterasi saat ini saja lalu lanjut ke nilai berikutnya, sedangkan break menghentikan seluruh perulangan seketika — berapa pun sisa iterasinya. Di contoh ini angka 3 tidak tercetak karena continue, dan 6–7 tidak pernah diproses karena break menyala tepat saat i = 6.',
+    cheat: 'continue → lompati 1 iterasi   ·   break → hentikan loop',
+    code: [
+      'for i in range(1, 8):',
+      '    if i == 3:',
+      '        continue',
+      '    if i == 6:',
+      '        break',
+      '    print(i)',
+    ],
+    varNames: ['i'],
+    steps: buildBreakSteps(),
+  },
+];
+
+/* ---------- aplikasi Vue ---------- */
+createApp({
+  setup() {
+    const modules = MODULES;
+    const activeId = ref('for');
+    const stepIndex = ref(0);
+    const playing = ref(false);
+    const speed = ref(1);
+    const speeds = [0.5, 1, 2, 4];
+    const touched = ref(false);
+    let timer = null;
+
+    const mod = computed(() => modules.find(m => m.id === activeId.value));
+    const steps = computed(() => mod.value.steps);
+    const step = computed(() => steps.value[Math.min(stepIndex.value, steps.value.length - 1)]);
+    const theme = computed(() => THEMES[mod.value.theme]);
+    const activeLine = computed(() => step.value.line || 0);
+    const progress = computed(() => steps.value.length > 1 ? stepIndex.value / (steps.value.length - 1) : 0);
+    const isLast = computed(() => stepIndex.value >= steps.value.length - 1);
+
+    const outputBox = ref(null);
+    watch(stepIndex, async () => {
+      await nextTick();
+      const el = outputBox.value;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+
+    function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+    function pause() { playing.value = false; stopTimer(); }
+    function startTimer() {
+      stopTimer();
+      timer = setInterval(() => {
+        if (stepIndex.value < steps.value.length - 1) stepIndex.value++;
+        else pause();
+      }, 1100 / speed.value);
+    }
+    function togglePlay() {
+      touched.value = true;
+      if (playing.value) return pause();
+      if (isLast.value) stepIndex.value = 0;
+      playing.value = true;
+      startTimer();
+    }
+    watch(speed, () => { if (playing.value) startTimer(); });
+    function nextStep() { touched.value = true; pause(); if (stepIndex.value < steps.value.length - 1) stepIndex.value++; }
+    function prevStep() { touched.value = true; pause(); if (stepIndex.value > 0) stepIndex.value--; }
+    function reset() { touched.value = true; pause(); stepIndex.value = 0; }
+    function selectModule(id) { touched.value = true; pause(); activeId.value = id; stepIndex.value = 0; }
+
+    function onKey(e) {
+      if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); nextStep(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+      else if (e.key === 'r' || e.key === 'R') { reset(); }
+    }
+    onMounted(() => {
+      window.addEventListener('keydown', onKey);
+      setTimeout(() => { if (!touched.value && stepIndex.value === 0 && !playing.value) togglePlay(); }, 700);
+    });
+    onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); stopTimer(); });
+
+    /* ---------- pembantu tampilan ---------- */
+    const IDLE_BOX = 'border-slate-700 bg-slate-800/40 text-slate-600';
+    function getVar(name) {
+      const v = step.value.vars[name];
+      return (v === undefined || v === null) ? '—' : v;
+    }
+    function clsForBox(n) {
+      const it = step.value.iter;
+      if (it == null || it < 0) return IDLE_BOX;
+      if (n - 1 < it) return theme.value.boxDone;
+      if (n - 1 === it) return theme.value.boxActive + ' scale-110';
+      return IDLE_BOX;
+    }
+    function clsListChip(idx) {
+      const cur = step.value.idx;
+      if (cur == null || cur < 0) return IDLE_BOX;
+      if (idx < cur) return theme.value.boxDone;
+      if (idx === cur) return theme.value.boxActive + ' scale-110';
+      return IDLE_BOX;
+    }
+    function barLit(idx) {
+      const cur = step.value.idx;
+      if (cur == null || cur < 0) return false;
+      return idx < cur || (idx === cur && !!step.value.added);
+    }
+    function clsCell(i, j) {
+      const s = step.value;
+      if (s.cell && s.cell[0] === i && s.cell[1] === j) return theme.value.boxActive + ' scale-110';
+      if ((s.visited || []).some(c => c[0] === i && c[1] === j)) return 'border-violet-500/30 bg-violet-500/15 text-violet-300/70';
+      return 'border-slate-700/70 bg-slate-800/30 text-slate-700';
+    }
+    function cellMark(i, j) {
+      const s = step.value;
+      if (s.cell && s.cell[0] === i && s.cell[1] === j) return i + ',' + j;
+      if ((s.visited || []).some(c => c[0] === i && c[1] === j)) return '•';
+      return '';
+    }
+    function clsBreakBox(n) {
+      const st = (step.value.states || [])[n - 1] || 'todo';
+      return {
+        todo: IDLE_BOX,
+        active: 'border-white/60 bg-slate-600/40 text-white pulse-ring scale-110',
+        done: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300',
+        skip: 'border-amber-500/60 bg-amber-500/15 text-amber-300',
+        'break': 'border-rose-500/70 bg-rose-500/20 text-rose-300 shadow-lg shadow-rose-500/30',
+        unreached: 'border-dashed border-slate-700 bg-transparent text-slate-700',
+      }[st] || IDLE_BOX;
+    }
+    function breakLabel(n) {
+      const st = (step.value.states || [])[n - 1] || 'todo';
+      return ({ todo: '·', active: 'diproses', done: 'dicetak', skip: 'continue', 'break': 'break', unreached: 'terlewat' })[st] || '';
+    }
+    function clsBreakLabel(n) {
+      const st = (step.value.states || [])[n - 1] || 'todo';
+      return ({ todo: 'text-slate-700', active: 'text-slate-300', done: 'text-emerald-400/80', skip: 'text-amber-400/80', 'break': 'text-rose-400/90', unreached: 'text-slate-600' })[st] || 'text-slate-700';
+    }
+
+    return {
+      modules, activeId, stepIndex, playing, speed, speeds,
+      mod, steps, step, theme, activeLine, progress, isLast,
+      THEMES, SEG, outputBox,
+      getVar, highlight,
+      clsForBox, clsListChip, barLit, clsCell, cellMark, clsBreakBox, breakLabel, clsBreakLabel,
+      togglePlay, nextStep, prevStep, reset, selectModule,
+    };
+  },
+}).mount('#app');
+</script>
+</body>
+</html>
