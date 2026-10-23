@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1420">
+<title>PyMimo — Belajar Python Jadi Seru</title>
+<meta name="description" content="Aplikasi belajar pemrograman Python interaktif gaya Mimo: latihan singkat, kuis, isi kode, XP & streak. Dibangun dengan Vue 3 + Tailwind CSS.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        night: 'rgb(var(--c-night) / <alpha-value>)',
+        panel: 'rgb(var(--c-panel) / <alpha-value>)',
+        panel2: 'rgb(var(--c-panel2) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        mimo: 'rgb(var(--c-mimo) / <alpha-value>)',
+        mimodeep: 'rgb(var(--c-mimodeep) / <alpha-value>)',
+        danger: 'rgb(var(--c-danger) / <alpha-value>)'
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'Consolas', '"DejaVu Sans Mono"', 'Menlo', 'monospace']
+      },
+      boxShadow: {
+        glow: '0 10px 40px -10px rgba(77,214,131,.5)'
+      }
+    }
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html { -webkit-tap-highlight-color: transparent; }
+  :root {
+    --c-night: 13 20 32; --c-panel: 21 30 46; --c-panel2: 28 40 65; --c-line: 38 52 80;
+    --c-mimo: 77 214 131; --c-mimodeep: 47 174 102; --c-danger: 255 92 108;
+    --page-bg: #0d1420; --sb-thumb: #263450;
+  }
+  html.light {
+    --c-night: 241 245 249; --c-panel: 255 255 255; --c-panel2: 241 245 249; --c-line: 203 213 225;
+    --c-mimo: 5 150 105; --c-mimodeep: 4 120 79; --c-danger: 225 29 72;
+    --page-bg: #f1f5f9; --sb-thumb: #cbd5e1;
+  }
+  body { background: radial-gradient(1100px 480px at 50% -8%, rgba(77,214,131,.07), transparent 60%), var(--page-bg); }
+  .app-col { max-width: 28rem; margin-inline: auto; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--sb-thumb); border-radius: 99px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  .tok-kw { color: #f472b6; }
+  .tok-fn { color: #7dd3fc; }
+  .tok-str { color: #fbbf24; }
+  .tok-num { color: #4dd683; }
+  .tok-com { color: #64748b; font-style: italic; }
+  /* Font kode tanpa ligature: >= != == tetap tampil sebagai dua karakter terpisah.
+     IBM Plex Mono memang dirancang tanpa ligature; font-feature-settings menjadi
+     jaring pengaman untuk font fallback di platform mana pun. */
+  pre, code, .font-mono {
+    font-variant-ligatures: none;
+    font-feature-settings: 'liga' 0, 'calt' 0, 'dlig' 0;
+    -moz-font-feature-settings: 'liga' 0, 'calt' 0, 'dlig' 0;
+    -webkit-font-feature-settings: 'liga' 0, 'calt' 0, 'dlig' 0;
+    tab-size: 4;
+  }
+  .ic-code { background: #1c2841; color: #7ee2a8; padding: 2px 7px; border-radius: 6px; font-family: 'IBM Plex Mono', Consolas, 'DejaVu Sans Mono', monospace; font-size: .78rem; white-space: nowrap; }
+  /* ---- Editor Latihan: gutter nomor baris + lapisan highlight ---- */
+  .ed-ta { color: transparent; }
+  html.light .ed-ta { color: transparent; }
+  .ed-ta::selection { background: rgba(77,214,131,.32); }
+  .ed-gutter { scrollbar-width: none; }
+  .ed-gutter::-webkit-scrollbar { display: none; }
+  .ic-b { color: #fff; font-weight: 700; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes popIn { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes pulseRing { 0%, 100% { box-shadow: 0 0 0 0 rgba(77,214,131,.35); } 50% { box-shadow: 0 0 0 10px rgba(77,214,131,0); } }
+  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes confFall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
+  @keyframes heartBeat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.28); } 55% { transform: scale(1); } }
+  .anim-fade-up { animation: fadeUp .35s ease both; }
+  .anim-slide-up { animation: slideUp .3s cubic-bezier(.2,.8,.3,1) both; }
+  .anim-pop { animation: popIn .4s cubic-bezier(.2,.8,.3,1.3) both; }
+  .anim-float { animation: floaty 3.2s ease-in-out infinite; }
+  .anim-beat { animation: heartBeat .5s ease; }
+  .node-active { animation: pulseRing 2s ease infinite; }
+  .confetti-piece { position: absolute; top: -4vh; border-radius: 2px; animation: confFall linear infinite; }
+  .ch-0 { background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(52,211,153,.03)); border: 1px solid rgba(52,211,153,.25); }
+  .ch-1 { background: linear-gradient(135deg, rgba(96,165,250,.18), rgba(96,165,250,.03)); border: 1px solid rgba(96,165,250,.25); }
+  .ch-2 { background: linear-gradient(135deg, rgba(251,191,36,.18), rgba(251,191,36,.03)); border: 1px solid rgba(251,191,36,.25); }
+  .blank-slot { display: inline-flex; align-items: center; justify-content: center; min-width: 60px; padding: 1px 10px; margin: 3px 2px; border-radius: 8px; border: 2px dashed #3d4f70; color: #64748b; background: rgba(28,40,65,.5); font-size: 13px; vertical-align: middle; transition: all .15s; }
+  .blank-slot.filled { border-style: solid; border-color: rgba(77,214,131,.55); background: rgba(77,214,131,.12); color: #e2e8f0; }
+  .blank-slot.ok { border-style: solid; border-color: #4dd683; background: rgba(77,214,131,.15); color: #4dd683; }
+  .blank-slot.bad { border-style: solid; border-color: #ff5c6c; background: rgba(255,92,108,.12); color: #fda4af; }
+  /* ---- Tema terang ---- */
+  html.light .text-white { color: #0f172a; }
+  html.light .text-slate-200 { color: #334155; }
+  html.light .text-slate-300 { color: #475569; }
+  html.light pre.text-slate-200, html.light .codebox { color: #e2e8f0; }
+  html.light .fb-bar [class*="text-white"] { color: #fff; }
+  html.light button.bg-danger.text-white { color: #fff; }
+  html.light .ic-code { background: #d7f5e4; color: #15803d; }
+  html.light .ic-b { color: #0f172a; }
+  html.light .text-sky-300 { color: #0369a1; }
+  html.light .text-amber-300 { color: #b45309; }
+  html.light .text-violet-300 { color: #6d28d9; }
+  html.light .text-pink-300 { color: #be185d; }
+  html.light .text-orange-400 { color: #ea580c; }
+  html.light .text-emerald-300 { color: #047857; }
+  html.light .text-rose-300 { color: #be123c; }
+  input::placeholder, textarea::placeholder { color: #475569; opacity: 1; }
+  html.light .blank-slot { border-color: #cbd5e1; background: rgba(241,245,249,.9); color: #94a3b8; }
+  html.light .blank-slot.filled { color: #334155; }
+  html.light .blank-slot.ok { border-color: #059669; background: rgba(5,150,105,.12); color: #059669; }
+  html.light .blank-slot.bad { border-color: #e11d48; background: rgba(225,29,72,.1); color: #e11d48; }
+</style>
+<script>/* Terapkan tema tersimpan sebelum render agar tidak berkedip */
+try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}</script>
+</head>
+<body class="bg-night text-slate-200 font-sans antialiased">
+<div id="app">
+
+<!-- ================= WELCOME ================= -->
+<section v-if="screen === 'welcome'" class="relative min-h-screen app-col md:border-x md:border-line/40 flex flex-col px-6 overflow-hidden">
+  <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-mimo/10 blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-16 -left-28 w-72 h-72 rounded-full bg-sky-500/10 blur-3xl pointer-events-none"></div>
+
+  <button @click="toggleTheme" class="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-panel/80 border border-line backdrop-blur flex items-center justify-center active:scale-90 transition" :title="theme === 'dark' ? 'Ganti ke tema terang' : 'Ganti ke tema gelap'">
+    <svg v-if="theme === 'dark'" class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg v-else class="w-5 h-5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <div class="flex-1 flex flex-col items-center justify-center text-center gap-7 anim-fade-up">
+    <div class="anim-float w-24 h-24 rounded-[28px] bg-gradient-to-br from-mimo to-mimodeep flex items-center justify-center shadow-glow">
+      <span class="text-5xl">🐍</span>
+    </div>
+    <div>
+      <h1 class="text-4xl font-black tracking-tight text-white">Py<span class="text-mimo">Mimo</span></h1>
+      <p class="mt-3 text-slate-400 leading-relaxed max-w-xs mx-auto">Belajar pemrograman Python dengan cara singkat, seru, dan adiktif — langsung dari browser.</p>
+    </div>
+    <div class="grid grid-cols-3 gap-3 w-full">
+      <div class="rounded-2xl bg-panel border border-line p-3.5">
+        <p class="text-2xl">⚡</p>
+        <p class="text-[11px] text-slate-400 mt-1.5 font-semibold">XP &amp; Level</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-3.5">
+        <p class="text-2xl">🔥</p>
+        <p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Streak Harian</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-3.5">
+        <p class="text-2xl">🧩</p>
+        <p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Latihan Interaktif</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pb-10 space-y-3">
+    <button @click="startApp" class="w-full bg-mimo hover:bg-mimodeep transition rounded-2xl py-4 font-extrabold text-night text-lg shadow-glow active:scale-[.98]">
+      {{ progress.completed ? 'Lanjutkan Belajar' : 'Mulai Belajar' }}
+    </button>
+    <p class="text-center text-[11px] text-slate-600">8 latihan · 63 soal interaktif · Editor Python · Gratis selamanya</p>
+    <p class="text-center text-[10px] text-slate-700">Dibangun dengan Vue 3 + Tailwind CSS</p>
+  </div>
+</section>
+
+<!-- ================= APP: BERANDA ================= -->
+<section v-else-if="screen === 'app'" class="relative min-h-screen app-col md:border-x md:border-line/40 pb-24">
+
+  <div v-if="tab === 'home'" class="anim-fade-up">
+    <header class="sticky top-0 z-20 flex items-center justify-between gap-3 px-5 py-4 bg-night/95 backdrop-blur border-b border-line/60">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-mimo to-mimodeep flex items-center justify-center text-xl shrink-0">🐍</div>
+        <div class="min-w-0">
+          <p class="text-sm font-extrabold text-white leading-tight">PyMimo</p>
+          <p class="text-[11px] text-slate-500 truncate">{{ greeting }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button @click="toggleTheme" class="w-9 h-9 flex items-center justify-center bg-panel border border-line rounded-full active:scale-90 transition" :title="theme === 'dark' ? 'Ganti ke tema terang' : 'Ganti ke tema gelap'">
+          <svg v-if="theme === 'dark'" class="w-[18px] h-[18px] text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg v-else class="w-[18px] h-[18px] text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <div class="flex items-center gap-1.5 bg-panel border border-line rounded-full pl-2.5 pr-3 py-1.5" title="Streak harian">
+          <svg class="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          <span class="text-sm font-extrabold">{{ progress.streak }}</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-panel border border-line rounded-full pl-2.5 pr-3 py-1.5" title="Total XP">
+          <svg class="w-4 h-4 text-mimo" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 11-14h-8l1-6z"/></svg>
+          <span class="text-sm font-extrabold">{{ progress.xp }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Kartu lanjutkan -->
+    <div class="px-5 mt-4">
+      <div v-if="nextLesson" class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-mimo to-mimodeep p-5 text-night">
+        <div class="absolute -right-4 -top-8 text-[110px] leading-none opacity-20 rotate-12 select-none">{{ nextLesson.icon }}</div>
+        <p class="text-[10px] font-extrabold uppercase tracking-[.18em] opacity-70">Lanjutkan Belajar</p>
+        <h2 class="text-[22px] font-black mt-1 leading-tight">{{ nextLesson.title }}</h2>
+        <p class="text-[13px] font-bold opacity-80">{{ currentChapterTitle }}</p>
+        <button @click="startLesson(nextLesson.flat)" class="mt-4 bg-night text-white rounded-xl px-5 py-2.5 text-sm font-extrabold flex items-center gap-2 active:scale-95 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Mulai Latihan
+        </button>
+      </div>
+      <div v-else class="rounded-3xl bg-panel border border-line p-6 text-center">
+        <p class="text-4xl">🎉</p>
+        <h2 class="text-lg font-extrabold text-white mt-2">Semua Latihan Selesai!</h2>
+        <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Kamu telah menguasai seluruh dasar-dasar Python. Silakan ulangi latihan mana pun untuk mengasah ingatanmu.</p>
+      </div>
+    </div>
+
+    <!-- Jalur belajar -->
+    <div class="px-5 mt-7 space-y-7">
+      <div v-for="(ch, ci) in course" :key="ci">
+        <div class="flex items-center gap-3.5 rounded-2xl bg-panel border border-line p-4">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" :class="'ch-' + ci">{{ ch.icon }}</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-extrabold text-white text-sm truncate">{{ ch.title }}</p>
+            <p class="text-[11px] text-slate-500 truncate">{{ ch.desc }}</p>
+          </div>
+          <span class="text-[11px] font-extrabold rounded-full px-2.5 py-1 shrink-0" :class="chapterDoneCount(ci) >= ch.lessons.length ? 'bg-mimo/15 text-mimo' : 'bg-panel2 text-slate-400'">{{ chapterDoneCount(ci) }}/{{ ch.lessons.length }}</span>
+        </div>
+        <div class="relative mt-2.5">
+          <div class="absolute left-[25px] top-6 bottom-8 w-[3px] rounded bg-line/70"></div>
+          <div v-for="lsn in ch.lessons" :key="lsn.flat" class="relative flex items-center gap-4 py-2">
+            <button @click="onNodeTap(lsn)" class="w-[52px] h-[52px] shrink-0 rounded-2xl flex items-center justify-center border-2 text-xl transition active:scale-90" :class="nodeClass(lsn)">
+              <svg v-if="lsn.flat < progress.completed" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              <span v-else-if="lsn.flat === progress.completed">{{ lsn.icon }}</span>
+              <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            </button>
+            <div @click="onNodeTap(lsn)" class="flex-1 cursor-pointer">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="font-bold text-sm" :class="lsn.flat < progress.completed ? 'text-slate-400' : 'text-white'">{{ lsn.title }}</p>
+                <span v-if="lsn.flat === progress.completed" class="text-[9px] font-extrabold bg-mimo text-night px-2 py-0.5 rounded-full tracking-wider">MULAI</span>
+                <span v-else-if="lsn.flat < progress.completed" class="text-[9px] font-bold text-mimo/70">✓ Selesai</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-0.5">{{ lsn.exercises.length }} soal · hingga +{{ lsn.xpMax }} XP</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB: LATIHAN (EDITOR PYTHON) ================= -->
+  <div v-else-if="tab === 'play'" class="anim-fade-up px-5 pt-6">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-extrabold text-white">Editor Python</h2>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Tulis dan jalankan kode Python 3 asli langsung di browser.</p>
+      </div>
+      <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">🐍 PYTHON 3 · SKULPT</span>
+    </div>
+
+    <p class="text-[10px] font-extrabold tracking-[.18em] text-slate-500 mt-5 mb-2">CONTOH KODE</p>
+    <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+      <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)"
+        class="shrink-0 px-3.5 py-2 rounded-xl bg-panel border border-line text-[12px] font-bold text-slate-300 hover:border-mimo/60 active:scale-95 transition">▶ {{ t.name }}</button>
+    </div>
+
+    <div class="mt-3 rounded-2xl overflow-hidden border border-line">
+      <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+        <span class="ml-2 text-[10px] font-mono text-slate-500">main.py</span>
+        <span class="ml-auto text-[9px] font-bold" :class="engineState === 'fallback' ? 'text-amber-400/90' : 'text-mimo/80'">{{ engineBadge }}</span>
+      </div>
+      <div class="ed-row relative bg-[#0a0f1a]">
+        <div aria-hidden="true" class="ed-gutter pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-[38px] overflow-hidden px-2.5 pt-3 pb-24 text-right font-mono text-[12.5px] leading-[1.65] text-slate-600 select-none bg-[#0a0f1a] border-r border-[#1b2942]">
+          <div v-for="n in lineCount" :key="n" v-text="n"></div>
+        </div>
+        <div class="relative">
+          <pre aria-hidden="true" v-html="hlCode" class="pointer-events-none select-none absolute inset-0 m-0 py-3 pr-4 pl-[46px] overflow-hidden whitespace-pre font-mono text-[12.5px] leading-[1.65] text-slate-200"></pre>
+          <textarea v-model="playCode" @keydown.tab.prevent="tabKey" @keydown.enter="enterKey" @scroll="edScroll" @blur="savePlay"
+            spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"
+            placeholder="# mulai menulis kode Python di sini…"
+            class="ed-ta relative block w-full min-h-[240px] max-h-[60vh] py-3 pr-4 pl-[46px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-none overflow-auto focus:outline-none caret-mimo"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-2.5 mt-3">
+      <button v-if="!playRunning" @click="runPlay" :disabled="engineState === 'loading'"
+        class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-3 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        {{ engineState === 'loading' ? 'Memuat Python…' : 'Jalankan' }}
+      </button>
+      <button v-else @click="stopRun"
+        class="flex-1 rounded-xl bg-danger text-white font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+        Hentikan
+      </button>
+      <button @click="resetPlay" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger" title="Kembalikan contoh kode">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+    </div>
+
+    <div class="mt-3 rounded-2xl overflow-hidden border border-line">
+      <div class="flex items-center justify-between gap-2 px-4 py-2.5 bg-panel2/70 border-b border-line">
+        <span class="text-[10px] font-extrabold tracking-widest text-slate-500">OUTPUT</span>
+        <div class="flex items-center gap-2.5">
+          <span v-if="awaitingInput" class="text-[9px] font-bold text-mimo animate-pulse">⌨ menunggu input…</span>
+          <span class="text-[9px] font-bold" :class="engineState === 'skulpt' ? 'text-mimo/80' : engineState === 'fallback' ? 'text-amber-400' : 'text-slate-500'">{{ engineBadge }}</span>
+          <button v-if="conRows.length || lastError" @click="conClear" class="text-[11px] font-bold text-slate-500 hover:text-danger transition">✕ bersihkan</button>
+        </div>
+      </div>
+      <div ref="conBox" class="bg-[#0a0f1a] px-4 py-3.5 min-h-[110px] max-h-[45vh] overflow-y-auto">
+        <div v-if="!conRows.length && !lastError" class="font-mono text-[12px] text-slate-600 italic">
+          <span v-if="engineState === 'loading'">⏳ Memuat runtime Python (Skulpt)…</span>
+          <span v-else-if="hasRun">(tidak ada output — gunakan print() untuk menampilkan hasil)</span>
+          <span v-else>Klik “Jalankan” untuk melihat hasil…</span>
+        </div>
+        <div v-for="(r, i) in conRows" :key="i" class="font-mono text-[12.5px] leading-relaxed">
+          <div v-if="r.kind === 'out'" class="text-[#6ee7b7] whitespace-pre-wrap break-words">{{ r.text }}</div>
+          <div v-else class="flex flex-wrap items-baseline">
+            <span class="text-[#6ee7b7] whitespace-pre">{{ r.prompt }}</span>
+            <input v-if="!r.done" v-model="r.value" @keydown.enter.prevent="submitConInput"
+              type="text" enterkeyhint="send" spellcheck="false" autocomplete="off" autocapitalize="off"
+              class="con-in-act flex-1 min-w-[120px] bg-transparent border-b border-mimo/60 focus:border-mimo outline-none text-[#6ee7b7] caret-mimo"
+              placeholder="ketik di sini…" />
+            <button v-if="!r.done" @click="submitConInput" class="ml-1.5 text-mimo/70 hover:text-mimo text-[15px] leading-none transition" title="Kirim (Enter)">⏎</button>
+            <span v-else class="text-[#fcd34d] whitespace-pre-wrap">{{ r.value }}</span>
+          </div>
+        </div>
+        <div v-if="lastError" class="rounded-xl bg-danger/10 border border-danger/30 px-3.5 py-3 mt-1.5">
+          <p class="font-mono text-[11.5px] text-danger font-bold">{{ lastError.line ? 'Baris ' + lastError.line + ' — ' : '' }}{{ lastError.type }}</p>
+          <p class="font-mono text-[12px] text-[#fda4af] mt-1 leading-relaxed">{{ lastError.msg }}</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Ditenagai <span class="font-bold">Skulpt</span> — Python 3 asli di browser: <span class="font-mono">input()</span> interaktif muncul langsung di panel OUTPUT mengikuti alur program, dan <span class="font-mono">import</span> modul standar (math, random, time, dst.) didukung. Saat offline otomatis beralih ke interpreter mini bawaan (input/import tidak tersedia). Kode otomatis tersimpan di perangkatmu.</p>
+  </div>
+
+  <!-- ================= TAB: REFERENSI ================= -->
+  <div v-else-if="tab === 'ref'" class="anim-fade-up px-5 pt-6">
+    <h2 class="text-xl font-extrabold text-white">Referensi Cepat</h2>
+    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Cheat sheet dasar Python untuk membantumu mengerjakan latihan.</p>
+    <div class="space-y-3 mt-4">
+      <div v-for="(r, i) in REFERENCE" :key="i" class="rounded-2xl bg-panel border border-line overflow-hidden">
+        <div class="flex items-center gap-3 p-4 pb-3">
+          <span class="text-xl shrink-0">{{ r.icon }}</span>
+          <div class="min-w-0">
+            <p class="font-extrabold text-white text-sm">{{ r.title }}</p>
+            <p class="text-[11px] text-slate-500 leading-snug">{{ r.desc }}</p>
+          </div>
+        </div>
+        <pre class="bg-[#0a0f1a] px-4 py-3.5 font-mono text-[12px] leading-relaxed overflow-x-auto border-t border-line text-slate-200" v-html="hl(r.code)"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TAB: PROFIL ================= -->
+  <div v-else class="anim-fade-up px-5 pt-6">
+    <h2 class="text-xl font-extrabold text-white">Profil</h2>
+
+    <div class="mt-4 rounded-3xl bg-gradient-to-br from-panel to-panel2 border border-line p-5">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-mimo to-mimodeep flex items-center justify-center text-3xl shrink-0">🧑‍💻</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-extrabold text-white">Pembelajar Python</p>
+          <p class="text-xs text-slate-400">Level {{ level }} · {{ levelTitle }}</p>
+          <div class="mt-2 h-2.5 rounded-full bg-night overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-mimodeep to-mimo rounded-full transition-all duration-700" :style="{ width: levelPct + '%' }"></div>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-1">{{ 200 - progress.xp % 200 }} XP lagi menuju Level {{ level + 1 }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mt-4">
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-2xl">⚡</p>
+        <p class="text-xl font-extrabold text-white mt-1">{{ progress.xp }}</p>
+        <p class="text-[11px] text-slate-500">Total XP</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-2xl">🔥</p>
+        <p class="text-xl font-extrabold text-white mt-1">{{ progress.streak }}</p>
+        <p class="text-[11px] text-slate-500">Streak hari</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-2xl">✅</p>
+        <p class="text-xl font-extrabold text-white mt-1">{{ progress.completed }}/{{ TOTAL }}</p>
+        <p class="text-[11px] text-slate-500">Latihan selesai</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-2xl">🎯</p>
+        <p class="text-xl font-extrabold text-white mt-1">{{ accuracyOverall }}%</p>
+        <p class="text-[11px] text-slate-500">Akurasi jawaban</p>
+      </div>
+    </div>
+
+    <h3 class="font-extrabold text-white mt-7 mb-3">🏅 Lencana</h3>
+    <div class="grid grid-cols-2 gap-3">
+      <div v-for="a in achievements" :key="a.title" class="rounded-2xl border p-4" :class="a.unlocked ? 'bg-mimo/10 border-mimo/40' : 'bg-panel border-line opacity-60'">
+        <p class="text-3xl">{{ a.icon }}</p>
+        <p class="font-bold text-sm mt-1.5" :class="a.unlocked ? 'text-white' : 'text-slate-400'">{{ a.title }}</p>
+        <p class="text-[11px] text-slate-500 leading-snug mt-0.5">{{ a.desc }}</p>
+      </div>
+    </div>
+
+    <h3 class="font-extrabold text-white mt-7 mb-3">🎨 Tampilan</h3>
+    <div class="rounded-2xl bg-panel border border-line p-1.5 flex gap-1.5">
+      <button @click="setTheme('light')" class="flex-1 rounded-xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[.98]" :class="theme === 'light' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        Terang
+      </button>
+      <button @click="setTheme('dark')" class="flex-1 rounded-xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition active:scale-[.98]" :class="theme === 'dark' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        Gelap
+      </button>
+    </div>
+
+    <button @click="showReset = true" class="w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition">Reset Progres</button>
+  </div>
+
+  <!-- ================= BOTTOM NAV ================= -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 bg-night/95 backdrop-blur border-t border-line/70">
+    <div class="app-col mx-auto grid grid-cols-4 px-4 py-2.5">
+      <button @click="tab = 'home'" class="flex flex-col items-center gap-1 transition" :class="tab === 'home' ? 'text-mimo' : 'text-slate-500'">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+        <span class="text-[10px] font-bold">Beranda</span>
+      </button>
+      <button @click="tab = 'play'" class="flex flex-col items-center gap-1 transition" :class="tab === 'play' ? 'text-mimo' : 'text-slate-500'">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg>
+        <span class="text-[10px] font-bold">Latihan</span>
+      </button>
+      <button @click="tab = 'ref'" class="flex flex-col items-center gap-1 transition" :class="tab === 'ref' ? 'text-mimo' : 'text-slate-500'">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="text-[10px] font-bold">Referensi</span>
+      </button>
+      <button @click="tab = 'profile'" class="flex flex-col items-center gap-1 transition" :class="tab === 'profile' ? 'text-mimo' : 'text-slate-500'">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="text-[10px] font-bold">Profil</span>
+      </button>
+    </div>
+  </nav>
+</section>
+
+<!-- ================= LESSON ================= -->
+<section v-else-if="screen === 'lesson'" class="min-h-screen flex flex-col app-col md:border-x md:border-line/40">
+  <header class="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-night/95 backdrop-blur border-b border-line/60">
+    <button @click="showExit = true" class="text-slate-400 hover:text-white p-1 -ml-1" aria-label="Keluar">
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="flex-1 h-3.5 rounded-full bg-panel2 overflow-hidden border border-line/50">
+      <div class="h-full rounded-full bg-gradient-to-r from-mimodeep to-mimo transition-all duration-500" :style="{ width: lessonPct + '%' }"></div>
+    </div>
+    <div class="flex items-center gap-0.5 shrink-0">
+      <svg v-for="h in 5" :key="h" class="w-5 h-5" :class="h <= hearts ? 'text-danger' : 'text-line'" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </div>
+  </header>
+
+  <main class="flex-1 px-4 pt-5 pb-44">
+    <div v-if="ex" :key="exIdx" class="anim-fade-up">
+      <div class="flex items-center justify-between gap-3">
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold tracking-widest rounded-full px-3 py-1 border"
+          :class="{ 'text-sky-300 bg-sky-400/10 border-sky-400/20': ex.type === 'concept', 'text-amber-300 bg-amber-400/10 border-amber-400/20': ex.type === 'quiz', 'text-violet-300 bg-violet-400/10 border-violet-400/20': ex.type === 'output', 'text-pink-300 bg-pink-400/10 border-pink-400/20': ex.type === 'fill', 'text-emerald-300 bg-emerald-400/10 border-emerald-400/20': ex.type === 'input' }">
+          {{ { concept: '💡 KONSEP', quiz: '📝 KUIS', output: '🔍 TEBAK OUTPUT', fill: '🧩 LENGKAPI KODE', input: '✍️ ISIAN SINGKAT' }[ex.type] }}
+        </span>
+        <span class="text-[11px] font-bold text-slate-600 shrink-0">{{ exIdx + 1 }} / {{ active.exercises.length }}</span>
+      </div>
+
+      <!-- KONSEP -->
+      <template v-if="ex.type === 'concept'">
+        <h2 class="text-[22px] font-extrabold text-white mt-4 leading-tight">{{ ex.title }}</h2>
+        <p class="text-slate-300 leading-relaxed mt-2.5 text-[15px]" v-html="fmt(ex.body)"></p>
+        <div v-if="ex.code" class="mt-5 rounded-2xl overflow-hidden border border-line">
+          <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+            <span class="ml-2 text-[10px] font-mono text-slate-500">main.py</span>
+          </div>
+          <pre class="p-4 text-[13px] leading-relaxed font-mono text-slate-200 overflow-x-auto bg-[#0a0f1a]" v-html="hl(ex.code)"></pre>
+        </div>
+        <div v-if="ex.output" class="mt-3 rounded-2xl bg-[#0a0f1a] border border-line overflow-hidden">
+          <div class="px-4 py-2 border-b border-line bg-panel2/70 text-[10px] font-extrabold tracking-widest text-slate-500">OUTPUT</div>
+          <pre class="p-4 font-mono text-[13px] leading-relaxed text-emerald-300 whitespace-pre-wrap">{{ ex.output }}</pre>
+        </div>
+      </template>
+
+      <!-- KUIS / TEBAK OUTPUT -->
+      <template v-else-if="ex.type === 'quiz' || ex.type === 'output'">
+        <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+        <div v-if="ex.code" class="mt-4 rounded-2xl overflow-hidden border border-line">
+          <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+            <span class="ml-2 text-[10px] font-mono text-slate-500">main.py</span>
+          </div>
+          <pre class="p-4 text-[13px] leading-relaxed font-mono text-slate-200 overflow-x-auto bg-[#0a0f1a]" v-html="hl(ex.code)"></pre>
+        </div>
+        <div class="mt-5 space-y-2.5">
+          <button v-for="(opt, i) in ex.options" :key="i" @click="!feedback.show && (selected = i)"
+            class="w-full flex items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition active:scale-[.98]"
+            :class="optionClass(i)">
+            <span class="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-xs font-extrabold" :class="chipClass(i)">{{ 'ABCD'[i] }}</span>
+            <span class="text-[15px] font-medium leading-snug flex-1" :class="ex.type === 'output' ? 'font-mono text-[13px] whitespace-pre-line' : ''">{{ opt }}</span>
+            <svg v-if="feedback.show && i === ex.answer" class="w-5 h-5 text-mimo shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+        </div>
+      </template>
+
+      <!-- ISIAN SINGKAT -->
+      <template v-else-if="ex.type === 'input'">
+        <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+        <div v-if="ex.code" class="mt-4 rounded-2xl overflow-hidden border border-line">
+          <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+            <span class="ml-2 text-[10px] font-mono text-slate-500">main.py</span>
+          </div>
+          <pre class="p-4 text-[13px] leading-relaxed font-mono text-slate-200 overflow-x-auto bg-[#0a0f1a]" v-html="hl(ex.code)"></pre>
+        </div>
+        <div class="mt-6">
+          <input v-model="answerText" type="text" :disabled="feedback.show" @keydown.enter="!feedback.show && canCheck && checkAnswer()"
+            placeholder="Ketik jawabanmu di sini…"
+            class="w-full rounded-2xl border-2 bg-panel border-line px-4 py-3.5 text-[15px] font-mono text-white focus:outline-none focus:border-mimo transition disabled:opacity-60">
+          <p class="text-[11px] text-slate-500 mt-3">⌨️ Huruf besar/kecil diabaikan · tekan Enter untuk memeriksa</p>
+        </div>
+      </template>
+
+      <!-- LENGKAPI KODE -->
+      <template v-else-if="ex.type === 'fill'">
+        <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+        <div class="codebox mt-4 rounded-2xl bg-[#0a0f1a] border border-line p-4 font-mono text-[13.5px] leading-loose whitespace-pre-wrap text-slate-200"><template v-for="(seg, si) in ex.parts" :key="si"><span v-if="typeof seg === 'string'" v-html="hl(seg)"></span><button v-else @click="!feedback.show && unplace(seg)" class="blank-slot" :class="blankClass(seg)"><span v-if="chipAt(seg)">{{ chipAt(seg).text }}</span><span v-else class="opacity-30">isi</span></button></template></div>
+        <p class="text-[11px] text-slate-500 mt-3">👆 Ketuk potongan kode untuk mengisi. Ketuk kotak jawaban untuk mengosongkannya kembali.</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button v-for="chip in fill.bank" :key="chip.id" v-show="!chip.used" @click="!feedback.show && place(chip.id)"
+            class="px-3.5 py-2.5 rounded-xl bg-panel2 border border-line font-mono text-[13px] text-slate-200 transition hover:border-mimo/60 active:scale-95">{{ chip.text }}</button>
+        </div>
+      </template>
+    </div>
+  </main>
+
+  <footer class="fixed bottom-0 inset-x-0 z-20">
+    <div class="app-col">
+      <div v-if="!feedback.show" class="px-4 py-4 bg-night/95 backdrop-blur border-t border-line/60 md:border-x md:border-line/40">
+        <button @click="checkAnswer" :disabled="!canCheck"
+          class="w-full rounded-2xl py-4 font-extrabold text-[15px] transition active:scale-[.98]"
+          :class="canCheck ? 'bg-mimo text-night shadow-glow' : 'bg-panel2 text-slate-600'">
+          {{ ex && ex.type === 'concept' ? 'Mengerti, Lanjutkan →' : 'Periksa Jawaban' }}
+        </button>
+      </div>
+      <div v-else class="fb-bar anim-slide-up px-5 pt-5 pb-6 md:border-x border-line/40" :class="feedback.correct ? 'bg-mimodeep' : 'bg-danger'">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <svg v-if="feedback.correct" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <svg v-else class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-extrabold text-white text-[15px]">{{ feedback.title }}</p>
+            <p v-if="feedback.detail" class="text-[13px] text-white/90 mt-1.5 font-mono whitespace-pre-line leading-relaxed" v-html="feedback.detail"></p>
+            <p v-if="ex && ex.explanation" class="text-[13px] text-white/80 mt-2 leading-snug">{{ ex.explanation }}</p>
+          </div>
+        </div>
+        <button @click="advance" class="w-full mt-4 bg-white rounded-xl py-3.5 font-extrabold text-[#0d1420] text-[15px] active:scale-[.98] transition">Lanjut</button>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<!-- ================= COMPLETE ================= -->
+<section v-else-if="screen === 'complete'" class="relative min-h-screen app-col md:border-x md:border-line/40 flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <span v-for="(c, i) in confetti" :key="i" class="confetti-piece" :style="c.style"></span>
+  </div>
+  <div class="anim-pop w-full">
+    <div class="w-28 h-28 mx-auto rounded-full bg-mimo/15 border-2 border-mimo/60 flex items-center justify-center anim-beat">
+      <span class="text-6xl">🏆</span>
+    </div>
+    <p class="text-[11px] font-extrabold tracking-[.2em] text-mimo mt-6 uppercase">{{ active.title }}</p>
+    <h2 class="text-[26px] font-black text-white mt-1">Latihan Selesai!</h2>
+    <p class="text-sm text-slate-400 mt-2 leading-relaxed">{{ finishMsg }}</p>
+    <div class="grid grid-cols-3 gap-3 mt-7">
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-[22px] font-black text-mimo">+{{ result.xp }}</p>
+        <p class="text-[10px] text-slate-500 mt-1 font-bold">XP DIDAPAT</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-[22px] font-black text-sky-300">{{ result.accuracy }}%</p>
+        <p class="text-[10px] text-slate-500 mt-1 font-bold">AKURASI</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-[22px] font-black text-orange-400">{{ hearts }}</p>
+        <p class="text-[10px] text-slate-500 mt-1 font-bold">NYAWA TERSISA</p>
+      </div>
+    </div>
+    <button @click="backHome" class="w-full bg-mimo text-night rounded-2xl py-4 font-extrabold mt-8 shadow-glow active:scale-[.98] transition">Lanjutkan Belajar</button>
+  </div>
+</section>
+
+<!-- ================= FAILED ================= -->
+<section v-else-if="screen === 'failed'" class="min-h-screen app-col md:border-x md:border-line/40 flex flex-col items-center justify-center text-center px-6">
+  <div class="anim-pop w-full">
+    <div class="text-7xl anim-float">💔</div>
+    <h2 class="text-[26px] font-black text-white mt-6">Nyawa Habis!</h2>
+    <p class="text-sm text-slate-400 mt-2 leading-relaxed">Santai — kesalahan adalah bagian terbesar dari proses belajar.<br>Tarik napas, lalu coba lagi dari awal!</p>
+    <button @click="startLesson(active.flat)" class="w-full bg-mimo text-night rounded-2xl py-4 font-extrabold mt-8 shadow-glow active:scale-[.98] transition">Coba Lagi</button>
+    <button @click="backHome" class="w-full mt-3 text-slate-400 font-bold py-3">Kembali ke Beranda</button>
+  </div>
+</section>
+
+<!-- ================= MODAL & TOAST ================= -->
+<div v-if="showExit" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6">
+  <div class="w-full max-w-sm bg-panel border border-line rounded-3xl p-6 anim-pop text-center">
+    <p class="text-4xl">🚪</p>
+    <h3 class="text-lg font-extrabold text-white mt-3">Keluar dari latihan?</h3>
+    <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Progres latihan ini akan hilang dan nyawa akan direset.</p>
+    <div class="flex gap-3 mt-5">
+      <button @click="showExit = false" class="flex-1 rounded-xl border-2 border-line py-3 font-bold text-slate-300 active:scale-95 transition">Batal</button>
+      <button @click="showExit = false; backHome()" class="flex-1 rounded-xl bg-danger py-3 font-bold text-white active:scale-95 transition">Keluar</button>
+    </div>
+  </div>
+</div>
+
+<div v-if="showReset" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6">
+  <div class="w-full max-w-sm bg-panel border border-line rounded-3xl p-6 anim-pop text-center">
+    <p class="text-4xl">⚠️</p>
+    <h3 class="text-lg font-extrabold text-white mt-3">Reset semua progres?</h3>
+    <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">XP, streak, dan seluruh riwayat latihan akan dihapus permanen.</p>
+    <div class="flex gap-3 mt-5">
+      <button @click="showReset = false" class="flex-1 rounded-xl border-2 border-line py-3 font-bold text-slate-300 active:scale-95 transition">Batal</button>
+      <button @click="doReset" class="flex-1 rounded-xl bg-danger py-3 font-bold text-white active:scale-95 transition">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div v-if="toast" class="fixed top-5 inset-x-0 z-50 flex justify-center px-6 pointer-events-none">
+  <div class="anim-fade-up bg-panel2 border border-line text-slate-200 text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-2xl">{{ toast }}</div>
+</div>
+
+</div>
+
+<!--__PYMINI_START__-->
+<script>
+/* ============================================================
+   PyMini — Interpreter Python mini murni JavaScript
+   Dibuat untuk tab "Latihan" PyMimo agar kode Python dapat
+   dijalankan langsung di browser TANPA server / internet.
+   Mendukung: variabel, print, tipe data, operator, if/elif/else,
+   for/while (+break/continue), fungsi (rekursif), list, dict,
+   string & method-nya, f-string, slice, dan builtin umum.
+   ============================================================ */
+const PyMini = (function () {
+  'use strict';
+
+  /* ---------- util error ---------- */
+  function pyerr(type, msg, line) { return { __pyerr: true, type: type, msg: msg, line: line || null }; }
+  const BRK = { __brk: 1 };
+  const CNT = { __cnt: 1 };
+
+  /* ---------- float wrapper (agar 4/2 tampil 2.0) ---------- */
+  const isFloat = v => typeof v === 'object' && v !== null && v.__f === true;
+  const F = v => ({ __f: true, v: v });
+  const N = v => (isFloat(v) ? v.v : v);
+  const isNum = v => typeof v === 'number' || isFloat(v) || typeof v === 'boolean';
+
+  /* ============================================================
+     1. TOKENIZER
+     ============================================================ */
+  const KEYWORDS = new Set(['if','elif','else','while','for','in','def','return','break','continue','pass','and','or','not','True','False','None','import','from','as','is']);
+  const T3 = ['**=', '//='];
+  const T2 = ['**','//','==','!=','<=','>=','+=','-=','*=','/=','%='];
+  const T1 = '+-*/%<>=()[]{},:.';
+
+  function lex(src) {
+    const toks = [];
+    let i = 0, line = 1;
+    const indents = [0];
+    let depth = 0;
+    let atLineStart = true;
+    const n = src.length;
+    const emit = (t, v) => toks.push({ t: t, v: v, line: line });
+
+    while (i < n) {
+      if (atLineStart && depth === 0) {
+        let j = i, col = 0;
+        while (j < n && (src[j] === ' ' || src[j] === '\t')) { col += (src[j] === '\t' ? 4 : 1); j++; }
+        let m = j;
+        while (m < n && (src[m] === ' ' || src[m] === '\t' || src[m] === '\r')) m++;
+        if (m >= n || src[m] === '\n' || src[m] === '#') {
+          // baris kosong / hanya komentar: lewati seluruhnya
+          while (i < n && src[i] !== '\n') i++;
+          if (i < n) { i++; line++; }
+          continue;
+        }
+        i = j;
+        if (col > indents[indents.length - 1]) { indents.push(col); emit('INDENT', null); }
+        else if (col < indents[indents.length - 1]) {
+          while (col < indents[indents.length - 1]) { indents.pop(); emit('DEDENT', null); }
+          if (col !== indents[indents.length - 1]) throw pyerr('SyntaxError', 'indentasi tidak konsisten (campur tab & spasi?)', line);
+        }
+        atLineStart = false;
+        continue;
+      }
+      const c = src[i];
+      if (c === '\n') {
+        if (depth === 0 && !atLineStart) { emit('NEWLINE', null); atLineStart = true; }
+        line++; i++;
+        continue;
+      }
+      if (c === ' ' || c === '\t' || c === '\r') { i++; continue; }
+      if (c === '#') { while (i < n && src[i] !== '\n') i++; continue; }
+
+      /* string biasa atau f-string */
+      let isF = false, q = null;
+      if ((c === 'f' || c === 'F') && i + 1 < n && (src[i + 1] === '"' || src[i + 1] === "'")) { isF = true; q = src[i + 1]; }
+      else if (c === '"' || c === "'") q = c;
+      if (q) {
+        const startLine = line;
+        let j = isF ? i + 2 : i + 1;
+        let raw = '';
+        while (j < n && src[j] !== q) {
+          if (src[j] === '\n') throw pyerr('SyntaxError', 'string belum ditutup di baris yang sama', startLine);
+          if (src[j] === '\\') {
+            const e = src[j + 1];
+            if (e === undefined) throw pyerr('SyntaxError', 'string belum ditutup', startLine);
+            if (isF) { raw += src[j]; raw += e; }
+            else raw += (e === 'n' ? '\n' : e === 't' ? '\t' : e === 'r' ? '\r' : e === '0' ? '\0' : e);
+            j += 2;
+            continue;
+          }
+          raw += src[j]; j++;
+        }
+        if (j >= n) throw pyerr('SyntaxError', 'string belum ditutup', startLine);
+        emit(isF ? 'FSTR' : 'STR', raw);
+        i = j + 1;
+        continue;
+      }
+
+      /* angka */
+      if (/[0-9]/.test(c) || (c === '.' && i + 1 < n && /[0-9]/.test(src[i + 1]))) {
+        let j = i, s = '', isFloatLit = false;
+        while (j < n && /[0-9_]/.test(src[j])) { if (src[j] !== '_') s += src[j]; j++; }
+        if (j < n && src[j] === '.' && j + 1 < n && /[0-9]/.test(src[j + 1])) {
+          isFloatLit = true; s += '.'; j++;
+          while (j < n && /[0-9_]/.test(src[j])) { if (src[j] !== '_') s += src[j]; j++; }
+        }
+        emit('NUM', { v: parseFloat(s), f: isFloatLit });
+        i = j;
+        continue;
+      }
+
+      /* identifier / keyword */
+      if (/[A-Za-z_]/.test(c)) {
+        let j = i, s = '';
+        while (j < n && /[A-Za-z0-9_]/.test(src[j])) { s += src[j]; j++; }
+        emit(KEYWORDS.has(s) ? 'KW' : 'NAME', s);
+        i = j;
+        continue;
+      }
+
+      /* operator */
+      const three = src.substr(i, 3);
+      if (T3.indexOf(three) >= 0) { emit('OP', three); i += 3; continue; }
+      const two = src.substr(i, 2);
+      if (T2.indexOf(two) >= 0) { emit('OP', two); i += 2; continue; }
+      if (T1.indexOf(c) >= 0) {
+        if (c === '(' || c === '[' || c === '{') depth++;
+        if (c === ')' || c === ']' || c === '}') depth = Math.max(0, depth - 1);
+        emit('OP', c); i++;
+        continue;
+      }
+      throw pyerr('SyntaxError', 'karakter tidak dikenali: ' + JSON.stringify(c), line);
+    }
+    if (!atLineStart) emit('NEWLINE', null);
+    while (indents.length > 1) { indents.pop(); emit('DEDENT', null); }
+    emit('EOF', null);
+    return toks;
+  }
+
+  /* ============================================================
+     2. PARSER (recursive descent, blok berbasis indentasi)
+     ============================================================ */
+  function makeParser(toks) {
+    let p = 0;
+    const peek = k => toks[p + (k || 0)];
+    const next = () => toks[p++];
+    const err = (msg, tk) => { throw pyerr('SyntaxError', msg, (tk || peek()).line); };
+    const isOP = op => peek().t === 'OP' && peek().v === op;
+    const isKW = kw => peek().t === 'KW' && peek().v === kw;
+    const expectOP = op => { const t = next(); if (t.t !== 'OP' || t.v !== op) err("diharapkan '" + op + "'", t); return t; };
+    const expectKW = kw => { const t = next(); if (t.t !== 'KW' || t.v !== kw) err("diharapkan '" + kw + "'", t); return t; };
+    const skipNewlines = () => { while (peek().t === 'NEWLINE') next(); };
+
+    function parseProgram() {
+      const stmts = [];
+      skipNewlines();
+      while (peek().t !== 'EOF') { stmts.push(parseStatement()); skipNewlines(); }
+      return stmts;
+    }
+
+    function parseBlock() {
+      expectOP(':');
+      if (peek().t === 'NEWLINE') {
+        next();
+        skipNewlines();
+        if (peek().t !== 'INDENT') err('blok kosong — indentasikan baris berikutnya (4 spasi)');
+        next();
+        const stmts = [];
+        skipNewlines();
+        while (peek().t !== 'DEDENT' && peek().t !== 'EOF') { stmts.push(parseStatement()); skipNewlines(); }
+        if (peek().t === 'DEDENT') next();
+        return stmts;
+      }
+      const stmts = [parseSimple()];
+      if (peek().t === 'NEWLINE') next();
+      return stmts;
+    }
+
+    function parseStatement() {
+      const t = peek();
+      if (t.t === 'KW') {
+        if (t.v === 'if') return parseIf();
+        if (t.v === 'while' || t.v === 'for' || t.v === 'def') return parseCompound(t.v);
+      }
+      return parseSimple();
+    }
+
+    function parseIf() {
+      const line = peek().line;
+      expectKW('if');
+      const clauses = [{ cond: parseExpr(), body: parseBlock() }];
+      let elseBody = null;
+      while (isKW('elif')) { next(); clauses.push({ cond: parseExpr(), body: parseBlock() }); }
+      if (isKW('else')) { next(); elseBody = parseBlock(); }
+      return { k: 'if', clauses: clauses, elseBody: elseBody, line: line };
+    }
+
+    function parseCompound(kw) {
+      const line = peek().line;
+      next();
+      if (kw === 'while') return { k: 'while', cond: parseExpr(), body: parseBlock(), line: line };
+      if (kw === 'for') {
+        const vars = [];
+        const first = next();
+        if (first.t !== 'NAME') err('nama variabel perulangan tidak valid', first);
+        vars.push(first.v);
+        while (isOP(',')) {
+          next();
+          const t2 = next();
+          if (t2.t !== 'NAME') err('nama variabel perulangan tidak valid', t2);
+          vars.push(t2.v);
+        }
+        expectKW('in');
+        const iter = parseExpr();
+        const body = parseBlock();
+        return { k: 'for', vars: vars, iter: iter, body: body, line: line };
+      }
+      /* def */
+      const nameTk = next();
+      if (nameTk.t !== 'NAME') err('nama fungsi tidak valid', nameTk);
+      expectOP('(');
+      const params = [];
+      while (!isOP(')')) {
+        const pn = next();
+        if (pn.t !== 'NAME') err('nama parameter tidak valid', pn);
+        let def = null;
+        if (isOP('=')) { next(); def = parseExpr(); }
+        params.push({ name: pn.v, def: def });
+        if (isOP(',')) next();
+        else if (!isOP(')')) err("diharapkan ',' atau ')'");
+      }
+      expectOP(')');
+      const body = parseBlock();
+      return { k: 'def', name: nameTk.v, params: params, body: body, line: line };
+    }
+
+    const AUG = { '+=': '+', '-=': '-', '*=': '*', '/=': '/', '//=': '//', '%=': '%', '**=': '**' };
+
+    function parseSimple() {
+      const t = peek();
+      if (t.t === 'KW') {
+        if (t.v === 'pass') { next(); endStmt(); return { k: 'pass', line: t.line }; }
+        if (t.v === 'break') { next(); endStmt(); return { k: 'break', line: t.line }; }
+        if (t.v === 'continue') { next(); endStmt(); return { k: 'continue', line: t.line }; }
+        if (t.v === 'return') {
+          next();
+          let e = null;
+          if (peek().t !== 'NEWLINE' && peek().t !== 'EOF' && peek().t !== 'DEDENT') {
+            e = parseExpr();
+            if (isOP(',')) {
+              const items = [e];
+              while (isOP(',')) { next(); items.push(parseExpr()); }
+              e = { k: 'tuple', items: items, line: t.line };
+            }
+          }
+          endStmt();
+          return { k: 'return', e: e, line: t.line };
+        }
+        if (t.v === 'import' || t.v === 'from') {
+          throw pyerr('SyntaxError', 'import belum didukung di editor ini — latihan memakai fitur dasar Python', t.line);
+        }
+      }
+      const e = parseExpr();
+      /* tuple: a, b = 1, 2 */
+      if (isOP(',')) {
+        const items = [e];
+        while (isOP(',')) { next(); items.push(parseExpr()); }
+        const tup = { k: 'tuple', items: items, line: t.line };
+        if (isOP('=')) {
+          next();
+          const val = parseExpr();
+          let valTuple = val;
+          if (val.k !== 'tuple' && isOP(',')) {
+            const vals = [val];
+            while (isOP(',')) { next(); vals.push(parseExpr()); }
+            valTuple = { k: 'tuple', items: vals, line: t.line };
+          }
+          endStmt();
+          return { k: 'assignTuple', targets: items, e: valTuple, line: t.line };
+        }
+        endStmt();
+        return { k: 'expr', e: tup, line: t.line };
+      }
+      if (isOP('=')) { next(); const val = parseExpr(); endStmt(); return { k: 'assign', target: e, e: val, line: t.line }; }
+      if (peek().t === 'OP' && AUG[peek().v]) {
+        const op = next().v;
+        const val = parseExpr();
+        endStmt();
+        return { k: 'aug', op: AUG[op], target: e, e: val, line: t.line };
+      }
+      endStmt();
+      return { k: 'expr', e: e, line: t.line };
+    }
+
+    function endStmt() {
+      if (peek().t === 'NEWLINE') next();
+      else if (peek().t === 'EOF' || peek().t === 'DEDENT') {}
+      else err('sintaks tidak valid di akhir pernyataan');
+    }
+
+    /* ---- ekspresi (prioritas rendah -> tinggi) ---- */
+    function parseExpr() { return parseOr(); }
+    function parseOr() {
+      let l = parseAnd();
+      while (isKW('or')) { const t = next(); l = { k: 'or', l: l, r: parseAnd(), line: t.line }; }
+      return l;
+    }
+    function parseAnd() {
+      let l = parseNot();
+      while (isKW('and')) { const t = next(); l = { k: 'and', l: l, r: parseNot(), line: t.line }; }
+      return l;
+    }
+    function parseNot() {
+      if (isKW('not')) { const t = next(); return { k: 'not', e: parseNot(), line: t.line }; }
+      return parseCmp();
+    }
+    const CMPOPS = ['==','!=','<','>','<=','>='];
+    function parseCmp() {
+      const first = parseAdd();
+      const ops = [], rest = [];
+      while (true) {
+        const t = peek();
+        if (t.t === 'OP' && CMPOPS.indexOf(t.v) >= 0) { next(); ops.push(t.v); rest.push(parseAdd()); }
+        else if (t.t === 'KW' && t.v === 'in') { next(); ops.push('in'); rest.push(parseAdd()); }
+        else if (t.t === 'KW' && t.v === 'not' && peek(1).t === 'KW' && peek(1).v === 'in') { next(); next(); ops.push('not in'); rest.push(parseAdd()); }
+        else break;
+      }
+      if (!ops.length) return first;
+      return { k: 'cmp', first: first, ops: ops, rest: rest, line: first.line };
+    }
+    function parseAdd() {
+      let l = parseMul();
+      while (isOP('+') || isOP('-')) { const t = next(); l = { k: 'bin', op: t.v, l: l, r: parseMul(), line: t.line }; }
+      return l;
+    }
+    function parseMul() {
+      let l = parseUnary();
+      while (isOP('*') || isOP('/') || isOP('//') || isOP('%')) { const t = next(); l = { k: 'bin', op: t.v, l: l, r: parseUnary(), line: t.line }; }
+      return l;
+    }
+    function parseUnary() {
+      if (isOP('-')) { const t = next(); return { k: 'neg', e: parseUnary(), line: t.line }; }
+      if (isOP('+')) { const t = next(); return { k: 'pos', e: parseUnary(), line: t.line }; }
+      return parsePower();
+    }
+    function parsePower() {
+      const b = parsePostfix();
+      if (isOP('**')) { const t = next(); return { k: 'bin', op: '**', l: b, r: parseUnary(), line: t.line }; }
+      return b;
+    }
+    function parsePostfix() {
+      let e = parseAtom();
+      while (true) {
+        if (isOP('(')) {
+          const t = next();
+          const args = [], kwargs = {};
+          while (!isOP(')')) {
+            if (peek().t === 'NAME' && peek(1).t === 'OP' && peek(1).v === '=') {
+              const nm = next().v; next();
+              kwargs[nm] = parseExpr();
+            } else args.push(parseExpr());
+            if (isOP(',')) next();
+            else if (!isOP(')')) err("diharapkan ',' atau ')'");
+          }
+          next();
+          e = { k: 'call', fn: e, args: args, kwargs: kwargs, line: t.line };
+        } else if (isOP('[')) {
+          const t = next();
+          let start = null, stop = null, step = null, isSlice = false;
+          if (!isOP(':')) start = parseExpr();
+          if (isOP(':')) {
+            isSlice = true;
+            next();
+            if (!isOP(']') && !isOP(':')) stop = parseExpr();
+            if (isOP(':')) { next(); if (!isOP(']')) step = parseExpr(); }
+          }
+          expectOP(']');
+          e = isSlice
+            ? { k: 'slice', obj: e, start: start, stop: stop, step: step, line: t.line }
+            : { k: 'index', obj: e, idx: start, line: t.line };
+        } else if (isOP('.')) {
+          const t = next();
+          const nm = next();
+          if (nm.t !== 'NAME') err('nama atribut/method tidak valid', nm);
+          e = { k: 'attr', obj: e, name: nm.v, line: t.line };
+        } else break;
+      }
+      return e;
+    }
+    function parseAtom() {
+      const t = peek();
+      if (t.t === 'NUM') { next(); return { k: 'num', v: t.v.v, f: t.v.f, line: t.line }; }
+      if (t.t === 'STR') { next(); return { k: 'str', v: t.v, line: t.line }; }
+      if (t.t === 'FSTR') { next(); return parseFString(t.v, t.line); }
+      if (t.t === 'KW') {
+        if (t.v === 'True' || t.v === 'False') { next(); return { k: 'bool', v: t.v === 'True', line: t.line }; }
+        if (t.v === 'None') { next(); return { k: 'none', line: t.line }; }
+        err('sintaks tidak valid: ' + t.v);
+      }
+      if (t.t === 'NAME') { next(); return { k: 'name', id: t.v, line: t.line }; }
+      if (isOP('(')) {
+        next();
+        const e = parseExpr();
+        expectOP(')');
+        return e;
+      }
+      if (isOP('[')) {
+        next();
+        const items = [];
+        while (!isOP(']')) {
+          items.push(parseExpr());
+          if (isOP(',')) next();
+          else if (!isOP(']')) err("diharapkan ',' atau ']'");
+        }
+        next();
+        return { k: 'list', items: items, line: t.line };
+      }
+      if (isOP('{')) {
+        next();
+        const pairs = [];
+        while (!isOP('}')) {
+          const key = parseExpr();
+          expectOP(':');
+          const val = parseExpr();
+          pairs.push([key, val]);
+          if (isOP(',')) next();
+          else if (!isOP('}')) err("diharapkan ',' atau '}'");
+        }
+        next();
+        return { k: 'dict', pairs: pairs, line: t.line };
+      }
+      err('ekspresi tidak valid');
+    }
+
+    /* f-string: pisah literal & {ekspresi:spec} */
+    function parseFString(raw, line) {
+      const parts = [];
+      let buf = '';
+      const flush = () => { if (buf !== '') { parts.push({ txt: buf }); buf = ''; } };
+      let i = 0;
+      const n = raw.length;
+      while (i < n) {
+        const c = raw[i];
+        if (c === '{' && raw[i + 1] === '{') { buf += '{'; i += 2; continue; }
+        if (c === '}' && raw[i + 1] === '}') { buf += '}'; i += 2; continue; }
+        if (c === '{') {
+          let j = i + 1, d = 1, q = null;
+          while (j < n) {
+            const cj = raw[j];
+            if (q) { if (cj === '\\') { j += 2; continue; } if (cj === q) q = null; j++; continue; }
+            if (cj === '"' || cj === "'") { q = cj; j++; continue; }
+            if (cj === '{') d++;
+            else if (cj === '}') { d--; if (!d) break; }
+            j++;
+          }
+          if (d) throw pyerr('SyntaxError', "f-string: kurung '}' tidak ditemukan", line);
+          const field = raw.slice(i + 1, j);
+          let exprSrc = field, spec = null, dd = 0, qq = null;
+          for (let ci = 0; ci < field.length; ci++) {
+            const fc = field[ci];
+            if (qq) { if (fc === '\\') { ci++; continue; } if (fc === qq) qq = null; continue; }
+            if (fc === '"' || fc === "'") { qq = fc; continue; }
+            if (fc === '[' || fc === '{' || fc === '(') dd++;
+            else if (fc === ']' || fc === '}' || fc === ')') dd--;
+            else if (fc === ':' && dd === 0) { exprSrc = field.slice(0, ci); spec = field.slice(ci + 1); break; }
+          }
+          if (!exprSrc.trim()) throw pyerr('SyntaxError', 'f-string: ekspresi kosong', line);
+          flush();
+          parts.push({ e: parseExprSrc(exprSrc, line), spec: spec });
+          i = j + 1;
+          continue;
+        }
+        if (c === '\\' && i + 1 < n) {
+          const e2 = raw[i + 1];
+          buf += (e2 === 'n' ? '\n' : e2 === 't' ? '\t' : e2 === '\\' ? '\\' : e2 === '"' ? '"' : e2 === "'" ? "'" : e2);
+          i += 2;
+          continue;
+        }
+        buf += c; i++;
+      }
+      flush();
+      if (!parts.length) parts.push({ txt: '' });
+      return { k: 'fstr', parts: parts, line: line };
+    }
+
+    function parseExprSrc(src, line) {
+      const sub = makeParser(lex(src));
+      const e = sub.expr();
+      return e;
+    }
+
+    return { program: parseProgram, expr: parseExpr };
+  }
+
+  function parse(src) { return makeParser(lex(src)).program(); }
+
+  /* ============================================================
+     3. NILAI & OPERASI
+     ============================================================ */
+  class Env {
+    constructor(parent) { this.vars = new Map(); this.parent = parent; }
+    get(id, line) {
+      let e = this;
+      while (e) { if (e.vars.has(id)) return e.vars.get(id); e = e.parent; }
+      throw pyerr('NameError', "name '" + id + "' is not defined", line);
+    }
+    set(id, v) { this.vars.set(id, v); }
+  }
+
+  function truthy(v) {
+    if (v === null || v === true || v === false) return v === true;
+    if (typeof v === 'number') return v !== 0;
+    if (isFloat(v)) return v.v !== 0;
+    if (typeof v === 'string') return v.length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    if (v instanceof Map) return v.size > 0;
+    return true;
+  }
+
+  function typeName(v) {
+    if (v === null) return 'NoneType';
+    if (v === true || v === false) return 'bool';
+    if (typeof v === 'number') return 'int';
+    if (isFloat(v)) return 'float';
+    if (typeof v === 'string') return 'str';
+    if (Array.isArray(v)) return 'list';
+    if (v instanceof Map) return 'dict';
+    if (v && v.__range) return 'range';
+    if (v && v.__func) return 'function';
+    return 'object';
+  }
+
+  function fmtFloat(x) { return Number.isInteger(x) ? x.toFixed(1) : String(x); }
+
+  function toStr(v) {
+    if (v === null) return 'None';
+    if (v === true) return 'True';
+    if (v === false) return 'False';
+    if (typeof v === 'number') return String(v);
+    if (isFloat(v)) return fmtFloat(v.v);
+    if (typeof v === 'string') return v;
+    if (Array.isArray(v)) {
+      const open = v.__tuple ? '(' : '[';
+      const close = v.__tuple ? (v.length === 1 ? ',)' : ')') : ']';
+      return open + v.map(toRepr).join(', ') + close;
+    }
+    if (v instanceof Map) {
+      if (!v.size) return '{}';
+      return '{' + Array.from(v.entries()).map(kv => toRepr(kv[0]) + ': ' + toRepr(kv[1])).join(', ') + '}';
+    }
+    if (v && v.__range) return 'range(' + v.start + ', ' + v.stop + (v.step !== 1 ? ', ' + v.step : '') + ')';
+    if (v && v.__func) return "<function '" + v.name + "'>";
+    return String(v);
+  }
+  function toRepr(v) {
+    if (typeof v === 'string') return "'" + v.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n') + "'";
+    return toStr(v);
+  }
+
+  function eq(a, b) {
+    if (a === b) return true;
+    if (a === null || b === null) return false;
+    if (typeof a === 'boolean' || typeof b === 'boolean') {
+      if (!isNum(a) || !isNum(b)) return false;
+      return (a === true ? 1 : a === false ? 0 : N(a)) === (b === true ? 1 : b === false ? 0 : N(b));
+    }
+    if (isNum(a) && isNum(b)) return N(a) === N(b);
+    if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => eq(x, b[i]));
+    return false;
+  }
+
+  function cmp(op, a, b, line) {
+    if (op === '==') return eq(a, b);
+    if (op === '!=') return !eq(a, b);
+    let x = a, y = b;
+    if (typeof x === 'string' && typeof y === 'string') { /* ok */ }
+    else if (isNum(x) && isNum(y)) { x = N(x); y = N(y); }
+    else throw pyerr('TypeError', "'" + op + "' not supported between instances of '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    if (op === '<') return x < y;
+    if (op === '>') return x > y;
+    if (op === '<=') return x <= y;
+    if (op === '>=') return x >= y;
+    throw pyerr('InternalError', 'operator tidak dikenal ' + op, line);
+  }
+
+  function contains(item, cont, line) {
+    if (typeof cont === 'string') {
+      if (typeof item !== 'string') throw pyerr('TypeError', "'in <string>' membutuhkan str sebagai kunci pencarian", line);
+      return cont.indexOf(item) >= 0;
+    }
+    if (Array.isArray(cont)) return cont.some(x => eq(x, item));
+    if (cont instanceof Map) { for (const k of cont.keys()) if (eq(k, item)) return true; return false; }
+    if (cont && cont.__range) {
+      const x = N(item);
+      if (!Number.isInteger(x)) return false;
+      if (cont.step > 0) return x >= cont.start && x < cont.stop && ((x - cont.start) % cont.step === 0);
+      return x <= cont.start && x > cont.stop && ((cont.start - x) % (-cont.step) === 0);
+    }
+    throw pyerr('TypeError', "argumen bertipe '" + typeName(cont) + "' tidak bisa diiterasi", line);
+  }
+
+  function binop(op, a, b, line) {
+    if (op === '+') {
+      if (isNum(a) && isNum(b)) { const r = N(a) + N(b); return (isFloat(a) || isFloat(b)) ? F(r) : r; }
+      if (typeof a === 'string' && typeof b === 'string') return a + b;
+      if (Array.isArray(a) && Array.isArray(b)) return a.concat(b);
+      throw pyerr('TypeError', "unsupported operand type(s) for +: '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    }
+    if (op === '-' || op === '*') {
+      if (isNum(a) && isNum(b)) {
+        const r = op === '-' ? N(a) - N(b) : N(a) * N(b);
+        return (isFloat(a) || isFloat(b)) ? F(r) : r;
+      }
+      if (op === '*') {
+        if (typeof a === 'string' && typeof b === 'number' && !isFloat(b)) {
+          if (b > 100000) throw pyerr('MemoryError', 'hasil penggandaan string terlalu besar', line);
+          return b <= 0 ? '' : a.repeat(b);
+        }
+        if (typeof b === 'string' && typeof a === 'number' && !isFloat(a)) {
+          if (a > 100000) throw pyerr('MemoryError', 'hasil penggandaan string terlalu besar', line);
+          return a <= 0 ? '' : b.repeat(a);
+        }
+        if (Array.isArray(a) && typeof b === 'number' && !isFloat(b)) {
+          if (b > 10000) throw pyerr('MemoryError', 'hasil penggandaan list terlalu besar', line);
+          const out = [];
+          for (let i = 0; i < b; i++) out.push(...a);
+          return out;
+        }
+      }
+      throw pyerr('TypeError', "unsupported operand type(s) for " + op + ": '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    }
+    if (op === '/') {
+      if (isNum(a) && isNum(b)) {
+        if (N(b) === 0) throw pyerr('ZeroDivisionError', 'division by zero', line);
+        return F(N(a) / N(b));
+      }
+      throw pyerr('TypeError', "unsupported operand type(s) for /: '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    }
+    if (op === '//') {
+      if (isNum(a) && isNum(b)) {
+        if (N(b) === 0) throw pyerr('ZeroDivisionError', 'integer division or modulo by zero', line);
+        const r = Math.floor(N(a) / N(b));
+        return (isFloat(a) || isFloat(b)) ? F(r) : r;
+      }
+      throw pyerr('TypeError', "unsupported operand type(s) for //: '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    }
+    if (op === '%') {
+      if (isNum(a) && isNum(b)) {
+        if (N(b) === 0) throw pyerr('ZeroDivisionError', 'integer division or modulo by zero', line);
+        const r = N(a) - N(b) * Math.floor(N(a) / N(b));
+        return (isFloat(a) || isFloat(b)) ? F(r) : r;
+      }
+      throw pyerr('TypeError', "unsupported operand type(s) for %: '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    }
+    if (op === '**') {
+      if (isNum(a) && isNum(b)) {
+        const r = Math.pow(N(a), N(b));
+        const wantF = isFloat(a) || isFloat(b) || N(b) < 0 || !Number.isInteger(r);
+        return wantF ? F(r) : r;
+      }
+      throw pyerr('TypeError', "unsupported operand type(s) for **: '" + typeName(a) + "' and '" + typeName(b) + "'", line);
+    }
+    throw pyerr('InternalError', 'operator tidak dikenal: ' + op, line);
+  }
+
+  /* ---------- indeks & slice ---------- */
+  function normIdx(i, len, line) {
+    let x = typeof i === 'boolean' ? (i ? 1 : 0) : N(i);
+    if (!Number.isInteger(x)) throw pyerr('TypeError', 'indeks harus bilangan bulat, bukan ' + typeName(i), line);
+    if (x < 0) x += len;
+    if (x < 0 || x >= len) throw pyerr('IndexError', 'indeks di luar jangkauan (panjang ' + len + ')', line);
+    return x;
+  }
+  function getIndex(o, i, line) {
+    if (typeof o === 'string') return o[normIdx(i, o.length, line)];
+    if (Array.isArray(o)) return o[normIdx(i, o.length, line)];
+    if (o instanceof Map) { if (!o.has(i)) throw pyerr('KeyError', toRepr(i), line); return o.get(i); }
+    if (o && o.__range) return o.start + normIdx(i, o.len, line) * o.step;
+    throw pyerr('TypeError', "objek '" + typeName(o) + "' tidak bisa diindeks", line);
+  }
+  function setIndex(o, i, v, line) {
+    if (Array.isArray(o)) { o[normIdx(i, o.length, line)] = v; return; }
+    if (o instanceof Map) { o.set(i, v); return; }
+    if (typeof o === 'string') throw pyerr('TypeError', "'str' object does not support item assignment", line);
+    throw pyerr('TypeError', "'" + typeName(o) + "' does not support item assignment", line);
+  }
+  function doSlice(obj, start, stop, step, line) {
+    const isStr = typeof obj === 'string';
+    const seq = isStr ? obj.split('') : obj;
+    const len = seq.length;
+    let sp = step === null ? 1 : N(step);
+    if (sp === 0) throw pyerr('ValueError', 'slice step tidak boleh 0', line);
+    const cl = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+    let st, en;
+    if (start === null) st = sp > 0 ? 0 : len - 1;
+    else { let v = N(start); if (v < 0) v += len; st = sp > 0 ? cl(v, 0, len) : cl(v, -1, len - 1); }
+    if (stop === null) en = sp > 0 ? len : -1;
+    else { let v = N(stop); if (v < 0) v += len; en = sp > 0 ? cl(v, 0, len) : cl(v, -1, len - 1); }
+    const out = [];
+    if (sp > 0) for (let x = st; x < en; x += sp) out.push(seq[x]);
+    else for (let x = st; x > en; x += sp) if (x >= 0 && x < len) out.push(seq[x]);
+    return isStr ? out.join('') : out;
+  }
+
+  /* ---------- range & iterasi ---------- */
+  function makeRange(args, line) {
+    const vals = args.map(a => {
+      if (typeof a === 'boolean' || isFloat(a) || typeof a !== 'number' || !Number.isInteger(a)) {
+        if (typeof a === 'boolean') return a ? 1 : 0;
+        throw pyerr('TypeError', "'range' membutuhkan bilangan bulat (int)", line);
+      }
+      return a;
+    });
+    let start = 0, stop = 0, step = 1;
+    if (vals.length === 1) stop = vals[0];
+    else if (vals.length === 2) { start = vals[0]; stop = vals[1]; }
+    else if (vals.length === 3) { start = vals[0]; stop = vals[1]; step = vals[2]; }
+    else throw pyerr('TypeError', 'range() menerima 1 sampai 3 argumen', line);
+    if (step === 0) throw pyerr('ValueError', 'argumen step range() tidak boleh 0', line);
+    const len = step > 0 ? Math.max(0, Math.ceil((stop - start) / step)) : Math.max(0, Math.ceil((start - stop) / (-step)));
+    if (len > 500000) throw pyerr('MemoryError', 'range terlalu besar untuk editor ini (maks 500.000)', line);
+    return { __range: true, start: start, stop: stop, step: step, len: len };
+  }
+  function iterSeq(v, line) {
+    if (Array.isArray(v)) return v.slice();
+    if (typeof v === 'string') return v.split('');
+    if (v instanceof Map) return Array.from(v.keys());
+    if (v && v.__range) {
+      const r = [];
+      for (let x = v.start; v.step > 0 ? x < v.stop : x > v.stop; x += v.step) r.push(x);
+      return r;
+    }
+    throw pyerr('TypeError', "objek '" + typeName(v) + "' tidak bisa diiterasi", line);
+  }
+
+  function sortValues(arr, reverse, line) {
+    arr.sort((a, b) => {
+      if (typeof a === 'string' && typeof b === 'string') return a < b ? -1 : a > b ? 1 : 0;
+      if (isNum(a) && isNum(b)) return N(a) - N(b);
+      throw pyerr('TypeError', "'" + typeName(a) + "' dan '" + typeName(b) + "' tidak bisa dibandingkan untuk disortir", line);
+    });
+    if (reverse) arr.reverse();
+  }
+
+  /* ---------- method string/list/dict ---------- */
+  function getAttr(obj, name, line) {
+    if (typeof obj === 'string') {
+      const m = {
+        upper: () => obj.toUpperCase(),
+        lower: () => obj.toLowerCase(),
+        title: () => obj.replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase()),
+        capitalize: () => (obj ? obj[0].toUpperCase() + obj.slice(1).toLowerCase() : obj),
+        strip: args => (args[0] !== undefined ? trimChars(obj, args[0]) : obj.trim()),
+        lstrip: () => obj.replace(/^\s+/, ''),
+        rstrip: () => obj.replace(/\s+$/, ''),
+        split: args => (args[0] === undefined ? obj.trim().split(/\s+/).filter(Boolean) : obj.split(args[0])),
+        join: args => {
+          const it = args[0];
+          if (!Array.isArray(it)) throw pyerr('TypeError', 'sequence expected (list/str per karakter)', line);
+          return it.map(toStr).join(obj);
+        },
+        replace: args => obj.split(args[0]).join(args[1]),
+        startswith: args => obj.startsWith(args[0]),
+        endswith: args => obj.endsWith(args[0]),
+        find: args => obj.indexOf(args[0]),
+        count: args => obj.split(args[0]).length - 1,
+        isdigit: () => /^[0-9]+$/.test(obj),
+        isalpha: () => /^[A-Za-z]+$/.test(obj),
+        zfill: args => obj.padStart(args[0], '0')
+      };
+      if (m[name]) return { __method: true, fn: m[name] };
+      throw pyerr('AttributeError', "'str' object has no attribute '" + name + "'", line);
+    }
+    if (Array.isArray(obj)) {
+      const m = {
+        append: args => { obj.push(args[0]); return null; },
+        extend: args => {
+          const it = iterSeq(args[0], line);
+          obj.push(...it);
+          return null;
+        },
+        pop: args => {
+          if (args[0] === undefined) {
+            if (!obj.length) throw pyerr('IndexError', 'pop from empty list', line);
+            return obj.pop();
+          }
+          return obj.splice(normIdx(args[0], obj.length, line), 1)[0];
+        },
+        insert: args => { obj.splice(args[0] < 0 ? Math.max(0, args[0] + obj.length) : Math.min(args[0], obj.length), 0, args[1]); return null; },
+        remove: args => {
+          const i = obj.findIndex(x => eq(x, args[0]));
+          if (i < 0) throw pyerr('ValueError', 'list.remove(x): x not in list', line);
+          obj.splice(i, 1);
+          return null;
+        },
+        index: args => {
+          const i = obj.findIndex(x => eq(x, args[0]));
+          if (i < 0) throw pyerr('ValueError', toStr(args[0]) + ' is not in list', line);
+          return i;
+        },
+        count: args => obj.filter(x => eq(x, args[0])).length,
+        sort: (args, kwargs) => { sortValues(obj, kwargs.reverse === true, line); return null; },
+        reverse: () => { obj.reverse(); return null; },
+        copy: () => obj.slice(),
+        clear: () => { obj.length = 0; return null; }
+      };
+      if (m[name]) return { __method: true, fn: m[name] };
+      throw pyerr('AttributeError', "'list' object has no attribute '" + name + "'", line);
+    }
+    if (obj instanceof Map) {
+      const m = {
+        keys: () => Array.from(obj.keys()),
+        values: () => Array.from(obj.values()),
+        items: () => Array.from(obj.entries()).map(kv => { const p = [kv[0], kv[1]]; p.__tuple = true; return p; }),
+        get: args => (obj.has(args[0]) ? obj.get(args[0]) : (args[1] !== undefined ? args[1] : null)),
+        pop: args => {
+          if (!obj.has(args[0])) throw pyerr('KeyError', toRepr(args[0]), line);
+          const v = obj.get(args[0]);
+          obj.delete(args[0]);
+          return v;
+        },
+        update: args => { const o = args[0]; if (o instanceof Map) { for (const kv of o) obj.set(kv[0], kv[1]); } return null; },
+        copy: () => new Map(obj),
+        clear: () => { obj.clear(); return null; }
+      };
+      if (m[name]) return { __method: true, fn: m[name] };
+      throw pyerr('AttributeError', "'dict' object has no attribute '" + name + "'", line);
+    }
+    throw pyerr('AttributeError', "'" + typeName(obj) + "' object has no attribute '" + name + "'", line);
+  }
+  function trimChars(s, chars) {
+    let a = 0, b = s.length - 1;
+    while (a <= b && chars.indexOf(s[a]) >= 0) a++;
+    while (b >= a && chars.indexOf(s[b]) >= 0) b--;
+    return s.slice(a, b + 1);
+  }
+
+  /* ============================================================
+     4. EVALUATOR
+     ============================================================ */
+  function exec(stmts, env, ctx) {
+    for (const s of stmts) execStmt(s, env, ctx);
+  }
+
+  function step(ctx, line) {
+    ctx.steps++;
+    if (ctx.steps > ctx.limit) throw pyerr('RuntimeError', 'program berjalan terlalu lama — kemungkinan infinite loop', line);
+  }
+
+  function execStmt(s, env, ctx) {
+    step(ctx, s.line);
+    switch (s.k) {
+      case 'expr': evalExpr(s.e, env, ctx); return;
+      case 'assign': {
+        const v = evalExpr(s.e, env, ctx);
+        assignTo(s.target, v, env, ctx);
+        return;
+      }
+      case 'assignTuple': {
+        const vals = evalExpr(s.e, env, ctx);
+        if (!Array.isArray(vals) || vals.length !== s.targets.length) {
+          throw pyerr('ValueError', 'jumlah nilai tidak cocok untuk di-unpack (butuh ' + s.targets.length + ' nilai)', s.line);
+        }
+        for (let i = 0; i < s.targets.length; i++) assignTo(s.targets[i], vals[i], env, ctx);
+        return;
+      }
+      case 'aug': {
+        if (s.target.k === 'name') {
+          const cur = env.get(s.target.id, s.line);
+          env.set(s.target.id, binop(s.op, cur, evalExpr(s.e, env, ctx), s.line));
+        } else if (s.target.k === 'index') {
+          const o = evalExpr(s.target.obj, env, ctx);
+          const i = evalExpr(s.target.idx, env, ctx);
+          const nv = binop(s.op, getIndex(o, i, s.line), evalExpr(s.e, env, ctx), s.line);
+          setIndex(o, i, nv, s.line);
+        } else {
+          throw pyerr('SyntaxError', 'target pernyataan ini tidak valid', s.line);
+        }
+        return;
+      }
+      case 'if': {
+        for (const cl of s.clauses) {
+          if (truthy(evalExpr(cl.cond, env, ctx))) { exec(cl.body, env, ctx); return; }
+        }
+        if (s.elseBody) exec(s.elseBody, env, ctx);
+        return;
+      }
+      case 'while': {
+        while (truthy(evalExpr(s.cond, env, ctx))) {
+          step(ctx, s.line);
+          try { exec(s.body, env, ctx); }
+          catch (ex) {
+            if (ex === BRK) break;
+            if (ex === CNT) continue;
+            throw ex;
+          }
+        }
+        return;
+      }
+      case 'for': {
+        const seq = iterSeq(evalExpr(s.iter, env, ctx), s.line);
+        for (const item of seq) {
+          step(ctx, s.line);
+          if (s.vars.length > 1) {
+            if (!Array.isArray(item) || item.length !== s.vars.length) {
+              throw pyerr('ValueError', 'jumlah nilai tidak cocok untuk di-unpack (butuh ' + s.vars.length + ' nilai)', s.line);
+            }
+            for (let i = 0; i < s.vars.length; i++) env.set(s.vars[i], item[i]);
+          } else env.set(s.vars[0], item);
+          try { exec(s.body, env, ctx); }
+          catch (ex) {
+            if (ex === BRK) break;
+            if (ex === CNT) continue;
+            throw ex;
+          }
+        }
+        return;
+      }
+      case 'def': {
+        env.set(s.name, { __func: true, name: s.name, params: s.params, body: s.body, env: env });
+        return;
+      }
+      case 'return': throw { __ret: s.e ? evalExpr(s.e, env, ctx) : null };
+      case 'break': throw BRK;
+      case 'continue': throw CNT;
+      case 'pass': return;
+    }
+    throw pyerr('InternalError', 'pernyataan tidak dikenal: ' + s.k, s.line);
+  }
+
+  function assignTo(target, v, env, ctx) {
+    if (target.k === 'name') { env.set(target.id, v); return; }
+    if (target.k === 'index') {
+      const o = evalExpr(target.obj, env, ctx);
+      const i = evalExpr(target.idx, env, ctx);
+      setIndex(o, i, v, target.line);
+      return;
+    }
+    throw pyerr('SyntaxError', 'target penugasan tidak valid — tulis satu nama variabel atau elemen list/dict', target.line);
+  }
+
+  function evalExpr(e, env, ctx) {
+    switch (e.k) {
+      case 'num': return e.f ? F(e.v) : e.v;
+      case 'str': return e.v;
+      case 'bool': return e.v;
+      case 'none': return null;
+      case 'fstr': return evalFStr(e, env, ctx);
+      case 'name': return env.get(e.id, e.line);
+      case 'list': {
+        const a = e.items.map(x => evalExpr(x, env, ctx));
+        return a;
+      }
+      case 'tuple': {
+        const a = e.items.map(x => evalExpr(x, env, ctx));
+        a.__tuple = true;
+        return a;
+      }
+      case 'dict': {
+        const m = new Map();
+        for (const kv of e.pairs) m.set(evalExpr(kv[0], env, ctx), evalExpr(kv[1], env, ctx));
+        return m;
+      }
+      case 'neg': {
+        const v = evalExpr(e.e, env, ctx);
+        if (isNum(v)) { const r = -N(v); return isFloat(v) ? F(r) : r; }
+        throw pyerr('TypeError', "bad operand type for unary -: '" + typeName(v) + "'", e.line);
+      }
+      case 'pos': {
+        const v = evalExpr(e.e, env, ctx);
+        if (isNum(v)) { const r = N(v); return isFloat(v) ? F(r) : r; }
+        throw pyerr('TypeError', "bad operand type for unary +: '" + typeName(v) + "'", e.line);
+      }
+      case 'not': return !truthy(evalExpr(e.e, env, ctx));
+      case 'and': { const l = evalExpr(e.l, env, ctx); return truthy(l) ? evalExpr(e.r, env, ctx) : l; }
+      case 'or': { const l = evalExpr(e.l, env, ctx); return truthy(l) ? l : evalExpr(e.r, env, ctx); }
+      case 'bin': return binop(e.op, evalExpr(e.l, env, ctx), evalExpr(e.r, env, ctx), e.line);
+      case 'cmp': {
+        let prev = evalExpr(e.first, env, ctx);
+        for (let i = 0; i < e.ops.length; i++) {
+          const nx = evalExpr(e.rest[i], env, ctx);
+          const op = e.ops[i];
+          let ok2;
+          if (op === 'in') ok2 = contains(prev, nx, e.line);
+          else if (op === 'not in') ok2 = !contains(prev, nx, e.line);
+          else ok2 = cmp(op, prev, nx, e.line);
+          if (!ok2) return false;
+          prev = nx;
+        }
+        return true;
+      }
+      case 'index': return getIndex(evalExpr(e.obj, env, ctx), evalExpr(e.idx, env, ctx), e.line);
+      case 'slice': {
+        const o = evalExpr(e.obj, env, ctx);
+        const st = e.start ? evalExpr(e.start, env, ctx) : null;
+        const en = e.stop ? evalExpr(e.stop, env, ctx) : null;
+        const sp = e.step ? evalExpr(e.step, env, ctx) : null;
+        return doSlice(o, st, en, sp, e.line);
+      }
+      case 'attr': return getAttr(evalExpr(e.obj, env, ctx), e.name, e.line);
+      case 'call': return doCall(e, env, ctx);
+    }
+    throw pyerr('InternalError', 'ekspresi tidak dikenal: ' + e.k, e.line);
+  }
+
+  function evalFStr(e, env, ctx) {
+    let s = '';
+    for (const p of e.parts) {
+      if ('txt' in p) { s += p.txt; continue; }
+      const v = evalExpr(p.e, env, ctx);
+      if (p.spec) {
+        const m = /^\.(\d+)f$/.exec(p.spec);
+        if (m) s += N(v).toFixed(+m[1]);
+        else if (p.spec === 'd') s += String(Math.round(N(v)));
+        else if (p.spec === 's') s += toStr(v);
+        else s += toStr(v);
+      } else s += toStr(v);
+    }
+    return s;
+  }
+
+  function doCall(e, env, ctx) {
+    step(ctx, e.line);
+    const fn = evalExpr(e.fn, env, ctx);
+    const args = e.args.map(a => evalExpr(a, env, ctx));
+    const kwargs = {};
+    for (const k of Object.keys(e.kwargs)) kwargs[k] = evalExpr(e.kwargs[k], env, ctx);
+
+    if (fn && fn.__func) {
+      if (args.length > fn.params.length) {
+        throw pyerr('TypeError', fn.name + '() menerima ' + fn.params.length + ' argumen, tapi diberikan ' + args.length, e.line);
+      }
+      if (ctx.depth + 1 > 200) throw pyerr('RecursionError', 'kedalaman rekursi maksimum (200) terlampaui', e.line);
+      const fenv = new Env(fn.env);
+      const assigned = new Set();
+      for (let i = 0; i < fn.params.length; i++) {
+        const p = fn.params[i];
+        if (i < args.length) { fenv.set(p.name, args[i]); assigned.add(p.name); }
+        else if (p.name in kwargs) { fenv.set(p.name, kwargs[p.name]); assigned.add(p.name); }
+        else if (p.def !== null && p.def !== undefined) { fenv.set(p.name, evalExpr(p.def, fn.env, ctx)); assigned.add(p.name); }
+        else throw pyerr('TypeError', fn.name + '() kekurangan argumen wajib: ' + "'" + p.name + "'", e.line);
+      }
+      for (const k of Object.keys(kwargs)) {
+        if (!assigned.has(k)) throw pyerr('TypeError', fn.name + '() menerima argumen tak dikenal: ' + "'" + k + "'", e.line);
+      }
+      ctx.depth++;
+      try {
+        exec(fn.body, fenv, ctx);
+        return null;
+      } catch (ex) {
+        if (ex && ex.__ret !== undefined) return ex.__ret;
+        throw ex;
+      } finally {
+        ctx.depth--;
+      }
+    }
+    if (fn && fn.__method) return fn.fn(args, kwargs);
+    if (fn && fn.__builtin) return callBuiltin(fn.name, args, kwargs, e.line, ctx);
+    throw pyerr('TypeError', "'" + typeName(fn) + "' object is not callable", e.line);
+  }
+
+  function callBuiltin(name, args, kwargs, line, ctx) {
+    switch (name) {
+      case 'print': {
+        const sep = 'sep' in kwargs ? toStr(kwargs.sep) : ' ';
+        const end = 'end' in kwargs ? toStr(kwargs.end) : '\n';
+        ctx.out.stdout += args.map(toStr).join(sep) + end;
+        return null;
+      }
+      case 'len': {
+        const v = args[0];
+        if (typeof v === 'string') return v.length;
+        if (Array.isArray(v)) return v.length;
+        if (v instanceof Map) return v.size;
+        if (v && v.__range) return v.len;
+        throw pyerr('TypeError', "objek bertipe '" + typeName(v) + "' tidak memiliki panjang", line);
+      }
+      case 'range': return makeRange(args, line);
+      case 'abs': {
+        const v = args[0];
+        if (!isNum(v)) throw pyerr('TypeError', "bad operand type for abs(): '" + typeName(v) + "'", line);
+        const r = Math.abs(N(v));
+        return isFloat(v) ? F(r) : r;
+      }
+      case 'round': {
+        const v = args[0];
+        if (!isNum(v)) throw pyerr('TypeError', "round() membutuhkan angka", line);
+        if (args[1] === undefined) return Math.round(N(v));
+        return F(Number(N(v).toFixed(args[1])));
+      }
+      case 'min':
+      case 'max': {
+        let arr;
+        if (args.length === 1) {
+          if (!Array.isArray(args[0])) throw pyerr('TypeError', name + '() membutuhkan list atau beberapa nilai', line);
+          arr = args[0];
+        } else arr = args;
+        if (!arr.length) throw pyerr('ValueError', name + '() argumen kosong', line);
+        return arr.reduce((a, b) => (name === 'min' ? cmp('<', b, a, line) : cmp('>', b, a, line)) ? b : a);
+      }
+      case 'sum': {
+        if (!Array.isArray(args[0])) throw pyerr('TypeError', 'sum() membutuhkan list', line);
+        let s = args[1] !== undefined ? args[1] : 0;
+        for (const x of args[0]) s = binop('+', s, x, line);
+        return s;
+      }
+      case 'sorted': {
+        const arr = iterSeq(args[0], line).slice();
+        sortValues(arr, kwargs.reverse === true, line);
+        return arr;
+      }
+      case 'str': return args.length === 0 ? '' : toStr(args[0]);
+      case 'int': {
+        const v = args[0];
+        if (typeof v === 'number') return Math.trunc(v);
+        if (isFloat(v)) return Math.trunc(v.v);
+        if (typeof v === 'boolean') return v ? 1 : 0;
+        if (typeof v === 'string') {
+          const t = v.trim();
+          if (/^[+-]?\d+$/.test(t)) return parseInt(t, 10);
+          throw pyerr('ValueError', "invalid literal for int(): " + toRepr(v), line);
+        }
+        throw pyerr('TypeError', "int() argumennya harus string atau angka, bukan '" + typeName(v) + "'", line);
+      }
+      case 'float': {
+        const v = args[0];
+        if (typeof v === 'number') return F(v);
+        if (isFloat(v)) return v;
+        if (typeof v === 'boolean') return F(v ? 1 : 0);
+        if (typeof v === 'string') {
+          const t = v.trim();
+          if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(t)) return F(parseFloat(t));
+          throw pyerr('ValueError', "invalid literal for float(): " + toRepr(v), line);
+        }
+        throw pyerr('TypeError', "float() argumennya harus string atau angka", line);
+      }
+      case 'bool': return truthy(args[0]);
+      case 'type': return "<class '" + typeName(args[0]) + "'>";
+      case 'enumerate': {
+        const arr = iterSeq(args[0], line);
+        const st = args[1] !== undefined ? args[1] : 0;
+        return arr.map((x, i) => { const p = [i + st, x]; p.__tuple = true; return p; });
+      }
+      case 'reversed': return iterSeq(args[0], line).slice().reverse();
+      case 'list': return iterSeq(args[0], line);
+      case 'input':
+        throw pyerr('NotImplementedError', 'input() tidak didukung di editor ini — gunakan nilai tetap, mis. nama = "Budi"', line);
+    }
+    throw pyerr('NameError', "fungsi bawaan '" + name + "' tidak tersedia di editor ini", line);
+  }
+
+  /* ============================================================
+     5. ENTRY POINT
+     ============================================================ */
+  function makeRoot() {
+    const r = new Env(null);
+    const names = ['print','len','range','abs','round','min','max','sum','sorted','str','int','float','bool','type','enumerate','reversed','input','list'];
+    for (const nme of names) r.set(nme, { __builtin: true, name: nme });
+    return r;
+  }
+
+  function run(src) {
+    const out = { stdout: '', error: null };
+    const ctx = { out: out, steps: 0, limit: 300000, depth: 0 };
+    try {
+      const ast = parse(String(src));
+      exec(ast, new Env(makeRoot()), ctx);
+    } catch (e) {
+      if (e && e.__pyerr) out.error = { type: e.type, msg: e.msg, line: e.line };
+      else if (e === BRK || e === CNT) out.error = { type: 'SyntaxError', msg: "'break'/'continue' hanya boleh di dalam perulangan", line: null };
+      else if (e && e.__ret !== undefined) out.error = { type: 'SyntaxError', msg: "'return' hanya boleh di dalam fungsi", line: null };
+      else out.error = { type: 'InternalError', msg: 'Kesalahan internal: ' + (e && e.message ? e.message : String(e)), line: null };
+    }
+    return out;
+  }
+
+  return { run: run };
+})();
+
+/* kompatibilitas Node (untuk pengujian otomatis) — diabaikan di browser */
+if (typeof module !== 'undefined' && module.exports) { module.exports = { PyMini: PyMini }; }
+</script>
+<!--__PYMINI_END__-->
+
+<script>
+const { createApp, ref, reactive, computed, watch, nextTick } = Vue;
+
+/* ================= DATA KURIKULUM ================= */
+const COURSE = [
+  {
+    title: 'Bab 1 · Dasar-Dasar',
+    desc: 'Fondasi awal bahasa Python',
+    icon: '🐍',
+    lessons: [
+      { title: 'Halo, Dunia!', icon: '📢', exercises: [
+        { type: 'concept', title: 'Fungsi print()', body: 'Setiap perjalanan Python dimulai dari satu hal: **menampilkan sesuatu di layar**. Caranya dengan fungsi `print()`. Teks yang ingin ditampilkan ditulis di dalam tanda kurung, diapit tanda kutip.', code: `print("Halo, Dunia!")`, output: `Halo, Dunia!` },
+        { type: 'quiz', question: 'Fungsi mana yang digunakan untuk menampilkan teks di layar?', options: ['print()', 'echo()', 'show()', 'display()'], answer: 0, explanation: 'print() adalah fungsi bawaan Python untuk menampilkan output ke layar.' },
+        { type: 'fill', question: 'Lengkapi kode agar menampilkan teks Halo!', parts: [0, '(', 1, ')'], blanks: [{ answer: 'print' }, { answer: '"Halo!"' }], bank: ['print', '"Halo!"', 'output', 'echo'] },
+        { type: 'input', question: 'Tulis nama fungsi Python untuk menampilkan teks ke layar (tanpa tanda kurung).', answers: ['print'], explanation: 'Fungsi itu bernama print — ditulis dengan huruf kecil semua, lalu diikuti tanda kurung.' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `print("Saya sedang belajar Python")`, options: ['Saya sedang belajar Python', 'print("...")', 'Error', 'Belajar Python'], answer: 0, explanation: 'print() menampilkan teks apa adanya, tanpa tanda kutip.' },
+        { type: 'concept', title: 'Tanda Kutip Itu Penting', body: 'Teks di dalam `print()` **wajib diapit tanda kutip** — bisa pakai "..." atau \'...\'. Tanpa tanda kutip, Python menganggapnya sebagai nama variabel dan program bisa error.', code: `print("Python itu menyenangkan")`, output: `Python itu menyenangkan` },
+        { type: 'quiz', question: 'Penulisan kode mana yang benar untuk menampilkan Halo?', options: ['print("Halo")', 'Print("Halo")', 'print(Halo)', 'print "Halo"'], answer: 0, explanation: 'Python bersifat case-sensitive: harus print dengan huruf kecil semua, dan teksnya diapit tanda kutip.' },
+        { type: 'fill', question: 'Perbaiki kode berikut agar tidak error', parts: ['print', '(', 0, ')'], blanks: [{ answer: '"Python"' }], bank: ['"Python"', 'Python', '(Python)', '#Python#'] }
+      ] },
+      { title: 'Variabel', icon: '📦', exercises: [
+        { type: 'concept', title: 'Menyimpan Data', body: '**Variabel** adalah wadah untuk menyimpan data. Buat variabel dengan menulis nama, tanda `=`, lalu nilainya. Setelah itu, nama variabel bisa dipakai seperti nilai aslinya.', code: `nama = "Budi"\nprint(nama)`, output: `Budi` },
+        { type: 'fill', question: 'Simpan teks "Andi" ke dalam variabel nama', parts: [0, ' ', '=', ' ', 1], blanks: [{ answer: 'nama' }, { answer: '"Andi"' }], bank: ['nama', '"Andi"', '25', 'print'] },
+        { type: 'quiz', question: 'Bagaimana cara menyimpan angka 25 ke dalam variabel umur?', options: ['umur = 25', 'umur: 25', '25 = umur', 'umur == 25'], answer: 0, explanation: 'Gunakan tanda = untuk mengisi nilai ke variabel. Tanda == dipakai untuk membandingkan.' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `x = 10\nprint(x)`, options: ['10', 'x', '10 = x', 'Error'], answer: 0, explanation: 'print(x) menampilkan nilai yang tersimpan di dalam variabel x, yaitu 10.' },
+        { type: 'input', question: 'Jika x = 4 dan y = x + 3, berapakah nilai y?', answers: ['7'], explanation: 'Isi variabel bisa dipakai untuk menghitung: y = x + 3 = 4 + 3 = 7.' },
+        { type: 'concept', title: 'Nilai Bisa Berubah', body: 'Isi variabel bisa **diganti kapan saja** — cukup isi dengan nilai baru. Saat ditampilkan, Python selalu memakai **nilai terakhir** yang tersimpan.', code: `skor = 5\nskor = 8\nprint(skor)`, output: `8` },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `x = 5\nx = 8\nprint(x)`, options: ['8', '5', '13', 'Error'], answer: 0, explanation: 'Nilai lama (5) tertimpa nilai baru (8), sehingga yang tampil adalah 8.' },
+        { type: 'quiz', question: 'Jika nama = "Rina", apa output dari print("Halo " + nama)?', options: ['Halo Rina', 'Halo nama', 'Halo "Rina"', 'Error'], answer: 0, explanation: 'Tanda + menggabungkan teks "Halo " dengan isi variabel nama, yaitu "Rina".' }
+      ] },
+      { title: 'Tipe Data', icon: '🔢', exercises: [
+        { type: 'concept', title: 'Kenali 4 Tipe Dasar', body: 'Setiap nilai di Python punya **tipe data**. Empat yang paling sering dipakai: `int` (bilangan bulat), `float` (desimal), `str` (teks), dan `bool` (True/False).', code: `umur = 25          # int\ntinggi = 170.5     # float\nnama = "Sinta"     # str\nmahasiswa = True   # bool` },
+        { type: 'quiz', question: 'Apa tipe data dari nilai 3.14?', options: ['float', 'int', 'str', 'bool'], answer: 0, explanation: 'Angka yang mengandung titik desimal bertipe float.' },
+        { type: 'quiz', question: 'Apa tipe data dari nilai "Belajar"?', options: ['str', 'int', 'float', 'bool'], answer: 0, explanation: 'Nilai yang diapit tanda kutip selalu bertipe str (string / teks).' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `print(type(42))`, options: [`<class 'int'>`, `<class 'str'>`, '42', 'int'], answer: 0, explanation: 'Fungsi type() dipakai untuk memeriksa tipe data sebuah nilai.' },
+        { type: 'input', question: 'Tipe data mana yang tepat untuk nilai True? (tulis namanya)', answers: ['bool', 'boolean'], explanation: 'True dan False adalah nilai bertipe bool (boolean) — hanya punya dua kemungkinan nilai.' },
+        { type: 'concept', title: 'Konversi Tipe', body: 'Kadang kita perlu **mengubah tipe data**, misalnya teks menjadi angka. Gunakan `int()`, `float()`, atau `str()`. Contoh: int("7") + 3 hasilnya 10, tapi "7" + 3 justru error!', code: `angka = int("7")\nprint(angka + 3)`, output: `10` },
+        { type: 'quiz', question: 'Apa hasil dari int("7") + 3?', options: ['10', '73', '"73"', 'Error'], answer: 0, explanation: 'int("7") mengubah teks "7" menjadi angka 7, lalu 7 + 3 = 10.' },
+        { type: 'fill', question: 'Lengkapi kode agar teks "25" diubah menjadi angka', parts: ['umur = ', 0, '(', 1, ')'], blanks: [{ answer: 'int' }, { answer: '"25"' }], bank: ['int', '"25"', 'str', '25', 'float'] }
+      ] }
+    ]
+  },
+  {
+    title: 'Bab 2 · Operator & String',
+    desc: 'Berhitung dan mengolah teks',
+    icon: '➗',
+    lessons: [
+      { title: 'Operasi Matematika', icon: '🧮', exercises: [
+        { type: 'concept', title: 'Operator Aritmatika', body: 'Python bisa menghitung layaknya kalkulator. Operator utamanya: `+` tambah, `-` kurang, `*` kali, `/` bagi, `**` pangkat, `//` bagi bulat, dan `%` sisa bagi.', code: `print(5 + 3)    # 8\nprint(10 - 4)   # 6\nprint(2 * 3)    # 6\nprint(10 / 2)   # 5.0` },
+        { type: 'quiz', question: 'Apa hasil dari 10 / 2?', options: ['5.0', '5', '2', '0.5'], answer: 0, explanation: 'Operator / selalu menghasilkan bilangan float, walaupun pembagiannya genap.' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `print(2 ** 3)`, options: ['8', '6', '9', '23'], answer: 0, explanation: '** adalah operator pangkat: 2 dipangkatkan 3, yaitu 2×2×2 = 8.' },
+        { type: 'quiz', question: 'Apa hasil dari 10 // 3?', options: ['3', '3.33', '4', '1'], answer: 0, explanation: '// adalah pembagian bulat: hasilnya dibulatkan ke bawah menjadi 3.' },
+        { type: 'input', question: 'Berapa hasil dari 2 ** 4?', answers: ['16'], explanation: '** adalah operator pangkat: 2 dipangkatkan 4 = 2×2×2×2 = 16.' },
+        { type: 'quiz', question: 'Apa hasil dari 10 % 3?', options: ['1', '3', '0', '3.33'], answer: 0, explanation: '% menghasilkan sisa bagi: 10 dibagi 3 sama dengan 3 sisa 1.' },
+        { type: 'fill', question: 'Lengkapi kode untuk menghitung 8 kali 5', parts: ['hasil = ', 0], blanks: [{ answer: '8 * 5' }], bank: ['8 * 5', '8 + 5', '85', '8 / 5'] },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `a = 7\nb = 2\nprint(a % b)`, options: ['1', '3', '3.5', '0'], answer: 0, explanation: '7 dibagi 2 sama dengan 3 sisa 1, jadi a % b bernilai 1.' }
+      ] },
+      { title: 'Manipulasi String', icon: '✂️', exercises: [
+        { type: 'concept', title: 'Menggabungkan Teks', body: 'String bisa **digabungkan** dengan operator `+`. Hati-hati: spasi tidak ditambahkan otomatis — kamu harus menuliskannya sendiri.', code: `depan = "Budi"\nbelakang = "Santoso"\nnama = depan + " " + belakang\nprint(nama)`, output: `Budi Santoso` },
+        { type: 'fill', question: 'Gabungkan "Py" dan "thon" menjadi Python', parts: ['teks = "Py" ', 0, ' "thon"'], blanks: [{ answer: '+' }], bank: ['+', '-', '&', 'join()'] },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `print("Py" + "thon")`, options: ['Python', 'Py thon', 'Py+thon', 'Error'], answer: 0, explanation: 'Tanda + menempelkan kedua string menjadi satu tanpa spasi.' },
+        { type: 'concept', title: 'f-string', body: 'Cara paling modern menyisipkan variabel ke dalam teks adalah **f-string**: tambahkan huruf `f` sebelum tanda kutip, lalu tulis nama variabel di dalam `{kurung kurawal}`.', code: `nama = "Sinta"\numur = 20\nprint(f"Halo, {nama}! Umurmu {umur} tahun")`, output: `Halo, Sinta! Umurmu 20 tahun` },
+        { type: 'quiz', question: 'Mana penulisan f-string yang benar?', options: ['f"Halo, {nama}!"', 'f"Halo, nama!"', '"Halo, {nama}!"', 'f"Halo, [nama]!"'], answer: 0, explanation: 'Nama variabel harus berada di dalam kurung kurawal { } agar nilainya dimasukkan ke teks.' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `print(len("Python"))`, options: ['6', '7', '5', 'Error'], answer: 0, explanation: 'len() menghitung jumlah karakter dalam string: P-y-t-h-o-n ada 6 karakter.' },
+        { type: 'input', question: 'Berapa hasil dari len("data")?', answers: ['4'], explanation: 'len() menghitung jumlah karakter: d-a-t-a ada 4 karakter.' },
+        { type: 'quiz', question: 'Apa hasil dari "python".upper()?', options: ['PYTHON', 'Python', 'python', 'PythonPython'], answer: 0, explanation: 'Method .upper() mengembalikan salinan string dengan semua huruf kapital.' }
+      ] }
+    ]
+  },
+  {
+    title: 'Bab 3 · Logika Program',
+    desc: 'Input, keputusan & perulangan',
+    icon: '🧠',
+    lessons: [
+      { title: 'Input Pengguna', icon: '⌨️', exercises: [
+        { type: 'concept', title: 'Berinteraksi dengan Pengguna', body: 'Program jadi hidup saat bisa **berkomunikasi**. Fungsi `input()` membaca ketikan pengguna, dan teks di dalamnya menjadi pertanyaan yang ditampilkan di layar.', code: `nama = input("Siapa namamu? ")\nprint("Halo, " + nama)`, output: `Siapa namamu? Budi\nHalo, Budi` },
+        { type: 'fill', question: 'Lengkapi kode agar bertanya nama pengguna', parts: [0, ' = ', 1, '(', '"Siapa namamu?"', ')'], blanks: [{ answer: 'nama' }, { answer: 'input' }], bank: ['nama', 'input', 'print', 'output'] },
+        { type: 'quiz', question: 'Apa tipe data hasil dari input()?', options: ['Selalu str (teks)', 'Selalu int', 'Tergantung yang diketik pengguna', 'bool'], answer: 0, explanation: 'input() selalu mengembalikan teks, meskipun pengguna mengetik angka.' },
+        { type: 'input', question: 'Fungsi apa yang dipakai untuk membaca ketikan pengguna? (tulis nama fungsinya)', answers: ['input', 'input()'], explanation: 'input() membaca ketikan pengguna — hasilnya selalu berupa teks (str), jadi gunakan int() untuk berhitung.' },
+        { type: 'concept', title: 'Input Berupa Angka', body: 'Karena hasil `input()` selalu berupa teks, untuk berhitung kita harus **mengubahnya dulu** menjadi angka dengan `int()` atau `float()`.', code: `umur = int(input("Umurmu? "))\nprint(umur + 5)`, output: `Umurmu? 20\n25` },
+        { type: 'quiz', question: 'Pengguna mengetik 10. Apa hasil dari int(input()) + 5?', options: ['15', '105', '"105"', 'Error'], answer: 0, explanation: 'int(input()) mengubah teks "10" menjadi angka 10, lalu 10 + 5 = 15.' },
+        { type: 'fill', question: 'Lengkapi kode agar bisa menjumlahkan angka dari input', parts: ['angka = ', 0, '(', 1, '(', '"Masukkan angka:"', '))'], blanks: [{ answer: 'int' }, { answer: 'input' }], bank: ['int', 'input', 'str', 'float', 'print'] }
+      ] },
+      { title: 'Percabangan', icon: '🔀', exercises: [
+        { type: 'concept', title: 'Mengambil Keputusan', body: 'Program bisa **mengambil keputusan** dengan `if`. Blok di dalamnya hanya dijalankan jika kondisinya bernilai True. Perhatikan tanda `:` dan indentasi (spasi) di baris berikutnya!', code: `umur = 20\nif umur >= 17:\n    print("Sudah dewasa")`, output: `Sudah dewasa` },
+        { type: 'quiz', question: 'Operator mana yang berarti "sama dengan"?', options: ['==', '=', '====', '!='], answer: 0, explanation: '= untuk mengisi nilai ke variabel, sedangkan == untuk membandingkan dua nilai.' },
+        { type: 'input', question: 'Tulis operator pembanding yang berarti "sama dengan" (dua karakter).', answers: ['=='], explanation: '== membandingkan dua nilai. Satu tanda = saja berarti mengisi nilai ke variabel — hati-hati!' },
+        { type: 'fill', question: 'Lengkapi kode agar mencetak Lulus jika nilai minimal 75', parts: ['if nilai ', 0, ' 75:', '\n    ', 1, '(', "'Lulus'", ')'], blanks: [{ answer: '>=' }, { answer: 'print' }], bank: ['>=', '>', 'print', '<', 'input'] },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `if 5 > 3:\n    print("Ya")\nelse:\n    print("Tidak")`, options: ['Ya', 'Tidak', 'Ya dan Tidak', 'Error'], answer: 0, explanation: 'Karena 5 > 3 bernilai True, hanya blok if yang dijalankan.' },
+        { type: 'concept', title: 'Kalau Tidak?', body: '`else` menangani sisa kondisi: bloknya dijalankan **hanya jika** kondisi if bernilai False. Blok if dan else tidak pernah berjalan bersamaan — selalu salah satu saja.', code: `cuaca = "hujan"\nif cuaca == "cerah":\n    print("Ayo bermain!")\nelse:\n    print("Bawa payung")`, output: `Bawa payung` },
+        { type: 'quiz', question: 'Operator != berarti...', options: ['Tidak sama dengan', 'Sama dengan', 'Lebih besar dari', 'Sama persis'], answer: 0, explanation: '!= bernilai True jika kedua nilai yang dibandingkan berbeda.' },
+        { type: 'fill', question: 'Lengkapi agar menyapa tamu selain Budi', parts: ['if nama == "Budi":', '\n    print("Halo, Bos!")', '\n', 0, ':', '\n    print("Halo, tamu!")'], blanks: [{ answer: 'else' }], bank: ['else', 'elif', 'if', 'end'] }
+      ] },
+      { title: 'Perulangan', icon: '🔁', exercises: [
+        { type: 'concept', title: 'Mengulang Tanpa Capek', body: 'Keahlian khas komputer adalah **mengulang**. Loop `for` dengan `range()` menjalankan blok kode beberapa kali. `range(3)` menghasilkan angka 0, 1, dan 2.', code: `for i in range(3):\n    print(i)`, output: `0\n1\n2` },
+        { type: 'quiz', question: 'Berapa kali "Halo" dicetak?', code: `for i in range(5):\n    print("Halo")`, options: ['5 kali', '4 kali', '6 kali', '1 kali'], answer: 0, explanation: 'range(5) menghasilkan 5 angka (0 sampai 4), jadi blok diulang sebanyak 5 kali.' },
+        { type: 'fill', question: 'Lengkapi kode agar mencetak angka 0 sampai 4', parts: ['for i in ', 0, '(', 1, '):', '\n    print(i)'], blanks: [{ answer: 'range' }, { answer: '5' }], bank: ['range', '5', 'len', '4', 'while'] },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `for i in range(3):\n    print("Halo")`, options: ['Halo\nHalo\nHalo', 'Halo', '0 1 2', 'Error'], answer: 0, explanation: 'Blok print("Halo") diulang 3 kali sesuai range(3).' },
+        { type: 'concept', title: 'Selama Masih Benar', body: 'Selain for, ada loop `while` yang mengulang **selama kondisinya True**. Hati-hati: kalau kondisinya tidak pernah menjadi False, program akan berputar selamanya!', code: `hitung = 1\nwhile hitung <= 3:\n    print(hitung)\n    hitung = hitung + 1`, output: `1\n2\n3` },
+        { type: 'quiz', question: 'Apa yang dihasilkan oleh range(1, 4)?', options: ['1, 2, 3', '1, 2, 3, 4', '0, 1, 2, 3', 'hanya 4'], answer: 0, explanation: 'range(a, b) mulai dari a dan berhenti sebelum b.' },
+        { type: 'input', question: 'Kata kunci apa yang dipakai untuk mengulang selama kondisi masih bernilai True?', answers: ['while'], explanation: 'while mengulang blok kode selama kondisinya True; for dipakai untuk jumlah iterasi tertentu.' },
+        { type: 'fill', question: 'Lengkapi while loop agar berhenti setelah angka 3', parts: ['hitung = 0', '\nwhile hitung ', 0, ' 3:', '\n    print(hitung)', '\n    hitung = hitung ', 1, ' 1'], blanks: [{ answer: '<' }, { answer: '+' }], bank: ['<', '+', '>', '-', '='] }
+      ] }
+    ]
+  }
+];
+
+/* ================= REFERENSI ================= */
+const REFERENCE = [
+  { icon: '📢', title: 'print()', desc: 'Menampilkan teks atau nilai ke layar.', code: `print("Halo, Dunia!")\nprint(42)` },
+  { icon: '📦', title: 'Variabel', desc: 'Wadah untuk menyimpan data dengan tanda =.', code: `nama = "Budi"\numur = 25` },
+  { icon: '🔢', title: 'Tipe Data', desc: 'int (bulat), float (desimal), str (teks), bool (True/False).', code: `umur = 25\ntinggi = 170.5\nnama = "Sinta"\naktif = True` },
+  { icon: '➗', title: 'Operator', desc: '+ tambah, - kurang, * kali, / bagi, // bagi bulat, % sisa, ** pangkat.', code: `print(7 + 3)   # 10\nprint(7 // 2)  # 3\nprint(7 % 2)   # 1\nprint(2 ** 3)  # 8` },
+  { icon: '✂️', title: 'String', desc: 'Gabung dengan +, hitung panjang dengan len(), format dengan f-string.', code: `nama = "Sinta"\nprint("Halo " + nama)\nprint(len(nama))\nprint(f"Halo, {nama}!")` },
+  { icon: '⌨️', title: 'input()', desc: 'Membaca ketikan pengguna, hasilnya selalu str. Gunakan int() untuk angka.', code: `nama = input("Nama: ")\numur = int(input("Umur: "))` },
+  { icon: '🔀', title: 'if / elif / else', desc: 'Menjalankan kode berdasarkan kondisi.', code: `nilai = 80\nif nilai >= 75:\n    print("Lulus")\nelif nilai >= 60:\n    print("Remedial")\nelse:\n    print("Tidak lulus")` },
+  { icon: '🔁', title: 'for & while', desc: 'for untuk jumlah iterasi tertentu, while selama kondisi True.', code: `for i in range(3):\n    print(i)\n\nn = 0\nwhile n < 3:\n    print(n)\n    n = n + 1` }
+];
+
+/* ================= LENCANA ================= */
+const ACHIEVEMENTS = [
+  { icon: '🌱', title: 'Langkah Pertama', desc: 'Selesaikan 1 latihan', done: p => p.completed >= 1 },
+  { icon: '🔥', title: 'Api Semangat', desc: 'Raih streak 3 hari', done: p => p.streak >= 3 },
+  { icon: '⚡', title: 'Kolektor XP', desc: 'Kumpulkan 300 XP', done: p => p.xp >= 300 },
+  { icon: '🎯', title: 'Juru Presisi', desc: 'Akurasi total 90%+', done: p => p.totalCorrect + p.totalWrong >= 10 && p.totalCorrect / (p.totalCorrect + p.totalWrong) >= 0.9 },
+  { icon: '💎', title: 'Tanpa Cela', desc: 'Raih latihan sempurna', done: p => p.perfect >= 1 },
+  { icon: '🏆', title: 'Master Dasar', desc: 'Selesaikan semua latihan', done: p => p.completed >= 8 }
+];
+
+/* ================= UTIL ================= */
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const PY_RE = /(#[^\n]*)|([fF]?"(?:[^"\\\n]|\\.)*"|[fF]?'(?:[^'\\\n]|\\.)*')|\b(print|for|in|if|elif|else|while|def|return|import|from|True|False|None|and|or|not|is|break|continue|pass|lambda)\b|\b(input|type|int|float|str|bool|len|range|upper|lower)\b|\b(\d+(?:\.\d+)?)\b/g;
+
+function hl(code) {
+  let out = '', last = 0, m;
+  PY_RE.lastIndex = 0;
+  while ((m = PY_RE.exec(code)) !== null) {
+    out += esc(code.slice(last, m.index));
+    if (m[1]) out += '<span class="tok-com">' + esc(m[1]) + '</span>';
+    else if (m[2]) out += '<span class="tok-str">' + esc(m[2]) + '</span>';
+    else if (m[3]) out += '<span class="tok-kw">' + esc(m[3]) + '</span>';
+    else if (m[4]) out += '<span class="tok-fn">' + esc(m[4]) + '</span>';
+    else out += '<span class="tok-num">' + esc(m[0]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(code.slice(last));
+}
+
+function fmt(text) {
+  return esc(text)
+    .replace(/`([^`]+)`/g, '<code class="ic-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b class="ic-b">$1</b>');
+}
+
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ================= TEMPLATE KODE EDITOR ================= */
+const TPL = {
+  halo: { name: 'Halo, Dunia!', code: '# Program Python pertamamu\nprint("Halo, Dunia!")\n\nnama = "Sobat PyMimo"\nprint("Halo,", nama)\nprint(f"Selamat datang, {nama}!")' },
+  masuk: { name: 'Input Interaktif', code: '# Ketik jawabanmu langsung di panel OUTPUT ya!\nprint("Selamat datang!")\nnama = input("Siapa namamu? ")\nprint("Halo,", nama + "!")\n\numur = int(input("Berapa umurmu? "))\nprint(f"{nama} berumur {umur} tahun")\n\nif umur >= 18:\n    print("Kamu sudah dewasa!")\nelse:\n    print(f"{18 - umur} tahun lagi menuju dewasa")' },
+  variabel: { name: 'Variabel & Tipe', code: 'nama = "Budi"\numur = 17\ntinggi = 170.5\npelajar = True\n\nprint(nama, umur, tinggi, pelajar)\nprint(type(umur))\nprint(type(tinggi))\n\n# f-string: menyisipkan nilai ke teks\nprint(f"{nama} berumur {umur} tahun")' },
+  kondisi: { name: 'Percabangan', code: 'nilai = 85\n\nif nilai >= 90:\n    print("Predikat A")\nelif nilai >= 80:\n    print("Predikat B")\nelif nilai >= 70:\n    print("Predikat C")\nelse:\n    print("Belum lulus, semangat!")' },
+  ulang: { name: 'Perulangan', code: '# for dengan range\nfor i in range(1, 6):\n    print(f"Perulangan ke-{i}")\n\nprint()\n\n# while\nhitung = 3\nwhile hitung > 0:\n    print(hitung)\n    hitung -= 1\nprint("Meluncur!")' },
+  fungsi: { name: 'Fungsi', code: 'def sapa(nama):\n    return f"Halo, {nama}!"\n\ndef faktorial(n):\n    if n <= 1:\n        return 1\n    return n * faktorial(n - 1)\n\nprint(sapa("Budi"))\nprint("5! =", faktorial(5))' },
+  list: { name: 'List', code: 'buah = ["apel", "jeruk", "mangga"]\nbuah.append("pisang")\n\nprint(buah)\nprint("Jumlah:", len(buah))\nprint("Pertama:", buah[0])\nprint("Terakhir:", buah[-1])\n\nfor b in buah:\n    print("-", b)\n\nprint("Urut:", sorted(buah))' },
+  kamus: { name: 'Dictionary', code: 'mahasiswa = {\n    "nama": "Sinta",\n    "umur": 19,\n    "jurusan": "Informatika"\n}\n\nprint(mahasiswa["nama"])\nprint(mahasiswa.get("ipk", "belum ada"))\n\nfor k in mahasiswa:\n    print(k, "=", mahasiswa[k])' },
+  mini: { name: 'Mini Program', code: '# Program hitung rata-rata nilai\ndef rata_rata(nilai):\n    return sum(nilai) / len(nilai)\n\nnilai = [80, 92, 75, 88, 95]\n\nfor i, n in enumerate(nilai):\n    print(f"Nilai ke-{i + 1}: {n}")\n\nrata = rata_rata(nilai)\nprint(f"Rata-rata: {rata:.2f}")\n\nif rata >= 85:\n    print("Hasil: Memuaskan!")\nelse:\n    print("Hasil: Terus berlatih!")' }
+};
+
+/* ================= PENYIMPANAN AMAN =================
+   localStorage bisa terblokir (mode privat, iframe sandbox, WebView, dsb.),
+   sehingga SEMUA akses storage dibungkus dengan fallback memori agar
+   aplikasi tidak pernah macet saat menyimpan progres. */
+const PYSTORE = (() => {
+  const mem = {};
+  let ok = false;
+  try {
+    const k = '__pymimo_probe__';
+    localStorage.setItem(k, '1');
+    localStorage.removeItem(k);
+    ok = true;
+  } catch (e) { ok = false; }
+  return {
+    available: ok,
+    get(k) { if (ok) { try { return localStorage.getItem(k); } catch (e) {} } return (k in mem) ? mem[k] : null; },
+    set(k, v) { if (ok) { try { localStorage.setItem(k, v); return; } catch (e) {} } mem[k] = String(v); }
+  };
+})();
+
+/* ================= FLATTEN ================= */
+const FLAT = [];
+COURSE.forEach((ch, ci) => ch.lessons.forEach(l => {
+  l.ci = ci;
+  l.flat = FLAT.length;
+  l.xpMax = l.exercises.reduce((s, e) => s + (e.type === 'concept' ? 5 : 10), 0) + 20;
+  FLAT.push(l);
+}));
+const TOTAL = FLAT.length;
+
+/* ================= APLIKASI ================= */
+createApp({
+  setup() {
+    const screen = ref('welcome');
+    const tab = ref('home');
+    const progress = reactive({ completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0 });
+    try {
+      const saved = JSON.parse(PYSTORE.get('pymimo-v1'));
+      if (saved && typeof saved === 'object') Object.assign(progress, saved);
+    } catch (e) {}
+    const save = () => PYSTORE.set('pymimo-v1', JSON.stringify({ ...progress }));
+
+    /* tema terang/gelap */
+    const theme = ref(PYSTORE.get('pymimo-theme') === 'light' ? 'light' : 'dark');
+    function applyTheme() {
+      document.documentElement.classList.toggle('light', theme.value === 'light');
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', theme.value === 'light' ? '#f1f5f9' : '#0d1420');
+    }
+    function setTheme(t) { theme.value = t; PYSTORE.set('pymimo-theme', t); applyTheme(); }
+    function toggleTheme() { setTheme(theme.value === 'dark' ? 'light' : 'dark'); }
+    applyTheme();
+
+    /* runtime latihan */
+    const active = ref(null);
+    const exIdx = ref(0);
+    const hearts = ref(5);
+    const lessonXp = ref(0);
+    const wrongCount = ref(0);
+    const answered = ref(0);
+    const correct = ref(0);
+    const selected = ref(null);
+    const answerText = ref('');
+    const feedback = reactive({ show: false, correct: false, title: '', detail: '' });
+    const fill = reactive({ bank: [], placed: {} });
+    const showExit = ref(false);
+    const showReset = ref(false);
+    const toast = ref('');
+    let toastTimer = null;
+    const result = reactive({ xp: 0, accuracy: 0, perfect: false });
+    const confetti = ref([]);
+
+    const ex = computed(() => (active.value && exIdx.value < active.value.exercises.length) ? active.value.exercises[exIdx.value] : null);
+    const lessonPct = computed(() => active.value ? Math.round((exIdx.value / active.value.exercises.length) * 100) : 0);
+    const nextLesson = computed(() => FLAT.find(l => l.flat === progress.completed) || null);
+    const currentChapterTitle = computed(() => nextLesson.value ? COURSE[nextLesson.value.ci].title : '');
+
+    const greeting = computed(() => {
+      const h = new Date().getHours();
+      if (h < 11) return 'Selamat pagi! 👋';
+      if (h < 15) return 'Selamat siang! 👋';
+      if (h < 19) return 'Selamat sore! 👋';
+      return 'Selamat malam! 👋';
+    });
+
+    const level = computed(() => Math.floor(progress.xp / 200) + 1);
+    const levelTitle = computed(() => ['Pemula', 'Penjelajah', 'Koder', 'Ahli', 'Master'][Math.min(level.value - 1, 4)]);
+    const levelPct = computed(() => (progress.xp % 200) / 2);
+    const accuracyOverall = computed(() => {
+      const t = progress.totalCorrect + progress.totalWrong;
+      return t ? Math.round((progress.totalCorrect / t) * 100) : 0;
+    });
+    const achievements = computed(() => ACHIEVEMENTS.map(a => ({ ...a, unlocked: a.done(progress) })));
+    const finishMsg = computed(() => {
+      if (progress.completed >= TOTAL) return 'Kamu telah menyelesaikan semua latihan. Luar biasa! 🎉';
+      if (result.perfect) return 'Sempurna! Bonus +20 XP karena tanpa jawaban salah 🌟';
+      return 'Teruslah berlatih, kamu makin jago! 💪';
+    });
+
+    function showToast(msg) {
+      toast.value = msg;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.value = ''; }, 1800);
+    }
+
+    function startApp() { screen.value = 'app'; tab.value = 'home'; }
+    function backHome() { screen.value = 'app'; tab.value = 'home'; }
+
+    function prepareExercise() {
+      const e = ex.value;
+      selected.value = null;
+      answerText.value = '';
+      feedback.show = false; feedback.correct = false; feedback.title = ''; feedback.detail = '';
+      if (e && e.type === 'fill') {
+        const bank = e.bank.map((t, i) => ({ id: i, text: t, used: false }));
+        for (let i = bank.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [bank[i], bank[j]] = [bank[j], bank[i]];
+        }
+        fill.bank = bank;
+        fill.placed = {};
+        e.blanks.forEach((b, i) => { fill.placed[i] = null; });
+      }
+    }
+
+    /* editor latihan — mesin eksekusi: Skulpt (Python 3 di browser, lazy-load CDN)
+       dengan fallback offline ke interpreter mini PyMini bawaan */
+    const playCode = ref(PYSTORE.get('pymimo-play') || TPL.halo.code);
+    const playRunning = ref(false);
+    const curTpl = ref('halo');
+    const lineCount = computed(() => playCode.value.split('\n').length);
+    const hlCode = computed(() => hl(playCode.value) + '\n');
+
+    /* konsol output interaktif: baris 'out' (teks program) dan 'in' (permintaan input())
+       tampil BERSELANG mengikuti alur logika program — eksekusi Skulpt di-suspend
+       sampai pengguna menjawab, lalu dilanjutkan tepat di titik tersebut */
+    const conRows = ref([]);
+    const lastError = ref(null);
+    const hasRun = ref(false);
+    const conBox = ref(null);
+    const engineState = ref('none');   /* none | loading | skulpt | fallback */
+    let conResolver = null;            /* resolver promise input() yang sedang aktif */
+    let runToken = 0;                  /* token: abaikan callback dari run yang lama */
+    let enginePromise = null;
+
+    const engineBadge = computed(() => engineState.value === 'skulpt' ? '● Skulpt Python'
+      : engineState.value === 'fallback' ? '● PyMini (offline)'
+      : engineState.value === 'loading' ? '● memuat runtime…' : '● siap');
+    const awaitingInput = computed(() => {
+      const rows = conRows.value;
+      const last = rows[rows.length - 1];
+      return !!(last && last.kind === 'in' && !last.done && playRunning.value);
+    });
+
+    function loadScript(src, timeout) {
+      return new Promise((res, rej) => {
+        const el = document.createElement('script');
+        const t = setTimeout(() => { el.remove(); rej(new Error('timeout: ' + src)); }, timeout || 12000);
+        el.src = src;
+        el.onload = () => { clearTimeout(t); res(); };
+        el.onerror = () => { clearTimeout(t); el.remove(); rej(new Error('gagal: ' + src)); };
+        document.head.appendChild(el);
+      });
+    }
+    function ensureEngine() {
+      if (!enginePromise) {
+        engineState.value = 'loading';
+        const CDNS = ['https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/', 'https://unpkg.com/skulpt@1.2.0/dist/', 'https://skulpt.org/js/'];
+        enginePromise = (async () => {
+          if (navigator.onLine === false) throw new Error('offline');
+          /* muat SEKUENSIAL per-CDN: core + stdlib WAJIB dari sumber yang sama dan
+             tidak boleh ada script CDN lain yang menimpa global Sk (versi campuran
+             menyebabkan error 'No module named sys' dan instanceof lintas versi) */
+          for (const b of CDNS) {
+            try {
+              await loadScript(b + 'skulpt.min.js', 30000);
+              if (typeof Sk === 'undefined' || !Sk.misceval) throw new Error('core rusak');
+              await loadScript(b + 'skulpt-stdlib.js', 30000);
+              if (!Sk.builtinFiles || !Sk.builtinFiles.files || !Sk.builtinFiles.files['src/builtin/sys.js']) throw new Error('stdlib rusak');
+              engineState.value = 'skulpt';
+              return 'skulpt';
+            } catch (e) { /* lanjut ke CDN berikutnya */ }
+          }
+          throw new Error('semua CDN gagal');
+        })().catch(() => {
+          engineState.value = 'fallback';
+          showToast('Skulpt gagal dimuat — mode offline PyMini 📴');
+          return 'fallback';
+        });
+      }
+      return enginePromise;
+    }
+    /* muat runtime begitu tab Latihan dibuka agar run pertama langsung siap */
+    watch(tab, v => { if (v === 'play') ensureEngine(); });
+
+    function conOut(text) {
+      const rows = conRows.value;
+      const last = rows[rows.length - 1];
+      if (last && last.kind === 'out') last.text += text;
+      else rows.push({ kind: 'out', text: String(text) });
+    }
+    /* segarkan anggaran waktu eksekusi agar lamanya pengguna berpikir tidak dihitung */
+    function refreshBudget() { try { if (window.Sk) Sk.execStart = Date.now(); } catch (e) {} }
+
+    function skulptInput(tk, prompt) {
+      return new Promise(resolve => {
+        const row = reactive({ kind: 'in', prompt: prompt || '', value: '', done: false });
+        conRows.value.push(row);
+        conResolver = resolve;
+        refreshBudget();
+        nextTick(() => { const el = document.querySelector('.con-in-act'); if (el) el.focus(); });
+      });
+    }
+    function submitConInput() {
+      const rows = conRows.value;
+      const row = rows[rows.length - 1];
+      if (!row || row.kind !== 'in' || row.done) return;
+      row.done = true;
+      const r = conResolver; conResolver = null;
+      refreshBudget();
+      /* nilai dikirim sebagai JS string — Skulpt menanganinya sebagai str Python
+         penuh (operator +, len(), method .upper(), dll. teruji bekerja);
+         membungkus Sk.builtin.str justru memicu ImportError sys di Skulpt 1.2.0 */
+      if (r) r(row.value);
+    }
+    function stopRun() {
+      runToken++;
+      if (conResolver) {
+        const r = conResolver; conResolver = null;
+        /* paksa run yang di-suspend mati begitu di-resume */
+        try { if (window.Sk) { Sk.execStart = 0; Sk.execLimit = 0; } } catch (e) {}
+        r('');
+      }
+      const rows = conRows.value;
+      const row = rows[rows.length - 1];
+      if (row && row.kind === 'in' && !row.done) row.done = true;
+      playRunning.value = false;
+      conOut('\n— program dihentikan —');
+    }
+    function conClear() {
+      if (playRunning.value) stopRun();
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+    }
+
+    function skRead(name) {
+      if (typeof Sk !== 'undefined' && Sk.builtinFiles && Sk.builtinFiles.files && Sk.builtinFiles.files[name]) return Sk.builtinFiles.files[name];
+      throw 'ModuleNotFoundError: modul "' + String(name).replace(/\.(py|js)$/i, '') + '" tidak tersedia';
+    }
+    function skulptErr(err) {
+      let full = '';
+      try { full = (err && err.toString) ? err.toString() : String(err); } catch (e) { full = String(err); }
+      if (!full || full === '[object Object]') full = (err && err.tp$name) ? err.tp$name : 'Error';
+      let type = 'Error', msg = full;
+      const m = /^([A-Za-z_][A-Za-z0-9_]*):\s*([\s\S]*)$/.exec(full);
+      if (m) { type = m[1]; msg = m[2] || '(tanpa pesan)'; }
+      if (type === 'TimeLimitError') msg = 'Program berjalan terlalu lama (kemungkinan infinite loop) — dihentikan otomatis.';
+      let line = null;
+      if (err && typeof err.lineno === 'number') line = err.lineno;
+      const st = (err && err.stacktrace) || [];
+      for (let i = 0; i < st.length; i++) { const lm = /line\s+(\d+)/.exec(String(st[i])); if (lm) { line = +lm[1]; break; } }
+      if (line === null) { const lm2 = /on line (\d+)/.exec(full); if (lm2) line = +lm2[1]; }
+      return { type, msg, line };
+    }
+
+    async function runPlay() {
+      if (playRunning.value) return;
+      savePlay();
+      const tk = ++runToken;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      const eng = await ensureEngine();
+      if (tk !== runToken) return;
+      playRunning.value = true;
+      if (eng === 'skulpt') {
+        try {
+          Sk.configure({
+            output: t => { if (tk === runToken) conOut(t); },
+            read: skRead,
+            inputfun: prompt => skulptInput(tk, prompt),
+            inputfunTakesPrompt: true,
+            __future__: Sk.python3 || {}
+          });
+          Sk.execStart = Date.now();
+          Sk.execLimit = 25000;
+          await Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, playCode.value, true));
+        } catch (err) {
+          if (tk === runToken) lastError.value = skulptErr(err);
+        } finally {
+          if (conResolver) { const r = conResolver; conResolver = null; r(''); }
+          if (tk === runToken) { playRunning.value = false; hasRun.value = true; }
+        }
+      } else {
+        setTimeout(() => {
+          if (tk !== runToken) return;
+          let res;
+          try { res = PyMini.run(playCode.value); }
+          catch (err) { res = { stdout: '', error: { type: 'InternalError', msg: String(err && err.message || err), line: null } }; }
+          if (res.stdout) conOut(res.stdout);
+          if (res.error) lastError.value = res.error;
+          playRunning.value = false;
+          hasRun.value = true;
+        }, 30);
+      }
+    }
+
+    function savePlay() { PYSTORE.set('pymimo-play', playCode.value); }
+    function loadTpl(k) {
+      if (playRunning.value) stopRun();
+      curTpl.value = k;
+      playCode.value = TPL[k].code;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      savePlay();
+      showToast('Contoh "' + TPL[k].name + '" dimuat 📄');
+    }
+    function resetPlay() {
+      if (playRunning.value) stopRun();
+      playCode.value = TPL[curTpl.value].code;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      savePlay();
+      showToast('Kode dikembalikan 🔄');
+    }
+    /* konsol selalu menempel ke baris terbaru (output/input/error) */
+    watch([conRows, lastError], () => nextTick(() => { const el = conBox.value; if (el) el.scrollTop = el.scrollHeight; }), { deep: true });
+    function tabKey(ev) {
+      const ta = ev.target;
+      ta.setRangeText('    ', ta.selectionStart, ta.selectionEnd, 'end');
+      playCode.value = ta.value;
+    }
+    function enterKey(ev) {
+      const ta = ev.target;
+      if (ta.selectionStart !== ta.selectionEnd) return;
+      const before = ta.value.slice(0, ta.selectionStart);
+      const line = before.slice(before.lastIndexOf('\n') + 1);
+      let indent = (line.match(/^[ \t]*/) || [''])[0];
+      if (/:\s*$/.test(line)) indent += '    ';
+      if (!indent) return;
+      ev.preventDefault();
+      ta.setRangeText('\n' + indent, ta.selectionStart, ta.selectionEnd, 'end');
+      playCode.value = ta.value;
+    }
+    function edSync() {
+      const ta = document.querySelector('.ed-row textarea');
+      if (!ta) return;
+      const pre = ta.previousElementSibling;
+      const gut = ta.closest('.ed-row').querySelector('.ed-gutter');
+      if (pre) { pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft; }
+      if (gut) gut.scrollTop = ta.scrollTop;
+    }
+    function edScroll() { edSync(); }
+    watch(playCode, () => nextTick(edSync));
+
+    function startLesson(flat) {
+      active.value = FLAT[flat];
+      exIdx.value = 0;
+      hearts.value = 5;
+      lessonXp.value = 0;
+      wrongCount.value = 0;
+      answered.value = 0;
+      correct.value = 0;
+      prepareExercise();
+      screen.value = 'lesson';
+      window.scrollTo(0, 0);
+    }
+
+    function onNodeTap(lsn) {
+      if (lsn.flat > progress.completed) {
+        showToast('Selesaikan latihan sebelumnya dulu! 🔒');
+        return;
+      }
+      startLesson(lsn.flat);
+    }
+
+    /* interaksi fill-in-the-blank */
+    function place(chipId) {
+      const e = ex.value;
+      for (let i = 0; i < e.blanks.length; i++) {
+        if (fill.placed[i] === null) {
+          fill.placed[i] = chipId;
+          const chip = fill.bank.find(c => c.id === chipId);
+          if (chip) chip.used = true;
+          return;
+        }
+      }
+    }
+    function unplace(bi) {
+      const chipId = fill.placed[bi];
+      if (chipId === null || chipId === undefined) return;
+      const chip = fill.bank.find(c => c.id === chipId);
+      if (chip) chip.used = false;
+      fill.placed[bi] = null;
+    }
+    const chipAt = bi => fill.bank.find(c => c.id === fill.placed[bi]) || null;
+
+    const canCheck = computed(() => {
+      const e = ex.value;
+      if (!e) return false;
+      if (e.type === 'concept') return true;
+      if (e.type === 'quiz' || e.type === 'output') return selected.value !== null;
+      if (e.type === 'input') return answerText.value.trim() !== '';
+      if (e.type === 'fill') return e.blanks.every((b, i) => fill.placed[i] !== null);
+      return false;
+    });
+
+    function optionClass(i) {
+      const e = ex.value;
+      if (feedback.show) {
+        if (i === e.answer) return 'border-mimo bg-mimo/10';
+        if (i === selected.value) return 'border-danger bg-danger/10';
+        return 'border-line opacity-40';
+      }
+      return selected.value === i ? 'border-mimo bg-mimo/10' : 'border-line bg-panel';
+    }
+    function chipClass(i) {
+      if (feedback.show && ex.value && i === ex.value.answer) return 'bg-mimo text-night';
+      if (feedback.show && i === selected.value) return 'bg-danger text-white';
+      return selected.value === i ? 'bg-mimo text-night' : 'bg-panel2 text-slate-400';
+    }
+    function blankClass(bi) {
+      if (feedback.show) return feedback.correct ? 'ok' : 'bad';
+      return chipAt(bi) ? 'filled' : '';
+    }
+
+    function checkAnswer() {
+      const e = ex.value;
+      if (!e || !canCheck.value) return;
+      if (e.type === 'concept') {
+        lessonXp.value += 5;
+        advance();
+        return;
+      }
+      let ok = false;
+      if (e.type === 'quiz' || e.type === 'output') {
+        ok = selected.value === e.answer;
+      } else if (e.type === 'input') {
+        const norm = s => String(s).trim().toLowerCase().replace(/\s*\(\s*\)\s*$/, '').replace(/\s+/g, ' ');
+        ok = e.answers.some(a => norm(a) === norm(answerText.value));
+      } else if (e.type === 'fill') {
+        ok = e.blanks.every((b, i) => {
+          const c = chipAt(i);
+          return c && c.text === b.answer;
+        });
+      }
+      answered.value += 1;
+      if (ok) {
+        correct.value += 1;
+        lessonXp.value += 10;
+        feedback.correct = true;
+        feedback.title = pick(['Keren! 🎉', 'Mantap! 💪', 'Tepat sekali! ✨', 'Hebat! 🚀']) + ' · +10 XP';
+        feedback.detail = '';
+      } else {
+        wrongCount.value += 1;
+        hearts.value = Math.max(0, hearts.value - 1);
+        feedback.correct = false;
+        feedback.title = hearts.value === 0 ? 'Nyawa habis!' : 'Belum tepat';
+        if (e.type === 'fill') {
+          const line = e.parts.map(p => typeof p === 'number' ? e.blanks[p].answer : p).join('');
+          feedback.detail = 'Kode yang benar:\n' + hl(line);
+        } else if (e.type === 'input') {
+          feedback.detail = 'Jawaban yang benar: ' + esc(e.answers[0]);
+        } else {
+          feedback.detail = 'Jawaban benar: ' + esc(e.options[e.answer]);
+        }
+      }
+      feedback.show = true;
+    }
+
+    function advance() {
+      feedback.show = false;
+      if (hearts.value <= 0) { screen.value = 'failed'; return; }
+      if (exIdx.value < active.value.exercises.length - 1) {
+        exIdx.value += 1;
+        prepareExercise();
+      } else {
+        finishLesson();
+      }
+    }
+
+    function finishLesson() {
+      const perfect = wrongCount.value === 0;
+      result.perfect = perfect;
+      result.xp = lessonXp.value + (perfect ? 20 : 0);
+      result.accuracy = answered.value ? Math.round((correct.value / answered.value) * 100) : 100;
+      try {
+        progress.totalCorrect += correct.value;
+        progress.totalWrong += wrongCount.value;
+        if (perfect) progress.perfect += 1;
+        if (active.value.flat === progress.completed) progress.completed = active.value.flat + 1;
+        progress.xp += result.xp;
+        const today = new Date().toISOString().slice(0, 10);
+        if (progress.lastDay !== today) {
+          progress.streak += 1;
+          progress.lastDay = today;
+        }
+        save();
+      } catch (err) {
+        console.warn('PyMimo: gagal menyimpan progres:', err);
+      }
+      makeConfetti();
+      screen.value = 'complete';
+      window.scrollTo(0, 0);
+    }
+
+    function makeConfetti() {
+      const colors = ['#4dd683', '#7dd3fc', '#fbbf24', '#f472b6', '#ff8a5c', '#a78bfa'];
+      const pieces = [];
+      for (let i = 0; i < 45; i++) {
+        pieces.push({
+          style: 'left:' + (Math.random() * 100).toFixed(1) + '%;background:' + colors[i % colors.length] +
+            ';width:' + (6 + Math.random() * 6).toFixed(0) + 'px;height:' + (8 + Math.random() * 8).toFixed(0) +
+            'px;animation-duration:' + (2.4 + Math.random() * 2.2).toFixed(2) + 's;animation-delay:' + (Math.random() * 1.4).toFixed(2) + 's;'
+        });
+      }
+      confetti.value = pieces;
+    }
+
+    function doReset() {
+      try {
+        Object.assign(progress, { completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0 });
+        save();
+      } catch (err) {
+        console.warn('PyMimo: gagal menyimpan progres:', err);
+      }
+      showReset.value = false;
+      showToast('Progres berhasil direset 🔄');
+    }
+
+    function chapterDoneCount(ci) {
+      return COURSE[ci].lessons.filter(l => l.flat < progress.completed).length;
+    }
+    function nodeClass(lsn) {
+      if (lsn.flat < progress.completed) return 'bg-mimo border-mimo text-night';
+      if (lsn.flat === progress.completed) return 'bg-panel2 border-mimo text-white node-active';
+      return 'bg-panel border-line text-slate-600';
+    }
+
+    return {
+      screen, tab, progress, toast, showExit, showReset,
+      course: COURSE, TOTAL, REFERENCE,
+      active, exIdx, hearts, lessonXp, ex, lessonPct, selected, feedback, fill,
+      result, confetti, achievements, level, levelTitle, levelPct, accuracyOverall, greeting,
+      nextLesson, currentChapterTitle, finishMsg,
+      TPL, playCode, playRunning, lineCount, hlCode, savePlay, loadTpl, resetPlay, runPlay, tabKey, enterKey, edScroll, answerText,
+      conRows, lastError, hasRun, conBox, engineState, engineBadge, awaitingInput, submitConInput, conClear, stopRun,
+      startApp, startLesson, onNodeTap, place, unplace, chipAt, canCheck, checkAnswer, advance,
+      optionClass, chipClass, blankClass, backHome, doReset, hl, fmt,
+      theme, setTheme, toggleTheme,
+      chapterDoneCount, nodeClass
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
