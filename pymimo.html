@@ -88,6 +88,7 @@ tailwind.config = {
   .ch-0 { background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(52,211,153,.03)); border: 1px solid rgba(52,211,153,.25); }
   .ch-1 { background: linear-gradient(135deg, rgba(96,165,250,.18), rgba(96,165,250,.03)); border: 1px solid rgba(96,165,250,.25); }
   .ch-2 { background: linear-gradient(135deg, rgba(251,191,36,.18), rgba(251,191,36,.03)); border: 1px solid rgba(251,191,36,.25); }
+  .ch-3 { background: linear-gradient(135deg, rgba(168,85,247,.18), rgba(168,85,247,.03)); border: 1px solid rgba(168,85,247,.25); }
   .blank-slot { display: inline-flex; align-items: center; justify-content: center; min-width: 60px; padding: 1px 10px; margin: 3px 2px; border-radius: 8px; border: 2px dashed #3d4f70; color: #64748b; background: rgba(28,40,65,.5); font-size: 13px; vertical-align: middle; transition: all .15s; }
   .blank-slot.filled { border-style: solid; border-color: rgba(77,214,131,.55); background: rgba(77,214,131,.12); color: #e2e8f0; }
   .blank-slot.ok { border-style: solid; border-color: #4dd683; background: rgba(77,214,131,.15); color: #4dd683; }
@@ -107,11 +108,25 @@ tailwind.config = {
   html.light .text-orange-400 { color: #ea580c; }
   html.light .text-emerald-300 { color: #047857; }
   html.light .text-rose-300 { color: #be123c; }
+  html.light .text-fuchsia-300 { color: #a21caf; }
   input::placeholder, textarea::placeholder { color: #475569; opacity: 1; }
   html.light .blank-slot { border-color: #cbd5e1; background: rgba(241,245,249,.9); color: #94a3b8; }
   html.light .blank-slot.filled { color: #334155; }
   html.light .blank-slot.ok { border-color: #059669; background: rgba(5,150,105,.12); color: #059669; }
   html.light .blank-slot.bad { border-color: #e11d48; background: rgba(225,29,72,.1); color: #e11d48; }
+  /* FIX #6 — safe-area padding untuk iPhone notch / home indicator */
+  .safe-bottom-nav { padding-bottom: max(0.625rem, env(safe-area-inset-bottom)); }
+  .safe-bottom-footer { padding-bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 0.5rem); }
+  /* FIX #5 — spinner kecil untuk loading */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; }
+  /* FIX #6 (lanjutan) — prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    .anim-fade-up, .anim-slide-up, .anim-pop, .anim-float, .anim-beat, .node-active, .confetti-piece {
+      animation: none !important;
+      transform: none !important;
+    }
+  }
 </style>
 <script>try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}</script>
 </head>
@@ -156,8 +171,7 @@ tailwind.config = {
     <button @click="startApp" class="w-full bg-mimo hover:bg-mimodeep transition rounded-2xl py-4 font-extrabold text-night text-lg shadow-glow active:scale-[.98]">
       {{ progress.completed ? 'Lanjutkan Belajar' : 'Mulai Belajar' }}
     </button>
-    <p class="text-center text-[11px] text-slate-600">8 latihan · 63 soal · 6 tantangan kode · Editor Python · Gratis</p>
-    <p class="text-center text-[10px] text-slate-700">Dibangun dengan Vue 3 + Tailwind CSS</p>
+    <p class="text-center text-[11px] text-slate-600">PyMimo dibuat oleh Ab</p>
   </div>
 </section>
 
@@ -178,7 +192,6 @@ tailwind.config = {
           <svg v-if="theme === 'dark'" class="w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
           <svg v-else class="w-4 h-4 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-        <!-- NEW: Global hearts -->
         <div class="flex items-center gap-1 bg-panel border border-line rounded-full pl-2 pr-2.5 py-1.5" :class="progress.hearts === 0 ? 'border-danger/50 animate-pulse' : ''" title="Nyawa (isi ulang dengan tantangan)">
           <svg class="w-4 h-4" :class="progress.hearts === 0 ? 'text-danger' : 'text-danger'" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           <span class="text-sm font-extrabold" :class="progress.hearts === 0 ? 'text-danger' : ''">{{ progress.hearts }}</span>
@@ -254,6 +267,20 @@ tailwind.config = {
       <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">🐍 PYTHON 3 · SKULPT</span>
     </div>
 
+    <!-- FIX #5: status engine & tombol retry -->
+    <div v-if="engineState === 'loading'" class="mt-3 rounded-2xl bg-sky-400/10 border border-sky-400/30 px-4 py-3 flex items-center gap-3">
+      <svg class="w-5 h-5 text-sky-300 spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+      <p class="text-[12px] text-sky-200 leading-snug">Memuat runtime Python (Skulpt)… butuh koneksi internet pertama kali.</p>
+    </div>
+    <div v-else-if="engineState === 'error'" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+      <span class="text-xl">⚠️</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-[12px] font-bold text-[#fda4af]">Runtime gagal dimuat</p>
+        <p class="text-[10.5px] text-slate-400 leading-snug mt-0.5">Periksa koneksi internet, lalu coba lagi.</p>
+      </div>
+      <button @click="retryEngine" class="shrink-0 rounded-xl bg-danger text-white font-extrabold text-[11px] px-3 py-2 active:scale-95 transition">Coba Lagi</button>
+    </div>
+
     <p class="text-[10px] font-extrabold tracking-[.18em] text-slate-500 mt-5 mb-2">CONTOH KODE</p>
     <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
       <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)"
@@ -266,10 +293,10 @@ tailwind.config = {
       @blur="savePlay"></py-editor>
 
     <div class="flex gap-2.5 mt-3">
-      <button v-if="!playRunning" @click="runPlay" :disabled="engineState === 'loading'"
+      <button v-if="!playRunning" @click="runPlay" :disabled="engineState === 'loading' || engineState === 'error'"
         class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-3 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        {{ engineState === 'loading' ? 'Memuat Python…' : 'Jalankan' }}
+        {{ engineState === 'loading' ? 'Memuat…' : 'Jalankan' }}
       </button>
       <button v-else @click="stopRun"
         class="flex-1 rounded-xl bg-danger text-white font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition">
@@ -301,7 +328,22 @@ tailwind.config = {
         <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚔️ {{ chDoneTotal }}/{{ CHALLENGES.length }}</span>
       </div>
 
-      <div v-if="progress.hearts < 5" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+      <!-- FIX #5: status engine & tombol retry -->
+      <div v-if="engineState === 'loading'" class="mt-3 rounded-2xl bg-sky-400/10 border border-sky-400/30 px-4 py-3 flex items-center gap-3">
+        <svg class="w-5 h-5 text-sky-300 spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <p class="text-[12px] text-sky-200 leading-snug">Memuat runtime Python…</p>
+      </div>
+      <div v-else-if="engineState === 'error'" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+        <span class="text-xl">⚠️</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-[#fda4af]">Runtime gagal dimuat</p>
+          <p class="text-[10.5px] text-slate-400 leading-snug mt-0.5">Periksa koneksi internet, lalu coba lagi.</p>
+        </div>
+        <button @click="retryEngine" class="shrink-0 rounded-xl bg-danger text-white font-extrabold text-[11px] px-3 py-2 active:scale-95 transition">Coba Lagi</button>
+      </div>
+
+      <!-- FIX #4: pakai MAX_HEARTS bukan hardcoded 5 -->
+      <div v-if="progress.hearts < MAX_HEARTS" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
         <span class="text-xl">❤️</span>
         <div class="flex-1 min-w-0">
           <p class="text-[12px] font-bold text-[#fda4af]">Nyawa {{ progress.hearts }}/{{ MAX_HEARTS }}</p>
@@ -369,7 +411,7 @@ tailwind.config = {
         @blur="saveCh"></py-editor>
 
       <div v-if="!chIsLocked" class="flex gap-2.5 mt-3">
-        <button v-if="!playRunning" @click="chTry" :disabled="chBusy || engineState === 'loading'"
+        <button v-if="!playRunning" @click="chTry" :disabled="chBusy || engineState === 'loading' || engineState === 'error'"
           class="flex-1 rounded-xl border-2 border-mimo/50 text-mimo font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           Uji Coba
@@ -379,7 +421,7 @@ tailwind.config = {
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
           Hentikan
         </button>
-        <button @click="chSubmit" :disabled="chBusy || playRunning || engineState === 'loading'"
+        <button @click="chSubmit" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'"
           class="flex-1 rounded-xl font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60"
           :class="chDone ? 'border-2 border-mimo/50 text-mimo' : 'bg-mimo text-night shadow-glow'">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -475,7 +517,6 @@ tailwind.config = {
             <div class="h-full bg-gradient-to-r from-mimodeep to-mimo rounded-full transition-all duration-700" :style="{ width: levelPct + '%' }"></div>
           </div>
           <p class="text-[10px] text-slate-500 mt-1">{{ 200 - progress.xp % 200 }} XP lagi menuju Level {{ level + 1 }}</p>
-          <!-- NEW: Hearts row -->
           <div class="mt-2 flex items-center gap-1">
             <span class="text-[10px] text-slate-400 font-semibold">Nyawa:</span>
             <svg v-for="h in MAX_HEARTS" :key="h" class="w-3.5 h-3.5" :class="h <= progress.hearts ? 'text-danger' : 'text-line'" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -558,22 +599,23 @@ tailwind.config = {
   </div>
 
   <!-- ================= BOTTOM NAV ================= -->
+  <!-- FIX #6: safe-bottom-nav untuk iPhone home indicator -->
   <nav class="fixed bottom-0 inset-x-0 z-30 bg-night/95 backdrop-blur border-t border-line/70">
-    <div class="app-col mx-auto grid grid-cols-4 px-4 py-2.5">
-      <button @click="tab = 'home'" class="flex flex-col items-center gap-1 transition" :class="tab === 'home' ? 'text-mimo' : 'text-slate-500'">
+    <div class="app-col mx-auto grid grid-cols-4 px-4 safe-bottom-nav">
+      <button @click="tab = 'home'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'home' ? 'text-mimo' : 'text-slate-500'">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
         <span class="text-[10px] font-bold">Beranda</span>
       </button>
-      <button @click="tab = 'play'" class="flex flex-col items-center gap-1 transition" :class="tab === 'play' ? 'text-mimo' : 'text-slate-500'">
+      <button @click="tab = 'play'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'play' ? 'text-mimo' : 'text-slate-500'">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg>
         <span class="text-[10px] font-bold">Latihan</span>
       </button>
-      <button @click="tab = 'tantangan'" class="flex flex-col items-center gap-1 transition relative" :class="tab === 'tantangan' ? 'text-mimo' : 'text-slate-500'">
+      <button @click="tab = 'tantangan'" class="flex flex-col items-center gap-1 transition relative py-2.5" :class="tab === 'tantangan' ? 'text-mimo' : 'text-slate-500'">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
         <span class="text-[10px] font-bold">Tantangan</span>
         <span v-if="progress.hearts === 0" class="absolute top-0 right-3 w-2 h-2 rounded-full bg-danger animate-pulse"></span>
       </button>
-      <button @click="tab = 'profile'" class="flex flex-col items-center gap-1 transition" :class="tab === 'profile' ? 'text-mimo' : 'text-slate-500'">
+      <button @click="tab = 'profile'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'profile' ? 'text-mimo' : 'text-slate-500'">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span class="text-[10px] font-bold">Profil</span>
       </button>
@@ -676,16 +718,17 @@ tailwind.config = {
     </div>
   </main>
 
+  <!-- FIX #6: safe-bottom-footer untuk footer lesson -->
   <footer class="fixed bottom-0 inset-x-0 z-20">
     <div class="app-col">
-      <div v-if="!feedback.show" class="px-4 py-4 bg-night/95 backdrop-blur border-t border-line/60 md:border-x md:border-line/40">
+      <div v-if="!feedback.show" class="px-4 py-4 bg-night/95 backdrop-blur border-t border-line/60 md:border-x md:border-line/40 safe-bottom-footer">
         <button @click="checkAnswer" :disabled="!canCheck"
           class="w-full rounded-2xl py-4 font-extrabold text-[15px] transition active:scale-[.98]"
           :class="canCheck ? 'bg-mimo text-night shadow-glow' : 'bg-panel2 text-slate-600'">
           {{ ex && ex.type === 'concept' ? 'Mengerti, Lanjutkan →' : 'Periksa Jawaban' }}
         </button>
       </div>
-      <div v-else class="fb-bar anim-slide-up px-5 pt-5 pb-6 md:border-x border-line/40" :class="feedback.correct ? 'bg-mimodeep' : 'bg-danger'">
+      <div v-else class="fb-bar anim-slide-up px-5 pt-5 pb-6 md:border-x border-line/40 safe-bottom-footer" :class="feedback.correct ? 'bg-mimodeep' : 'bg-danger'">
         <div class="flex items-start gap-3">
           <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
             <svg v-if="feedback.correct" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -785,6 +828,7 @@ tailwind.config = {
 const { createApp, ref, reactive, computed, watch, nextTick, onUpdated } = Vue;
 
 /* ================= DATA KURIKULUM ================= */
+/* FIX: BAB 4 BARU — Struktur Data (list, dictionary, fungsi) */
 const COURSE = [
   {
     title: 'Bab 1 · Dasar-Dasar', desc: 'Fondasi awal bahasa Python', icon: '🐍',
@@ -879,6 +923,42 @@ const COURSE = [
         { type: 'fill', question: 'Lengkapi while loop agar berhenti setelah angka 3', parts: ['hitung = 0', '\nwhile hitung ', 0, ' 3:', '\n    print(hitung)', '\n    hitung = hitung ', 1, ' 1'], blanks: [{ answer: '<' }, { answer: '+' }], bank: ['<', '+', '>', '-', '='] }
       ] }
     ]
+  },
+  /* ============= BAB 4 BARU ============= */
+  {
+    title: 'Bab 4 · Struktur Data', desc: 'List, Dictionary, dan Fungsi', icon: '📚',
+    lessons: [
+      { title: 'List (Daftar)', icon: '📋', exercises: [
+        { type: 'concept', title: 'Menyimpan Banyak Nilai', body: '**List** adalah kumpulan nilai berurutan yang bisa diubah isinya. Tulis dengan kurung siku `[...]` dan pisahkan dengan koma. Setiap nilai punya indeks mulai dari 0.', code: `buah = ["apel", "jeruk", "mangga"]\nprint(buah)`, output: `['apel', 'jeruk', 'mangga']` },
+        { type: 'fill', question: 'Buat list berisi tiga angka: 10, 20, 30', parts: [0, ' = ', 1], blanks: [{ answer: 'angka' }, { answer: '[10, 20, 30]' }], bank: ['angka', '[10, 20, 30]', '(10, 20, 30)', '{10, 20, 30}'] },
+        { type: 'quiz', question: 'Apa nilai dari buah[0] jika buah = ["apel", "jeruk", "mangga"]?', options: ['apel', 'jeruk', 'mangga', 'Error'], answer: 0, explanation: 'Indeks 0 artinya elemen pertama — yaitu "apel".' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `buah = ["apel", "jeruk", "mangga"]\nprint(buah[1])`, options: ['jeruk', 'apel', 'mangga', 'Error'], answer: 0, explanation: 'buah[1] mengakses elemen kedua (indeks 1) yaitu "jeruk".' },
+        { type: 'concept', title: 'Menambah & Menghapus', body: '**Method** `.append(x)` menambahkan nilai `x` di akhir list. **`len()`** menghitung jumlah elemen. List juga punya `.pop()` untuk menghapus elemen terakhir.', code: `buah = ["apel", "jeruk"]\nbuah.append("mangga")\nprint(buah)\nprint(len(buah))`, output: `['apel', 'jeruk', 'mangga']\n3` },
+        { type: 'fill', question: 'Tambahkan "pisang" ke akhir list buah', parts: ['buah = ["apel", "jeruk"]', '\n', 0, '(', 1, ')'], blanks: [{ answer: 'buah.append' }, { answer: '"pisang"' }], bank: ['buah.append', '"pisang"', 'buah.add', 'buah.push'] },
+        { type: 'quiz', question: 'Berapa nilai len(["a", "b", "c"]) ?', options: ['3', '2', '4', 'Error'], answer: 0, explanation: 'len() menghitung jumlah elemen. Ada 3 elemen: "a", "b", "c".' },
+        { type: 'input', question: 'Jika angka = [10, 20, 30], apa output dari print(angka[-1])?', answers: ['30'], explanation: 'Indeks negatif -1 berarti elemen terakhir — yaitu 30.' }
+      ] },
+      { title: 'Dictionary (Kamus)', icon: '🗂️', exercises: [
+        { type: 'concept', title: 'Data Berpasangan', body: '**Dictionary** menyimpan data sebagai pasangan **kunci : nilai**. Tulis dengan kurung kurawal `{...}`. Kunci harus unik, nilai bisa apa saja.', code: `orang = {"nama": "Budi", "umur": 25}\nprint(orang["nama"])`, output: `Budi` },
+        { type: 'fill', question: 'Buat dictionary dengan kunci "nama" dan nilai "Sinta"', parts: [0, ' = ', 1], blanks: [{ answer: 'orang' }, { answer: '{"nama": "Sinta"}' }], bank: ['orang', '{"nama": "Sinta"}', '["nama", "Sinta"]', '("nama", "Sinta")'] },
+        { type: 'quiz', question: 'Bagaimana cara mengakses nilai kunci "umur" dari dictionary orang?', options: ['orang["umur"]', 'orang.umur', 'orang(umur)', 'umur[orang]'], answer: 0, explanation: 'Akses dengan kurung siku dan nama kunci di dalam tanda kutip: orang["umur"].' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `data = {"a": 1, "b": 2}\nprint(data["b"])`, options: ['2', '1', '"b"', 'Error'], answer: 0, explanation: 'data["b"] mengakses nilai untuk kunci "b", yaitu 2.' },
+        { type: 'concept', title: 'Mengakses dengan Aman', body: 'Method `.get(kunci, nilai_default)` mengakses nilai, tapi **tidak error** jika kunci tidak ada — mengembalikan nilai default. Berguna untuk menghindari KeyError!', code: `data = {"nama": "Budi"}\nprint(data.get("umur", 0))`, output: `0` },
+        { type: 'fill', question: 'Akses kunci "ipk" dengan default "belum ada"', parts: ['data = {"nama": "Sinta"}', '\nprint(data.', 0, '(', 1, ', "belum ada"))'], blanks: [{ answer: 'get' }, { answer: '"ipk"' }], bank: ['get', '"ipk"', 'find', 'lookup'] },
+        { type: 'quiz', question: 'Berapa jumlah kunci dalam {"a": 1, "b": 2, "c": 3} ?', options: ['3', '6', '2', '1'], answer: 0, explanation: 'Ada 3 kunci: "a", "b", dan "c". Setiap kunci berpasangan dengan satu nilai.' },
+        { type: 'input', question: 'Apa output dari print({"x": 5, "y": 10}.get("z", -1))?', answers: ['-1'], explanation: 'Kunci "z" tidak ada, jadi .get() mengembalikan nilai default -1.' }
+      ] },
+      { title: 'Fungsi (Def)', icon: '⚙️', exercises: [
+        { type: 'concept', title: 'Kode yang Bisa Dipakai Ulang', body: '**Fungsi** membungkus kode agar bisa dipakai berulang. Definisikan dengan kata kunci `def`, beri nama, lalu parameter di dalam kurung. Gunakan `return` untuk mengembalikan nilai.', code: `def sapa(nama):\n    return f"Halo, {nama}!"\n\nprint(sapa("Budi"))`, output: `Halo, Budi!` },
+        { type: 'fill', question: 'Definisikan fungsi kuadrat(x) yang mengembalikan x * x', parts: [0, ' ', 1, '(x):', '\n    ', 2, ' x * x'], blanks: [{ answer: 'def' }, { answer: 'kuadrat' }, { answer: 'return' }], bank: ['def', 'kuadrat', 'return', 'function', 'yield'] },
+        { type: 'quiz', question: 'Apa nilai yang dikembalikan fungsi: def tambah(a, b): return a + b ? jika dipanggil tambah(3, 4)?', options: ['7', '"34"', '3 dan 4', 'Error'], answer: 0, explanation: 'return a + b menjumlahkan 3 + 4 = 7.' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `def kali(x):\n    return x * 2\nprint(kali(5))`, options: ['10', '5', '25', 'Error'], answer: 0, explanation: 'kali(5) mengembalikan 5 * 2 = 10, lalu print menampilkannya.' },
+        { type: 'concept', title: 'Parameter & Nilai Default', body: 'Fungsi bisa punya **nilai default** untuk parameternya. Jika pemanggil tidak memberi nilai, default dipakai. Sangat berguna untuk membuat fungsi fleksibel!', code: `def sapa(nama, sapaan="Halo"):\n    return f"{sapaan}, {nama}!"\n\nprint(sapa("Budi"))\nprint(sapa("Budi", "Selamat pagi"))`, output: `Halo, Budi!\nSelamat pagi, Budi!` },
+        { type: 'fill', question: 'Lengkapi fungsi dengan default sapaan "Halo"', parts: ['def sapa(nama', ', sapaan=', 0, '):', '\n    return f"{sapaan}, {nama}!"'], blanks: [{ answer: '"Halo"' }], bank: ['"Halo"', '"hai"', 'Halo', 'sapaan'] },
+        { type: 'quiz', question: 'Apa kata kunci untuk mendefinisikan fungsi di Python?', options: ['def', 'function', 'func', 'define'], answer: 0, explanation: 'def (singkatan define) adalah kata kunci untuk membuat fungsi baru.' },
+        { type: 'output', question: 'Apa output dari kode berikut?', code: `def luas(p, l):\n    return p * l\nprint(luas(4, 5))`, options: ['20', '9', '45', 'Error'], answer: 0, explanation: 'luas(4, 5) mengembalikan 4 * 5 = 20.' }
+      ] }
+    ]
   }
 ];
 
@@ -891,10 +971,14 @@ const REFERENCE = [
   { icon: '✂️', title: 'String', desc: 'Gabung dengan +, hitung panjang dengan len(), format dengan f-string.', code: `nama = "Sinta"\nprint("Halo " + nama)\nprint(len(nama))\nprint(f"Halo, {nama}!")` },
   { icon: '⌨️', title: 'input()', desc: 'Membaca ketikan pengguna, hasilnya selalu str. Gunakan int() untuk angka.', code: `nama = input("Nama: ")\numur = int(input("Umur: "))` },
   { icon: '🔀', title: 'if / elif / else', desc: 'Menjalankan kode berdasarkan kondisi.', code: `nilai = 80\nif nilai >= 75:\n    print("Lulus")\nelif nilai >= 60:\n    print("Remedial")\nelse:\n    print("Tidak lulus")` },
-  { icon: '🔁', title: 'for & while', desc: 'for untuk jumlah iterasi tertentu, while selama kondisi True.', code: `for i in range(3):\n    print(i)\n\nn = 0\nwhile n < 3:\n    print(n)\n    n = n + 1` }
+  { icon: '🔁', title: 'for & while', desc: 'for untuk jumlah iterasi tertentu, while selama kondisi True.', code: `for i in range(3):\n    print(i)\n\nn = 0\nwhile n < 3:\n    print(n)\n    n = n + 1` },
+  { icon: '📋', title: 'List', desc: 'Kumpulan nilai berurutan, bisa diubah. Index mulai 0.', code: `buah = ["apel", "jeruk"]\nbuah.append("mangga")\nprint(buah[0])       # apel\nprint(len(buah))     # 3` },
+  { icon: '🗂️', title: 'Dictionary', desc: 'Data berpasangan kunci:nilai.', code: `orang = {"nama": "Budi", "umur": 25}\nprint(orang["nama"])\nprint(orang.get("ipk", 0))` },
+  { icon: '⚙️', title: 'Fungsi (def)', desc: 'Blok kode yang bisa dipakai ulang dengan return.', code: `def sapa(nama):\n    return f"Halo, {nama}!"\n\nprint(sapa("Budi"))\nprint(sapa("Sinta"))` }
 ];
 
 /* ================= TANTANGAN KODE ================= */
+/* FIX: Tambah 3 tantangan baru untuk Bab 4 */
 const CHALLENGES = [
   { id: 'sapa', icon: '🤝', title: 'Sapa Pengguna', level: 1, xp: 20, desc: 'Minta nama, lalu sapa dengan format tepat.',
     brief: 'Program meminta **satu input** berupa nama, lalu menampilkan sapaan. Format output harus **persis**: `Halo, {nama}!` — lengkap dengan koma dan tanda seru.',
@@ -951,26 +1035,61 @@ const CHALLENGES = [
       { name: '9 → Bukan Prima', inputs: ['9'], expect: 'Bukan Prima' },
       { name: '2 → Prima', inputs: ['2'], expect: 'Prima' },
       { name: '1 → Bukan Prima', inputs: ['1'], expect: 'Bukan Prima' }
+    ] },
+  /* ============= TANTANGAN BARU ============= */
+  { id: 'rata', icon: '📊', title: 'Rata-Rata Nilai', level: 2, xp: 30, desc: 'Hitung rata-rata dari beberapa nilai.',
+    brief: 'Baca **satu input** angka `n` (jumlah nilai), lalu baca **n input** berikutnya (masing-masing satu angka). Hitung dan tampilkan **rata-ratanya** sebagai bilangan desimal (pakai pembagian biasa `/`). Bulatkan ke 2 angka di belakang koma dengan `round(x, 2)`.',
+    starter: '# Baca jumlah nilai\nn = int(input("Jumlah nilai: "))\n\n# Baca n nilai, simpan di list, hitung rata-rata\n# Tampilkan rata-rata dibulatkan 2 desimal\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '3\\n80\\n90\\n100', out: '90.0' },
+    tests: [
+      { name: '3 nilai: 80, 90, 100', inputs: ['3', '80', '90', '100'], expect: '90.0' },
+      { name: '2 nilai: 70, 80', inputs: ['2', '70', '80'], expect: '75.0' },
+      { name: '4 nilai: 10, 20, 30, 40', inputs: ['4', '10', '20', '30', '40'], expect: '25.0' }
+    ] },
+  { id: 'tertinggi', icon: '🏔️', title: 'Cari Nilai Tertinggi', level: 2, xp: 30, desc: 'Temukan nilai terbesar dari beberapa angka.',
+    brief: 'Baca **satu input** angka `n` (jumlah angka), lalu baca **n input** berikutnya. Tampilkan **nilai terbesar** di antara angka-angka tersebut. Bisa pakai fungsi bawaan `max()` atau buat sendiri dengan perbandingan.',
+    starter: '# Baca jumlah angka\nn = int(input("Jumlah angka: "))\n\n# Baca n angka, cari yang terbesar\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '3\\n10\\n50\\n20', out: '50' },
+    tests: [
+      { name: '3 angka: 10, 50, 20', inputs: ['3', '10', '50', '20'], expect: '50' },
+      { name: '4 angka: 5, 8, 2, 9', inputs: ['4', '5', '8', '2', '9'], expect: '9' },
+      { name: '2 angka: 100, 1', inputs: ['2', '100', '1'], expect: '100' }
+    ] },
+  { id: 'palindrom', icon: '🪞', title: 'Cek Palindrom', level: 3, xp: 40, desc: 'Cek apakah sebuah kata terbaca sama dari depan & belakang.',
+    brief: 'Baca **satu input** berupa kata (abaikan huruf besar/kecil). Tampilkan `Palindrom` jika kata terbaca sama dari depan dan belakang, atau `Bukan` jika tidak. Petunjuk: `.lower()` untuk huruf kecil semua, dan `kata[::-1]` untuk membalik string.',
+    starter: '# Baca kata dari pengguna\nkata = input("Masukkan kata: ")\n\n# Abaikan huruf besar/kecil, cek apakah palindrom\n# Tampilkan "Palindrom" atau "Bukan"\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: 'Kasur', out: 'Palindrom' },
+    tests: [
+      { name: 'Kasur → Palindrom', inputs: ['Kasur'], expect: 'Palindrom' },
+      { name: 'Kodok → Palindrom', inputs: ['Kodok'], expect: 'Palindrom' },
+      { name: 'Python → Bukan', inputs: ['Python'], expect: 'Bukan' },
+      { name: 'Radar → Palindrom', inputs: ['Radar'], expect: 'Palindrom' },
+      { name: 'Hello → Bukan', inputs: ['Hello'], expect: 'Bukan' }
     ] }
 ];
 const chCount = p => { const ch = (p && p.ch) || {}; return Object.keys(ch).filter(k => ch[k] && ch[k].done).length; };
 
 /* ================= LENCANA ================= */
+/* FIX #4: ganti 8 jadi TOTAL, tambah lencana baru */
 const ACHIEVEMENTS = [
   { icon: '🌱', title: 'Langkah Pertama', desc: 'Selesaikan 1 latihan', done: p => p.completed >= 1 },
   { icon: '🔥', title: 'Api Semangat', desc: 'Raih streak 3 hari', done: p => p.streak >= 3 },
   { icon: '⚡', title: 'Kolektor XP', desc: 'Kumpulkan 300 XP', done: p => p.xp >= 300 },
   { icon: '🎯', title: 'Juru Presisi', desc: 'Akurasi total 90%+', done: p => p.totalCorrect + p.totalWrong >= 10 && p.totalCorrect / (p.totalCorrect + p.totalWrong) >= 0.9 },
   { icon: '💎', title: 'Tanpa Cela', desc: 'Raih latihan sempurna', done: p => p.perfect >= 1 },
-  { icon: '🏆', title: 'Master Dasar', desc: 'Selesaikan semua latihan', done: p => p.completed >= 8 },
+  { icon: '🏆', title: 'Master Dasar', desc: 'Selesaikan semua latihan dasar (Bab 1–3)', done: p => p.completed >= 8 },
+  { icon: '📚', title: 'Ahli Struktur', desc: 'Selesaikan seluruh Bab 4', done: p => p.completed >= 11 },
+  { icon: '🏅', title: 'Sarjana Python', desc: 'Selesaikan SEMUA latihan', done: p => p.completed >= TOTAL },
   { icon: '⚔️', title: 'Penakluk Tantangan', desc: 'Selesaikan 3 tantangan kode', done: p => chCount(p) >= 3 },
-  { icon: '🧠', title: 'Problem Solver', desc: 'Selesaikan semua tantangan', done: p => chCount(p) >= CHALLENGES.length }
+  { icon: '🧠', title: 'Problem Solver', desc: 'Selesaikan 6 tantangan kode', done: p => chCount(p) >= 6 },
+  { icon: '👑', title: 'Grandmaster', desc: 'Selesaikan SEMUA tantangan', done: p => chCount(p) >= CHALLENGES.length },
+  { icon: '🔥', title: 'Disiplin Seminggu', desc: 'Raih streak 7 hari', done: p => p.streak >= 7 }
 ];
 
 /* ================= UTIL ================= */
 const MAX_HEARTS = 5;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const PY_RE = /(#[^\n]*)|([fF]?"(?:[^"\\\n]|\\.)*"|[fF]?'(?:[^'\\\n]|\\.)*')|\b(print|for|in|if|elif|else|while|def|return|import|from|True|False|None|and|or|not|is|break|continue|pass|lambda)\b|\b(input|type|int|float|str|bool|len|range|upper|lower)\b|\b(\d+(?:\.\d+)?)\b/g;
+const PY_RE = /(#[^\n]*)|([fF]?"(?:[^"\\\n]|\\.)*"|[fF]?'(?:[^'\\\n]|\\.)*')|\b(print|for|in|if|elif|else|while|def|return|import|from|True|False|None|and|or|not|is|break|continue|pass|lambda)\b|\b(input|type|int|float|str|bool|len|range|upper|lower|append|get|max|round)\b|\b(\d+(?:\.\d+)?)\b/g;
 
 function hl(code) {
   let out = '', last = 0, m;
@@ -1149,7 +1268,6 @@ const app = createApp({
   setup() {
     const screen = ref('welcome');
     const tab = ref('home');
-    /* NEW: hearts masuk ke progress (global) */
     const progress = reactive({ completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0, ch: {}, hearts: MAX_HEARTS });
     try {
       const saved = JSON.parse(PYSTORE.get('pymimo-v1'));
@@ -1159,7 +1277,6 @@ const app = createApp({
     CHALLENGES.forEach(c => { if (!progress.ch[c.id]) progress.ch[c.id] = { tries: 0, done: false }; });
     const save = () => PYSTORE.set('pymimo-v1', JSON.stringify({ ...progress }));
 
-    /* NEW: helper hearts */
     function loseHeart() {
       if (progress.hearts > 0) {
         progress.hearts -= 1;
@@ -1217,7 +1334,7 @@ const app = createApp({
     });
 
     const level = computed(() => Math.floor(progress.xp / 200) + 1);
-    const levelTitle = computed(() => ['Pemula', 'Penjelajah', 'Koder', 'Ahli', 'Master'][Math.min(level.value - 1, 4)]);
+    const levelTitle = computed(() => ['Pemula', 'Penjelajah', 'Koder', 'Ahli', 'Master', 'Grandmaster'][Math.min(level.value - 1, 5)]);
     const levelPct = computed(() => (progress.xp % 200) / 2);
     const accuracyOverall = computed(() => {
       const t = progress.totalCorrect + progress.totalWrong;
@@ -1236,10 +1353,34 @@ const app = createApp({
       toastTimer = setTimeout(() => { toast.value = ''; }, 2200);
     }
 
-    function startApp() { screen.value = 'app'; tab.value = 'home'; }
+    /* FIX #5: prefetch engine saat masuk app */
+    function startApp() { 
+      screen.value = 'app'; 
+      tab.value = 'home'; 
+      ensureEngineSafe();
+    }
     function backHome() { screen.value = 'app'; tab.value = 'home'; }
-    /* NEW: navigasi cepat ke tantangan */
     function goToChallenges() { screen.value = 'app'; tab.value = 'tantangan'; }
+
+    /* FIX #2: simpan statistik saat user gagal mid-lesson */
+    function updateDayStats() {
+      const today = new Date().toLocaleDateString('en-CA');
+      if (progress.lastDay !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA');
+        progress.streak = (progress.lastDay === yesterday) ? progress.streak + 1 : 1;
+        progress.lastDay = today;
+      }
+    }
+    function abortLesson() {
+      try {
+        progress.totalCorrect += correct.value;
+        progress.totalWrong += wrongCount.value;
+        updateDayStats();
+        save();
+      } catch (e) {
+        console.warn('PyMimo: abortLesson gagal:', e);
+      }
+    }
 
     function prepareExercise() {
       const e = ex.value;
@@ -1299,10 +1440,11 @@ const app = createApp({
       return 'Klik "Uji Coba" untuk mencoba programmu…';
     });
 
+    /* FIX #5: timeout lebih singkat (10s per script) */
     function loadScript(src, timeout) {
       return new Promise((res, rej) => {
         const el = document.createElement('script');
-        const t = setTimeout(() => { el.remove(); rej(new Error('timeout: ' + src)); }, timeout || 12000);
+        const t = setTimeout(() => { el.remove(); rej(new Error('timeout: ' + src)); }, timeout || 10000);
         el.src = src;
         el.onload = () => { clearTimeout(t); res(); };
         el.onerror = () => { clearTimeout(t); el.remove(); rej(new Error('gagal: ' + src)); };
@@ -1317,9 +1459,9 @@ const app = createApp({
           if (navigator.onLine === false) throw new Error('offline');
           for (const b of CDNS) {
             try {
-              await loadScript(b + 'skulpt.min.js', 30000);
+              await loadScript(b + 'skulpt.min.js', 12000);
               if (typeof Sk === 'undefined' || !Sk.misceval) throw new Error('core rusak');
-              await loadScript(b + 'skulpt-stdlib.js', 30000);
+              await loadScript(b + 'skulpt-stdlib.js', 12000);
               if (!Sk.builtinFiles || !Sk.builtinFiles.files || !Sk.builtinFiles.files['src/builtin/sys.js']) throw new Error('stdlib rusak');
               engineState.value = 'skulpt';
               return 'skulpt';
@@ -1337,6 +1479,11 @@ const app = createApp({
     async function ensureEngineSafe() {
       try { return await ensureEngine(); }
       catch (e) { showToast('⚠️ Runtime Python gagal dimuat — periksa koneksi internet'); return null; }
+    }
+    /* FIX #5: tombol retry */
+    function retryEngine() {
+      enginePromise = null;
+      ensureEngineSafe();
     }
     watch(tab, v => { if (v === 'play' || v === 'tantangan') ensureEngineSafe(); });
 
@@ -1422,7 +1569,8 @@ const app = createApp({
           read: skRead,
           inputfun: prompt => skulptInput(tk, prompt),
           inputfunTakesPrompt: true,
-          __future__: Sk.python3 || {}
+          /* FIX #3: gunakan Sk.python3 saja, tanpa fallback {} yang menyebabkan configure error */
+          __future__: Sk.python3
         });
         Sk.execStart = Date.now();
         Sk.execLimit = 25000;
@@ -1523,7 +1671,8 @@ const app = createApp({
             read: skRead,
             inputfun: () => (qi < inputs.length ? String(inputs[qi++]) : ''),
             inputfunTakesPrompt: true,
-            __future__: Sk.python3 || {}
+            /* FIX #3: gunakan Sk.python3 saja */
+            __future__: Sk.python3
           });
           Sk.execStart = Date.now();
           Sk.execLimit = 10000;
@@ -1534,7 +1683,6 @@ const app = createApp({
       });
     }
 
-    /* NEW: chSubmit — dukung replay + refill hearts */
     async function chSubmit() {
       const c = chCur.value;
       if (!c || chBusy.value) return;
@@ -1589,7 +1737,6 @@ const app = createApp({
       }
     }
 
-    /* NEW: startLesson dengan guard hearts */
     function startLesson(flat) {
       if (progress.hearts <= 0) {
         showToast('💔 Nyawa habis! Selesaikan tantangan untuk mengisi ulang.');
@@ -1699,7 +1846,6 @@ const app = createApp({
         feedback.detail = '';
       } else {
         wrongCount.value += 1;
-        /* NEW: kurangi nyawa global */
         loseHeart();
         feedback.correct = false;
         feedback.title = progress.hearts === 0 ? 'Nyawa habis!' : 'Belum tepat · ❤️ -1';
@@ -1717,7 +1863,12 @@ const app = createApp({
 
     function advance() {
       feedback.show = false;
-      if (progress.hearts <= 0) { screen.value = 'failed'; return; }
+      if (progress.hearts <= 0) {
+        /* FIX #2: simpan statistik sebelum tampilkan failed */
+        abortLesson();
+        screen.value = 'failed';
+        return;
+      }
       if (exIdx.value < active.value.exercises.length - 1) {
         exIdx.value += 1;
         prepareExercise();
@@ -1737,12 +1888,7 @@ const app = createApp({
         if (perfect) progress.perfect += 1;
         if (active.value.flat === progress.completed) progress.completed = active.value.flat + 1;
         progress.xp += result.xp;
-        const today = new Date().toLocaleDateString('en-CA');
-        if (progress.lastDay !== today) {
-          const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA');
-          progress.streak = (progress.lastDay === yesterday) ? progress.streak + 1 : 1;
-          progress.lastDay = today;
-        }
+        updateDayStats();
         save();
       } catch (err) {
         console.warn('PyMimo: gagal menyimpan progres:', err);
@@ -1794,7 +1940,7 @@ const app = createApp({
       nextLesson, currentChapterTitle, finishMsg,
       TPL, playCode, playRunning, savePlay, loadTpl, resetPlay, runPlay, answerText,
       conRows, lastError, hasRun, engineState, engineBadge, engineBadgeClass,
-      awaitingInput, playEmptyHint, chEmptyHint, submitConInput, conClear, stopRun,
+      awaitingInput, playEmptyHint, chEmptyHint, submitConInput, conClear, stopRun, retryEngine,
       CHALLENGES, chView, chCode, chTest, chBusy, chCur, chDoneTotal, chSt, chLockedId, chIsLocked, chDone, chTriesLeft,
       openChallenge, chBack, chReset, chTry, chSubmit, saveCh, profView, badgeCount,
       startApp, startLesson, onNodeTap, place, unplace, chipAt, canCheck, checkAnswer, advance,
