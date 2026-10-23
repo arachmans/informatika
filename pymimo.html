@@ -162,7 +162,7 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
     <button @click="startApp" class="w-full bg-mimo hover:bg-mimodeep transition rounded-2xl py-4 font-extrabold text-night text-lg shadow-glow active:scale-[.98]">
       {{ progress.completed ? 'Lanjutkan Belajar' : 'Mulai Belajar' }}
     </button>
-    <p class="text-center text-[11px] text-slate-600">8 latihan · 63 soal interaktif · Editor Python · Gratis selamanya</p>
+    <p class="text-center text-[11px] text-slate-600">8 latihan · 63 soal · 6 tantangan kode · Editor Python · Gratis</p>
     <p class="text-center text-[10px] text-slate-700">Dibangun dengan Vue 3 + Tailwind CSS</p>
   </div>
 </section>
@@ -277,7 +277,7 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
         </div>
         <div class="relative">
           <pre aria-hidden="true" v-html="hlCode" class="pointer-events-none select-none absolute inset-0 m-0 py-3 pr-4 pl-[46px] overflow-hidden whitespace-pre font-mono text-[12.5px] leading-[1.65] text-slate-200"></pre>
-          <textarea v-model="playCode" @keydown.tab.prevent="tabKey" @keydown.enter="enterKey" @scroll="edScroll" @blur="savePlay"
+          <textarea v-model="playCode" @keydown.tab.prevent="tabKey($event, 'play')" @keydown.enter="enterKey($event, 'play')" @scroll="edScroll" @blur="savePlay"
             spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off"
             placeholder="# mulai menulis kode Python di sini…"
             class="ed-ta relative block w-full min-h-[240px] max-h-[60vh] py-3 pr-4 pl-[46px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-none overflow-auto focus:outline-none caret-mimo"></textarea>
@@ -338,26 +338,219 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
     <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Ditenagai <span class="font-bold">Skulpt</span> — Python 3 asli di browser: <span class="font-mono">input()</span> interaktif muncul langsung di panel OUTPUT mengikuti alur program, dan <span class="font-mono">import</span> modul standar (math, random, time, dst.) didukung. Saat offline otomatis beralih ke interpreter mini bawaan (input/import tidak tersedia). Kode otomatis tersimpan di perangkatmu.</p>
   </div>
 
-  <!-- ================= TAB: REFERENSI ================= -->
-  <div v-else-if="tab === 'ref'" class="anim-fade-up px-5 pt-6">
-    <h2 class="text-xl font-extrabold text-white">Referensi Cepat</h2>
-    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Cheat sheet dasar Python untuk membantumu mengerjakan latihan.</p>
-    <div class="space-y-3 mt-4">
-      <div v-for="(r, i) in REFERENCE" :key="i" class="rounded-2xl bg-panel border border-line overflow-hidden">
-        <div class="flex items-center gap-3 p-4 pb-3">
-          <span class="text-xl shrink-0">{{ r.icon }}</span>
-          <div class="min-w-0">
-            <p class="font-extrabold text-white text-sm">{{ r.title }}</p>
-            <p class="text-[11px] text-slate-500 leading-snug">{{ r.desc }}</p>
+  <!-- ================= TAB: TANTANGAN ================= -->
+  <div v-else-if="tab === 'tantangan'" class="anim-fade-up px-5 pt-6">
+    <!-- ===== daftar tantangan ===== -->
+    <template v-if="!chView">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-extrabold text-white">Tantangan Kode</h2>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Tulis program, uji dulu sesukamu, baru kumpulkan. Tiga kali salah — tantangan terkunci!</p>
+        </div>
+        <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚔️ {{ chDoneTotal }}/{{ CHALLENGES.length }}</span>
+      </div>
+
+      <div class="mt-4 space-y-2.5">
+        <button v-for="c in CHALLENGES" :key="c.id" @click="openChallenge(c.id)"
+          class="w-full flex items-center gap-3.5 rounded-2xl border p-4 text-left transition active:scale-[.98]"
+          :class="chSt(c.id).done ? 'bg-mimo/10 border-mimo/40' : (chLockedId(c.id) ? 'bg-panel border-line opacity-60' : 'bg-panel border-line hover:border-mimo/50')">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" :class="chSt(c.id).done ? 'bg-mimo/20' : 'bg-panel2'">{{ chLockedId(c.id) ? '🔒' : c.icon }}</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-extrabold text-sm truncate" :class="chLockedId(c.id) ? 'text-slate-400' : 'text-white'">{{ c.title }}</p>
+            <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ c.desc }}</p>
+            <p class="text-[10px] mt-1"><span class="text-amber-300 tracking-tight">{{ '⭐'.repeat(c.level) }}</span> <span class="text-mimo font-bold ml-1">+{{ c.xp }} XP</span></p>
+          </div>
+          <div class="shrink-0">
+            <span v-if="chSt(c.id).done" class="text-[9px] font-extrabold bg-mimo text-night px-2.5 py-1 rounded-full">✓ SELESAI</span>
+            <span v-else-if="chLockedId(c.id)" class="text-[9px] font-extrabold bg-danger/15 text-danger px-2.5 py-1 rounded-full">TERKUNCI</span>
+            <span v-else-if="chSt(c.id).tries > 0" class="text-[9px] font-extrabold bg-amber-400/15 text-amber-300 px-2.5 py-1 rounded-full">{{ 3 - chSt(c.id).tries }} PERCOBAAN</span>
+            <svg v-else class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </button>
+      </div>
+
+      <p class="text-[10px] text-slate-600 leading-relaxed mt-4">💡 <span class="font-bold">Uji Coba</span> tidak mengurangi percobaan — hanya <span class="font-bold">Kumpulkan</span> yang dinilai. Manfaatkan untuk memastikan programmu benar sebelum dikumpulkan.</p>
+    </template>
+
+    <!-- ===== detail tantangan ===== -->
+    <template v-else>
+      <div class="flex items-center gap-3">
+        <button @click="chBack" class="w-9 h-9 shrink-0 rounded-full bg-panel border border-line flex items-center justify-center active:scale-90 transition" aria-label="Kembali ke daftar tantangan">
+          <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h2 class="text-lg font-extrabold text-white leading-tight truncate">{{ chCur.title }}</h2>
+          <p class="text-[11px] text-slate-500 mt-0.5"><span class="text-amber-300 tracking-tight">{{ '⭐'.repeat(chCur.level) }}</span> · <span class="text-mimo font-bold">+{{ chCur.xp }} XP</span></p>
+        </div>
+        <span class="ml-auto shrink-0 text-[9px] font-extrabold px-2.5 py-1 rounded-full" :class="chDone ? 'bg-mimo text-night' : chIsLocked ? 'bg-danger/15 text-danger' : 'bg-panel2 text-slate-400'">{{ chDone ? '✓ SELESAI' : chIsLocked ? '🔒 TERKUNCI' : chTriesLeft + ' PERCOBAAN' }}</span>
+      </div>
+
+      <div v-if="chDone" class="mt-3 rounded-2xl bg-mimo/10 border border-mimo/40 px-4 py-3 text-[12.5px] font-bold text-mimo">🎉 Tantangan selesai! +{{ chCur.xp }} XP sudah masuk ke profilmu.</div>
+      <div v-else-if="chIsLocked" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 text-[12.5px] leading-relaxed text-[#fda4af] font-semibold">🔒 Tantangan ini terkunci — 3 percobaan pengumpulan sudah terpakai. Reset progres di tab Profil untuk membukanya kembali.</div>
+
+      <div class="mt-3 rounded-2xl bg-panel border border-line p-4">
+        <p class="text-slate-300 text-[13.5px] leading-relaxed" v-html="fmt(chCur.brief)"></p>
+        <div class="mt-3 rounded-xl bg-[#0a0f1a] border border-line p-3.5 font-mono text-[12px] leading-relaxed">
+          <p class="text-slate-600 text-[9px] font-extrabold tracking-widest">CONTOH</p>
+          <p class="text-[#fcd34d] mt-1.5">input&nbsp;: {{ chCur.example.in }}</p>
+          <p class="text-[#6ee7b7] whitespace-pre-wrap">output: {{ chCur.example.out }}</p>
+        </div>
+      </div>
+
+      <div v-if="!chDone && !chIsLocked" class="mt-3 flex items-center justify-between rounded-2xl bg-panel border border-line px-4 py-3">
+        <p class="text-[11px] font-bold text-slate-400">Percobaan pengumpulan salah</p>
+        <div class="flex items-center gap-1.5">
+          <span v-for="n in 3" :key="n" class="w-2.5 h-2.5 rounded-full" :class="n <= chSt(chView).tries ? 'bg-danger' : 'bg-mimo/70'"></span>
+          <span class="text-[11px] font-extrabold ml-1" :class="chTriesLeft > 1 ? 'text-mimo' : 'text-amber-300'">{{ chTriesLeft }}/3 tersisa</span>
+        </div>
+      </div>
+
+      <div class="mt-3 rounded-2xl overflow-hidden border border-line">
+        <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+          <span class="ml-2 text-[10px] font-mono text-slate-500">solusi.py</span>
+          <span class="ml-auto text-[9px] font-bold" :class="engineState === 'fallback' ? 'text-amber-400/90' : 'text-mimo/80'">{{ engineBadge }}</span>
+        </div>
+        <div class="ed-row relative bg-[#0a0f1a]">
+          <div aria-hidden="true" class="ed-gutter pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-[38px] overflow-hidden px-2.5 pt-3 pb-24 text-right font-mono text-[12.5px] leading-[1.65] text-slate-600 select-none bg-[#0a0f1a] border-r border-[#1b2942]">
+            <div v-for="n in chLineCount" :key="n" v-text="n"></div>
+          </div>
+          <div class="relative">
+            <pre aria-hidden="true" v-html="chHlCode" class="pointer-events-none select-none absolute inset-0 m-0 py-3 pr-4 pl-[46px] overflow-hidden whitespace-pre font-mono text-[12.5px] leading-[1.65] text-slate-200"></pre>
+            <textarea v-model="chCode" @keydown.tab.prevent="tabKey($event, 'ch')" @keydown.enter="enterKey($event, 'ch')" @scroll="edScroll" @blur="saveCh"
+              spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" :readonly="chIsLocked"
+              placeholder="# tulis solusimu di sini…"
+              class="ed-ta relative block w-full min-h-[220px] max-h-[55vh] py-3 pr-4 pl-[46px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-none overflow-auto focus:outline-none caret-mimo"></textarea>
           </div>
         </div>
-        <pre class="bg-[#0a0f1a] px-4 py-3.5 font-mono text-[12px] leading-relaxed overflow-x-auto border-t border-line text-slate-200" v-html="hl(r.code)"></pre>
       </div>
-    </div>
+
+      <div v-if="!chIsLocked" class="flex gap-2.5 mt-3">
+        <button v-if="!playRunning" @click="chTry" :disabled="chBusy || engineState === 'loading'"
+          class="flex-1 rounded-xl border-2 border-mimo/50 text-mimo font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Uji Coba
+        </button>
+        <button v-else @click="stopRun"
+          class="flex-1 rounded-xl bg-danger text-white font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          Hentikan
+        </button>
+        <button v-if="!chDone" @click="chSubmit" :disabled="chBusy || playRunning || engineState === 'loading'"
+          class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-3 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          {{ chBusy ? 'Memeriksa…' : 'Kumpulkan' }}
+        </button>
+        <button v-else disabled class="flex-1 rounded-xl bg-mimo/20 text-mimo font-extrabold py-3 flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Selesai
+        </button>
+        <button @click="chReset" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger" title="Kembalikan kode awal">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
+
+      <div class="mt-3 rounded-2xl overflow-hidden border border-line">
+        <div class="flex items-center justify-between gap-2 px-4 py-2.5 bg-panel2/70 border-b border-line">
+          <span class="text-[10px] font-extrabold tracking-widest text-slate-500">OUTPUT UJI COBA</span>
+          <div class="flex items-center gap-2.5">
+            <span v-if="awaitingInput" class="text-[9px] font-bold text-mimo animate-pulse">⌨ menunggu input…</span>
+            <span class="text-[9px] font-bold" :class="engineState === 'skulpt' ? 'text-mimo/80' : engineState === 'fallback' ? 'text-amber-400' : 'text-slate-500'">{{ engineBadge }}</span>
+            <button v-if="conRows.length || lastError" @click="conClear" class="text-[11px] font-bold text-slate-500 hover:text-danger transition">✕ bersihkan</button>
+          </div>
+        </div>
+        <div ref="conBox" class="bg-[#0a0f1a] px-4 py-3.5 min-h-[110px] max-h-[45vh] overflow-y-auto">
+          <div v-if="!conRows.length && !lastError" class="font-mono text-[12px] text-slate-600 italic">
+            <span v-if="engineState === 'loading'">⏳ Memuat runtime Python (Skulpt)…</span>
+            <span v-else-if="hasRun">(tidak ada output — gunakan print() untuk menampilkan hasil)</span>
+            <span v-else>Klik “Uji Coba” untuk mencoba programmu…</span>
+          </div>
+          <div v-for="(r, i) in conRows" :key="i" class="font-mono text-[12.5px] leading-relaxed">
+            <div v-if="r.kind === 'out'" class="text-[#6ee7b7] whitespace-pre-wrap break-words">{{ r.text }}</div>
+            <div v-else class="flex flex-wrap items-baseline">
+              <span class="text-[#6ee7b7] whitespace-pre">{{ r.prompt }}</span>
+              <input v-if="!r.done" v-model="r.value" @keydown.enter.prevent="submitConInput"
+                type="text" enterkeyhint="send" spellcheck="false" autocomplete="off" autocapitalize="off"
+                class="con-in-act flex-1 min-w-[120px] bg-transparent border-b border-mimo/60 focus:border-mimo outline-none text-[#6ee7b7] caret-mimo"
+                placeholder="ketik di sini…" />
+              <button v-if="!r.done" @click="submitConInput" class="ml-1.5 text-mimo/70 hover:text-mimo text-[15px] leading-none transition" title="Kirim (Enter)">⏎</button>
+              <span v-else class="text-[#fcd34d] whitespace-pre-wrap">{{ r.value }}</span>
+            </div>
+          </div>
+          <div v-if="lastError" class="rounded-xl bg-danger/10 border border-danger/30 px-3.5 py-3 mt-1.5">
+            <p class="font-mono text-[11.5px] text-danger font-bold">{{ lastError.line ? 'Baris ' + lastError.line + ' — ' : '' }}{{ lastError.type }}</p>
+            <p class="font-mono text-[12px] text-[#fda4af] mt-1 leading-relaxed">{{ lastError.msg }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="chTest" class="mt-3 rounded-2xl overflow-hidden border" :class="chTest.pass ? 'border-mimo/40' : (chTest.offline ? 'border-amber-400/40' : 'border-danger/40')">
+        <div v-if="chTest.offline" class="px-4 py-4 text-[13px] text-amber-300 leading-relaxed">
+          📡 Memeriksa tantangan membutuhkan runtime Python (Skulpt) yang diunduh dari internet. Periksa koneksi internetmu, lalu coba lagi. Sementara itu, <span class="font-bold">Uji Coba</span> tetap bisa dipakai dengan interpreter mini offline.
+        </div>
+        <template v-else>
+          <div class="px-4 py-3.5" :class="chTest.pass ? 'bg-mimo/10' : 'bg-danger/10'">
+            <p class="font-extrabold text-[14px]" :class="chTest.pass ? 'text-mimo' : 'text-danger'">{{ chTest.pass ? '✓ Semua tes lolos!' : '✗ Belum lolos' }}</p>
+            <p v-if="chTest.pass" class="text-[12px] text-slate-400 mt-1">+{{ chTest.xp }} XP ditambahkan ke profil. Kerja bagus! 🎉</p>
+            <p v-else class="text-[12px] text-slate-400 mt-1 leading-relaxed">{{ chTest.locked ? 'Tantangan terkunci — 3 percobaan sudah terpakai.' : 'Percobaan tersisa: ' + chTest.left + '. Pelajari perbandingan output di bawah, perbaiki kodemu, lalu kumpulkan lagi.' }}</p>
+          </div>
+          <div class="divide-y divide-line/60">
+            <div v-for="(r, i) in chTest.results" :key="i" class="px-4 py-3">
+              <p class="text-[12.5px] font-bold flex items-center gap-2" :class="r.pass ? 'text-mimo' : 'text-danger'">
+                <span>{{ r.pass ? '✓' : '✗' }}</span>{{ r.name }}
+              </p>
+              <div v-if="!r.pass" class="mt-2 grid grid-cols-2 gap-2">
+                <div class="rounded-lg bg-[#0a0f1a] border border-line p-2.5 min-w-0">
+                  <p class="text-[9px] font-extrabold text-slate-600 tracking-widest mb-1">DIHARAPKAN</p>
+                  <pre class="text-[11.5px] font-mono text-slate-300 whitespace-pre-wrap break-words m-0">{{ r.expect }}</pre>
+                </div>
+                <div class="rounded-lg bg-[#0a0f1a] border border-danger/30 p-2.5 min-w-0">
+                  <p class="text-[9px] font-extrabold text-slate-600 tracking-widest mb-1">KODEMU</p>
+                  <pre class="text-[11.5px] font-mono whitespace-pre-wrap break-words m-0" :class="r.err ? 'text-[#fda4af]' : 'text-slate-300'">{{ r.err ? r.err.type + ': ' + r.err.msg : (r.got || '(tidak ada output)') }}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <p class="text-[10px] text-slate-600 leading-relaxed mt-4 mb-2">💡 Kumpulkan menjalankan programmu terhadap beberapa kasus uji tersembunyi. Hasilnya dibandingkan dengan output yang diharapkan — pastikan formatnya persis sama.</p>
+    </template>
   </div>
 
   <!-- ================= TAB: PROFIL ================= -->
   <div v-else class="anim-fade-up px-5 pt-6">
+
+    <!-- ===== sub-menu: REFERENSI (dipindahkan ke dalam Profil) ===== -->
+    <template v-if="profView === 'ref'">
+      <div class="flex items-center gap-3">
+        <button @click="profView = 'main'" class="w-9 h-9 shrink-0 rounded-full bg-panel border border-line flex items-center justify-center active:scale-90 transition" aria-label="Kembali ke profil">
+          <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h2 class="text-lg font-extrabold text-white leading-tight">Referensi Cepat</h2>
+          <p class="text-[11px] text-slate-500">Cheat sheet dasar Python untuk membantumu mengerjakan latihan.</p>
+        </div>
+      </div>
+      <div class="space-y-3 mt-4">
+        <div v-for="(r, i) in REFERENCE" :key="i" class="rounded-2xl bg-panel border border-line overflow-hidden">
+          <div class="flex items-center gap-3 p-4 pb-3">
+            <span class="text-xl shrink-0">{{ r.icon }}</span>
+            <div class="min-w-0">
+              <p class="font-extrabold text-white text-sm">{{ r.title }}</p>
+              <p class="text-[11px] text-slate-500 leading-snug">{{ r.desc }}</p>
+            </div>
+          </div>
+          <pre class="bg-[#0a0f1a] px-4 py-3.5 font-mono text-[12px] leading-relaxed overflow-x-auto border-t border-line text-slate-200" v-html="hl(r.code)"></pre>
+        </div>
+      </div>
+      <button @click="profView = 'main'" class="w-full mt-5 rounded-xl border-2 border-line py-3 font-bold text-slate-300 active:scale-[.98] transition hover:border-mimo/50 hover:text-mimo">← Kembali ke Profil</button>
+    </template>
+
+    <!-- ===== profil utama ===== -->
+    <template v-else>
     <h2 class="text-xl font-extrabold text-white">Profil</h2>
 
     <div class="mt-4 rounded-3xl bg-gradient-to-br from-panel to-panel2 border border-line p-5">
@@ -395,7 +588,26 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
         <p class="text-xl font-extrabold text-white mt-1">{{ accuracyOverall }}%</p>
         <p class="text-[11px] text-slate-500">Akurasi jawaban</p>
       </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-2xl">⚔️</p>
+        <p class="text-xl font-extrabold text-white mt-1">{{ chDoneTotal }}/{{ CHALLENGES.length }}</p>
+        <p class="text-[11px] text-slate-500">Tantangan selesai</p>
+      </div>
+      <div class="rounded-2xl bg-panel border border-line p-4">
+        <p class="text-2xl">🏅</p>
+        <p class="text-xl font-extrabold text-white mt-1">{{ badgeCount }}/{{ achievements.length }}</p>
+        <p class="text-[11px] text-slate-500">Lencana terbuka</p>
+      </div>
     </div>
+
+    <button @click="profView = 'ref'" class="w-full mt-4 rounded-2xl bg-panel border border-line p-4 flex items-center gap-3.5 text-left hover:border-mimo/50 transition active:scale-[.98]">
+      <span class="w-11 h-11 rounded-xl bg-panel2 flex items-center justify-center text-xl shrink-0">📚</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-extrabold text-white text-sm">Referensi Cepat</p>
+        <p class="text-[11px] text-slate-500 truncate">Cheat sheet dasar Python: print, variabel, if, loop, dll.</p>
+      </div>
+      <svg class="w-5 h-5 text-slate-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
 
     <h3 class="font-extrabold text-white mt-7 mb-3">🏅 Lencana</h3>
     <div class="grid grid-cols-2 gap-3">
@@ -419,6 +631,7 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
     </div>
 
     <button @click="showReset = true" class="w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition">Reset Progres</button>
+    </template>
   </div>
 
   <!-- ================= BOTTOM NAV ================= -->
@@ -432,9 +645,9 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg>
         <span class="text-[10px] font-bold">Latihan</span>
       </button>
-      <button @click="tab = 'ref'" class="flex flex-col items-center gap-1 transition" :class="tab === 'ref' ? 'text-mimo' : 'text-slate-500'">
-        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-        <span class="text-[10px] font-bold">Referensi</span>
+      <button @click="tab = 'tantangan'" class="flex flex-col items-center gap-1 transition" :class="tab === 'tantangan' ? 'text-mimo' : 'text-slate-500'">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span class="text-[10px] font-bold">Tantangan</span>
       </button>
       <button @click="tab = 'profile'" class="flex flex-col items-center gap-1 transition" :class="tab === 'profile' ? 'text-mimo' : 'text-slate-500'">
         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -628,7 +841,7 @@ try { if (localStorage.getItem('pymimo-theme') === 'light') document.documentEle
   <div class="w-full max-w-sm bg-panel border border-line rounded-3xl p-6 anim-pop text-center">
     <p class="text-4xl">⚠️</p>
     <h3 class="text-lg font-extrabold text-white mt-3">Reset semua progres?</h3>
-    <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">XP, streak, dan seluruh riwayat latihan akan dihapus permanen.</p>
+    <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">XP, streak, tantangan, dan seluruh riwayat latihan akan dihapus permanen.</p>
     <div class="flex gap-3 mt-5">
       <button @click="showReset = false" class="flex-1 rounded-xl border-2 border-line py-3 font-bold text-slate-300 active:scale-95 transition">Batal</button>
       <button @click="doReset" class="flex-1 rounded-xl bg-danger py-3 font-bold text-white active:scale-95 transition">Reset</button>
@@ -1944,6 +2157,89 @@ const REFERENCE = [
   { icon: '🔁', title: 'for & while', desc: 'for untuk jumlah iterasi tertentu, while selama kondisi True.', code: `for i in range(3):\n    print(i)\n\nn = 0\nwhile n < 3:\n    print(n)\n    n = n + 1` }
 ];
 
+/* ================= TANTANGAN KODE =================
+   Setiap tantangan: tulis program di editor, Uji Coba (bebas, tidak mengurangi
+   percobaan, input() interaktif), lalu Kumpulkan — program dijalankan diam-diam
+   terhadap kasus uji (input otomatis dari antrean, output dibandingkan).
+   Salah 3 kali pengumpulan → tantangan TERKUNCI permanen (sampai reset progres). */
+const CHALLENGES = [
+  {
+    id: 'sapa', icon: '🤝', title: 'Sapa Pengguna', level: 1, xp: 20,
+    desc: 'Minta nama, lalu sapa dengan format tepat.',
+    brief: 'Program meminta **satu input** berupa nama, lalu menampilkan sapaan. Format output harus **persis**: `Halo, {nama}!` — lengkap dengan koma dan tanda seru.',
+    starter: '# Baca nama dari pengguna\nnama = input("Siapa namamu? ")\n\n# Tampilkan sapaan dengan format: Halo, {nama}!\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: 'Budi', out: 'Halo, Budi!' },
+    tests: [
+      { name: 'Nama "Budi"', inputs: ['Budi'], expect: 'Halo, Budi!' },
+      { name: 'Nama "Sinta"', inputs: ['Sinta'], expect: 'Halo, Sinta!' },
+      { name: 'Nama "Andi"', inputs: ['Andi'], expect: 'Halo, Andi!' }
+    ]
+  },
+  {
+    id: 'jumlah', icon: '➕', title: 'Penjumlahan Dua Angka', level: 1, xp: 20,
+    desc: 'Jumlahkan dua angka dari pengguna.',
+    brief: 'Baca **dua input** angka (masing-masing satu `input()`), lalu tampilkan **hasil jumlahnya**. Ingat: hasil `input()` berupa teks — bungkus dengan `int()` sebelum dijumlahkan.',
+    starter: '# Baca dua angka dari pengguna\na = int(input("Angka pertama: "))\nb = int(input("Angka kedua: "))\n\n# Tampilkan hasil penjumlahan a + b\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '3 dan 4', out: '7' },
+    tests: [
+      { name: '3 + 4 = 7', inputs: ['3', '4'], expect: '7' },
+      { name: '10 + 15 = 25', inputs: ['10', '15'], expect: '25' },
+      { name: '0 + 0 = 0', inputs: ['0', '0'], expect: '0' }
+    ]
+  },
+  {
+    id: 'genap', icon: '🔢', title: 'Genap atau Ganjil?', level: 2, xp: 30,
+    desc: 'Tentukan sebuah angka genap atau ganjil.',
+    brief: 'Baca **satu input** angka, lalu tampilkan `Genap` bila habis dibagi 2, atau `Ganjil` bila tidak. Gunakan operator sisa bagi `%` dan percabangan `if` / `else`.',
+    starter: '# Baca satu angka dari pengguna\nn = int(input("Masukkan angka: "))\n\n# Tampilkan "Genap" atau "Ganjil"\n# Petunjuk: n % 2 == 0 berarti genap\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '4', out: 'Genap' },
+    tests: [
+      { name: '4 → Genap', inputs: ['4'], expect: 'Genap' },
+      { name: '7 → Ganjil', inputs: ['7'], expect: 'Ganjil' },
+      { name: '0 → Genap', inputs: ['0'], expect: 'Genap' },
+      { name: '101 → Ganjil', inputs: ['101'], expect: 'Ganjil' }
+    ]
+  },
+  {
+    id: 'tabel', icon: '✖️', title: 'Tabel Perkalian', level: 2, xp: 30,
+    desc: 'Cetak tabel perkalian 1–5 untuk sebuah angka.',
+    brief: 'Baca **satu input** angka `n`, lalu tampilkan perkalian `n` dengan 1 sampai 5 — masing-masing **satu baris** dengan format persis `n x i = hasil` (ada spasi sebelum dan sesudah `x` serta `=`). Gunakan perulangan `for`.',
+    starter: '# Baca satu angka dari pengguna\nn = int(input("Masukkan angka: "))\n\n# Tampilkan n x 1 sampai n x 5 (satu baris per perkalian)\n# Format tiap baris: n x i = hasil\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '3', out: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' },
+    tests: [
+      { name: 'n = 3 (5 baris)', inputs: ['3'], expect: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' },
+      { name: 'n = 7 (5 baris)', inputs: ['7'], expect: '7 x 1 = 7\n7 x 2 = 14\n7 x 3 = 21\n7 x 4 = 28\n7 x 5 = 35' }
+    ]
+  },
+  {
+    id: 'faktorial', icon: '❗', title: 'Hitung Faktorial', level: 3, xp: 40,
+    desc: 'Hitung n! (faktorial) dengan perulangan.',
+    brief: 'Baca **satu input** angka `n`, lalu tampilkan nilai faktorialnya. Faktorial: `n! = n × (n-1) × … × 1`, dan `0! = 1`. Mulai hasil dari 1 lalu kalikan dengan perulangan `for` + `range()`.',
+    starter: '# Baca satu angka dari pengguna\nn = int(input("Masukkan angka: "))\n\n# Hitung faktorial n dengan perulangan\n# Contoh: 5! = 120, 0! = 1\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '5', out: '120' },
+    tests: [
+      { name: '5! = 120', inputs: ['5'], expect: '120' },
+      { name: '1! = 1', inputs: ['1'], expect: '1' },
+      { name: '0! = 1', inputs: ['0'], expect: '1' },
+      { name: '8! = 40320', inputs: ['8'], expect: '40320' }
+    ]
+  },
+  {
+    id: 'prima', icon: '💎', title: 'Cek Bilangan Prima', level: 3, xp: 40,
+    desc: 'Tentukan apakah sebuah angka prima.',
+    brief: 'Baca **satu input** angka `n`, lalu tampilkan `Prima` atau `Bukan Prima`. Bilangan prima **lebih dari 1** dan hanya habis dibagi 1 dan dirinya sendiri — jadi 1, 0, dan bilangan negatif bukan prima. Gunakan perulangan untuk mencoba pembagi 2 sampai n-1.',
+    starter: '# Baca satu angka dari pengguna\nn = int(input("Masukkan angka: "))\n\n# Tampilkan "Prima" atau "Bukan Prima"\n# Petunjuk: angka < 2 pasti bukan prima\n# Tulis kodemu di bawah ini 👇\n',
+    example: { in: '7', out: 'Prima' },
+    tests: [
+      { name: '7 → Prima', inputs: ['7'], expect: 'Prima' },
+      { name: '9 → Bukan Prima', inputs: ['9'], expect: 'Bukan Prima' },
+      { name: '2 → Prima', inputs: ['2'], expect: 'Prima' },
+      { name: '1 → Bukan Prima', inputs: ['1'], expect: 'Bukan Prima' }
+    ]
+  }
+];
+const chCount = p => { const ch = (p && p.ch) || {}; return Object.keys(ch).filter(k => ch[k] && ch[k].done).length; };
+
 /* ================= LENCANA ================= */
 const ACHIEVEMENTS = [
   { icon: '🌱', title: 'Langkah Pertama', desc: 'Selesaikan 1 latihan', done: p => p.completed >= 1 },
@@ -1951,7 +2247,9 @@ const ACHIEVEMENTS = [
   { icon: '⚡', title: 'Kolektor XP', desc: 'Kumpulkan 300 XP', done: p => p.xp >= 300 },
   { icon: '🎯', title: 'Juru Presisi', desc: 'Akurasi total 90%+', done: p => p.totalCorrect + p.totalWrong >= 10 && p.totalCorrect / (p.totalCorrect + p.totalWrong) >= 0.9 },
   { icon: '💎', title: 'Tanpa Cela', desc: 'Raih latihan sempurna', done: p => p.perfect >= 1 },
-  { icon: '🏆', title: 'Master Dasar', desc: 'Selesaikan semua latihan', done: p => p.completed >= 8 }
+  { icon: '🏆', title: 'Master Dasar', desc: 'Selesaikan semua latihan', done: p => p.completed >= 8 },
+  { icon: '⚔️', title: 'Penakluk Tantangan', desc: 'Selesaikan 3 tantangan kode', done: p => chCount(p) >= 3 },
+  { icon: '🧠', title: 'Problem Solver', desc: 'Selesaikan semua tantangan', done: p => chCount(p) >= CHALLENGES.length }
 ];
 
 /* ================= UTIL ================= */
@@ -2030,7 +2328,7 @@ createApp({
   setup() {
     const screen = ref('welcome');
     const tab = ref('home');
-    const progress = reactive({ completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0 });
+    const progress = reactive({ completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0, ch: {} });
     try {
       const saved = JSON.parse(PYSTORE.get('pymimo-v1'));
       if (saved && typeof saved === 'object') Object.assign(progress, saved);
@@ -2187,8 +2485,8 @@ createApp({
       }
       return enginePromise;
     }
-    /* muat runtime begitu tab Latihan dibuka agar run pertama langsung siap */
-    watch(tab, v => { if (v === 'play') ensureEngine(); });
+    /* muat runtime begitu tab Latihan/Tantangan dibuka agar run pertama langsung siap */
+    watch(tab, v => { if (v === 'play' || v === 'tantangan') ensureEngine(); });
 
     function conOut(text) {
       const rows = conRows.value;
@@ -2261,9 +2559,8 @@ createApp({
       return { type, msg, line };
     }
 
-    async function runPlay() {
+    async function runCode(code) {
       if (playRunning.value) return;
-      savePlay();
       const tk = ++runToken;
       conRows.value = [];
       lastError.value = null;
@@ -2282,7 +2579,7 @@ createApp({
           });
           Sk.execStart = Date.now();
           Sk.execLimit = 25000;
-          await Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, playCode.value, true));
+          await Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, code, true));
         } catch (err) {
           if (tk === runToken) lastError.value = skulptErr(err);
         } finally {
@@ -2293,7 +2590,7 @@ createApp({
         setTimeout(() => {
           if (tk !== runToken) return;
           let res;
-          try { res = PyMini.run(playCode.value); }
+          try { res = PyMini.run(code); }
           catch (err) { res = { stdout: '', error: { type: 'InternalError', msg: String(err && err.message || err), line: null } }; }
           if (res.stdout) conOut(res.stdout);
           if (res.error) lastError.value = res.error;
@@ -2302,6 +2599,7 @@ createApp({
         }, 30);
       }
     }
+    function runPlay() { savePlay(); runCode(playCode.value); }
 
     function savePlay() { PYSTORE.set('pymimo-play', playCode.value); }
     function loadTpl(k) {
@@ -2325,12 +2623,12 @@ createApp({
     }
     /* konsol selalu menempel ke baris terbaru (output/input/error) */
     watch([conRows, lastError], () => nextTick(() => { const el = conBox.value; if (el) el.scrollTop = el.scrollHeight; }), { deep: true });
-    function tabKey(ev) {
+    function tabKey(ev, which) {
       const ta = ev.target;
       ta.setRangeText('    ', ta.selectionStart, ta.selectionEnd, 'end');
-      playCode.value = ta.value;
+      (which === 'ch' ? chCode : playCode).value = ta.value;
     }
-    function enterKey(ev) {
+    function enterKey(ev, which) {
       const ta = ev.target;
       if (ta.selectionStart !== ta.selectionEnd) return;
       const before = ta.value.slice(0, ta.selectionStart);
@@ -2340,7 +2638,7 @@ createApp({
       if (!indent) return;
       ev.preventDefault();
       ta.setRangeText('\n' + indent, ta.selectionStart, ta.selectionEnd, 'end');
-      playCode.value = ta.value;
+      (which === 'ch' ? chCode : playCode).value = ta.value;
     }
     function edSync() {
       const ta = document.querySelector('.ed-row textarea');
@@ -2352,6 +2650,130 @@ createApp({
     }
     function edScroll() { edSync(); }
     watch(playCode, () => nextTick(edSync));
+
+    /* ================= TANTANGAN KODE =================
+       State per tantangan tersimpan di progress.ch[id] = { tries, done }.
+       Uji Coba = runCode(chCode) di konsol interaktif (bebas, tanpa risiko).
+       Kumpulkan = jalankan diam-diam terhadap semua kasus uji; salah 3× → kunci. */
+    const chView = ref(null);
+    const chCode = ref('');
+    const chTest = ref(null);
+    const chBusy = ref(false);
+    const profView = ref('main');
+    const chLineCount = computed(() => chCode.value.split('\n').length);
+    const chHlCode = computed(() => hl(chCode.value) + '\n');
+    const chCur = computed(() => CHALLENGES.find(c => c.id === chView.value) || null);
+    const chDoneTotal = computed(() => chCount(progress));
+    const badgeCount = computed(() => achievements.value.filter(a => a.unlocked).length);
+    function chSt(id) { const c = progress.ch; return (id && c && c[id]) ? c[id] : { tries: 0, done: false }; }
+    function chLockedId(id) { const s = chSt(id); return !s.done && s.tries >= 3; }
+    const chIsLocked = computed(() => chLockedId(chView.value));
+    const chDone = computed(() => !!chSt(chView.value).done);
+    const chTriesLeft = computed(() => Math.max(0, 3 - chSt(chView.value).tries));
+
+    function saveCh() { if (chView.value) PYSTORE.set('pymimo-ch-' + chView.value, chCode.value); }
+    function openChallenge(id) {
+      const c = CHALLENGES.find(x => x.id === id);
+      if (!c) return;
+      if (playRunning.value) stopRun();
+      chView.value = id;
+      chCode.value = PYSTORE.get('pymimo-ch-' + id) || c.starter;
+      chTest.value = null;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      window.scrollTo(0, 0);
+      nextTick(edSync);
+    }
+    function chBack() {
+      if (playRunning.value) stopRun();
+      saveCh();
+      chView.value = null;
+      chTest.value = null;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      window.scrollTo(0, 0);
+    }
+    function chReset() {
+      if (!chCur.value) return;
+      chCode.value = chCur.value.starter;
+      saveCh();
+      showToast('Kode awal dikembalikan 🔄');
+    }
+    function chTry() {
+      chTest.value = null;
+      saveCh();
+      runCode(chCode.value);
+    }
+
+    /* normalisasi output untuk perbandingan: buang spasi di akhir baris + baris kosong di ujung */
+    const normOut = s => String(s).split('\n').map(l => l.replace(/\s+$/g, '')).join('\n').replace(/^\n+/, '').replace(/\n+$/, '');
+    /* jalankan kode secara diam-diam: output ditangkap ke string, input() diambil dari antrean tes */
+    function runSkulptCapture(code, inputs) {
+      let out = '';
+      let qi = 0;
+      return new Promise(resolve => {
+        let settled = false;
+        const finish = r => { if (!settled) { settled = true; resolve(r); } };
+        try {
+          Sk.configure({
+            output: t => { out += t; },
+            read: skRead,
+            inputfun: () => (qi < inputs.length ? String(inputs[qi++]) : ''),
+            inputfunTakesPrompt: true,
+            __future__: Sk.python3 || {}
+          });
+          Sk.execStart = Date.now();
+          Sk.execLimit = 10000;
+          Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, code, true))
+            .then(() => finish({ out, err: null }))
+            .catch(err => finish({ out, err: skulptErr(err) }));
+        } catch (err) { finish({ out, err: skulptErr(err) }); }
+      });
+    }
+    async function chSubmit() {
+      const c = chCur.value;
+      if (!c || chBusy.value) return;
+      const s0 = chSt(c.id);
+      if (s0.done || s0.tries >= 3) return;
+      if (playRunning.value) stopRun();
+      saveCh();
+      chTest.value = null;
+      const eng = await ensureEngine();
+      if (eng !== 'skulpt') {
+        chTest.value = { offline: true };
+        showToast('Memeriksa tantangan butuh koneksi internet 📡');
+        return;
+      }
+      chBusy.value = true;
+      const results = [];
+      for (const t of c.tests) {
+        const r = await runSkulptCapture(chCode.value, t.inputs || []);
+        const pass = !r.err && normOut(r.out) === normOut(t.expect);
+        results.push({ name: t.name, pass, expect: t.expect, got: normOut(r.out), err: r.err });
+      }
+      chBusy.value = false;
+      const allPass = results.every(r => r.pass);
+      if (!progress.ch[c.id]) progress.ch[c.id] = { tries: 0, done: false };
+      const s = progress.ch[c.id];
+      if (allPass) {
+        const first = !s.done;
+        s.done = true;
+        if (first) {
+          progress.xp += c.xp;
+          try { save(); } catch (e) {}
+        }
+        chTest.value = { pass: true, results, xp: c.xp, first };
+        showToast('Tantangan diselesaikan! +' + c.xp + ' XP 🎉');
+      } else {
+        s.tries += 1;
+        try { save(); } catch (e) {}
+        chTest.value = { pass: false, results, left: Math.max(0, 3 - s.tries), locked: s.tries >= 3 };
+        if (s.tries >= 3) showToast('Tantangan terkunci — 3 percobaan habis 🔒');
+      }
+    }
+    watch(chCode, () => nextTick(edSync));
 
     function startLesson(flat) {
       active.value = FLAT[flat];
@@ -2519,7 +2941,7 @@ createApp({
 
     function doReset() {
       try {
-        Object.assign(progress, { completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0 });
+        Object.assign(progress, { completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0, ch: {} });
         save();
       } catch (err) {
         console.warn('PyMimo: gagal menyimpan progres:', err);
@@ -2545,6 +2967,8 @@ createApp({
       nextLesson, currentChapterTitle, finishMsg,
       TPL, playCode, playRunning, lineCount, hlCode, savePlay, loadTpl, resetPlay, runPlay, tabKey, enterKey, edScroll, answerText,
       conRows, lastError, hasRun, conBox, engineState, engineBadge, awaitingInput, submitConInput, conClear, stopRun,
+      CHALLENGES, chView, chCode, chLineCount, chHlCode, chTest, chBusy, chCur, chDoneTotal, chSt, chLockedId, chIsLocked, chDone, chTriesLeft,
+      openChallenge, chBack, chReset, chTry, chSubmit, saveCh, profView, badgeCount,
       startApp, startLesson, onNodeTap, place, unplace, chipAt, canCheck, checkAnswer, advance,
       optionClass, chipClass, blankClass, backHome, doReset, hl, fmt,
       theme, setTheme, toggleTheme,
