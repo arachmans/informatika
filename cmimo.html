@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1420">
+<title>CppMimo — Belajar C++ dengan JSCPP</title>
+<meta name="description" content="Aplikasi belajar C++ interaktif dengan JSCPP dan compatibility layer string.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        night: 'rgb(var(--c-night) / <alpha-value>)',
+        panel: 'rgb(var(--c-panel) / <alpha-value>)',
+        panel2: 'rgb(var(--c-panel2) / <alpha-value>)',
+        line: 'rgb(var(--c-line) / <alpha-value>)',
+        mimo: 'rgb(var(--c-mimo) / <alpha-value>)',
+        mimodeep: 'rgb(var(--c-mimodeep) / <alpha-value>)',
+        danger: 'rgb(var(--c-danger) / <alpha-value>)'
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'Consolas', 'Menlo', 'monospace']
+      },
+      boxShadow: { glow: '0 10px 40px -10px rgba(96,165,250,.45)' }
+    }
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+html { -webkit-tap-highlight-color: transparent; }
+:root {
+  --c-night: 13 20 32; --c-panel: 21 30 46; --c-panel2: 28 40 65; --c-line: 38 52 80;
+  --c-mimo: 96 165 250; --c-mimodeep: 59 130 246; --c-danger: 255 92 108;
+  --page-bg: #0d1420; --sb-thumb: #263450;
+}
+html.light {
+  --c-night: 241 245 249; --c-panel: 255 255 255; --c-panel2: 241 245 249; --c-line: 203 213 225;
+  --c-mimo: 37 99 235; --c-mimodeep: 29 78 216; --c-danger: 225 29 72;
+  --page-bg: #f1f5f9; --sb-thumb: #cbd5e1;
+}
+body { background: radial-gradient(1100px 480px at 50% -8%, rgba(96,165,250,.08), transparent 60%), var(--page-bg); }
+.app-col { max-width: 28rem; margin-inline: auto; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--sb-thumb); border-radius: 99px; }
+::-webkit-scrollbar-track { background: transparent; }
+.tok-kw { color: #f472b6; }
+.tok-fn { color: #7dd3fc; }
+.tok-str { color: #fbbf24; }
+.tok-num { color: #6ee7b7; }
+.tok-com { color: #64748b; font-style: italic; }
+.tok-pre { color: #c084fc; }
+pre, code, .font-mono { tab-size: 4; }
+.ic-code { background: #1c2841; color: #93c5fd; padding: 2px 7px; border-radius: 6px; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: .78rem; white-space: nowrap; }
+/* FIX: caret-color agar kursor terlihat pada textarea transparan */
+.ed-ta { color: transparent; caret-color: #93c5fd; }
+.ed-ta::selection { background: rgba(96,165,250,.32); color: transparent; }
+.ed-ta:focus { outline: none; }
+.ed-gutter { scrollbar-width: none; }
+.ed-gutter::-webkit-scrollbar { display: none; }
+.ic-b { color: #fff; font-weight: 700; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes popIn { 0% { transform: scale(.6); opacity: 0; } 70% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes pulseRing { 0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,.35); } 50% { box-shadow: 0 0 0 10px rgba(96,165,250,0); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes confFall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: .6; } }
+@keyframes heartBeat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.28); } 55% { transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+.anim-fade-up { animation: fadeUp .35s ease both; }
+.anim-slide-up { animation: slideUp .3s cubic-bezier(.2,.8,.3,1) both; }
+.anim-pop { animation: popIn .4s cubic-bezier(.2,.8,.3,1.3) both; }
+.anim-float { animation: floaty 3.2s ease-in-out infinite; }
+.anim-beat { animation: heartBeat .5s ease; }
+.node-active { animation: pulseRing 2s ease infinite; }
+.confetti-piece { position: absolute; top: -4vh; border-radius: 2px; animation: confFall linear infinite; }
+.spin { animation: spin 1s linear infinite; }
+.caret { animation: blink 1s step-end infinite; }
+.blank-slot { display: inline-flex; align-items: center; justify-content: center; min-width: 60px; padding: 1px 10px; margin: 3px 2px; border-radius: 8px; border: 2px dashed #3d4f70; color: #64748b; background: rgba(28,40,65,.5); font-size: 13px; vertical-align: middle; transition: all .15s; }
+.blank-slot.filled { border-style: solid; border-color: rgba(96,165,250,.55); background: rgba(96,165,250,.12); color: #e2e8f0; }
+.blank-slot.ok { border-style: solid; border-color: #60a5fa; background: rgba(96,165,250,.15); color: #60a5fa; }
+.blank-slot.bad { border-style: solid; border-color: #ff5c6c; background: rgba(255,92,108,.12); color: #fda4af; }
+html.light .text-white { color: #0f172a; }
+html.light .text-slate-200 { color: #334155; }
+html.light .text-slate-300 { color: #475569; }
+html.light pre.text-slate-200, html.light .codebox { color: #e2e8f0; }
+html.light .fb-bar [class*="text-white"] { color: #fff; }
+html.light .ic-code { background: #dbeafe; color: #1d4ed8; }
+html.light .ic-b { color: #0f172a; }
+.safe-bottom-nav { padding-bottom: max(0.625rem, env(safe-area-inset-bottom)); }
+.safe-bottom-footer { padding-bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 0.5rem); }
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-up, .anim-slide-up, .anim-pop, .anim-float, .anim-beat, .node-active, .confetti-piece, .caret { animation: none !important; transform: none !important; }
+}
+</style>
+<script>try { if (localStorage.getItem('cppmimo-jscpp-theme') === 'light') document.documentElement.classList.add('light'); } catch (e) {}</script>
+</head>
+<body class="bg-night text-slate-200 font-sans antialiased">
+<div id="app">
+
+  <!-- WELCOME -->
+  <section v-if="screen === 'welcome'" class="relative min-h-screen app-col md:border-x md:border-line/40 flex flex-col px-6 overflow-hidden">
+    <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-mimo/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-16 -left-28 w-72 h-72 rounded-full bg-violet-500/10 blur-3xl pointer-events-none"></div>
+    <button @click="toggleTheme" class="absolute top-5 right-5 z-10 w-10 h-10 rounded-full bg-panel/80 border border-line backdrop-blur flex items-center justify-center active:scale-90 transition">
+      <svg v-if="theme === 'dark'" class="w-5 h-5 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <svg v-else class="w-5 h-5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <div class="flex-1 flex flex-col items-center justify-center text-center gap-7 anim-fade-up">
+      <div class="anim-float w-24 h-24 rounded-[28px] bg-gradient-to-br from-mimo to-mimodeep flex items-center justify-center shadow-glow">
+        <span class="text-5xl">⚙️</span>
+      </div>
+      <div>
+        <h1 class="text-4xl font-black tracking-tight text-white">Cpp<span class="text-mimo">Mimo</span></h1>
+        <p class="mt-3 text-slate-400 leading-relaxed max-w-xs mx-auto">Belajar C++ dengan JSCPP + mode kompatibilitas <code class="font-mono">&lt;string&gt;</code>. Latihan singkat, kuis, XP, dan streak.</p>
+      </div>
+      <div class="grid grid-cols-3 gap-3 w-full">
+        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">⚡</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">XP & Level</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">🔥</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Streak Harian</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">🧩</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Latihan Interaktif</p></div>
+      </div>
+    </div>
+    <div class="pb-10 space-y-3">
+      <button @click="startApp" class="w-full bg-mimo hover:bg-mimodeep transition rounded-2xl py-4 font-extrabold text-night text-lg shadow-glow active:scale-[.98]">
+        {{ progress.completed ? 'Lanjutkan Belajar' : 'Mulai Belajar' }}
+      </button>
+      <p class="text-center text-[11px] text-slate-600">CppMimo · JSCPP + String Compat</p>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section v-else-if="screen === 'app'" class="relative min-h-screen app-col md:border-x md:border-line/40 pb-24">
+
+    <!-- HOME -->
+    <div v-if="tab === 'home'" class="anim-fade-up">
+      <header class="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-4 bg-night/95 backdrop-blur border-b border-line/60">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-mimo to-mimodeep flex items-center justify-center text-xl shrink-0">⚙️</div>
+          <div class="min-w-0">
+            <p class="text-sm font-extrabold text-white leading-tight">CppMimo</p>
+            <p class="text-[11px] text-slate-500 truncate">{{ greeting }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button @click="toggleTheme" class="w-8 h-8 flex items-center justify-center bg-panel border border-line rounded-full active:scale-90 transition">
+            <svg v-if="theme === 'dark'" class="w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <svg v-else class="w-4 h-4 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+          <div class="flex items-center gap-1 bg-panel border border-line rounded-full pl-2 pr-2.5 py-1.5">
+            <svg class="w-4 h-4 text-danger" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <span class="text-sm font-extrabold">{{ progress.hearts }}</span>
+          </div>
+          <div class="flex items-center gap-1 bg-panel border border-line rounded-full pl-2 pr-2.5 py-1.5">
+            <svg class="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span class="text-sm font-extrabold">{{ progress.streak }}</span>
+          </div>
+          <div class="flex items-center gap-1 bg-panel border border-line rounded-full pl-2 pr-2.5 py-1.5">
+            <svg class="w-4 h-4 text-mimo" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 11-14h-8l1-6z"/></svg>
+            <span class="text-sm font-extrabold">{{ progress.xp }}</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="px-5 mt-4">
+        <div v-if="nextLesson" class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-mimo to-mimodeep p-5 text-night">
+          <div class="absolute -right-4 -top-8 text-[110px] leading-none opacity-20 rotate-12 select-none">{{ nextLesson.icon }}</div>
+          <p class="text-[10px] font-extrabold uppercase tracking-[.18em] opacity-70">Lanjutkan Belajar</p>
+          <h2 class="text-[22px] font-black mt-1 leading-tight">{{ nextLesson.title }}</h2>
+          <p class="text-[13px] font-bold opacity-80">{{ currentChapterTitle }}</p>
+          <button @click="startLesson(nextLesson.flat)" class="mt-4 bg-night text-white rounded-xl px-5 py-2.5 text-sm font-extrabold flex items-center gap-2 active:scale-95 transition">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Mulai Latihan
+          </button>
+        </div>
+        <div v-else class="rounded-3xl bg-panel border border-line p-6 text-center">
+          <p class="text-4xl">🎉</p>
+          <h2 class="text-lg font-extrabold text-white mt-2">Semua Latihan Selesai!</h2>
+          <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Kamu telah menyelesaikan seluruh materi CppMimo.</p>
+        </div>
+      </div>
+
+      <div class="px-5 mt-7 space-y-7">
+        <div v-for="(ch, ci) in course" :key="ci">
+          <div class="flex items-center gap-3.5 rounded-2xl bg-panel border border-line p-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 bg-panel2">{{ ch.icon }}</div>
+            <div class="flex-1 min-w-0">
+              <p class="font-extrabold text-white text-sm truncate">{{ ch.title }}</p>
+              <p class="text-[11px] text-slate-500 truncate">{{ ch.desc }}</p>
+            </div>
+            <span class="text-[11px] font-extrabold rounded-full px-2.5 py-1 shrink-0" :class="chapterDoneCount(ci) >= ch.lessons.length ? 'bg-mimo/15 text-mimo' : 'bg-panel2 text-slate-400'">{{ chapterDoneCount(ci) }}/{{ ch.lessons.length }}</span>
+          </div>
+          <div class="relative mt-2.5">
+            <div class="absolute left-[25px] top-6 bottom-8 w-[3px] rounded bg-line/70"></div>
+            <div v-for="lsn in ch.lessons" :key="lsn.flat" class="relative flex items-center gap-4 py-2">
+              <button @click="onNodeTap(lsn)" class="w-[52px] h-[52px] shrink-0 rounded-2xl flex items-center justify-center border-2 text-xl transition active:scale-90" :class="nodeClass(lsn)">
+                <svg v-if="lsn.flat < progress.completed" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span v-else-if="lsn.flat === progress.completed">{{ lsn.icon }}</span>
+                <svg v-else class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              </button>
+              <div @click="onNodeTap(lsn)" class="flex-1 cursor-pointer">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <p class="font-bold text-sm" :class="lsn.flat < progress.completed ? 'text-slate-400' : 'text-white'">{{ lsn.title }}</p>
+                  <span v-if="lsn.flat === progress.completed" class="text-[9px] font-extrabold bg-mimo text-night px-2 py-0.5 rounded-full tracking-wider">MULAI</span>
+                  <span v-else-if="lsn.flat < progress.completed" class="text-[9px] font-bold text-mimo/70">✓ Selesai</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ lsn.exercises.length }} soal · hingga +{{ lsn.xpMax }} XP</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAY -->
+    <div v-else-if="tab === 'play'" class="anim-fade-up px-5 pt-6">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-extrabold text-white">Editor C++</h2>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Jalankan C++ dengan JSCPP · input interaktif di console.</p>
+        </div>
+        <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚙️ C++ · JSCPP</span>
+      </div>
+
+      <div v-if="engineState === 'loading'" class="mt-3 rounded-2xl bg-sky-400/10 border border-sky-400/30 px-4 py-3 flex items-center gap-3">
+        <svg class="w-5 h-5 text-sky-300 spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <p class="text-[12px] text-sky-200 leading-snug">Memuat JSCPP… butuh internet saat pertama kali.</p>
+      </div>
+
+      <div v-else-if="engineState === 'error'" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+        <span class="text-xl">⚠️</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-bold text-[#fda4af]">JSCPP gagal dimuat</p>
+          <p class="text-[10.5px] text-slate-400 leading-snug mt-0.5">Periksa koneksi internet atau buka lewat server lokal.</p>
+        </div>
+        <button @click="retryEngine" class="shrink-0 rounded-xl bg-danger text-white font-extrabold text-[11px] px-3 py-2 active:scale-95 transition">Coba Lagi</button>
+      </div>
+
+      <p class="text-[10px] font-extrabold tracking-[.18em] text-slate-500 mt-5 mb-2">CONTOH KODE</p>
+      <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+        <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)" class="shrink-0 px-3.5 py-2 rounded-xl bg-panel border border-line text-[12px] font-bold text-slate-300 hover:border-mimo/60 active:scale-95 transition">▶ {{ t.name }}</button>
+      </div>
+
+      <cpp-editor v-model="playCode" class="mt-3" filename="main.cpp" placeholder="// tulis kode C++ di sini…" :badge="engineBadge" :badge-class="engineBadgeClass" @blur="savePlay"></cpp-editor>
+
+      <div class="flex gap-2.5 mt-3">
+        <button @click="runPlay" :disabled="playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-3 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          {{ playRunning ? (awaitingInput ? 'Menunggu input…' : 'Menjalankan…') : (engineState === 'loading' ? 'Memuat…' : 'Jalankan') }}
+        </button>
+        <button @click="resetPlay" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
+
+      <cpp-console class="mt-3" :rows="conRows" :last-error="lastError" :empty-hint="playEmptyHint"
+        :awaiting-input="awaitingInput" @clear="conClear"
+        @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
+
+      <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Input diketik langsung di console mengikuti alur program. Untuk program dengan loop <code class="font-mono">while (cin &gt;&gt; x)</code>, tekan <b>EOF</b> saat selesai memberi input.</p>
+    </div>
+
+    <!-- TANTANGAN -->
+    <div v-else-if="tab === 'tantangan'" class="anim-fade-up px-5 pt-6">
+      <template v-if="!chView">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-extrabold text-white">Tantangan Kode</h2>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Tulis program C++, uji dulu, lalu kumpulkan.</p>
+          </div>
+          <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚔️ {{ chDoneTotal }}/{{ CHALLENGES.length }}</span>
+        </div>
+
+        <div v-if="engineState === 'loading'" class="mt-3 rounded-2xl bg-sky-400/10 border border-sky-400/30 px-4 py-3 flex items-center gap-3">
+          <svg class="w-5 h-5 text-sky-300 spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          <p class="text-[12px] text-sky-200 leading-snug">Memuat JSCPP…</p>
+        </div>
+
+        <div v-else-if="engineState === 'error'" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+          <span class="text-xl">⚠️</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[12px] font-bold text-[#fda4af]">JSCPP gagal dimuat</p>
+            <p class="text-[10.5px] text-slate-400 leading-snug mt-0.5">Periksa koneksi internet lalu coba lagi.</p>
+          </div>
+          <button @click="retryEngine" class="shrink-0 rounded-xl bg-danger text-white font-extrabold text-[11px] px-3 py-2 active:scale-95 transition">Coba Lagi</button>
+        </div>
+
+        <div v-if="progress.hearts < MAX_HEARTS" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+          <span class="text-xl">❤️</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[12px] font-bold text-[#fda4af]">Nyawa {{ progress.hearts }}/{{ MAX_HEARTS }}</p>
+            <p class="text-[10.5px] text-slate-400 leading-snug mt-0.5">Selesaikan tantangan untuk mengisi ulang nyawa.</p>
+          </div>
+        </div>
+
+        <div class="mt-4 space-y-2.5">
+          <button v-for="c in CHALLENGES" :key="c.id" @click="openChallenge(c.id)" class="w-full flex items-center gap-3.5 rounded-2xl border p-4 text-left transition active:scale-[.98]" :class="chSt(c.id).done ? 'bg-mimo/10 border-mimo/40' : (chLockedId(c.id) ? 'bg-panel border-line opacity-60' : 'bg-panel border-line hover:border-mimo/50')">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" :class="chSt(c.id).done ? 'bg-mimo/20' : 'bg-panel2'">{{ chLockedId(c.id) ? '🔒' : c.icon }}</div>
+            <div class="flex-1 min-w-0">
+              <p class="font-extrabold text-sm truncate" :class="chLockedId(c.id) ? 'text-slate-400' : 'text-white'">{{ c.title }}</p>
+              <p class="text-[11px] text-slate-500 truncate mt-0.5">{{ c.desc }}</p>
+              <p class="text-[10px] mt-1"><span class="text-amber-300 tracking-tight">{{ '⭐'.repeat(c.level) }}</span> <span class="text-mimo font-bold ml-1">+{{ c.xp }} XP</span></p>
+            </div>
+            <div class="shrink-0">
+              <span v-if="chSt(c.id).done" class="text-[9px] font-extrabold bg-mimo text-night px-2.5 py-1 rounded-full">✓ SELESAI</span>
+              <span v-else-if="chLockedId(c.id)" class="text-[9px] font-extrabold bg-danger/15 text-danger px-2.5 py-1 rounded-full">TERKUNCI</span>
+              <svg v-else class="w-5 h-5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+          </button>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="flex items-center gap-3">
+          <button @click="chBack" class="w-9 h-9 shrink-0 rounded-full bg-panel border border-line flex items-center justify-center active:scale-90 transition">
+            <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="min-w-0">
+            <h2 class="text-lg font-extrabold text-white leading-tight truncate">{{ chCur.title }}</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5"><span class="text-amber-300 tracking-tight">{{ '⭐'.repeat(chCur.level) }}</span> · <span class="text-mimo font-bold">+{{ chCur.xp }} XP</span></p>
+          </div>
+          <span class="ml-auto shrink-0 text-[9px] font-extrabold px-2.5 py-1 rounded-full" :class="chDone ? 'bg-mimo text-night' : chIsLocked ? 'bg-danger/15 text-danger' : 'bg-panel2 text-slate-400'">{{ chDone ? '✓ SELESAI' : chIsLocked ? '🔒 TERKUNCI' : chTriesLeft + ' PERCOBAAN' }}</span>
+        </div>
+
+        <div class="mt-3 rounded-2xl bg-panel border border-line p-4">
+          <p class="text-slate-300 text-[13.5px] leading-relaxed" v-html="fmt(chCur.brief)"></p>
+          <div class="mt-3 rounded-xl bg-[#0a0f1a] border border-line p-3.5 font-mono text-[12px] leading-relaxed">
+            <p class="text-slate-600 text-[9px] font-extrabold tracking-widest">CONTOH</p>
+            <p class="text-[#fcd34d] mt-1.5">input&nbsp;: {{ chCur.example.in }}</p>
+            <p class="text-[#6ee7b7] whitespace-pre-wrap">output: {{ chCur.example.out }}</p>
+          </div>
+        </div>
+
+        <cpp-editor v-model="chCode" class="mt-3" filename="solusi.cpp" placeholder="// tulis solusimu di sini…" :readonly="chIsLocked" @blur="saveCh"></cpp-editor>
+
+        <div v-if="!chIsLocked" class="flex gap-2.5 mt-3">
+          <button @click="chTry" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl border-2 border-mimo/50 text-mimo font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            Uji Coba
+          </button>
+          <button @click="chSubmit" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60" :class="chDone ? 'border-2 border-mimo/50 text-mimo' : 'bg-mimo text-night shadow-glow'">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            {{ chBusy ? 'Memeriksa…' : (chDone ? 'Latih Ulang' : 'Kumpulkan') }}
+          </button>
+          <button @click="chReset" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+        </div>
+
+        <cpp-console class="mt-3" :rows="conRows" :last-error="lastError" :empty-hint="chEmptyHint"
+          :awaiting-input="awaitingInput" @clear="conClear"
+          @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
+
+        <div v-if="chTest" class="mt-3 rounded-2xl overflow-hidden border" :class="chTest.pass ? 'border-mimo/40' : 'border-danger/40'">
+          <div class="px-4 py-3.5" :class="chTest.pass ? 'bg-mimo/10' : 'bg-danger/10'">
+            <p class="font-extrabold text-[14px]" :class="chTest.pass ? 'text-mimo' : 'text-danger'">{{ chTest.pass ? '✓ Semua tes lolos!' : '✗ Belum lolos' }}</p>
+          </div>
+          <div class="divide-y divide-line/60">
+            <div v-for="(r, i) in chTest.results" :key="i" class="px-4 py-3">
+              <p class="text-[12.5px] font-bold flex items-center gap-2" :class="r.pass ? 'text-mimo' : 'text-danger'"><span>{{ r.pass ? '✓' : '✗' }}</span>{{ r.name }}</p>
+              <div v-if="!r.pass" class="mt-2 grid grid-cols-2 gap-2">
+                <div class="rounded-lg bg-[#0a0f1a] border border-line p-2.5 min-w-0">
+                  <p class="text-[9px] font-extrabold text-slate-600 tracking-widest mb-1">DIHARAPKAN</p>
+                  <pre class="text-[11.5px] font-mono text-slate-300 whitespace-pre-wrap break-words m-0">{{ r.expect }}</pre>
+                </div>
+                <div class="rounded-lg bg-[#0a0f1a] border border-danger/30 p-2.5 min-w-0">
+                  <p class="text-[9px] font-extrabold text-slate-600 tracking-widest mb-1">KODEMU</p>
+                  <pre class="text-[11.5px] font-mono whitespace-pre-wrap break-words m-0" :class="r.err ? 'text-[#fda4af]' : 'text-slate-300'">{{ r.err ? r.err : (r.got || '(tidak ada output)') }}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- PROFILE -->
+    <div v-else class="anim-fade-up px-5 pt-6">
+      <h2 class="text-xl font-extrabold text-white">Profil</h2>
+      <div class="mt-4 rounded-3xl bg-gradient-to-br from-panel to-panel2 border border-line p-5">
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-mimo to-mimodeep flex items-center justify-center text-3xl shrink-0">🧑‍💻</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-extrabold text-white">Pembelajar C++</p>
+            <p class="text-xs text-slate-400">Level {{ level }} · {{ levelTitle }}</p>
+            <div class="mt-2 h-2.5 rounded-full bg-night overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-mimodeep to-mimo rounded-full transition-all duration-700" :style="{ width: levelPct + '%' }"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">⚡</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.xp }}</p><p class="text-[11px] text-slate-500">Total XP</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">❤️</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.hearts }}/{{ MAX_HEARTS }}</p><p class="text-[11px] text-slate-500">Nyawa</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">🔥</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.streak }}</p><p class="text-[11px] text-slate-500">Streak hari</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">✅</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.completed }}/{{ TOTAL }}</p><p class="text-[11px] text-slate-500">Latihan selesai</p></div>
+      </div>
+
+      <h3 class="font-extrabold text-white mt-7 mb-3">🎨 Tampilan</h3>
+      <div class="rounded-2xl bg-panel border border-line p-1.5 flex gap-1.5">
+        <button @click="setTheme('light')" class="flex-1 rounded-xl py-2.5 text-sm font-bold transition" :class="theme === 'light' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">Terang</button>
+        <button @click="setTheme('dark')" class="flex-1 rounded-xl py-2.5 text-sm font-bold transition" :class="theme === 'dark' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">Gelap</button>
+      </div>
+
+      <button @click="showReset = true" class="w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition">Reset Progres</button>
+    </div>
+
+    <!-- NAV -->
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-night/95 backdrop-blur border-t border-line/70">
+      <div class="app-col mx-auto grid grid-cols-4 px-4 safe-bottom-nav">
+        <button @click="tab = 'home'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'home' ? 'text-mimo' : 'text-slate-500'">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+          <span class="text-[10px] font-bold">Beranda</span>
+        </button>
+        <button @click="tab = 'play'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'play' ? 'text-mimo' : 'text-slate-500'">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/></svg>
+          <span class="text-[10px] font-bold">Latihan</span>
+        </button>
+        <button @click="tab = 'tantangan'" class="flex flex-col items-center gap-1 transition relative py-2.5" :class="tab === 'tantangan' ? 'text-mimo' : 'text-slate-500'">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          <span class="text-[10px] font-bold">Tantangan</span>
+        </button>
+        <button @click="tab = 'profile'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'profile' ? 'text-mimo' : 'text-slate-500'">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="text-[10px] font-bold">Profil</span>
+        </button>
+      </div>
+    </nav>
+  </section>
+
+  <!-- LESSON -->
+  <section v-else-if="screen === 'lesson'" class="min-h-screen flex flex-col app-col md:border-x md:border-line/40">
+    <header class="sticky top-0 z-20 flex items-center gap-3 px-4 py-3 bg-night/95 backdrop-blur border-b border-line/60">
+      <button @click="showExit = true" class="text-slate-400 hover:text-white p-1 -ml-1">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="flex-1 h-3.5 rounded-full bg-panel2 overflow-hidden border border-line/50">
+        <div class="h-full rounded-full bg-gradient-to-r from-mimodeep to-mimo transition-all duration-500" :style="{ width: lessonPct + '%' }"></div>
+      </div>
+      <div class="flex items-center gap-0.5 shrink-0">
+        <svg v-for="h in MAX_HEARTS" :key="h" class="w-5 h-5" :class="h <= progress.hearts ? 'text-danger' : 'text-line'" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+    </header>
+
+    <main class="flex-1 px-4 pt-5 pb-44">
+      <div v-if="ex" :key="exIdx" class="anim-fade-up">
+        <div class="flex items-center justify-between gap-3">
+          <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold tracking-widest rounded-full px-3 py-1 border"
+            :class="{ 'text-sky-300 bg-sky-400/10 border-sky-400/20': ex.type === 'concept', 'text-amber-300 bg-amber-400/10 border-amber-400/20': ex.type === 'quiz', 'text-violet-300 bg-violet-400/10 border-violet-400/20': ex.type === 'output', 'text-pink-300 bg-pink-400/10 border-pink-400/20': ex.type === 'fill', 'text-emerald-300 bg-emerald-400/10 border-emerald-400/20': ex.type === 'input' }">
+            {{ { concept: '💡 KONSEP', quiz: '📝 KUIS', output: '🔍 TEBAK OUTPUT', fill: '🧩 LENGKAPI KODE', input: '✍️ ISIAN SINGKAT' }[ex.type] }}
+          </span>
+          <span class="text-[11px] font-bold text-slate-600 shrink-0">{{ exIdx + 1 }} / {{ active.exercises.length }}</span>
+        </div>
+
+        <template v-if="ex.type === 'concept'">
+          <h2 class="text-[22px] font-extrabold text-white mt-4 leading-tight">{{ ex.title }}</h2>
+          <p class="text-slate-300 leading-relaxed mt-2.5 text-[15px]" v-html="fmt(ex.body)"></p>
+          <div v-if="ex.code" class="mt-5 rounded-2xl overflow-hidden border border-line">
+            <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+              <span class="ml-2 text-[10px] font-mono text-slate-500">main.cpp</span>
+            </div>
+            <pre class="p-4 text-[13px] leading-relaxed font-mono text-slate-200 overflow-x-auto bg-[#0a0f1a]" v-html="hl(ex.code)"></pre>
+          </div>
+          <div v-if="ex.output" class="mt-3 rounded-2xl bg-[#0a0f1a] border border-line overflow-hidden">
+            <div class="px-4 py-2 border-b border-line bg-panel2/70 text-[10px] font-extrabold tracking-widest text-slate-500">OUTPUT</div>
+            <pre class="p-4 font-mono text-[13px] leading-relaxed text-emerald-300 whitespace-pre-wrap">{{ ex.output }}</pre>
+          </div>
+        </template>
+
+        <template v-else-if="ex.type === 'quiz' || ex.type === 'output'">
+          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+          <div v-if="ex.code" class="mt-4 rounded-2xl overflow-hidden border border-line">
+            <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+              <span class="ml-2 text-[10px] font-mono text-slate-500">main.cpp</span>
+            </div>
+            <pre class="p-4 text-[13px] leading-relaxed font-mono text-slate-200 overflow-x-auto bg-[#0a0f1a]" v-html="hl(ex.code)"></pre>
+          </div>
+          <div class="mt-5 space-y-2.5">
+            <button v-for="(opt, i) in ex.options" :key="i" @click="!feedback.show && (selected = i)" class="w-full flex items-center gap-3 rounded-2xl border-2 p-3.5 text-left transition active:scale-[.98]" :class="optionClass(i)">
+              <span class="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-xs font-extrabold" :class="chipClass(i)">{{ 'ABCD'[i] }}</span>
+              <span class="text-[15px] font-medium leading-snug flex-1" :class="ex.type === 'output' ? 'font-mono text-[13px] whitespace-pre-line' : ''">{{ opt }}</span>
+            </button>
+          </div>
+        </template>
+
+        <template v-else-if="ex.type === 'input'">
+          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+          <div class="mt-6">
+            <input v-model="answerText" type="text" :disabled="feedback.show" @keydown.enter="!feedback.show && canCheck && checkAnswer()" placeholder="Ketik jawabanmu di sini…" class="w-full rounded-2xl border-2 bg-panel border-line px-4 py-3.5 text-[15px] font-mono text-white focus:outline-none focus:border-mimo transition disabled:opacity-60">
+          </div>
+        </template>
+
+        <template v-else-if="ex.type === 'fill'">
+          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+          <div class="codebox mt-4 rounded-2xl bg-[#0a0f1a] border border-line p-4 font-mono text-[13.5px] leading-loose whitespace-pre-wrap text-slate-200">
+            <template v-for="(seg, si) in ex.parts" :key="si">
+              <span v-if="typeof seg === 'string'" v-html="hl(seg)"></span>
+              <button v-else @click="!feedback.show && unplace(seg)" class="blank-slot" :class="blankClass(seg)">
+                <span v-if="chipAt(seg)">{{ chipAt(seg).text }}</span>
+                <span v-else class="opacity-30">isi</span>
+              </button>
+            </template>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button v-for="chip in fill.bank" :key="chip.id" v-show="!chip.used" @click="!feedback.show && place(chip.id)" class="px-3.5 py-2.5 rounded-xl bg-panel2 border border-line font-mono text-[13px] text-slate-200 transition hover:border-mimo/60 active:scale-95">{{ chip.text }}</button>
+          </div>
+        </template>
+      </div>
+    </main>
+
+    <footer class="fixed bottom-0 inset-x-0 z-20">
+      <div class="app-col">
+        <div v-if="!feedback.show" class="px-4 py-4 bg-night/95 backdrop-blur border-t border-line/60 safe-bottom-footer">
+          <button @click="checkAnswer" :disabled="!canCheck" class="w-full rounded-2xl py-4 font-extrabold text-[15px] transition active:scale-[.98]" :class="canCheck ? 'bg-mimo text-night shadow-glow' : 'bg-panel2 text-slate-600'">
+            {{ ex && ex.type === 'concept' ? 'Mengerti, Lanjutkan →' : 'Periksa Jawaban' }}
+          </button>
+        </div>
+        <div v-else class="anim-slide-up px-5 pt-5 pb-6 safe-bottom-footer" :class="feedback.correct ? 'bg-mimodeep' : 'bg-danger'">
+          <p class="font-extrabold text-white text-[15px]">{{ feedback.title }}</p>
+          <p v-if="feedback.detail" class="text-[13px] text-white/90 mt-1.5 font-mono whitespace-pre-line leading-relaxed" v-html="feedback.detail"></p>
+          <button @click="advance" class="w-full mt-4 bg-white rounded-xl py-3.5 font-extrabold text-[#0d1420] text-[15px] active:scale-[.98] transition">Lanjut</button>
+        </div>
+      </div>
+    </footer>
+  </section>
+
+  <!-- COMPLETE -->
+  <section v-else-if="screen === 'complete'" class="relative min-h-screen app-col md:border-x md:border-line/40 flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+      <span v-for="(c, i) in confetti" :key="i" class="confetti-piece" :style="c.style"></span>
+    </div>
+    <div class="anim-pop w-full">
+      <div class="w-28 h-28 mx-auto rounded-full bg-mimo/15 border-2 border-mimo/60 flex items-center justify-center anim-beat"><span class="text-6xl">🏆</span></div>
+      <p class="text-[11px] font-extrabold tracking-[.2em] text-mimo mt-6 uppercase">{{ active.title }}</p>
+      <h2 class="text-[26px] font-black text-white mt-1">Latihan Selesai!</h2>
+      <div class="grid grid-cols-3 gap-3 mt-7">
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-[22px] font-black text-mimo">+{{ result.xp }}</p><p class="text-[10px] text-slate-500 mt-1 font-bold">XP</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-[22px] font-black text-sky-300">{{ result.accuracy }}%</p><p class="text-[10px] text-slate-500 mt-1 font-bold">AKURASI</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-[22px] font-black text-danger">{{ progress.hearts }}</p><p class="text-[10px] text-slate-500 mt-1 font-bold">NYAWA</p></div>
+      </div>
+      <button @click="backHome" class="w-full bg-mimo text-night rounded-2xl py-4 font-extrabold mt-8 shadow-glow active:scale-[.98] transition">Lanjutkan Belajar</button>
+    </div>
+  </section>
+
+  <!-- FAILED -->
+  <section v-else-if="screen === 'failed'" class="min-h-screen app-col md:border-x md:border-line/40 flex flex-col items-center justify-center text-center px-6">
+    <div class="anim-pop w-full">
+      <div class="text-7xl anim-float">💔</div>
+      <h2 class="text-[26px] font-black text-white mt-6">Nyawa Habis!</h2>
+      <button @click="goToChallenges" class="w-full bg-mimo text-night rounded-2xl py-4 font-extrabold mt-6 shadow-glow active:scale-[.98] transition">⚔️ Isi Ulang Nyawa di Tantangan</button>
+      <button @click="backHome" class="w-full mt-3 text-slate-400 font-bold py-3">Kembali ke Beranda</button>
+    </div>
+  </section>
+
+  <!-- MODALS -->
+  <div v-if="showExit" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6">
+    <div class="w-full max-w-sm bg-panel border border-line rounded-3xl p-6 anim-pop text-center">
+      <p class="text-4xl">🚪</p>
+      <h3 class="text-lg font-extrabold text-white mt-3">Keluar dari latihan?</h3>
+      <div class="flex gap-3 mt-5">
+        <button @click="showExit = false" class="flex-1 rounded-xl border-2 border-line py-3 font-bold text-slate-300">Batal</button>
+        <button @click="showExit = false; backHome()" class="flex-1 rounded-xl bg-danger py-3 font-bold text-white">Keluar</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showReset" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6">
+    <div class="w-full max-w-sm bg-panel border border-line rounded-3xl p-6 anim-pop text-center">
+      <p class="text-4xl">⚠️</p>
+      <h3 class="text-lg font-extrabold text-white mt-3">Reset semua progres?</h3>
+      <div class="flex gap-3 mt-5">
+        <button @click="showReset = false" class="flex-1 rounded-xl border-2 border-line py-3 font-bold text-slate-300">Batal</button>
+        <button @click="doReset" class="flex-1 rounded-xl bg-danger py-3 font-bold text-white">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="toast" class="fixed top-5 inset-x-0 z-50 flex justify-center px-6 pointer-events-none">
+    <div class="anim-fade-up bg-panel2 border border-line text-slate-200 text-[13px] font-semibold px-4 py-2.5 rounded-full shadow-2xl">{{ toast }}</div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, watch, nextTick, onUpdated } = Vue;
+
+/* ================= KURIKULUM C++ JSCPP ================= */
+const COURSE = [
+  {
+    title: 'Bab 1 · Dasar-Dasar', desc: 'cout, variabel, dan tipe data', icon: '⚙️',
+    lessons: [
+      { title: 'Halo, Dunia!', icon: '📢', exercises: [
+        { type: 'concept', title: 'Struktur Program C++', body: 'Program C++ memakai `#include <iostream>` lalu fungsi `int main()`. Untuk menampilkan teks gunakan `cout <<`.', code: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Halo, Dunia!" << endl;
+    return 0;
+}`, output: `Halo, Dunia!` },
+        { type: 'quiz', question: 'Objek apa untuk menampilkan output?', options: ['cout', 'print', 'echo', 'console'], answer: 0 },
+        { type: 'fill', question: 'Lengkapi kode agar menampilkan Halo!', parts: [0, ' << ', 1, ' << endl;'], blanks: [{ answer: 'cout' }, { answer: '"Halo!"' }], bank: ['cout', '"Halo!"', 'cin', 'print'] },
+        { type: 'input', question: 'Tulis objek untuk menampilkan output.', answers: ['cout'] },
+        { type: 'output', question: 'Apa output kode berikut?', code: `cout << "Belajar C++";`, options: ['Belajar C++', 'cout', 'Error', '"Belajar C++"'], answer: 0 }
+      ] },
+      { title: 'Variabel', icon: '📦', exercises: [
+        { type: 'concept', title: 'Menyimpan Data', body: 'Di C++, variabel harus punya tipe. Contoh: `int umur = 17;` dan `string nama = "Budi";`.', code: `string nama = "Budi";
+int umur = 17;
+cout << nama << endl;`, output: `Budi` },
+        { type: 'quiz', question: 'Cara menyimpan angka 25?', options: ['int umur = 25;', 'umur = 25;', 'umur: 25;', '25 = umur;'], answer: 0 },
+        { type: 'fill', question: 'Simpan teks "Andi" ke variabel nama', parts: [0, ' ', 1, ' = "Andi";'], blanks: [{ answer: 'string' }, { answer: 'nama' }], bank: ['string', 'nama', 'int', 'cout'] },
+        { type: 'output', question: 'Apa output kode berikut?', code: `int x = 10;
+cout << x << endl;`, options: ['10', 'x', 'Error', 'x = 10'], answer: 0 }
+      ] },
+      { title: 'Tipe Data', icon: '🔢', exercises: [
+        { type: 'concept', title: 'Tipe Dasar', body: 'Tipe dasar: `int`, `double`, `char`, `bool`, dan `string` (pada mode kompatibilitas ini).', code: `int umur = 25;
+double tinggi = 170.5;
+char grade = 'A';
+bool aktif = true;
+string nama = "Sinta";` },
+        { type: 'quiz', question: 'Tipe untuk angka desimal?', options: ['double', 'int', 'string', 'bool'], answer: 0 },
+        { type: 'quiz', question: 'Tipe untuk teks?', options: ['string', 'char', 'int', 'bool'], answer: 0 },
+        { type: 'input', question: 'Tipe untuk nilai true/false?', answers: ['bool'] }
+      ] }
+    ]
+  },
+  {
+    title: 'Bab 2 · Operator & String', desc: 'Hitung dan string dasar', icon: '➗',
+    lessons: [
+      { title: 'Operasi Matematika', icon: '🧮', exercises: [
+        { type: 'concept', title: 'Operator', body: 'Operator dasar: `+`, `-`, `*`, `/`, `%`.', code: `cout << 7 + 3 << endl;
+cout << 7 % 2 << endl;` },
+        { type: 'quiz', question: '10 % 3 = ?', options: ['1', '3', '0', '3.33'], answer: 0 },
+        { type: 'output', question: 'Output dari cout << 2 * 2 * 2;', code: `cout << 2 * 2 * 2 << endl;`, options: ['8', '6', '9', '23'], answer: 0 }
+      ] },
+      { title: 'String Dasar', icon: '✂️', exercises: [
+        { type: 'concept', title: 'String di Mode JSCPP', body: 'Kamu bisa menulis `string kata;` lalu memakai `cin >> kata;` dan `cout << kata;`. Untuk panjang, gunakan `.length()`. Mode kompatibilitas akan mengubahnya menjadi fungsi bantuan.', code: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string kata;
+    cin >> kata;
+    cout << kata.length() << endl;
+    return 0;
+}`, output: `4` },
+        { type: 'quiz', question: 'Method untuk panjang string?', options: ['.length()', '.size()', 'len()', 'count()'], answer: 0 },
+        { type: 'fill', question: 'Tampilkan panjang kata', parts: ['cout << kata.', 0, '() << endl;'], blanks: [{ answer: 'length' }], bank: ['length', 'size', 'len', 'count'] },
+        { type: 'output', question: 'Jika input Halo, apa output?', code: `string kata;
+cin >> kata;
+cout << kata.length() << endl;`, options: ['4', 'Halo', '5', 'Error'], answer: 0 }
+      ] }
+    ]
+  },
+  {
+    title: 'Bab 3 · Logika Program', desc: 'cin, if, dan loop', icon: '🧠',
+    lessons: [
+      { title: 'Input Pengguna', icon: '⌨️', exercises: [
+        { type: 'concept', title: 'cin', body: 'Gunakan `cin >> variabel;` untuk membaca input.', code: `string nama;
+cin >> nama;
+cout << "Halo, " << nama << endl;` },
+        { type: 'fill', question: 'Baca nama dari pengguna', parts: [0, ' >> ', 1, ';'], blanks: [{ answer: 'cin' }, { answer: 'nama' }], bank: ['cin', 'nama', 'cout', 'input'] },
+        { type: 'quiz', question: 'Operator untuk membaca input?', options: ['>>', '<<', '==', '+'], answer: 0 }
+      ] },
+      { title: 'Percabangan', icon: '🔀', exercises: [
+        { type: 'concept', title: 'if / else', body: 'Gunakan `if (kondisi) { ... }` dan `else { ... }`.', code: `int nilai = 80;
+if (nilai >= 75) {
+    cout << "Lulus" << endl;
+} else {
+    cout << "Tidak lulus" << endl;
+}` },
+        { type: 'quiz', question: 'Operator sama dengan?', options: ['==', '=', '===', '!='], answer: 0 },
+        { type: 'fill', question: 'Lengkapi kondisi lulus', parts: ['if (nilai ', 0, ' 75) { cout << "Lulus" << endl; }'], blanks: [{ answer: '>=' }], bank: ['>=', '<=', '>', '<'] }
+      ] },
+      { title: 'Perulangan', icon: '🔁', exercises: [
+        { type: 'concept', title: 'for & while', body: 'Gunakan `for` untuk jumlah iterasi tertentu, dan `while` selama kondisi benar.', code: `for (int i = 0; i < 3; i++) {
+    cout << i << endl;
+}` },
+        { type: 'quiz', question: 'Berapa kali loop ini berjalan?', code: `for (int i = 0; i < 5; i++) { }`, options: ['5', '4', '6', '1'], answer: 0 },
+        { type: 'fill', question: 'Loop 0 sampai 4', parts: ['for (int i = 0; i < ', 0, '; ', 1, ') { }'], blanks: [{ answer: '5' }, { answer: 'i++' }], bank: ['5', 'i++', '4', 'i--'] }
+      ] }
+    ]
+  },
+  {
+    title: 'Bab 4 · Array & Fungsi', desc: 'Struktur data sederhana', icon: '📚',
+    lessons: [
+      { title: 'Array', icon: '📋', exercises: [
+        { type: 'concept', title: 'Array Dasar', body: 'Array menyimpan banyak nilai dengan tipe sama.', code: `int angka[3] = {10, 20, 30};
+cout << angka[0] << endl;`, output: `10` },
+        { type: 'quiz', question: 'Nilai angka[0]?', code: `int angka[3] = {10, 20, 30};`, options: ['10', '20', '30', 'Error'], answer: 0 }
+      ] },
+      { title: 'Fungsi', icon: '⚙️', exercises: [
+        { type: 'concept', title: 'Fungsi', body: 'Fungsi mengembalikan nilai dengan `return`.', code: `int kuadrat(int x) {
+    return x * x;
+}
+
+int main() {
+    cout << kuadrat(5) << endl;
+    return 0;
+}`, output: `25` },
+        { type: 'fill', question: 'Fungsi kuadrat', parts: ['int ', 0, '(int x) { return x * x; }'], blanks: [{ answer: 'kuadrat' }], bank: ['kuadrat', 'fungsi', 'main', 'return'] }
+      ] },
+      { title: 'String Lanjutan', icon: '🔤', exercises: [
+        { type: 'concept', title: 'Indeks Karakter', body: 'String bisa diakses per karakter: `kata[0]`. Panjang dapat diambil dengan `.length()`.', code: `string kata = "Halo";
+cout << kata[0] << endl;
+cout << kata.length() << endl;`, output: `H
+4` },
+        { type: 'quiz', question: 'kata[0] dari "Halo"?', options: ['H', 'a', 'o', 'Error'], answer: 0 }
+      ] }
+    ]
+  }
+];
+
+/* ================= TANTANGAN ================= */
+const CHALLENGES = [
+  {
+    id: 'sapa', icon: '🤝', title: 'Sapa Pengguna', level: 1, xp: 20, desc: 'Baca nama, tampilkan sapaan.',
+    brief: 'Baca **satu input** nama, lalu tampilkan: `Halo, {nama}!`',
+    starter: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string nama;
+    cin >> nama;
+    // Tampilkan: Halo, {nama}!
+    
+    return 0;
+}
+`,
+    example: { in: 'Budi', out: 'Halo, Budi!' },
+    tests: [
+      { name: 'Budi', inputs: ['Budi'], expect: 'Halo, Budi!' },
+      { name: 'Sinta', inputs: ['Sinta'], expect: 'Halo, Sinta!' }
+    ]
+  },
+  {
+    id: 'jumlah', icon: '➕', title: 'Penjumlahan', level: 1, xp: 20, desc: 'Jumlahkan dua angka.',
+    brief: 'Baca **dua input** angka, tampilkan jumlahnya.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int a, b;
+    cin >> a >> b;
+    // Tampilkan a + b
+    
+    return 0;
+}
+`,
+    example: { in: '3 4', out: '7' },
+    tests: [
+      { name: '3+4', inputs: ['3', '4'], expect: '7' },
+      { name: '10+15', inputs: ['10', '15'], expect: '25' }
+    ]
+  },
+  {
+    id: 'genap', icon: '🔢', title: 'Genap / Ganjil', level: 2, xp: 30, desc: 'Tentukan genap atau ganjil.',
+    brief: 'Baca satu angka, tampilkan `Genap` atau `Ganjil`.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    return 0;
+}
+`,
+    example: { in: '4', out: 'Genap' },
+    tests: [
+      { name: '4', inputs: ['4'], expect: 'Genap' },
+      { name: '7', inputs: ['7'], expect: 'Ganjil' }
+    ]
+  },
+  {
+    id: 'tabel', icon: '✖️', title: 'Tabel Perkalian', level: 2, xp: 30, desc: 'Cetak perkalian 1 sampai 5.',
+    brief: 'Baca satu angka `n`, tampilkan `n x i = hasil` untuk i = 1 sampai 5.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    return 0;
+}
+`,
+    example: { in: '3', out: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' },
+    tests: [
+      { name: 'n=3', inputs: ['3'], expect: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' }
+    ]
+  },
+  {
+    id: 'faktorial', icon: '❗', title: 'Faktorial', level: 3, xp: 40, desc: 'Hitung n!',
+    brief: 'Baca satu angka `n`, tampilkan faktorialnya. `0! = 1`.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    return 0;
+}
+`,
+    example: { in: '5', out: '120' },
+    tests: [
+      { name: '5!', inputs: ['5'], expect: '120' },
+      { name: '0!', inputs: ['0'], expect: '1' }
+    ]
+  },
+  {
+    id: 'prima', icon: '💎', title: 'Bilangan Prima', level: 3, xp: 40, desc: 'Cek prima atau bukan.',
+    brief: 'Baca satu angka, tampilkan `Prima` atau `Bukan Prima`.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    return 0;
+}
+`,
+    example: { in: '7', out: 'Prima' },
+    tests: [
+      { name: '7', inputs: ['7'], expect: 'Prima' },
+      { name: '9', inputs: ['9'], expect: 'Bukan Prima' }
+    ]
+  },
+  {
+    id: 'panjang', icon: '📏', title: 'Panjang Kata', level: 1, xp: 20, desc: 'Hitung panjang string.',
+    brief: 'Baca satu kata, tampilkan panjangnya dengan `.length()`.',
+    starter: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string kata;
+    cin >> kata;
+    
+    return 0;
+}
+`,
+    example: { in: 'Halo', out: '4' },
+    tests: [
+      { name: 'Halo', inputs: ['Halo'], expect: '4' },
+      { name: 'data', inputs: ['data'], expect: '4' }
+    ]
+  },
+  {
+    id: 'palindrom', icon: '🪞', title: 'Palindrom', level: 3, xp: 40, desc: 'Cek kata palindrom.',
+    brief: 'Baca satu kata, abaikan huruf besar/kecil, tampilkan `Palindrom` atau `Bukan`.',
+    starter: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string kata;
+    cin >> kata;
+    
+    return 0;
+}
+`,
+    example: { in: 'Kodok', out: 'Palindrom' },
+    tests: [
+      { name: 'Kodok', inputs: ['Kodok'], expect: 'Palindrom' },
+      { name: 'Python', inputs: ['Python'], expect: 'Bukan' }
+    ]
+  },
+  {
+    id: 'tertinggi', icon: '🏔️', title: 'Nilai Tertinggi', level: 2, xp: 30, desc: 'Cari angka terbesar.',
+    brief: 'Baca `n`, lalu baca `n` angka. Tampilkan nilai terbesar.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    return 0;
+}
+`,
+    example: { in: '3\n10\n50\n20', out: '50' },
+    tests: [
+      { name: '3 angka', inputs: ['3', '10', '50', '20'], expect: '50' }
+    ]
+  }
+];
+
+const chCount = p => {
+  const ch = (p && p.ch) || {};
+  return Object.keys(ch).filter(k => ch[k] && ch[k].done).length;
+};
+
+const MAX_HEARTS = 5;
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const CPP_RE = /(\/\/[^\n]*)|(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(int|long|float|double|char|bool|void|string|auto|const|if|else|for|while|do|switch|case|default|break|continue|return|include|using|namespace|true|false|std|cout|cin|endl|vector|map|set|pair|array|struct|class|public|private|protected|new|delete|sizeof|template|typename|nullptr)\b|\b(main|length|size|push_back|pop_back|substr|find|stoi|to_string|getline|sort|reverse|min|max|swap|abs|pow|sqrt)\b|\b(\d+(?:\.\d+)?[fFlLuU]*)\b/g;
+
+function hl(code) {
+  let out = '', last = 0, m;
+  CPP_RE.lastIndex = 0;
+  while ((m = CPP_RE.exec(code)) !== null) {
+    out += esc(code.slice(last, m.index));
+    if (m[1]) out += '<span class="tok-com">' + esc(m[1]) + '</span>';
+    else if (m[2]) out += '<span class="tok-pre">' + esc(m[2]) + '</span>';
+    else if (m[3]) out += '<span class="tok-str">' + esc(m[3]) + '</span>';
+    else if (m[4]) out += '<span class="tok-kw">' + esc(m[4]) + '</span>';
+    else if (m[5]) out += '<span class="tok-fn">' + esc(m[5]) + '</span>';
+    else out += '<span class="tok-num">' + esc(m[0]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(code.slice(last));
+}
+
+function fmt(text) {
+  return esc(text)
+    .replace(/`([^`]+)`/g, '<code class="ic-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b class="ic-b">$1</b>');
+}
+
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+const TPL = {
+  halo: {
+    name: 'Halo Dunia',
+    code: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Halo, Dunia!" << endl;
+    return 0;
+}`
+  },
+  string_input: {
+    name: 'String + cin',
+    code: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string nama;
+    cin >> nama;
+    cout << "Halo, " << nama << "!" << endl;
+    return 0;
+}`
+  },
+  panjang: {
+    name: 'Panjang String',
+    code: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string kata;
+    cin >> kata;
+    cout << kata.length() << endl;
+    return 0;
+}`
+  },
+  loop: {
+    name: 'Perulangan',
+    code: `#include <iostream>
+using namespace std;
+
+int main() {
+    for (int i = 1; i <= 5; i++) {
+        cout << "Baris " << i << endl;
+    }
+    return 0;
+}`
+  },
+  fungsi: {
+    name: 'Fungsi',
+    code: `#include <iostream>
+using namespace std;
+
+int kuadrat(int x) {
+    return x * x;
+}
+
+int main() {
+    cout << kuadrat(5) << endl;
+    return 0;
+}`
+  }
+};
+
+const PYSTORE = (() => {
+  const mem = {};
+  let ok = false;
+  try {
+    const k = '__cppmimo_jscpp_probe__';
+    localStorage.setItem(k, '1');
+    localStorage.removeItem(k);
+    ok = true;
+  } catch (e) { ok = false; }
+  return {
+    get(k) { if (ok) { try { return localStorage.getItem(k); } catch (e) {} } return (k in mem) ? mem[k] : null; },
+    set(k, v) { if (ok) { try { localStorage.setItem(k, v); return; } catch (e) {} } mem[k] = String(v); }
+  };
+})();
+
+const FLAT = [];
+COURSE.forEach((ch, ci) => ch.lessons.forEach(l => {
+  l.ci = ci;
+  l.flat = FLAT.length;
+  l.xpMax = l.exercises.reduce((s, e) => s + (e.type === 'concept' ? 5 : 10), 0) + 20;
+  FLAT.push(l);
+}));
+const TOTAL = FLAT.length;
+
+/* ================= JSCPP STRING COMPAT ================= */
+const JSCPP_STRING_HELPERS = `
+int __mimo_len(char s[]) {
+    int n = 0;
+    while (s[n] != 0) {
+        n++;
+    }
+    return n;
+}
+
+int __mimo_streq(char a[], char b[]) {
+    int i = 0;
+    while (a[i] != 0 && b[i] != 0) {
+        if (a[i] != b[i]) return 0;
+        i++;
+    }
+    return a[i] == b[i];
+}
+
+void __mimo_copy(char dest[], char src[]) {
+    int i = 0;
+    while (src[i] != 0) {
+        dest[i] = src[i];
+        i++;
+    }
+    dest[i] = 0;
+}
+
+void __mimo_concat(char dest[], char src[]) {
+    int i = __mimo_len(dest);
+    int j = 0;
+    while (src[j] != 0) {
+        dest[i] = src[j];
+        i++;
+        j++;
+    }
+    dest[i] = 0;
+}
+`;
+
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function prepareCppForJSCPP(rawCode) {
+  let code = String(rawCode || '');
+
+  code = code.replace(/std::string/g, 'string');
+  code = code.replace(/std::cout/g, 'cout');
+  code = code.replace(/std::cin/g, 'cin');
+  code = code.replace(/std::endl/g, 'endl');
+
+  code = code.replace(/^\s*#\s*include\s*<([^>]+)>/gm, function (m, name) {
+    const n = String(name).trim();
+    if (n === 'iostream') return m;
+    return '// #include <' + n + '> dihapus oleh mode kompatibilitas JSCPP';
+  });
+
+  if (!/#\s*include\s*<iostream>/.test(code)) {
+    code = '#include <iostream>\n' + code;
+  }
+
+  if (!/using\s+namespace\s+std/.test(code)) {
+    code = code.replace(/(#\s*include\s*<iostream>[^\n]*)/, '$1\nusing namespace std;');
+  }
+
+  const stringVars = new Set();
+
+  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"((?:[^"\\]|\\.)*)"\s*;/g, function (m, name, val) {
+    stringVars.add(name);
+    return 'char ' + name + '[256] = "' + val + '";';
+  });
+
+  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([A-Za-z_][A-Za-z0-9_]*)\s*;/g, function (m, name, src) {
+    stringVars.add(name);
+    return 'char ' + name + '[256]; __mimo_copy(' + name + ', ' + src + ');';
+  });
+
+  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*;/g, function (m, name) {
+    stringVars.add(name);
+    return 'char ' + name + '[256];';
+  });
+
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(?:length|size)\s*\(\s*\)/g, '__mimo_len($1)');
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*empty\s*\(\s*\)/g, '(__mimo_len($1) == 0)');
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*c_str\s*\(\s*\)/g, '$1');
+
+  stringVars.forEach(name => {
+    const safe = escapeRegExp(name);
+
+    const reLit = new RegExp('\\b' + safe + '\\s*=\\s*"((?:[^"\\\\]|\\\\.)*)"\\s*;', 'g');
+    code = code.replace(reLit, function (m, val) {
+      return '__mimo_copy(' + name + ', "' + val + '");';
+    });
+
+    const reVar = new RegExp('\\b' + safe + '\\s*=\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*;', 'g');
+    code = code.replace(reVar, function (m, src) {
+      return '__mimo_copy(' + name + ', ' + src + ');';
+    });
+
+    const reAddLit = new RegExp('\\b' + safe + '\\s*\\+=\\s*"((?:[^"\\\\]|\\\\.)*)"\\s*;', 'g');
+    code = code.replace(reAddLit, function (m, val) {
+      return '__mimo_concat(' + name + ', "' + val + '");';
+    });
+  });
+
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*==\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, lit) {
+    return '__mimo_streq(' + v + ', "' + lit + '")';
+  });
+
+  code = code.replace(/"((?:[^"\\]|\\.)*)"\s*==\s*([A-Za-z_][A-Za-z0-9_]*)/g, function (m, lit, v) {
+    return '__mimo_streq(' + v + ', "' + lit + '")';
+  });
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*!=\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, lit) {
+    return '!__mimo_streq(' + v + ', "' + lit + '")';
+  });
+
+  if (code.indexOf('__mimo_') !== -1 && /int\s+main\s*\(/.test(code)) {
+    code = code.replace(/int\s+main\s*\(/, function () {
+      return JSCPP_STRING_HELPERS + '\nint main(';
+    });
+  }
+
+  return code;
+}
+
+/* ================= JSCPP LOADER (script tag — UMD/global build) ================= */
+let enginePromise = null;
+let engineState = ref('none');
+
+const JSCPP_URLS = [
+  'https://felixhao28.github.io/JSCPP/dist/JSCPP.es5.min.js',
+  'https://cdn.jsdelivr.net/npm/jscpp@2.0.9/dist/JSCPP.es5.min.js',
+  'https://unpkg.com/jscpp@2.0.9/dist/JSCPP.es5.min.js'
+];
+
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    if (window.JSCPP) return resolve(window.JSCPP);
+
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.crossOrigin = 'anonymous';
+
+    s.onload = () => {
+      if (window.JSCPP) resolve(window.JSCPP);
+      else reject(new Error('Skrip dimuat tetapi window.JSCPP tidak terdefinisi'));
+    };
+
+    s.onerror = () => reject(new Error('Gagal memuat skrip: ' + src));
+
+    document.head.appendChild(s);
+  });
+}
+
+function ensureEngine() {
+  if (enginePromise) return enginePromise;
+
+  engineState.value = 'loading';
+
+  enginePromise = (async () => {
+    if (navigator.onLine === false) {
+      throw new Error('Tidak ada koneksi internet');
+    }
+
+    let lastError = null;
+
+    for (const url of JSCPP_URLS) {
+      try {
+        console.log('🔄 Mencoba memuat JSCPP dari:', url);
+        const JSCPP = await loadScriptOnce(url);
+
+        if (typeof JSCPP.run !== 'function' && typeof JSCPP.createInterpreter !== 'function') {
+          throw new Error('JSCPP dimuat tetapi API tidak dikenali');
+        }
+
+        window.JSCPP = JSCPP;
+        engineState.value = 'jscpp';
+        console.log('✅ JSCPP berhasil dimuat dari:', url);
+        return 'jscpp';
+      } catch (err) {
+        console.warn('❌ Gagal memuat dari', url, ':', err);
+        lastError = err;
+        try { delete window.JSCPP; } catch (e) { window.JSCPP = undefined; }
+      }
+    }
+
+    throw lastError || new Error('Semua URL JSCPP gagal dimuat');
+  })().catch(err => {
+    engineState.value = 'error';
+    enginePromise = null;
+    throw err;
+  });
+
+  return enginePromise;
+}
+
+function runJSCPPCode(rawCode, stdin) {
+  const lib = window.JSCPP;
+
+  if (!lib) {
+    return { output: '', error: 'JSCPP belum siap.' };
+  }
+
+  const code = prepareCppForJSCPP(rawCode);
+  let output = '';
+  let error = null;
+
+  try {
+    if (typeof lib.run === 'function') {
+      const config = {
+        stdio: {
+          write: function (s) { output += s; }
+        }
+      };
+      const exitCode = lib.run(code, stdin || '', config);
+      if (exitCode !== 0 && !output) {
+        error = 'Program exit dengan kode: ' + exitCode;
+      }
+      return { output, error };
+    }
+
+    if (typeof lib.createInterpreter === 'function') {
+      const interpreter = lib.createInterpreter(code, stdin || '');
+      while (interpreter.continue()) {}
+      output = interpreter.getStdout();
+      return { output, error: null };
+    }
+
+    return { output: '', error: 'JSCPP tidak punya API yang dikenali' };
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err);
+    return { output, error: msg };
+  }
+}
+
+/* ================= INTERACTIVE INPUT HELPERS ================= */
+function countCinOperations(code) {
+  const cleaned = String(code || '')
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const matches = cleaned.match(/cin\s*(?:>>\s*[A-Za-z_][\w\[\]\.\->]*\s*)+/g) || [];
+  let total = 0;
+  for (const m of matches) {
+    total += (m.match(/>>/g) || []).length;
+  }
+  return total;
+}
+
+function findDivergence(a, b) {
+  const minLen = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < minLen && a[i] === b[i]) i++;
+  return i;
+}
+
+/* ================= COMPONENTS ================= */
+const CppEditor = {
+  props: {
+    modelValue: { type: String, default: '' },
+    filename: { type: String, default: 'main.cpp' },
+    placeholder: { type: String, default: '' },
+    readonly: { type: Boolean, default: false },
+    badge: { type: String, default: '' },
+    badgeClass: { type: String, default: 'text-mimo/80' }
+  },
+  emits: ['update:modelValue', 'blur'],
+  setup(props, { emit }) {
+    const lineCount = computed(() => props.modelValue.split('\n').length);
+    const hlHtml = computed(() => hl(props.modelValue) + '\n');
+    const ta = ref(null), pre = ref(null), gutter = ref(null);
+
+    function syncScroll() {
+      if (!ta.value) return;
+      if (pre.value) {
+        pre.value.scrollTop = ta.value.scrollTop;
+        pre.value.scrollLeft = ta.value.scrollLeft;
+      }
+      if (gutter.value) gutter.value.scrollTop = ta.value.scrollTop;
+    }
+
+    function onInput(e) { emit('update:modelValue', e.target.value); }
+
+    function onTab(e) {
+      const t = e.target;
+      t.setRangeText('    ', t.selectionStart, t.selectionEnd, 'end');
+      emit('update:modelValue', t.value);
+    }
+
+    function onEnter(e) {
+      const t = e.target;
+      if (t.selectionStart !== t.selectionEnd) return;
+      const before = t.value.slice(0, t.selectionStart);
+      const line = before.slice(before.lastIndexOf('\n') + 1);
+      let indent = (line.match(/^[ \t]*/) || [''])[0];
+      if (/\{\s*$/.test(line)) indent += '    ';
+      if (!indent) return;
+      e.preventDefault();
+      t.setRangeText('\n' + indent, t.selectionStart, t.selectionEnd, 'end');
+      emit('update:modelValue', t.value);
+    }
+
+    function onBlur() { emit('blur'); }
+
+    watch(() => props.modelValue, () => nextTick(syncScroll));
+
+    return { lineCount, hlHtml, ta, pre, gutter, syncScroll, onInput, onTab, onEnter, onBlur };
+  },
+  template: `
+    <div class="rounded-2xl overflow-hidden border border-line">
+      <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
+        <span class="ml-2 text-[10px] font-mono text-slate-500">{{ filename }}</span>
+        <span class="ml-auto text-[9px] font-bold" :class="badgeClass">{{ badge }}</span>
+      </div>
+      <div class="relative bg-[#0a0f1a]">
+        <div ref="gutter" aria-hidden="true" class="ed-gutter pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-[38px] overflow-hidden px-2.5 pt-3 pb-24 text-right font-mono text-[12.5px] leading-[1.65] text-slate-600 select-none bg-[#0a0f1a] border-r border-[#1b2942]">
+          <div v-for="n in lineCount" :key="n" v-text="n"></div>
+        </div>
+        <div class="relative">
+          <pre ref="pre" aria-hidden="true" v-html="hlHtml" class="pointer-events-none select-none absolute inset-0 m-0 py-3 pr-4 pl-[46px] overflow-hidden whitespace-pre font-mono text-[12.5px] leading-[1.65] text-slate-200"></pre>
+          <textarea ref="ta" :value="modelValue" @input="onInput" @keydown.tab.prevent="onTab" @keydown.enter="onEnter" @scroll="syncScroll" @blur="onBlur" :readonly="readonly" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" :placeholder="placeholder" class="ed-ta relative block w-full min-h-[240px] max-h-[60vh] py-3 pr-4 pl-[46px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-none overflow-auto focus:outline-none"></textarea>
+        </div>
+      </div>
+    </div>
+  `
+};
+
+const CppConsole = {
+  props: {
+    rows: { type: Array, default: () => [] },
+    lastError: { type: Object, default: null },
+    emptyHint: { type: String, default: '' },
+    awaitingInput: { type: Boolean, default: false }
+  },
+  emits: ['clear', 'submit-input', 'signal-eof'],
+  setup(props, { emit }) {
+    const box = ref(null);
+    const inputEl = ref(null);
+    const pendingValue = ref('');
+
+    onUpdated(() => {
+      if (box.value) box.value.scrollTop = box.value.scrollHeight;
+    });
+
+    watch(() => props.awaitingInput, (val) => {
+      if (val) nextTick(() => { if (inputEl.value) inputEl.value.focus(); });
+      else pendingValue.value = '';
+    });
+
+    function submit() {
+      const v = pendingValue.value;
+      pendingValue.value = '';
+      emit('submit-input', v);
+    }
+
+    return { box, inputEl, pendingValue, submit };
+  },
+  template: `
+    <div class="rounded-2xl overflow-hidden border border-line">
+      <div class="flex items-center justify-between gap-2 px-4 py-2.5 bg-panel2/70 border-b border-line">
+        <span class="text-[10px] font-extrabold tracking-widest text-slate-500">CONSOLE</span>
+        <button v-if="rows.length || lastError || awaitingInput" @click="$emit('clear')" class="text-[11px] font-bold text-slate-500 hover:text-danger transition">✕ bersihkan</button>
+      </div>
+      <div ref="box" class="bg-[#0a0f1a] px-4 py-3.5 min-h-[110px] max-h-[45vh] overflow-y-auto">
+        <div v-if="!rows.length && !lastError && !awaitingInput" class="font-mono text-[12px] text-slate-600 italic">{{ emptyHint }}</div>
+        <div v-for="(r, i) in rows" :key="i" class="font-mono text-[12.5px] leading-relaxed">
+          <div class="text-[#6ee7b7] whitespace-pre-wrap break-words">{{ r.text }}</div>
+        </div>
+        <div v-if="awaitingInput" class="mt-1.5 font-mono text-[12.5px] flex items-center gap-2">
+          <span class="text-mimo shrink-0">&gt;</span>
+          <input ref="inputEl" v-model="pendingValue" @keydown.enter.stop="submit" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
+            placeholder="ketik input, Enter kirim"
+            class="flex-1 bg-transparent border-none outline-none text-white font-mono text-[12.5px] placeholder-slate-600" />
+          <button @click="$emit('signal-eof')" title="Sinyal EOF — akhiri input" class="shrink-0 text-[10px] font-bold text-slate-500 hover:text-danger border border-line/60 rounded px-2 py-0.5">EOF</button>
+        </div>
+        <div v-if="lastError" class="rounded-xl bg-danger/10 border border-danger/30 px-3.5 py-3 mt-1.5">
+          <p class="font-mono text-[11.5px] text-danger font-bold">{{ lastError.type }}</p>
+          <p class="font-mono text-[12px] text-[#fda4af] mt-1 leading-relaxed">{{ lastError.msg }}</p>
+        </div>
+      </div>
+    </div>
+  `
+};
+
+/* ================= APP ================= */
+const app = createApp({
+  setup() {
+    const screen = ref('welcome');
+    const tab = ref('home');
+    const progress = reactive({ completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0, ch: {}, hearts: MAX_HEARTS });
+
+    try {
+      const saved = JSON.parse(PYSTORE.get('cppmimo-jscpp-v1'));
+      if (saved && typeof saved === 'object') Object.assign(progress, saved);
+      if (typeof progress.hearts !== 'number' || progress.hearts < 0 || progress.hearts > MAX_HEARTS) progress.hearts = MAX_HEARTS;
+    } catch (e) {}
+
+    CHALLENGES.forEach(c => {
+      if (!progress.ch[c.id]) progress.ch[c.id] = { tries: 0, done: false };
+    });
+
+    const save = () => PYSTORE.set('cppmimo-jscpp-v1', JSON.stringify({ ...progress }));
+
+    function loseHeart() {
+      if (progress.hearts > 0) {
+        progress.hearts -= 1;
+        try { save(); } catch (e) {}
+      }
+    }
+
+    function refillHearts(amount) {
+      const before = progress.hearts;
+      progress.hearts = Math.min(MAX_HEARTS, progress.hearts + amount);
+      const gained = progress.hearts - before;
+      if (gained > 0) { try { save(); } catch (e) {} }
+      return gained;
+    }
+
+    const theme = ref(PYSTORE.get('cppmimo-jscpp-theme') === 'light' ? 'light' : 'dark');
+
+    function applyTheme() {
+      document.documentElement.classList.toggle('light', theme.value === 'light');
+      const m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute('content', theme.value === 'light' ? '#f1f5f9' : '#0d1420');
+    }
+
+    function setTheme(t) {
+      theme.value = t;
+      PYSTORE.set('cppmimo-jscpp-theme', t);
+      applyTheme();
+    }
+
+    function toggleTheme() {
+      setTheme(theme.value === 'dark' ? 'light' : 'dark');
+    }
+
+    applyTheme();
+
+    const active = ref(null);
+    const exIdx = ref(0);
+    const lessonXp = ref(0);
+    const wrongCount = ref(0);
+    const answered = ref(0);
+    const correct = ref(0);
+    const selected = ref(null);
+    const answerText = ref('');
+    const feedback = reactive({ show: false, correct: false, title: '', detail: '' });
+    const fill = reactive({ bank: [], placed: {} });
+    const showExit = ref(false);
+    const showReset = ref(false);
+    const toast = ref('');
+    let toastTimer = null;
+    const result = reactive({ xp: 0, accuracy: 0, perfect: false });
+    const confetti = ref([]);
+
+    const ex = computed(() => (active.value && exIdx.value < active.value.exercises.length) ? active.value.exercises[exIdx.value] : null);
+    const lessonPct = computed(() => active.value ? Math.round((exIdx.value / active.value.exercises.length) * 100) : 0);
+    const nextLesson = computed(() => FLAT.find(l => l.flat === progress.completed) || null);
+    const currentChapterTitle = computed(() => nextLesson.value ? COURSE[nextLesson.value.ci].title : '');
+
+    const greeting = computed(() => {
+      const h = new Date().getHours();
+      if (h < 11) return 'Selamat pagi! 👋';
+      if (h < 15) return 'Selamat siang! 👋';
+      if (h < 19) return 'Selamat sore! 👋';
+      return 'Selamat malam! 👋';
+    });
+
+    const level = computed(() => Math.floor(progress.xp / 200) + 1);
+    const levelTitle = computed(() => ['Pemula', 'Penjelajah', 'Koder', 'Ahli', 'Master', 'Grandmaster'][Math.min(level.value - 1, 5)]);
+    const levelPct = computed(() => (progress.xp % 200) / 2);
+
+    function showToast(msg) {
+      toast.value = msg;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.value = ''; }, 2200);
+    }
+
+    const engineBadge = computed(() => engineState.value === 'jscpp' ? '● JSCPP C++' : engineState.value === 'loading' ? '● memuat…' : engineState.value === 'error' ? '● offline' : '● siap');
+    const engineBadgeClass = computed(() => engineState.value === 'jscpp' ? 'text-mimo/80' : engineState.value === 'error' ? 'text-danger/90' : 'text-slate-500');
+
+    async function ensureEngineSafe() {
+      try { return await ensureEngine(); } catch (e) {
+        showToast('⚠️ JSCPP gagal dimuat — periksa koneksi internet');
+        return null;
+      }
+    }
+
+    function retryEngine() {
+      enginePromise = null;
+      engineState.value = 'none';
+      try { delete window.JSCPP; } catch (e) { window.JSCPP = undefined; }
+      ensureEngineSafe();
+    }
+
+    const playCode = ref(PYSTORE.get('cppmimo-jscpp-play') || TPL.halo.code);
+    const playRunning = ref(false);
+    const curTpl = ref('halo');
+    const conRows = ref([]);
+    const lastError = ref(null);
+    const hasRun = ref(false);
+    const awaitingInput = ref(false);
+
+    const playEmptyHint = computed(() => {
+      if (engineState.value === 'loading') return '⏳ Memuat JSCPP…';
+      if (engineState.value === 'error') return '⚠️ JSCPP gagal dimuat.';
+      if (hasRun.value) return '(tidak ada output)';
+      return 'Klik "Jalankan" untuk melihat hasil…';
+    });
+
+    const chEmptyHint = computed(() => {
+      if (engineState.value === 'loading') return '⏳ Memuat JSCPP…';
+      if (engineState.value === 'error') return '⚠️ JSCPP gagal dimuat.';
+      if (hasRun.value) return '(tidak ada output)';
+      return 'Klik "Uji Coba" untuk mencoba programmu…';
+    });
+
+    /* === Interactive input promise state === */
+    let resolveInputPromise = null;
+
+    function promptInline() {
+      return new Promise((resolve) => {
+        awaitingInput.value = true;
+        resolveInputPromise = resolve;
+      });
+    }
+
+    function submitInlineInput(value) {
+      if (!resolveInputPromise) return;
+      awaitingInput.value = false;
+      const r = resolveInputPromise;
+      resolveInputPromise = null;
+      r(String(value == null ? '' : value));
+    }
+
+    function signalEOF() {
+      if (!resolveInputPromise) return;
+      awaitingInput.value = false;
+      const r = resolveInputPromise;
+      resolveInputPromise = null;
+      r(null);
+    }
+
+    function conClear() {
+      if (resolveInputPromise) {
+        awaitingInput.value = false;
+        const r = resolveInputPromise;
+        resolveInputPromise = null;
+        r(null);
+      }
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+    }
+
+    /* === Interactive runner === */
+    async function runCodeInteractive(code) {
+      if (playRunning.value) return;
+
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      awaitingInput.value = false;
+      playRunning.value = true;
+
+      const eng = await ensureEngineSafe();
+      if (!eng) {
+        playRunning.value = false;
+        hasRun.value = true;
+        return;
+      }
+
+      await new Promise(r => setTimeout(r, 20));
+
+      const inputs = [];
+      const staticCount = countCinOperations(code);
+      let iterations = 0;
+      const MAX_ITER = 60;
+
+      try {
+        while (iterations < MAX_ITER) {
+          iterations++;
+
+          const stdin = inputs.length ? inputs.join('\n') + '\n' : '';
+          const result = runJSCPPCode(code, stdin);
+
+          if (result.error) {
+            conRows.value = result.output ? [{ text: result.output }] : [];
+            lastError.value = { type: 'Compile/Runtime Error', msg: result.error };
+            break;
+          }
+
+          const probeStdin = stdin + '1\n';
+          const probeResult = runJSCPPCode(code, probeStdin);
+          const needsMore = !probeResult.error && probeResult.output !== result.output;
+
+          const shouldPrompt = needsMore || inputs.length < staticCount;
+
+          if (!shouldPrompt) {
+            conRows.value = result.output ? [{ text: result.output }] : [];
+            break;
+          }
+
+          let partialOutput;
+          if (needsMore) {
+            const div = findDivergence(result.output, probeResult.output);
+            partialOutput = result.output.slice(0, div);
+          } else {
+            partialOutput = result.output;
+          }
+
+          conRows.value = partialOutput ? [{ text: partialOutput }] : [];
+
+          const userInput = await promptInline();
+
+          if (userInput === null) {
+            const finalStdin = inputs.length ? inputs.join('\n') + '\n' : '';
+            const finalResult = runJSCPPCode(code, finalStdin);
+            conRows.value = finalResult.output ? [{ text: finalResult.output }] : [];
+            if (finalResult.error) {
+              lastError.value = { type: 'Error', msg: finalResult.error };
+            }
+            break;
+          }
+
+          inputs.push(userInput);
+        }
+
+        if (iterations >= MAX_ITER) {
+          lastError.value = { type: 'Input Limit', msg: 'Batas maksimum input tercapai. Tekan EOF lebih awal jika program memakai loop input.' };
+        }
+      } catch (err) {
+        lastError.value = { type: 'Error', msg: String(err && err.message ? err.message : err) };
+      } finally {
+        awaitingInput.value = false;
+        playRunning.value = false;
+        hasRun.value = true;
+      }
+    }
+
+    function runPlay() {
+      savePlay();
+      runCodeInteractive(playCode.value);
+    }
+
+    function savePlay() {
+      PYSTORE.set('cppmimo-jscpp-play', playCode.value);
+    }
+
+    function loadTpl(k) {
+      curTpl.value = k;
+      playCode.value = TPL[k].code;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      savePlay();
+      showToast('Contoh "' + TPL[k].name + '" dimuat 📄');
+    }
+
+    function resetPlay() {
+      playCode.value = TPL[curTpl.value].code;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      savePlay();
+      showToast('Kode dikembalikan 🔄');
+    }
+
+    const chView = ref(null);
+    const chCode = ref('');
+    const chTest = ref(null);
+    const chBusy = ref(false);
+
+    const chCur = computed(() => CHALLENGES.find(c => c.id === chView.value) || null);
+    const chDoneTotal = computed(() => chCount(progress));
+
+    function chSt(id) {
+      if (!id) return { tries: 0, done: false };
+      return progress.ch[id] || { tries: 0, done: false };
+    }
+
+    function chLockedId(id) {
+      const s = chSt(id);
+      return !s.done && s.tries >= 3;
+    }
+
+    const chIsLocked = computed(() => chLockedId(chView.value));
+    const chDone = computed(() => !!chSt(chView.value).done);
+    const chTriesLeft = computed(() => Math.max(0, 3 - chSt(chView.value).tries));
+
+    function saveCh() {
+      if (chView.value) PYSTORE.set('cppmimo-jscpp-ch-' + chView.value, chCode.value);
+    }
+
+    function openChallenge(id) {
+      const c = CHALLENGES.find(x => x.id === id);
+      if (!c) return;
+      chView.value = id;
+      chCode.value = PYSTORE.get('cppmimo-jscpp-ch-' + id) || c.starter;
+      chTest.value = null;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      window.scrollTo(0, 0);
+    }
+
+    function chBack() {
+      saveCh();
+      chView.value = null;
+      chTest.value = null;
+      conRows.value = [];
+      lastError.value = null;
+      hasRun.value = false;
+      window.scrollTo(0, 0);
+    }
+
+    function chReset() {
+      if (!chCur.value) return;
+      chCode.value = chCur.value.starter;
+      saveCh();
+      showToast('Kode awal dikembalikan 🔄');
+    }
+
+    function chTry() {
+      chTest.value = null;
+      saveCh();
+      runCodeInteractive(chCode.value);
+    }
+
+    const normOut = s => String(s).split('\n').map(l => l.replace(/\s+$/g, '')).join('\n').replace(/^\n+/, '').replace(/\n+$/, '');
+
+    function runCppCapture(code, inputs) {
+      const stdin = (inputs || []).join('\n');
+      const res = runJSCPPCode(code, stdin);
+      return { out: res.output, err: res.error };
+    }
+
+    async function chSubmit() {
+      const c = chCur.value;
+      if (!c || chBusy.value) return;
+
+      const s0 = chSt(c.id);
+      const isReplay = s0.done;
+      if (!isReplay && s0.tries >= 3) return;
+
+      saveCh();
+      chTest.value = null;
+      chBusy.value = true;
+
+      const eng = await ensureEngineSafe();
+      if (!eng) {
+        chTest.value = { pass: false, results: [], error: 'JSCPP gagal dimuat.' };
+        chBusy.value = false;
+        return;
+      }
+
+      const results = [];
+
+      for (const t of c.tests) {
+        await new Promise(r => setTimeout(r, 10));
+        const r = runCppCapture(chCode.value, t.inputs || []);
+        const pass = !r.err && normOut(r.out) === normOut(t.expect);
+        results.push({ name: t.name, pass, expect: t.expect, got: normOut(r.out), err: r.err });
+      }
+
+      chBusy.value = false;
+      const allPass = results.every(r => r.pass);
+
+      if (isReplay) {
+        if (allPass) {
+          const gained = refillHearts(1);
+          chTest.value = { pass: true, results };
+          if (gained > 0) showToast('❤️ +1 nyawa dari latihan ulang!');
+          else showToast('Latihan ulang sempurna!');
+        } else {
+          chTest.value = { pass: false, results };
+        }
+        return;
+      }
+
+      const s = progress.ch[c.id];
+
+      if (allPass) {
+        s.done = true;
+        progress.xp += c.xp;
+        refillHearts(MAX_HEARTS);
+        try { save(); } catch (e) {}
+        chTest.value = { pass: true, results };
+        showToast('🎉 Tantangan selesai! +' + c.xp + ' XP');
+      } else {
+        s.tries += 1;
+        try { save(); } catch (e) {}
+        chTest.value = { pass: false, results };
+        if (s.tries >= 3) showToast('Tantangan terkunci — 3 percobaan habis 🔒');
+      }
+    }
+
+    function startApp() {
+      screen.value = 'app';
+      tab.value = 'home';
+      ensureEngineSafe();
+    }
+
+    function backHome() {
+      screen.value = 'app';
+      tab.value = 'home';
+    }
+
+    function goToChallenges() {
+      screen.value = 'app';
+      tab.value = 'tantangan';
+    }
+
+    function updateDayStats() {
+      const today = new Date().toLocaleDateString('en-CA');
+      if (progress.lastDay !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA');
+        progress.streak = (progress.lastDay === yesterday) ? progress.streak + 1 : 1;
+        progress.lastDay = today;
+      }
+    }
+
+    function prepareExercise() {
+      const e = ex.value;
+      selected.value = null;
+      answerText.value = '';
+      feedback.show = false;
+      feedback.correct = false;
+      feedback.title = '';
+      feedback.detail = '';
+
+      if (e && e.type === 'fill') {
+        const bank = e.bank.map((t, i) => ({ id: i, text: t, used: false }));
+        for (let i = bank.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [bank[i], bank[j]] = [bank[j], bank[i]];
+        }
+        fill.bank = bank;
+        fill.placed = {};
+        e.blanks.forEach((b, i) => { fill.placed[i] = null; });
+      }
+    }
+
+    function startLesson(flat) {
+      if (progress.hearts <= 0) {
+        showToast('💔 Nyawa habis! Selesaikan tantangan untuk mengisi ulang.');
+        screen.value = 'app';
+        tab.value = 'tantangan';
+        return;
+      }
+      active.value = FLAT[flat];
+      exIdx.value = 0;
+      lessonXp.value = 0;
+      wrongCount.value = 0;
+      answered.value = 0;
+      correct.value = 0;
+      prepareExercise();
+      screen.value = 'lesson';
+      window.scrollTo(0, 0);
+    }
+
+    function onNodeTap(lsn) {
+      if (progress.hearts <= 0) {
+        showToast('💔 Nyawa habis!');
+        tab.value = 'tantangan';
+        return;
+      }
+      if (lsn.flat > progress.completed) {
+        showToast('Selesaikan latihan sebelumnya dulu! 🔒');
+        return;
+      }
+      startLesson(lsn.flat);
+    }
+
+    function place(chipId) {
+      const e = ex.value;
+      for (let i = 0; i < e.blanks.length; i++) {
+        if (fill.placed[i] === null) {
+          fill.placed[i] = chipId;
+          const chip = fill.bank.find(c => c.id === chipId);
+          if (chip) chip.used = true;
+          return;
+        }
+      }
+    }
+
+    function unplace(bi) {
+      const chipId = fill.placed[bi];
+      if (chipId === null || chipId === undefined) return;
+      const chip = fill.bank.find(c => c.id === chipId);
+      if (chip) chip.used = false;
+      fill.placed[bi] = null;
+    }
+
+    const chipAt = bi => fill.bank.find(c => c.id === fill.placed[bi]) || null;
+
+    const canCheck = computed(() => {
+      const e = ex.value;
+      if (!e) return false;
+      if (e.type === 'concept') return true;
+      if (e.type === 'quiz' || e.type === 'output') return selected.value !== null;
+      if (e.type === 'input') return answerText.value.trim() !== '';
+      if (e.type === 'fill') return e.blanks.every((b, i) => fill.placed[i] !== null);
+      return false;
+    });
+
+    function optionClass(i) {
+      const e = ex.value;
+      if (feedback.show) {
+        if (i === e.answer) return 'border-mimo bg-mimo/10';
+        if (i === selected.value) return 'border-danger bg-danger/10';
+        return 'border-line opacity-40';
+      }
+      return selected.value === i ? 'border-mimo bg-mimo/10' : 'border-line bg-panel';
+    }
+
+    function chipClass(i) {
+      if (feedback.show && ex.value && i === ex.value.answer) return 'bg-mimo text-night';
+      if (feedback.show && i === selected.value) return 'bg-danger text-white';
+      return selected.value === i ? 'bg-mimo text-night' : 'bg-panel2 text-slate-400';
+    }
+
+    function blankClass(bi) {
+      if (feedback.show) return feedback.correct ? 'ok' : 'bad';
+      return chipAt(bi) ? 'filled' : '';
+    }
+
+    function checkAnswer() {
+      const e = ex.value;
+      if (!e || !canCheck.value) return;
+
+      if (e.type === 'concept') {
+        lessonXp.value += 5;
+        advance();
+        return;
+      }
+
+      let ok = false;
+
+      if (e.type === 'quiz' || e.type === 'output') {
+        ok = selected.value === e.answer;
+      } else if (e.type === 'input') {
+        const norm = s => String(s).trim().toLowerCase();
+        ok = e.answers.some(a => norm(a) === norm(answerText.value));
+      } else if (e.type === 'fill') {
+        ok = e.blanks.every((b, i) => {
+          const c = chipAt(i);
+          return c && c.text === b.answer;
+        });
+      }
+
+      answered.value += 1;
+
+      if (ok) {
+        correct.value += 1;
+        lessonXp.value += 10;
+        feedback.correct = true;
+        feedback.title = pick(['Keren! 🎉', 'Mantap! 💪', 'Tepat! ✨', 'Hebat! 🚀']) + ' · +10 XP';
+        feedback.detail = '';
+      } else {
+        wrongCount.value += 1;
+        loseHeart();
+        feedback.correct = false;
+        feedback.title = progress.hearts === 0 ? 'Nyawa habis!' : 'Belum tepat · ❤️ -1';
+        feedback.detail = 'Jawaban benar: ' + (e.options ? esc(e.options[e.answer]) : esc(e.answers[0]));
+      }
+
+      feedback.show = true;
+    }
+
+    function advance() {
+      feedback.show = false;
+
+      if (progress.hearts <= 0) {
+        screen.value = 'failed';
+        return;
+      }
+
+      if (exIdx.value < active.value.exercises.length - 1) {
+        exIdx.value += 1;
+        prepareExercise();
+      } else {
+        finishLesson();
+      }
+    }
+
+    function finishLesson() {
+      const perfect = wrongCount.value === 0;
+      result.perfect = perfect;
+      result.xp = lessonXp.value + (perfect ? 20 : 0);
+      result.accuracy = answered.value ? Math.round((correct.value / answered.value) * 100) : 100;
+
+      try {
+        progress.totalCorrect += correct.value;
+        progress.totalWrong += wrongCount.value;
+        if (perfect) progress.perfect += 1;
+        if (active.value.flat === progress.completed) progress.completed = active.value.flat + 1;
+        progress.xp += result.xp;
+        updateDayStats();
+        save();
+      } catch (err) {}
+
+      makeConfetti();
+      screen.value = 'complete';
+      window.scrollTo(0, 0);
+    }
+
+    function makeConfetti() {
+      const colors = ['#60a5fa', '#7dd3fc', '#fbbf24', '#f472b6', '#ff8a5c', '#a78bfa'];
+      const pieces = [];
+      for (let i = 0; i < 45; i++) {
+        pieces.push({
+          style: 'left:' + (Math.random() * 100).toFixed(1) + '%;background:' + colors[i % colors.length] +
+            ';width:' + (6 + Math.random() * 6).toFixed(0) + 'px;height:' + (8 + Math.random() * 8).toFixed(0) +
+            'px;animation-duration:' + (2.4 + Math.random() * 2.2).toFixed(2) + 's;animation-delay:' + (Math.random() * 1.4).toFixed(2) + 's;'
+        });
+      }
+      confetti.value = pieces;
+    }
+
+    function doReset() {
+      try {
+        Object.assign(progress, { completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0, ch: {}, hearts: MAX_HEARTS });
+        CHALLENGES.forEach(c => { progress.ch[c.id] = { tries: 0, done: false }; });
+        save();
+      } catch (err) {}
+      showReset.value = false;
+      showToast('Progres berhasil direset 🔄');
+    }
+
+    function chapterDoneCount(ci) {
+      return COURSE[ci].lessons.filter(l => l.flat < progress.completed).length;
+    }
+
+    function nodeClass(lsn) {
+      if (lsn.flat < progress.completed) return 'bg-mimo border-mimo text-night';
+      if (lsn.flat === progress.completed) return 'bg-panel2 border-mimo text-white node-active';
+      return 'bg-panel border-line text-slate-600';
+    }
+
+    watch(tab, v => {
+      if (v === 'play' || v === 'tantangan') ensureEngineSafe();
+    });
+
+    return {
+      screen, tab, progress, toast, showExit, showReset,
+      course: COURSE, TOTAL, MAX_HEARTS, CHALLENGES, TPL,
+      active, exIdx, ex, lessonPct, selected, feedback, fill, answerText,
+      result, confetti, greeting, nextLesson, currentChapterTitle,
+      level, levelTitle, levelPct,
+      engineState, engineBadge, engineBadgeClass, retryEngine,
+      playCode, playRunning, playEmptyHint, chEmptyHint,
+      conRows, lastError, hasRun, awaitingInput,
+      runPlay, savePlay, loadTpl, resetPlay, conClear,
+      submitInlineInput, signalEOF,
+      chView, chCode, chTest, chBusy, chCur, chDoneTotal,
+      chSt, chLockedId, chIsLocked, chDone, chTriesLeft,
+      openChallenge, chBack, chReset, chTry, chSubmit, saveCh,
+      startApp, backHome, goToChallenges, startLesson, onNodeTap,
+      place, unplace, chipAt, canCheck, checkAnswer, advance,
+      optionClass, chipClass, blankClass,
+      chapterDoneCount, nodeClass, hl, fmt,
+      theme, setTheme, toggleTheme
+    };
+  }
+});
+
+app.component('cpp-editor', CppEditor);
+app.component('cpp-console', CppConsole);
+app.mount('#app');
+</script>
+</body>
+</html>
