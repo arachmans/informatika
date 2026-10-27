@@ -58,12 +58,27 @@ body { background: radial-gradient(1100px 480px at 50% -8%, rgba(96,165,250,.08)
 .tok-pre { color: #c084fc; }
 pre, code, .font-mono { tab-size: 4; }
 .ic-code { background: #1c2841; color: #93c5fd; padding: 2px 7px; border-radius: 6px; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: .78rem; white-space: nowrap; }
-/* FIX: caret-color agar kursor terlihat pada textarea transparan */
-.ed-ta { color: transparent; caret-color: #93c5fd; }
-.ed-ta::selection { background: rgba(96,165,250,.32); color: transparent; }
+
+/* Perbaikan styling Code Editor agar presisi dan sinkron */
+.ed-ta {
+  color: transparent;
+  caret-color: #60a5fa;
+  -webkit-text-fill-color: transparent;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  font-variant-ligatures: none;
+}
+html.light .ed-ta { caret-color: #38bdf8; }
+.ed-ta::selection { background: rgba(96, 165, 250, 0.32); color: transparent; -webkit-text-fill-color: transparent; }
 .ed-ta:focus { outline: none; }
-.ed-gutter { scrollbar-width: none; }
-.ed-gutter::-webkit-scrollbar { display: none; }
+.ed-pre {
+  tab-size: 4;
+  -moz-tab-size: 4;
+  font-variant-ligatures: none;
+}
+.ed-gutter, .ed-symbar { scrollbar-width: none; }
+.ed-gutter::-webkit-scrollbar, .ed-symbar::-webkit-scrollbar { display: none; }
+
 .ic-b { color: #fff; font-weight: 700; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
@@ -247,7 +262,7 @@ html.light .ic-b { color: #0f172a; }
         <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)" class="shrink-0 px-3.5 py-2 rounded-xl bg-panel border border-line text-[12px] font-bold text-slate-300 hover:border-mimo/60 active:scale-95 transition">▶ {{ t.name }}</button>
       </div>
 
-      <cpp-editor v-model="playCode" class="mt-3" filename="main.cpp" placeholder="// tulis kode C++ di sini…" :badge="engineBadge" :badge-class="engineBadgeClass" @blur="savePlay"></cpp-editor>
+      <cpp-editor v-model="playCode" class="mt-3" filename="main.cpp" placeholder="// tulis kode C++ di sini…" :badge="engineBadge" :badge-class="engineBadgeClass" @blur="savePlay" @run="runPlay"></cpp-editor>
 
       <div class="flex gap-2.5 mt-3">
         <button @click="runPlay" :disabled="playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-3 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
@@ -263,7 +278,7 @@ html.light .ic-b { color: #0f172a; }
         :awaiting-input="awaitingInput" @clear="conClear"
         @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
 
-      <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Input diketik langsung di console mengikuti alur program. Untuk program dengan loop <code class="font-mono">while (cin &gt;&gt; x)</code>, tekan <b>EOF</b> saat selesai memberi input.</p>
+      <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Input diketik langsung di console mengikuti alur program (bisa dipisah spasi atau Enter). Untuk program dengan loop <code class="font-mono">while (cin &gt;&gt; x)</code>, tekan <b>EOF</b> saat selesai memberi input.</p>
     </div>
 
     <!-- TANTANGAN -->
@@ -337,7 +352,7 @@ html.light .ic-b { color: #0f172a; }
           </div>
         </div>
 
-        <cpp-editor v-model="chCode" class="mt-3" filename="solusi.cpp" placeholder="// tulis solusimu di sini…" :readonly="chIsLocked" @blur="saveCh"></cpp-editor>
+        <cpp-editor v-model="chCode" class="mt-3" filename="solusi.cpp" placeholder="// tulis solusimu di sini…" :readonly="chIsLocked" @blur="saveCh" @run="chTry"></cpp-editor>
 
         <div v-if="!chIsLocked" class="flex gap-2.5 mt-3">
           <button @click="chTry" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl border-2 border-mimo/50 text-mimo font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60">
@@ -1023,7 +1038,7 @@ COURSE.forEach((ch, ci) => ch.lessons.forEach(l => {
 }));
 const TOTAL = FLAT.length;
 
-/* ================= JSCPP STRING COMPAT ================= */
+/* ================= JSCPP STRING & INIT COMPAT ================= */
 const JSCPP_STRING_HELPERS = `
 int __mimo_len(char s[]) {
     int n = 0;
@@ -1103,7 +1118,21 @@ function prepareCppForJSCPP(rawCode) {
 
   code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*;/g, function (m, name) {
     stringVars.add(name);
-    return 'char ' + name + '[256];';
+    return 'char ' + name + '[256] = "";';
+  });
+
+  // FIX NaN(int): Otomatis beri nilai awal 0 pada variabel primitif yang belum diinisialisasi
+  // agar JSCPP tidak melempar "overflow of NaN(int)" saat pre-run dengan stdin kosong.
+  code = code.replace(/^([ \t]*)(int|long|short|float|double|bool)\s+([^;()=\n]+);/gm, function (match, indent, type, varList) {
+    if (/[()]/.test(varList)) return match;
+    const parts = varList.split(',').map(p => {
+      const trimmed = p.trim();
+      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(trimmed)) {
+        return trimmed + ' = 0';
+      }
+      return trimmed;
+    });
+    return indent + type + ' ' + parts.join(', ') + ';';
   });
 
   code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(?:length|size)\s*\(\s*\)/g, '__mimo_len($1)');
@@ -1149,7 +1178,7 @@ function prepareCppForJSCPP(rawCode) {
   return code;
 }
 
-/* ================= JSCPP LOADER (script tag — UMD/global build) ================= */
+/* ================= JSCPP LOADER ================= */
 let enginePromise = null;
 let engineState = ref('none');
 
@@ -1193,7 +1222,6 @@ function ensureEngine() {
 
     for (const url of JSCPP_URLS) {
       try {
-        console.log('🔄 Mencoba memuat JSCPP dari:', url);
         const JSCPP = await loadScriptOnce(url);
 
         if (typeof JSCPP.run !== 'function' && typeof JSCPP.createInterpreter !== 'function') {
@@ -1202,10 +1230,8 @@ function ensureEngine() {
 
         window.JSCPP = JSCPP;
         engineState.value = 'jscpp';
-        console.log('✅ JSCPP berhasil dimuat dari:', url);
         return 'jscpp';
       } catch (err) {
-        console.warn('❌ Gagal memuat dari', url, ':', err);
         lastError = err;
         try { delete window.JSCPP; } catch (e) { window.JSCPP = undefined; }
       }
@@ -1290,64 +1316,409 @@ const CppEditor = {
     badge: { type: String, default: '' },
     badgeClass: { type: String, default: 'text-mimo/80' }
   },
-  emits: ['update:modelValue', 'blur'],
+  emits: ['update:modelValue', 'blur', 'run'],
   setup(props, { emit }) {
-    const lineCount = computed(() => props.modelValue.split('\n').length);
-    const hlHtml = computed(() => hl(props.modelValue) + '\n');
-    const ta = ref(null), pre = ref(null), gutter = ref(null);
+    const ta = ref(null), pre = ref(null), gutter = ref(null), activeLineEl = ref(null);
+    const curLine = ref(1);
+    const curCol = ref(1);
+    const isFocused = ref(false);
+    const copied = ref(false);
+
+    const lineCount = computed(() => Math.max(1, (props.modelValue || '').split('\n').length));
+    const hlHtml = computed(() => hl(props.modelValue || '') + '\n ');
+
+    const quickSymbols = [
+      { label: 'Tab', val: '    ' },
+      { label: '{', val: '{' },
+      { label: '}', val: '}' },
+      { label: '(', val: '(' },
+      { label: ')', val: ')' },
+      { label: '<<', val: ' << ' },
+      { label: '>>', val: ' >> ' },
+      { label: ';', val: ';' },
+      { label: '"', val: '"' },
+      { label: '#', val: '#' },
+      { label: '//', action: 'comment' }
+    ];
 
     function syncScroll() {
-      if (!ta.value) return;
+      const t = ta.value;
+      if (!t) return;
       if (pre.value) {
-        pre.value.scrollTop = ta.value.scrollTop;
-        pre.value.scrollLeft = ta.value.scrollLeft;
+        pre.value.scrollTop = t.scrollTop;
+        pre.value.scrollLeft = t.scrollLeft;
       }
-      if (gutter.value) gutter.value.scrollTop = ta.value.scrollTop;
+      if (gutter.value) {
+        gutter.value.scrollTop = t.scrollTop;
+      }
+      updateActiveLinePos();
     }
 
-    function onInput(e) { emit('update:modelValue', e.target.value); }
+    function updateCursorInfo() {
+      const t = ta.value;
+      if (!t) return;
+      const pos = t.selectionStart || 0;
+      const before = (props.modelValue || '').slice(0, pos);
+      const lines = before.split('\n');
+      curLine.value = lines.length;
+      curCol.value = lines[lines.length - 1].length + 1;
+      updateActiveLinePos();
+    }
 
-    function onTab(e) {
+    function updateActiveLinePos() {
+      if (!activeLineEl.value || !ta.value) return;
+      const lineHeight = 20.625;
+      const paddingTop = 12;
+      const top = paddingTop + (curLine.value - 1) * lineHeight - ta.value.scrollTop;
+      activeLineEl.value.style.transform = `translateY(${top}px)`;
+    }
+
+    function updateVal(newVal, selStart, selEnd = selStart) {
+      emit('update:modelValue', newVal);
+      nextTick(() => {
+        const t = ta.value;
+        if (!t) return;
+        t.focus();
+        t.setSelectionRange(selStart, selEnd);
+        updateCursorInfo();
+        syncScroll();
+      });
+    }
+
+    function onInput(e) {
+      emit('update:modelValue', e.target.value);
+      nextTick(() => {
+        updateCursorInfo();
+        syncScroll();
+      });
+    }
+
+    function toggleComment() {
+      const t = ta.value;
+      if (!t || props.readonly) return;
+      const val = t.value;
+      const start = t.selectionStart;
+      const end = t.selectionEnd;
+
+      const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+      let lineEnd = val.indexOf('\n', end);
+      if (lineEnd === -1) lineEnd = val.length;
+
+      const block = val.slice(lineStart, lineEnd);
+      const lines = block.split('\n');
+      const allCommented = lines.filter(l => l.trim().length > 0).every(l => /^\s*\/\//.test(l));
+
+      let deltaFirst = 0;
+      let deltaTotal = 0;
+
+      const newLines = lines.map((line, idx) => {
+        if (!line.trim()) return line;
+        if (allCommented) {
+          const updated = line.replace(/^(\s*)\/\/\s?/, '$1');
+          const diff = updated.length - line.length;
+          if (idx === 0) deltaFirst = diff;
+          deltaTotal += diff;
+          return updated;
+        } else {
+          const updated = line.replace(/^(\s*)/, '$1// ');
+          const diff = updated.length - line.length;
+          if (idx === 0) deltaFirst = diff;
+          deltaTotal += diff;
+          return updated;
+        }
+      });
+
+      const newVal = val.slice(0, lineStart) + newLines.join('\n') + val.slice(lineEnd);
+      const newStart = Math.max(lineStart, start + deltaFirst);
+      const newEnd = Math.max(newStart, end + deltaTotal);
+      updateVal(newVal, newStart, newEnd);
+    }
+
+    function onKeydown(e) {
+      if (props.readonly) return;
       const t = e.target;
-      t.setRangeText('    ', t.selectionStart, t.selectionEnd, 'end');
-      emit('update:modelValue', t.value);
+      const val = t.value;
+      const start = t.selectionStart;
+      const end = t.selectionEnd;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        emit('run');
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        toggleComment();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const hasNewline = val.slice(start, end).includes('\n');
+
+        if (e.shiftKey || hasNewline) {
+          const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+          let lineEnd = val.indexOf('\n', end);
+          if (lineEnd === -1) lineEnd = val.length;
+
+          const block = val.slice(lineStart, lineEnd);
+          const lines = block.split('\n');
+          let firstDiff = 0;
+          let totalDiff = 0;
+
+          const newLines = lines.map((line, i) => {
+            if (e.shiftKey) {
+              const m = line.match(/^( {1,4}|\t)/);
+              const rm = m ? m[0].length : 0;
+              if (i === 0) firstDiff = -rm;
+              totalDiff -= rm;
+              return line.slice(rm);
+            } else {
+              if (i === 0) firstDiff = 4;
+              totalDiff += 4;
+              return '    ' + line;
+            }
+          });
+
+          const newVal = val.slice(0, lineStart) + newLines.join('\n') + val.slice(lineEnd);
+          updateVal(newVal, Math.max(lineStart, start + firstDiff), Math.max(lineStart, end + totalDiff));
+        } else {
+          const newVal = val.slice(0, start) + '    ' + val.slice(end);
+          updateVal(newVal, start + 4);
+        }
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        if (start !== end) return;
+        const before = val.slice(0, start);
+        const after = val.slice(end);
+        const line = before.slice(before.lastIndexOf('\n') + 1);
+        const baseIndent = (line.match(/^[ \t]*/) || [''])[0];
+        const prevChar = before.slice(-1);
+        const nextChar = after.charAt(0);
+
+        if (prevChar === '{' && nextChar === '}') {
+          e.preventDefault();
+          const innerIndent = baseIndent + '    ';
+          const ins = '\n' + innerIndent + '\n' + baseIndent;
+          const newVal = before + ins + after;
+          updateVal(newVal, start + 1 + innerIndent.length);
+          return;
+        }
+
+        let nextIndent = baseIndent;
+        if (/\{\s*$/.test(line) || /\(\s*$/.test(line) || /\b(public|private|protected|case\s+[^:]+|default)\s*:\s*$/.test(line)) {
+          nextIndent += '    ';
+        }
+
+        if (nextIndent) {
+          e.preventDefault();
+          const newVal = before + '\n' + nextIndent + after;
+          updateVal(newVal, start + 1 + nextIndent.length);
+        }
+        return;
+      }
+
+      const pairs = { '{': '}', '(': ')', '[': ']', '"': '"', "'": "'" };
+      const closers = new Set(['}', ')', ']', '"', "'"]);
+
+      if (start === end && closers.has(e.key) && val.charAt(start) === e.key) {
+        if ((e.key === '"' || e.key === "'") && val.charAt(start - 1) === '\\') return;
+        e.preventDefault();
+        updateVal(val, start + 1);
+        return;
+      }
+
+      if (pairs[e.key] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const closeChar = pairs[e.key];
+        if (start !== end) {
+          e.preventDefault();
+          const selected = val.slice(start, end);
+          const newVal = val.slice(0, start) + e.key + selected + closeChar + val.slice(end);
+          updateVal(newVal, start + 1, end + 1);
+          return;
+        }
+        const nextCh = val.charAt(start);
+        const prevCh = val.charAt(start - 1);
+        const canAutoClose = !nextCh || /[\s\)\]\};,]/.test(nextCh);
+        if ((e.key === '"' || e.key === "'") && /[A-Za-z0-9_\\]/.test(prevCh)) return;
+
+        if (canAutoClose) {
+          e.preventDefault();
+          const newVal = val.slice(0, start) + e.key + closeChar + val.slice(end);
+          updateVal(newVal, start + 1);
+          return;
+        }
+      }
+
+      if (e.key === '}' && start === end) {
+        const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+        const currentLineBeforeCursor = val.slice(lineStart, start);
+        if (/^ {4,}$/.test(currentLineBeforeCursor)) {
+          e.preventDefault();
+          const newVal = val.slice(0, start - 4) + '}' + val.slice(end);
+          updateVal(newVal, start - 3);
+          return;
+        }
+      }
+
+      if (e.key === 'Backspace' && start === end && start > 0) {
+        const prevCh = val.charAt(start - 1);
+        const nextCh = val.charAt(start);
+
+        if (pairs[prevCh] && pairs[prevCh] === nextCh) {
+          e.preventDefault();
+          const newVal = val.slice(0, start - 1) + val.slice(start + 1);
+          updateVal(newVal, start - 1);
+          return;
+        }
+
+        const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+        const beforeInLine = val.slice(lineStart, start);
+        if (beforeInLine.length > 0 && /^ +$/.test(beforeInLine)) {
+          const spacesToRemove = (beforeInLine.length % 4) || 4;
+          if (spacesToRemove > 1) {
+            e.preventDefault();
+            const newVal = val.slice(0, start - spacesToRemove) + val.slice(start);
+            updateVal(newVal, start - spacesToRemove);
+            return;
+          }
+        }
+      }
     }
 
-    function onEnter(e) {
-      const t = e.target;
-      if (t.selectionStart !== t.selectionEnd) return;
-      const before = t.value.slice(0, t.selectionStart);
-      const line = before.slice(before.lastIndexOf('\n') + 1);
-      let indent = (line.match(/^[ \t]*/) || [''])[0];
-      if (/\{\s*$/.test(line)) indent += '    ';
-      if (!indent) return;
-      e.preventDefault();
-      t.setRangeText('\n' + indent, t.selectionStart, t.selectionEnd, 'end');
-      emit('update:modelValue', t.value);
+    function insertSymbol(sym) {
+      if (props.readonly) return;
+      if (sym.action === 'comment') {
+        toggleComment();
+        return;
+      }
+      const t = ta.value;
+      if (!t) return;
+      const val = t.value;
+      const start = t.selectionStart;
+      const end = t.selectionEnd;
+      const pairs = { '{': '}', '(': ')', '"': '"' };
+
+      if (pairs[sym.val] && start === end) {
+        const close = pairs[sym.val];
+        const newVal = val.slice(0, start) + sym.val + close + val.slice(end);
+        updateVal(newVal, start + 1);
+      } else {
+        const newVal = val.slice(0, start) + sym.val + val.slice(end);
+        updateVal(newVal, start + sym.val.length);
+      }
     }
 
-    function onBlur() { emit('blur'); }
+    async function copyCode() {
+      try {
+        await navigator.clipboard.writeText(props.modelValue || '');
+        copied.value = true;
+        setTimeout(() => { copied.value = false; }, 1600);
+      } catch (e) {}
+    }
 
-    watch(() => props.modelValue, () => nextTick(syncScroll));
+    function onFocus() {
+      isFocused.value = true;
+      updateCursorInfo();
+    }
 
-    return { lineCount, hlHtml, ta, pre, gutter, syncScroll, onInput, onTab, onEnter, onBlur };
+    function onBlur() {
+      isFocused.value = false;
+      emit('blur');
+    }
+
+    watch(() => props.modelValue, () => {
+      nextTick(() => {
+        updateCursorInfo();
+        syncScroll();
+      });
+    });
+
+    return {
+      lineCount, hlHtml, ta, pre, gutter, activeLineEl,
+      curLine, curCol, isFocused, copied, quickSymbols,
+      syncScroll, updateCursorInfo, onInput, onKeydown,
+      insertSymbol, copyCode, onFocus, onBlur
+    };
   },
   template: `
-    <div class="rounded-2xl overflow-hidden border border-line">
-      <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
+    <div class="rounded-2xl overflow-hidden border transition-colors" :class="isFocused ? 'border-mimo/70 shadow-glow' : 'border-line'">
+      <!-- Header Bar -->
+      <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/80 border-b border-line">
         <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
-        <span class="ml-2 text-[10px] font-mono text-slate-500">{{ filename }}</span>
-        <span class="ml-auto text-[9px] font-bold" :class="badgeClass">{{ badge }}</span>
-      </div>
-      <div class="relative bg-[#0a0f1a]">
-        <div ref="gutter" aria-hidden="true" class="ed-gutter pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-[38px] overflow-hidden px-2.5 pt-3 pb-24 text-right font-mono text-[12.5px] leading-[1.65] text-slate-600 select-none bg-[#0a0f1a] border-r border-[#1b2942]">
-          <div v-for="n in lineCount" :key="n" v-text="n"></div>
+        <span class="ml-2 text-[11px] font-mono font-semibold text-slate-400">{{ filename }}</span>
+        <span v-if="readonly" class="ml-1.5 text-[9px] font-extrabold bg-danger/15 text-danger px-2 py-0.5 rounded-full">READ-ONLY</span>
+        <div class="ml-auto flex items-center gap-2.5">
+          <span v-if="badge" class="text-[9px] font-bold" :class="badgeClass">{{ badge }}</span>
+          <button type="button" @click="copyCode" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-panel border border-line text-slate-400 hover:text-white hover:border-mimo/50 active:scale-95 transition">
+            {{ copied ? '✓ Tersalin' : 'Salin' }}
+          </button>
         </div>
+      </div>
+
+      <!-- Area Editor -->
+      <div class="relative bg-[#0a0f1a] overflow-hidden">
+        <!-- Highlight Baris Aktif -->
+        <div ref="activeLineEl" aria-hidden="true" v-show="isFocused"
+          class="pointer-events-none absolute left-0 right-0 top-0 h-[20.625px] bg-mimo/[0.07] border-l-2 border-mimo transition-transform duration-75"></div>
+
+        <!-- Gutter Nomor Baris -->
+        <div ref="gutter" aria-hidden="true"
+          class="ed-gutter pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-[40px] overflow-hidden px-2 pt-3 pb-10 text-right font-mono text-[12.5px] leading-[1.65] select-none bg-[#0a0f1a]/90 border-r border-[#1b2942]">
+          <div v-for="n in lineCount" :key="n"
+            :class="isFocused && n === curLine ? 'text-mimo font-bold' : 'text-slate-600'"
+            v-text="n"></div>
+        </div>
+
+        <!-- Lapisan Pre (Syntax Highlight) & Textarea -->
         <div class="relative">
-          <pre ref="pre" aria-hidden="true" v-html="hlHtml" class="pointer-events-none select-none absolute inset-0 m-0 py-3 pr-4 pl-[46px] overflow-hidden whitespace-pre font-mono text-[12.5px] leading-[1.65] text-slate-200"></pre>
-          <textarea ref="ta" :value="modelValue" @input="onInput" @keydown.tab.prevent="onTab" @keydown.enter="onEnter" @scroll="syncScroll" @blur="onBlur" :readonly="readonly" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" :placeholder="placeholder" class="ed-ta relative block w-full min-h-[240px] max-h-[60vh] py-3 pr-4 pl-[46px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-none overflow-auto focus:outline-none"></textarea>
+          <pre ref="pre" aria-hidden="true" v-html="hlHtml"
+            class="ed-pre pointer-events-none select-none absolute inset-0 m-0 pt-3 pb-10 pr-4 pl-[48px] overflow-hidden whitespace-pre font-mono text-[12.5px] leading-[1.65] text-slate-200"></pre>
+          <textarea ref="ta"
+            :value="modelValue"
+            @input="onInput"
+            @keydown="onKeydown"
+            @click="updateCursorInfo"
+            @keyup="updateCursorInfo"
+            @scroll="syncScroll"
+            @focus="onFocus"
+            @blur="onBlur"
+            :readonly="readonly"
+            spellcheck="false"
+            autocomplete="off"
+            autocapitalize="off"
+            autocorrect="off"
+            wrap="off"
+            :placeholder="placeholder"
+            class="ed-ta relative block w-full min-h-[240px] max-h-[58vh] m-0 pt-3 pb-10 pr-4 pl-[48px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-y overflow-auto focus:outline-none"></textarea>
+        </div>
+      </div>
+
+      <!-- Quick Symbol Bar -->
+      <div v-if="!readonly" class="ed-symbar flex items-center gap-1.5 px-3 py-1.5 bg-[#0d1422] border-t border-[#1b2942] overflow-x-auto">
+        <span class="text-[9px] font-extrabold text-slate-600 tracking-wider mr-1 shrink-0">SIMBOL</span>
+        <button v-for="(s, idx) in quickSymbols" :key="idx" type="button"
+          @mousedown.prevent="insertSymbol(s)"
+          class="shrink-0 px-2.5 py-1 rounded-lg bg-panel2/80 hover:bg-mimo/20 border border-line/70 hover:border-mimo/50 font-mono text-[11px] font-semibold text-slate-300 active:scale-90 transition">
+          {{ s.label }}
+        </button>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="flex items-center justify-between px-3.5 py-1.5 bg-panel2/60 border-t border-line text-[10px] font-mono text-slate-500">
+        <div class="flex items-center gap-3">
+          <span>Ln {{ curLine }}, Col {{ curCol }}</span>
+          <span>·</span>
+          <span>{{ lineCount }} baris</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="hidden sm:inline text-slate-600">Ctrl+Enter: Jalankan · Ctrl+/: Komentar</span>
+          <span>UTF-8 · C++</span>
         </div>
       </div>
     </div>
@@ -1398,7 +1769,7 @@ const CppConsole = {
         <div v-if="awaitingInput" class="mt-1.5 font-mono text-[12.5px] flex items-center gap-2">
           <span class="text-mimo shrink-0">&gt;</span>
           <input ref="inputEl" v-model="pendingValue" @keydown.enter.stop="submit" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
-            placeholder="ketik input, Enter kirim"
+            placeholder="ketik input (bisa pisah spasi), Enter kirim"
             class="flex-1 bg-transparent border-none outline-none text-[#e2e8f0] caret-[#93c5fd] font-mono text-[12.5px] placeholder-slate-600" />
           <button @click="$emit('signal-eof')" title="Sinyal EOF — akhiri input" class="shrink-0 text-[10px] font-bold text-slate-500 hover:text-danger border border-line/60 rounded px-2 py-0.5">EOF</button>
         </div>
@@ -1582,7 +1953,7 @@ const app = createApp({
       hasRun.value = false;
     }
 
-    /* === Interactive runner === */
+    /* === Interactive runner (Diperbaiki agar tahan terhadap error pre-run & mendukung multi-token input) === */
     async function runCodeInteractive(code) {
       if (playRunning.value) return;
 
@@ -1613,7 +1984,21 @@ const app = createApp({
           const stdin = inputs.length ? inputs.join('\n') + '\n' : '';
           const result = runJSCPPCode(code, stdin);
 
+          // Jika terjadi runtime error (misal overflow of NaN atau divide by zero) padahal jumlah input
+          // masih kurang dari jumlah cin di kode, minta input dulu alih-alih langsung gagal.
           if (result.error) {
+            const isRuntimeInputError = /overflow of NaN|divide by zero|undef/i.test(result.error);
+            if (inputs.length < staticCount && isRuntimeInputError) {
+              conRows.value = result.output ? [{ text: result.output }] : [];
+              const userInput = await promptInline();
+              if (userInput === null) {
+                lastError.value = { type: 'Compile/Runtime Error', msg: result.error };
+                break;
+              }
+              const tokens = userInput.trim() ? userInput.trim().split(/\s+/) : [''];
+              inputs.push(...tokens);
+              continue;
+            }
             conRows.value = result.output ? [{ text: result.output }] : [];
             lastError.value = { type: 'Compile/Runtime Error', msg: result.error };
             break;
@@ -1652,7 +2037,9 @@ const app = createApp({
             break;
           }
 
-          inputs.push(userInput);
+          // Pecah input berdasarkan spasi agar pengguna bisa mengetik "3 4" sekaligus untuk "cin >> a >> b"
+          const tokens = userInput.trim() ? userInput.trim().split(/\s+/) : [''];
+          inputs.push(...tokens);
         }
 
         if (iterations >= MAX_ITER) {
@@ -1991,7 +2378,10 @@ const app = createApp({
         loseHeart();
         feedback.correct = false;
         feedback.title = progress.hearts === 0 ? 'Nyawa habis!' : 'Belum tepat · ❤️ -1';
-        feedback.detail = 'Jawaban benar: ' + (e.options ? esc(e.options[e.answer]) : esc(e.answers[0]));
+        const rightAns = e.options
+          ? e.options[e.answer]
+          : (e.answers ? e.answers[0] : (e.blanks ? e.blanks.map(b => b.answer).join(' ') : ''));
+        feedback.detail = 'Jawaban benar: ' + esc(rightAns);
       }
 
       feedback.show = true;
