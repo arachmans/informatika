@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ujian Online - Secure Mode</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0; padding: 0;
+    background: #f4f6f8; color: #1f2937;
+  }
+  #exam-container {
+    max-width: 800px; margin: 40px auto; padding: 24px;
+    background: #fff; border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  }
+  h1 { margin-top: 0; font-size: 1.4rem; }
+  .status-bar {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-bottom: 16px; font-size: .85rem;
+  }
+  .badge {
+    padding: 4px 10px; border-radius: 999px;
+    background: #e5e7eb; color: #374151;
+  }
+  .badge.ok   { background: #d1fae5; color: #065f46; }
+  .badge.warn { background: #fef3c7; color: #92400e; }
+  .badge.bad  { background: #fee2e2; color: #991b1b; }
+  .question { margin: 20px 0; padding: 16px; background: #f9fafb; border-radius: 8px; }
+  .question label { display: block; margin: 6px 0; cursor: pointer; }
+  button {
+    padding: 10px 18px; border: none; border-radius: 8px;
+    background: #2563eb; color: #fff; font-weight: 600;
+    cursor: pointer; font-size: .95rem;
+  }
+  button:disabled { background: #9ca3af; cursor: not-allowed; }
+  button.secondary { background: #6b7280; }
+
+  /* Overlay peringatan */
+  #overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(17, 24, 39, .92);
+    color: #fff; display: none;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 24px;
+  }
+  #overlay.show { display: flex; }
+  #overlay .box {
+    background: #1f2937; padding: 32px; border-radius: 12px;
+    max-width: 480px; border: 2px solid #ef4444;
+  }
+  #overlay h2 { margin-top: 0; color: #fca5a5; }
+  #overlay p { line-height: 1.6; }
+  #violation-log {
+    margin-top: 20px; font-size: .8rem;
+    max-height: 180px; overflow-y: auto;
+    background: #111827; color: #e5e7eb;
+    padding: 10px; border-radius: 6px; font-family: monospace;
+  }
+  #violation-log div { border-bottom: 1px solid #374151; padding: 3px 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="exam-container">
+  <h1>Ujian Akhir - Matematika</h1>
+  <p>Waktu: 60 menit &nbsp;|&nbsp; <strong id="timer">60:00</strong></p>
+
+  <div class="status-bar">
+    <span id="statusFullscreen" class="badge">Fullscreen: -</span>
+    <span id="statusScreen"     class="badge">Screen Share: -</span>
+    <span id="statusFocus"      class="badge">Fokus: -</span>
+    <span id="statusViolations" class="badge">Pelanggaran: 0</span>
+  </div>
+
+  <!-- Panel mulai -->
+  <div id="startPanel">
+    <p><strong>Sebelum memulai ujian, Anda harus:</strong></p>
+    <ol>
+      <li>Masuk ke mode layar penuh (fullscreen).</li>
+      <li>Membagikan <strong>seluruh layar</strong> (bukan tab atau jendela).</li>
+      <li>Menjaga agar tidak berpindah aplikasi/tab selama ujian.</li>
+    </ol>
+    <button id="btnStart">Mulai Ujian</button>
+  </div>
+
+  <!-- Panel soal -->
+  <div id="quizPanel" class="hidden">
+    <div class="question">
+      <p><strong>1. Berapakah hasil dari 12 × 8?</strong></p>
+      <label><input type="radio" name="q1" value="a"> a. 86</label>
+      <label><input type="radio" name="q1" value="b"> b. 96</label>
+      <label><input type="radio" name="q1" value="c"> c. 108</label>
+    </div>
+    <div class="question">
+      <p><strong>2. Berapakah hasil dari 144 ÷ 12?</strong></p>
+      <label><input type="radio" name="q2" value="a"> a. 10</label>
+      <label><input type="radio" name="q2" value="b"> b. 12</label>
+      <label><input type="radio" name="q2" value="c"> c. 14</label>
+    </div>
+    <button id="btnFinish">Selesaikan Ujian</button>
+  </div>
+
+  <div id="violationLogBox">
+    <strong>Log Pelanggaran:</strong>
+    <div id="violation-log">Belum ada pelanggaran.</div>
+  </div>
+</div>
+
+<!-- Overlay peringatan -->
+<div id="overlay">
+  <div class="box">
+    <h2 id="ovTitle">Peringatan!</h2>
+    <p id="ovMessage"></p>
+    <button id="ovBtn">Saya Mengerti</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   KONFIGURASI
+   ========================================================= */
+const CONFIG = {
+  MAX_VIOLATIONS: 3,        // setelah 3 pelanggaran → auto-submit
+  WARN_GRACE_MS: 1500,      // toleransi sebelum blur dihitung pelanggaran
+  EXAM_DURATION_SEC: 60 * 60 // 60 menit
+};
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = {
+  started: false,
+  finished: false,
+  violations: 0,
+  violationLog: [],
+  screenStream: null,
+  blurTimer: null,
+  timerInterval: null,
+  remaining: CONFIG.EXAM_DURATION_SEC
+};
+
+/* =========================================================
+   UTIL
+   ========================================================= */
+const $ = (id) => document.getElementById(id);
+
+function nowStr() {
+  return new Date().toLocaleTimeString('id-ID');
+}
+
+function logViolation(type, detail = '') {
+  const entry = { time: nowStr(), type, detail };
+  state.violationLog.push(entry);
+  state.violations++;
+
+  // tampilkan di UI
+  const logBox = $('violation-log');
+  if (state.violationLog.length === 1) logBox.innerHTML = '';
+  const div = document.createElement('div');
+  div.textContent = `[${entry.time}] ${type} ${detail ? '- ' + detail : ''}`;
+  logBox.prepend(div);
+
+  $('statusViolations').textContent = `Pelanggaran: ${state.violations}`;
+  $('statusViolations').className = 'badge ' +
+    (state.violations === 0 ? '' :
+     state.violations < CONFIG.MAX_VIOLATIONS ? 'warn' : 'bad');
+
+  console.warn('[VIOLATION]', entry);
+
+  // kirim ke server (contoh endpoint)
+  // fetch('/api/violation', { method: 'POST',
+  //   headers: {'Content-Type':'application/json'},
+  //   body: JSON.stringify(entry) }).catch(()=>{});
+
+  if (state.violations >= CONFIG.MAX_VIOLATIONS) {
+    autoSubmit('Batas pelanggaran tercapai');
+  } else {
+    showWarning(
+      `Pelanggaran ${state.violations} dari ${CONFIG.MAX_VIOLATIONS}`,
+      `Terdeteksi: <strong>${type}</strong>${detail ? ' (' + detail + ')' : ''}.<br>` +
+      `Ujian akan otomatis dihentikan pada pelanggaran ke-${CONFIG.MAX_VIOLATIONS}.`
+    );
+  }
+}
+
+function showWarning(title, html) {
+  $('ovTitle').textContent = title;
+  $('ovMessage').innerHTML = html;
+  $('overlay').classList.add('show');
+}
+
+function hideWarning() {
+  $('overlay').classList.remove('show');
+}
+
+/* =========================================================
+   1. FULLSCREEN ENFORCEMENT
+   ========================================================= */
+async function requestFullscreen() {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (err) {
+    console.error('Gagal fullscreen:', err);
+    alert('Browser Anda menolak mode fullscreen. Ujian tidak dapat dilanjutkan.');
+  }
+}
+
+document.addEventListener('fullscreenchange', () => {
+  const isFs = !!document.fullscreenElement;
+  $('statusFullscreen').textContent = `Fullscreen: ${isFs ? 'ON' : 'OFF'}`;
+  $('statusFullscreen').className = 'badge ' + (isFs ? 'ok' : 'bad');
+
+  if (state.started && !state.finished && !isFs) {
+    logViolation('Keluar dari fullscreen');
+  }
+});
+
+/* =========================================================
+   2. PAGE VISIBILITY API
+   ========================================================= */
+document.addEventListener('visibilitychange', () => {
+  if (!state.started || state.finished) return;
+
+  if (document.hidden) {
+    $('statusFocus').textContent = 'Fokus: Tab disembunyikan';
+    $('statusFocus').className = 'badge bad';
+    logViolation('Tab disembunyikan / pindah tab');
+  } else {
+    $('statusFocus').textContent = 'Fokus: Aktif';
+    $('statusFocus').className = 'badge ok';
+  }
+});
+
+/* =========================================================
+   3. WINDOW BLUR / FOCUS
+   ========================================================= */
+window.addEventListener('blur', () => {
+  if (!state.started || state.finished) return;
+
+  // beri toleransi; blur sesaat (mis. klik devtools warning) tidak dihitung
+  state.blurTimer = setTimeout(() => {
+    $('statusFocus').textContent = 'Fokus: Jendela kehilangan fokus';
+    $('statusFocus').className = 'badge bad';
+    logViolation('Jendela kehilangan fokus (blur)');
+  }, CONFIG.WARN_GRACE_MS);
+});
+
+window.addEventListener('focus', () => {
+  clearTimeout(state.blurTimer);
+  if (state.started && !state.finished) {
+    $('statusFocus').textContent = 'Fokus: Aktif';
+    $('statusFocus').className = 'badge ok';
+  }
+});
+
+/* =========================================================
+   4. RESIZE DETECTION (indikasi split screen di desktop)
+   ========================================================= */
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  if (!state.started || state.finished) return;
+
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    // heuristik: jika lebar window jauh lebih kecil dari lebar layar
+    const ratio = window.innerWidth / window.screen.width;
+    if (ratio < 0.75 && !document.fullscreenElement) {
+      logViolation('Resize mencurigakan', `rasio lebar ${(ratio*100).toFixed(0)}%`);
+    }
+  }, 800);
+});
+
+/* =========================================================
+   5. SCREEN SHARING (paksa seluruh layar)
+   ========================================================= */
+async function startScreenShare() {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { displaySurface: 'monitor' }, // minta monitor penuh
+      audio: false
+    });
+
+    const track = stream.getVideoTracks()[0];
+    const settings = track.getSettings();
+
+    // Verifikasi surface: hanya 'monitor' yang diterima
+    if (settings.displaySurface && settings.displaySurface !== 'monitor') {
+      track.stop();
+      throw new Error(
+        `Anda memilih "${settings.displaySurface}". Pilih "Seluruh Layar / Entire Screen".`
+      );
+    }
+
+    state.screenStream = stream;
+    $('statusScreen').textContent = 'Screen Share: Seluruh layar';
+    $('statusScreen').className = 'badge ok';
+
+    // jika user menghentikan share di tengah ujian
+    track.addEventListener('ended', () => {
+      $('statusScreen').textContent = 'Screen Share: Dihentikan';
+      $('statusScreen').className = 'badge bad';
+      if (state.started && !state.finished) {
+        logViolation('Berhenti berbagi layar');
+      }
+    });
+  } catch (err) {
+    console.error('Screen share gagal:', err);
+    alert('Gagal memulai berbagi layar:\n' + err.message);
+    throw err;
+  }
+}
+
+/* =========================================================
+   6. TIMER
+   ========================================================= */
+function startTimer() {
+  state.timerInterval = setInterval(() => {
+    state.remaining--;
+    if (state.remaining <= 0) {
+      clearInterval(state.timerInterval);
+      autoSubmit('Waktu ujian habis');
+      return;
+    }
+    const m = String(Math.floor(state.remaining / 60)).padStart(2, '0');
+    const s = String(state.remaining % 60).padStart(2, '0');
+    $('timer').textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+/* =========================================================
+   7. ALUR MULAI & SELESAI
+   ========================================================= */
+$('btnStart').addEventListener('click', async () => {
+  try {
+    // harus dipicu user gesture
+    await requestFullscreen();
+    await startScreenShare();
+
+    state.started = true;
+    $('startPanel').classList.add('hidden');
+    $('quizPanel').classList.remove('hidden');
+    $('statusFocus').textContent = 'Fokus: Aktif';
+    $('statusFocus').className = 'badge ok';
+    startTimer();
+    showWarning('Ujian Dimulai',
+      'Jangan keluar dari fullscreen atau berpindah aplikasi. ' +
+      'Setiap pelanggaran akan dicatat.');
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+$('ovBtn').addEventListener('click', () => {
+  hideWarning();
+  // jika keluar dari fullscreen karena peringatan, minta kembali
+  if (state.started && !state.finished && !document.fullscreenElement) {
+    requestFullscreen();
+  }
+});
+
+function autoSubmit(reason) {
+  if (state.finished) return;
+  state.finished = true;
+  clearInterval(state.timerInterval);
+  if (state.screenStream) {
+    state.screenStream.getTracks().forEach(t => t.stop());
+  }
+  if (document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+
+  const answers = {
+    q1: document.querySelector('input[name="q1"]:checked')?.value || null,
+    q2: document.querySelector('input[name="q2"]:checked')?.value || null
+  };
+
+  console.log('SUBMIT', { reason, answers, violations: state.violationLog });
+
+  showWarning('Ujian Selesai',
+    `Alasan: <strong>${reason}</strong><br>` +
+    `Total pelanggaran: <strong>${state.violations}</strong>.<br><br>` +
+    `Jawaban Anda telah dikirim.`);
+
+  // fetch('/api/submit', { method:'POST', headers:{'Content-Type':'application/json'},
+  //   body: JSON.stringify({ reason, answers, violations: state.violationLog }) });
+}
+
+$('btnFinish').addEventListener('click', () => {
+  if (confirm('Yakin ingin menyelesaikan ujian?')) {
+    autoSubmit('Diselesaikan oleh siswa');
+  }
+});
+</script>
+</body>
+</html>
