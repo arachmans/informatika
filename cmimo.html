@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0d1420">
-<title>CppMimo — Belajar C++ dengan JSCPP</title>
-<meta name="description" content="Aplikasi belajar C++ interaktif dengan JSCPP dan compatibility layer string.">
+<title>CppMimo — Belajar C++ & Struktur Data</title>
+<meta name="description" content="Aplikasi belajar C++ dan Struktur Data interaktif dengan JSCPP dan compatibility layer string.">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script>
@@ -79,6 +79,23 @@ html.light .ed-ta { caret-color: #38bdf8; }
 .ed-gutter, .ed-symbar { scrollbar-width: none; }
 .ed-gutter::-webkit-scrollbar, .ed-symbar::-webkit-scrollbar { display: none; }
 
+/* Fullscreen Editor Mode - Bebas dari transform parent */
+.ed-fullscreen-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 9999;
+  background: var(--page-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
 .ic-b { color: #fff; font-weight: 700; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
@@ -111,6 +128,56 @@ html.light .ic-code { background: #dbeafe; color: #1d4ed8; }
 html.light .ic-b { color: #0f172a; }
 .safe-bottom-nav { padding-bottom: max(0.625rem, env(safe-area-inset-bottom)); }
 .safe-bottom-footer { padding-bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 0.5rem); }
+/* ================= DESKTOP COMFORT (mobile tidak berubah) ================= */
+@media (min-width: 1024px) {
+  /* Lebarkan hanya container tab aplikasi (welcome/lesson/complete/failed tetap sempit) */
+  section.app-col.app-wide {
+    max-width: 64rem;
+  }
+
+  /* Bottom nav menjadi floating pill centered di desktop */
+  nav.nav-bar {
+    bottom: 1.5rem;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 520px;
+    max-width: calc(100vw - 4rem);
+    background: rgb(var(--c-night) / 0.92);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgb(var(--c-line) / 0.7);
+    border-radius: 9999px;
+    box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.55),
+                0 4px 16px -4px rgba(0, 0, 0, 0.25);
+    padding: 0.4rem;
+  }
+  nav.nav-bar > div {
+    max-width: none;
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+  }
+  nav.nav-bar > div > button {
+    border-radius: 9999px;
+    transition: background-color .15s, color .15s;
+  }
+  nav.nav-bar > div > button:hover {
+    background: rgb(var(--c-panel2) / 0.8);
+    color: rgb(var(--c-mimo));
+  }
+
+  /* Padding header lebih lega di desktop */
+  section.app-col.app-wide > header {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* Editor lebih tinggi di desktop */
+  .ed-ta {
+    min-height: 320px !important;
+    max-height: 60vh !important;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up, .anim-slide-up, .anim-pop, .anim-float, .anim-beat, .node-active, .confetti-piece, .caret { animation: none !important; transform: none !important; }
 }
@@ -134,24 +201,24 @@ html.light .ic-b { color: #0f172a; }
       </div>
       <div>
         <h1 class="text-4xl font-black tracking-tight text-white">Cpp<span class="text-mimo">Mimo</span></h1>
-        <p class="mt-3 text-slate-400 leading-relaxed max-w-xs mx-auto">Belajar C++ dengan JSCPP + kompatibilitas penuh <code class="font-mono">&lt;string&gt;</code>. Latihan singkat, kuis, XP, dan streak.</p>
+        <p class="mt-3 text-slate-400 leading-relaxed max-w-xs mx-auto">Belajar C++, Manipulasi <code class="font-mono">&lt;string&gt;</code>, dan <b>Struktur Data</b> secara bertahap dari nol.</p>
       </div>
       <div class="grid grid-cols-3 gap-3 w-full">
-        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">⚡</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">XP & Level</p></div>
-        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">🔥</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Streak Harian</p></div>
-        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">🧩</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Latihan Interaktif</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">📚</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">6 Bab Lengkap</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">🗂️</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Struktur Data</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">🧩</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">Editor & Kuis</p></div>
       </div>
     </div>
     <div class="pb-10 space-y-3">
       <button @click="startApp" class="w-full bg-mimo hover:bg-mimodeep transition rounded-2xl py-4 font-extrabold text-night text-lg shadow-glow active:scale-[.98]">
         {{ progress.completed ? 'Lanjutkan Belajar' : 'Mulai Belajar' }}
       </button>
-      <p class="text-center text-[11px] text-slate-600">CppMimo · JSCPP + Enhanced String Compat v2</p>
+      <p class="text-center text-[11px] text-slate-600">CppMimo · Kurikulum C++ & Struktur Data</p>
     </div>
   </section>
 
   <!-- APP -->
-  <section v-else-if="screen === 'app'" class="relative min-h-screen app-col md:border-x md:border-line/40 pb-24">
+  <section v-else-if="screen === 'app'" class="relative min-h-screen app-col app-wide md:border-x md:border-line/40 pb-24 lg:pb-32">
 
     <!-- HOME -->
     <div v-if="tab === 'home'" class="anim-fade-up">
@@ -197,11 +264,11 @@ html.light .ic-b { color: #0f172a; }
         <div v-else class="rounded-3xl bg-panel border border-line p-6 text-center">
           <p class="text-4xl">🎉</p>
           <h2 class="text-lg font-extrabold text-white mt-2">Semua Latihan Selesai!</h2>
-          <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Kamu telah menyelesaikan seluruh materi CppMimo.</p>
+          <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">Kamu telah menyelesaikan seluruh materi C++ & Struktur Data di CppMimo.</p>
         </div>
       </div>
 
-      <div class="px-5 mt-7 space-y-7">
+      <div class="px-5 mt-7 space-y-7 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-7">
         <div v-for="(ch, ci) in course" :key="ci">
           <div class="flex items-center gap-3.5 rounded-2xl bg-panel border border-line p-4">
             <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 bg-panel2">{{ ch.icon }}</div>
@@ -225,7 +292,7 @@ html.light .ic-b { color: #0f172a; }
                   <span v-if="lsn.flat === progress.completed" class="text-[9px] font-extrabold bg-mimo text-night px-2 py-0.5 rounded-full tracking-wider">MULAI</span>
                   <span v-else-if="lsn.flat < progress.completed" class="text-[9px] font-bold text-mimo/70">✓ Selesai</span>
                 </div>
-                <p class="text-[11px] text-slate-500 mt-0.5">{{ lsn.exercises.length }} soal · hingga +{{ lsn.xpMax }} XP</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ lsn.exercises.length }} langkah · hingga +{{ lsn.xpMax }} XP</p>
               </div>
             </div>
           </div>
@@ -233,22 +300,22 @@ html.light .ic-b { color: #0f172a; }
       </div>
     </div>
 
-    <!-- PLAY -->
-    <div v-else-if="tab === 'play'" class="anim-fade-up px-5 pt-6">
-      <div class="flex items-start justify-between gap-3">
+    <!-- PLAY / LATIHAN EDITOR -->
+    <div v-else-if="tab === 'play'" :class="editorFullscreen ? '' : 'anim-fade-up px-5 pt-6'">
+      <div v-if="!editorFullscreen" class="flex items-start justify-between gap-3">
         <div>
-          <h2 class="text-xl font-extrabold text-white">Editor C++</h2>
-          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Jalankan C++ dengan JSCPP + dukungan penuh method <code class="font-mono">&lt;string&gt;</code>.</p>
+          <h2 class="text-xl font-extrabold text-white">Latihan Editor C++</h2>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Pilih contoh kode per bab untuk bereksperimen langsung di JSCPP.</p>
         </div>
         <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚙️ C++ · JSCPP</span>
       </div>
 
-      <div v-if="engineState === 'loading'" class="mt-3 rounded-2xl bg-sky-400/10 border border-sky-400/30 px-4 py-3 flex items-center gap-3">
+      <div v-if="!editorFullscreen && engineState === 'loading'" class="mt-3 rounded-2xl bg-sky-400/10 border border-sky-400/30 px-4 py-3 flex items-center gap-3">
         <svg class="w-5 h-5 text-sky-300 spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         <p class="text-[12px] text-sky-200 leading-snug">Memuat JSCPP… butuh internet saat pertama kali.</p>
       </div>
 
-      <div v-else-if="engineState === 'error'" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
+      <div v-else-if="!editorFullscreen && engineState === 'error'" class="mt-3 rounded-2xl bg-danger/10 border border-danger/30 px-4 py-3 flex items-center gap-3">
         <span class="text-xl">⚠️</span>
         <div class="flex-1 min-w-0">
           <p class="text-[12px] font-bold text-[#fda4af]">JSCPP gagal dimuat</p>
@@ -257,37 +324,68 @@ html.light .ic-b { color: #0f172a; }
         <button @click="retryEngine" class="shrink-0 rounded-xl bg-danger text-white font-extrabold text-[11px] px-3 py-2 active:scale-95 transition">Coba Lagi</button>
       </div>
 
-      <p class="text-[10px] font-extrabold tracking-[.18em] text-slate-500 mt-5 mb-2">CONTOH KODE</p>
-      <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
-        <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)" class="shrink-0 px-3.5 py-2 rounded-xl bg-panel border border-line text-[12px] font-bold text-slate-300 hover:border-mimo/60 active:scale-95 transition">▶ {{ t.name }}</button>
+      <template v-if="!editorFullscreen">
+        <p class="text-[10px] font-extrabold tracking-[.18em] text-slate-500 mt-5 mb-2">CONTOH KODE PER BAB (6 BAB)</p>
+        <div class="flex gap-2 overflow-x-auto pb-1.5 -mx-1 px-1">
+          <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)"
+            class="shrink-0 px-3.5 py-2 rounded-xl border text-[12px] font-bold transition active:scale-95"
+            :class="curTpl === k ? 'bg-mimo/15 border-mimo text-mimo' : 'bg-panel border-line text-slate-300 hover:border-mimo/60'">
+            ▶ {{ t.name }}
+          </button>
+        </div>
+      </template>
+
+      <!-- Wrapper yang bisa menjadi Fullscreen -->
+      <div :class="editorFullscreen ? 'ed-fullscreen-wrap' : 'mt-3'">
+        <div :class="editorFullscreen ? 'max-w-4xl w-full mx-auto flex-1 flex flex-col gap-2.5' : ''">
+          <!-- Bar pilih contoh bab saat mode Fullscreen -->
+          <div v-if="editorFullscreen" class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0">
+            <span class="text-[10px] font-extrabold text-mimo shrink-0">CONTOH BAB:</span>
+            <button v-for="(t, k) in TPL" :key="k" @click="loadTpl(k)"
+              class="shrink-0 px-2.5 py-1 rounded-lg border text-[11px] font-bold transition"
+              :class="curTpl === k ? 'bg-mimo/15 border-mimo text-mimo' : 'bg-panel border-line text-slate-300'">
+              {{ t.name }}
+            </button>
+          </div>
+
+          <cpp-editor
+            v-model="playCode"
+            filename="main.cpp"
+            placeholder="// tulis kode C++ di sini…"
+            :badge="engineBadge"
+            :badge-class="engineBadgeClass"
+            :fullscreen="editorFullscreen"
+            @toggle-fullscreen="toggleFullscreen"
+            @blur="savePlay"
+            @run="runPlay">
+          </cpp-editor>
+
+          <div class="flex gap-2.5 shrink-0" :class="editorFullscreen ? '' : 'mt-3'">
+            <button @click="runPlay" :disabled="playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-2.5 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              {{ playRunning ? (awaitingInput ? 'Menunggu input…' : 'Menjalankan…') : (engineState === 'loading' ? 'Memuat…' : 'Jalankan') }}
+            </button>
+            <button @click="resetPlay" title="Reset contoh kode" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+
+          <cpp-console class="shrink-0" :class="editorFullscreen ? '' : 'mt-3'" :rows="conRows" :last-error="lastError" :empty-hint="playEmptyHint"
+            :awaiting-input="awaitingInput" @clear="conClear"
+            @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
+        </div>
       </div>
 
-      <cpp-editor v-model="playCode" class="mt-3" filename="main.cpp" placeholder="// tulis kode C++ di sini…" :badge="engineBadge" :badge-class="engineBadgeClass" @blur="savePlay" @run="runPlay"></cpp-editor>
-
-      <div class="flex gap-2.5 mt-3">
-        <button @click="runPlay" :disabled="playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl bg-mimo text-night font-extrabold py-3 flex items-center justify-center gap-2 shadow-glow active:scale-[.98] transition disabled:opacity-60">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          {{ playRunning ? (awaitingInput ? 'Menunggu input…' : 'Menjalankan…') : (engineState === 'loading' ? 'Memuat…' : 'Jalankan') }}
-        </button>
-        <button @click="resetPlay" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
-        </button>
-      </div>
-
-      <cpp-console class="mt-3" :rows="conRows" :last-error="lastError" :empty-hint="playEmptyHint"
-        :awaiting-input="awaitingInput" @clear="conClear"
-        @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
-
-      <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Mendukung <code class="font-mono">substr</code>, <code class="font-mono">find</code>, <code class="font-mono">replace</code>, <code class="font-mono">insert</code>, <code class="font-mono">erase</code>, <code class="font-mono">getline</code>, <code class="font-mono">stoi</code>, <code class="font-mono">to_string</code>, dan operator <code class="font-mono">+</code> / <code class="font-mono">+=</code>.</p>
+      <p v-if="!editorFullscreen" class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Dilengkapi <b>Penerjemah Error Bahasa Indonesia</b> otomatis, serta mendukung penuh <code class="font-mono">struct</code>, referensi <code class="font-mono">&amp;</code>, <code class="font-mono">string</code>, dan struktur data.</p>
     </div>
 
     <!-- TANTANGAN -->
-    <div v-else-if="tab === 'tantangan'" class="anim-fade-up px-5 pt-6">
+    <div v-else-if="tab === 'tantangan'" :class="editorFullscreen ? '' : 'anim-fade-up px-5 pt-6'">
       <template v-if="!chView">
         <div class="flex items-start justify-between gap-3">
           <div>
             <h2 class="text-xl font-extrabold text-white">Tantangan Kode</h2>
-            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Tulis program C++, uji dulu, lalu kumpulkan.</p>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Uji kemampuan logika, string, dan struktur datamu.</p>
           </div>
           <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚔️ {{ chDoneTotal }}/{{ CHALLENGES.length }}</span>
         </div>
@@ -314,7 +412,7 @@ html.light .ic-b { color: #0f172a; }
           </div>
         </div>
 
-        <div class="mt-4 space-y-2.5">
+        <div class="mt-4 space-y-2.5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3">
           <button v-for="c in CHALLENGES" :key="c.id" @click="openChallenge(c.id)" class="w-full flex items-center gap-3.5 rounded-2xl border p-4 text-left transition active:scale-[.98]" :class="chSt(c.id).done ? 'bg-mimo/10 border-mimo/40' : (chLockedId(c.id) ? 'bg-panel border-line opacity-60' : 'bg-panel border-line hover:border-mimo/50')">
             <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0" :class="chSt(c.id).done ? 'bg-mimo/20' : 'bg-panel2'">{{ chLockedId(c.id) ? '🔒' : c.icon }}</div>
             <div class="flex-1 min-w-0">
@@ -332,7 +430,7 @@ html.light .ic-b { color: #0f172a; }
       </template>
 
       <template v-else>
-        <div class="flex items-center gap-3">
+        <div v-if="!editorFullscreen" class="flex items-center gap-3">
           <button @click="chBack" class="w-9 h-9 shrink-0 rounded-full bg-panel border border-line flex items-center justify-center active:scale-90 transition">
             <svg class="w-5 h-5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
@@ -343,36 +441,54 @@ html.light .ic-b { color: #0f172a; }
           <span class="ml-auto shrink-0 text-[9px] font-extrabold px-2.5 py-1 rounded-full" :class="chDone ? 'bg-mimo text-night' : chIsLocked ? 'bg-danger/15 text-danger' : 'bg-panel2 text-slate-400'">{{ chDone ? '✓ SELESAI' : chIsLocked ? '🔒 TERKUNCI' : chTriesLeft + ' PERCOBAAN' }}</span>
         </div>
 
-        <div class="mt-3 rounded-2xl bg-panel border border-line p-4">
+        <div v-if="!editorFullscreen" class="mt-3 rounded-2xl bg-panel border border-line p-4">
           <p class="text-slate-300 text-[13.5px] leading-relaxed" v-html="fmt(chCur.brief)"></p>
           <div class="mt-3 rounded-xl bg-[#0a0f1a] border border-line p-3.5 font-mono text-[12px] leading-relaxed">
             <p class="text-slate-600 text-[9px] font-extrabold tracking-widest">CONTOH</p>
-            <p class="text-[#fcd34d] mt-1.5">input&nbsp;: {{ chCur.example.in }}</p>
-            <p class="text-[#6ee7b7] whitespace-pre-wrap">output: {{ chCur.example.out }}</p>
+            <p class="text-[#fcd34d] mt-1.5 whitespace-pre-wrap">input : {{ chCur.example.in }}</p>
+            <p class="text-[#6ee7b7] whitespace-pre-wrap mt-1">output: {{ chCur.example.out }}</p>
           </div>
         </div>
 
-        <cpp-editor v-model="chCode" class="mt-3" filename="solusi.cpp" placeholder="// tulis solusimu di sini…" :readonly="chIsLocked" @blur="saveCh" @run="chTry"></cpp-editor>
+        <!-- Wrapper Tantangan yang juga mendukung Fullscreen -->
+        <div :class="editorFullscreen ? 'ed-fullscreen-wrap' : 'mt-3'">
+          <div :class="editorFullscreen ? 'max-w-4xl w-full mx-auto flex-1 flex flex-col gap-2.5' : ''">
+            <div v-if="editorFullscreen" class="flex items-center justify-between gap-2 rounded-xl bg-panel border border-line px-3.5 py-2 shrink-0">
+              <p class="text-xs font-extrabold text-white truncate">{{ chCur.title }} — <span class="text-slate-400 font-normal" v-html="fmt(chCur.brief)"></span></p>
+            </div>
 
-        <div v-if="!chIsLocked" class="flex gap-2.5 mt-3">
-          <button @click="chTry" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl border-2 border-mimo/50 text-mimo font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            Uji Coba
-          </button>
-          <button @click="chSubmit" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl font-extrabold py-3 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60" :class="chDone ? 'border-2 border-mimo/50 text-mimo' : 'bg-mimo text-night shadow-glow'">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            {{ chBusy ? 'Memeriksa…' : (chDone ? 'Latih Ulang' : 'Kumpulkan') }}
-          </button>
-          <button @click="chReset" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
-          </button>
+            <cpp-editor
+              v-model="chCode"
+              filename="solusi.cpp"
+              placeholder="// tulis solusimu di sini…"
+              :readonly="chIsLocked"
+              :fullscreen="editorFullscreen"
+              @toggle-fullscreen="toggleFullscreen"
+              @blur="saveCh"
+              @run="chTry">
+            </cpp-editor>
+
+            <div v-if="!chIsLocked" class="flex gap-2.5 shrink-0" :class="editorFullscreen ? '' : 'mt-3'">
+              <button @click="chTry" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl border-2 border-mimo/50 text-mimo font-extrabold py-2.5 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Uji Coba
+              </button>
+              <button @click="chSubmit" :disabled="chBusy || playRunning || engineState === 'loading' || engineState === 'error'" class="flex-1 rounded-xl font-extrabold py-2.5 flex items-center justify-center gap-2 active:scale-[.98] transition disabled:opacity-60" :class="chDone ? 'border-2 border-mimo/50 text-mimo' : 'bg-mimo text-night shadow-glow'">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                {{ chBusy ? 'Memeriksa…' : (chDone ? 'Latih Ulang' : 'Kumpulkan') }}
+              </button>
+              <button @click="chReset" title="Reset solusi" class="rounded-xl border-2 border-line px-4 font-bold text-slate-300 active:scale-[.98] transition hover:border-danger/50 hover:text-danger">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+            </div>
+
+            <cpp-console class="shrink-0" :class="editorFullscreen ? '' : 'mt-3'" :rows="conRows" :last-error="lastError" :empty-hint="chEmptyHint"
+              :awaiting-input="awaitingInput" @clear="conClear"
+              @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
+          </div>
         </div>
 
-        <cpp-console class="mt-3" :rows="conRows" :last-error="lastError" :empty-hint="chEmptyHint"
-          :awaiting-input="awaitingInput" @clear="conClear"
-          @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
-
-        <div v-if="chTest" class="mt-3 rounded-2xl overflow-hidden border" :class="chTest.pass ? 'border-mimo/40' : 'border-danger/40'">
+        <div v-if="chTest && !editorFullscreen" class="mt-3 rounded-2xl overflow-hidden border" :class="chTest.pass ? 'border-mimo/40' : 'border-danger/40'">
           <div class="px-4 py-3.5" :class="chTest.pass ? 'bg-mimo/10' : 'bg-danger/10'">
             <p class="font-extrabold text-[14px]" :class="chTest.pass ? 'text-mimo' : 'text-danger'">{{ chTest.pass ? '✓ Semua tes lolos!' : '✗ Belum lolos' }}</p>
           </div>
@@ -411,24 +527,24 @@ html.light .ic-b { color: #0f172a; }
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mt-4">
+      <div class="grid grid-cols-2 gap-3 mt-4 lg:grid-cols-4">
         <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">⚡</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.xp }}</p><p class="text-[11px] text-slate-500">Total XP</p></div>
         <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">❤️</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.hearts }}/{{ MAX_HEARTS }}</p><p class="text-[11px] text-slate-500">Nyawa</p></div>
         <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">🔥</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.streak }}</p><p class="text-[11px] text-slate-500">Streak hari</p></div>
-        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">✅</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.completed }}/{{ TOTAL }}</p><p class="text-[11px] text-slate-500">Latihan selesai</p></div>
+        <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">✅</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.completed }}/{{ TOTAL }}</p><p class="text-[11px] text-slate-500">Materi selesai</p></div>
       </div>
 
       <h3 class="font-extrabold text-white mt-7 mb-3">🎨 Tampilan</h3>
-      <div class="rounded-2xl bg-panel border border-line p-1.5 flex gap-1.5">
+      <div class="rounded-2xl bg-panel border border-line p-1.5 flex gap-1.5 lg:max-w-sm">
         <button @click="setTheme('light')" class="flex-1 rounded-xl py-2.5 text-sm font-bold transition" :class="theme === 'light' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">Terang</button>
         <button @click="setTheme('dark')" class="flex-1 rounded-xl py-2.5 text-sm font-bold transition" :class="theme === 'dark' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">Gelap</button>
       </div>
 
-      <button @click="showReset = true" class="w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition">Reset Progres</button>
+      <button @click="showReset = true" class="w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition lg:max-w-sm">Reset Progres</button>
     </div>
 
-    <!-- NAV -->
-    <nav class="fixed bottom-0 inset-x-0 z-30 bg-night/95 backdrop-blur border-t border-line/70">
+    <!-- NAV BAWAH (Disembunyikan otomatis saat Code Editor Fullscreen aktif) -->
+    <nav v-if="!editorFullscreen" class="nav-bar fixed bottom-0 inset-x-0 z-30 bg-night/95 backdrop-blur border-t border-line/70">
       <div class="app-col mx-auto grid grid-cols-4 px-4 safe-bottom-nav">
         <button @click="tab = 'home'" class="flex flex-col items-center gap-1 transition py-2.5" :class="tab === 'home' ? 'text-mimo' : 'text-slate-500'">
           <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10.5 9-7.5 9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
@@ -476,7 +592,7 @@ html.light .ic-b { color: #0f172a; }
 
         <template v-if="ex.type === 'concept'">
           <h2 class="text-[22px] font-extrabold text-white mt-4 leading-tight">{{ ex.title }}</h2>
-          <p class="text-slate-300 leading-relaxed mt-2.5 text-[15px]" v-html="fmt(ex.body)"></p>
+          <p class="text-slate-300 leading-relaxed mt-2.5 text-[15px] whitespace-pre-line" v-html="fmt(ex.body)"></p>
           <div v-if="ex.code" class="mt-5 rounded-2xl overflow-hidden border border-line">
             <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
               <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
@@ -493,7 +609,7 @@ html.light .ic-b { color: #0f172a; }
         </template>
 
         <template v-else-if="ex.type === 'quiz' || ex.type === 'output'">
-          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug" v-html="fmt(ex.question)"></h2>
           <div v-if="ex.code" class="mt-4 rounded-2xl overflow-hidden border border-line">
             <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/70 border-b border-line">
               <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
@@ -512,14 +628,14 @@ html.light .ic-b { color: #0f172a; }
         </template>
 
         <template v-else-if="ex.type === 'input'">
-          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug" v-html="fmt(ex.question)"></h2>
           <div class="mt-6">
             <input v-model="answerText" type="text" :disabled="feedback.show" @keydown.enter="!feedback.show && canCheck && checkAnswer()" placeholder="Ketik jawabanmu di sini…" class="w-full rounded-2xl border-2 bg-panel border-line px-4 py-3.5 text-[15px] font-mono text-white focus:outline-none focus:border-mimo transition disabled:opacity-60">
           </div>
         </template>
 
         <template v-else-if="ex.type === 'fill'">
-          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug">{{ ex.question }}</h2>
+          <h2 class="text-[19px] font-extrabold text-white mt-4 leading-snug" v-html="fmt(ex.question)"></h2>
           <div class="codebox mt-4 rounded-2xl bg-[#0a0f1a] border border-line p-4 font-mono text-[13.5px] leading-loose whitespace-pre-wrap text-slate-200">
             <template v-for="(seg, si) in ex.parts" :key="si">
               <span v-if="typeof seg === 'string'" v-html="hl(seg)"></span>
@@ -543,7 +659,7 @@ html.light .ic-b { color: #0f172a; }
             {{ ex && ex.type === 'concept' ? 'Mengerti, Lanjutkan →' : 'Periksa Jawaban' }}
           </button>
         </div>
-        <div v-else class="anim-slide-up px-5 pt-5 pb-6 safe-bottom-footer" :class="feedback.correct ? 'bg-mimodeep' : 'bg-danger'">
+        <div v-else class="fb-bar anim-slide-up px-5 pt-5 pb-6 safe-bottom-footer" :class="feedback.correct ? 'bg-mimodeep' : 'bg-danger'">
           <p class="font-extrabold text-white text-[15px]">{{ feedback.title }}</p>
           <p v-if="feedback.detail" class="text-[13px] text-white/90 mt-1.5 font-mono whitespace-pre-line leading-relaxed" v-html="feedback.detail"></p>
           <button @click="advance" class="w-full mt-4 bg-white rounded-xl py-3.5 font-extrabold text-[#0d1420] text-[15px] active:scale-[.98] transition">Lanjut</button>
@@ -611,136 +727,915 @@ html.light .ic-b { color: #0f172a; }
 <script>
 const { createApp, ref, reactive, computed, watch, nextTick, onUpdated } = Vue;
 
-/* ================= KURIKULUM C++ JSCPP ================= */
+/* ================= KURIKULUM LENGKAP C++ & STRUKTUR DATA ================= */
 const COURSE = [
   {
-    title: 'Bab 1 · Dasar-Dasar', desc: 'cout, variabel, dan tipe data', icon: '⚙️',
+    title: 'Bab 1 · Dasar-Dasar C++',
+    desc: 'Struktur program, cout, variabel, tipe data, dan konstanta',
+    icon: '⚙️',
     lessons: [
-      { title: 'Halo, Dunia!', icon: '📢', exercises: [
-        { type: 'concept', title: 'Struktur Program C++', body: 'Program C++ memakai `#include <iostream>` lalu fungsi `int main()`. Untuk menampilkan teks gunakan `cout <<`.', code: `#include <iostream>
+      {
+        title: 'Struktur & Output (cout)',
+        icon: '📢',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Kerangka Program C++',
+            body: 'Setiap program C++ membutuhkan pustaka `#include <iostream>` agar bisa melakukan input dan output.\n\nPerintah `using namespace std;` memudahkan kita menulis `cout` secara langsung tanpa awalan `std::`. Eksekusi program selalu dimulai dari dalam fungsi utama `int main()` dan diakhiri dengan `return 0;` sebagai tanda program selesai dengan normal.',
+            code: `#include <iostream>
 using namespace std;
 
 int main() {
-    cout << "Halo, Dunia!" << endl;
+    cout << "Halo, C++!" << endl;
     return 0;
-}`, output: `Halo, Dunia!` },
-        { type: 'quiz', question: 'Objek apa untuk menampilkan output?', options: ['cout', 'print', 'echo', 'console'], answer: 0 },
-        { type: 'fill', question: 'Lengkapi kode agar menampilkan Halo!', parts: [0, ' << ', 1, ' << endl;'], blanks: [{ answer: 'cout' }, { answer: '"Halo!"' }], bank: ['cout', '"Halo!"', 'cin', 'print'] },
-        { type: 'input', question: 'Tulis objek untuk menampilkan output.', answers: ['cout'] },
-        { type: 'output', question: 'Apa output kode berikut?', code: `cout << "Belajar C++";`, options: ['Belajar C++', 'cout', 'Error', '"Belajar C++"'], answer: 0 }
-      ] },
-      { title: 'Variabel', icon: '📦', exercises: [
-        { type: 'concept', title: 'Menyimpan Data', body: 'Di C++, variabel harus punya tipe. Contoh: `int umur = 17;` dan `string nama = "Budi";`.', code: `string nama = "Budi";
-int umur = 17;
-cout << nama << endl;`, output: `Budi` },
-        { type: 'quiz', question: 'Cara menyimpan angka 25?', options: ['int umur = 25;', 'umur = 25;', 'umur: 25;', '25 = umur;'], answer: 0 },
-        { type: 'fill', question: 'Simpan teks "Andi" ke variabel nama', parts: [0, ' ', 1, ' = "Andi";'], blanks: [{ answer: 'string' }, { answer: 'nama' }], bank: ['string', 'nama', 'int', 'cout'] },
-        { type: 'output', question: 'Apa output kode berikut?', code: `int x = 10;
-cout << x << endl;`, options: ['10', 'x', 'Error', 'x = 10'], answer: 0 }
-      ] },
-      { title: 'Tipe Data', icon: '🔢', exercises: [
-        { type: 'concept', title: 'Tipe Dasar', body: 'Tipe dasar: `int`, `double`, `char`, `bool`, dan `string` (pada mode kompatibilitas ini).', code: `int umur = 25;
-double tinggi = 170.5;
+}`,
+            output: `Halo, C++!`
+          },
+          {
+            type: 'quiz',
+            question: 'Fungsi utama yang selalu dijalankan pertama kali dalam program C++ adalah…',
+            options: ['int main()', 'void start()', 'using namespace std', '#include <iostream>'],
+            answer: 0
+          },
+          {
+            type: 'concept',
+            title: 'Menampilkan Output dengan cout & endl',
+            body: 'Untuk menampilkan teks atau angka ke layar, gunakan objek `cout` yang diikuti operator penyisipan `<<`.\n\nTeks (string literal) wajib diapit tanda kutip ganda `"..."`. Untuk membuat baris baru (*newline*) di akhir teks, kita bisa merangkaikan `<< endl` atau menulis karakter `\\n` di dalam tanda kutip. Setiap pernyataan C++ wajib ditutup dengan titik koma `;`.',
+            code: `cout << "Baris 1" << endl;
+cout << "Baris 2" << endl;`,
+            output: `Baris 1
+Baris 2`
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi kode berikut untuk menampilkan teks "Belajar C++" diikuti baris baru:',
+            parts: [0, ' ', 1, ' "Belajar C++" << ', 2, ';'],
+            blanks: [{ answer: 'cout' }, { answer: '<<' }, { answer: 'endl' }],
+            bank: ['cout', '<<', 'endl', 'cin', '>>']
+          },
+          {
+            type: 'input',
+            question: 'Tulis nama objek di C++ yang digunakan untuk menampilkan output ke layar:',
+            answers: ['cout']
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari potongan kode berikut?',
+            code: `cout << "Cpp";
+cout << "Mimo" << endl;`,
+            options: ['CppMimo', 'Cpp\nMimo', 'Cpp Mimo', 'Error'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Variabel & Assignment',
+        icon: '📦',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Deklarasi & Inisialisasi Variabel',
+            body: 'Variabel adalah wadah bernama di memori untuk menyimpan nilai. Di C++, setiap variabel **wajib** dideklarasikan dengan tipe datanya terlebih dahulu.\n\nContohnya `int` untuk bilangan bulat dan `string` untuk teks. Tanda `=` adalah operator *assignment* untuk mengisi nilai ke dalam variabel.',
+            code: `string nama = "Budi";
+int skor = 95;
+cout << nama << ": " << skor << endl;`,
+            output: `Budi: 95`
+          },
+          {
+            type: 'quiz',
+            question: 'Manakah penulisan deklarasi variabel bilangan bulat bernilai 20 yang benar di C++?',
+            options: ['int umur = 20;', 'umur = 20;', 'var umur = 20;', 'int 20 = umur;'],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Deklarasikan variabel bertipe `string` bernama `kota` dengan nilai `"Bandung"`!',
+            parts: [0, ' ', 1, ' = "Bandung";'],
+            blanks: [{ answer: 'string' }, { answer: 'kota' }],
+            bank: ['string', 'kota', 'int', 'cout']
+          },
+          {
+            type: 'concept',
+            title: 'Mengubah Nilai Variabel (Reassignment)',
+            body: 'Nilai variabel dapat diubah kapan saja setelah dideklarasikan. Saat mengubah nilainya, kamu **tidak perlu** menuliskan tipe datanya lagi.\n\nNilai lama akan langsung ditimpa oleh nilai yang baru.',
+            code: `int level = 1;
+level = 2; // diubah menjadi 2
+cout << level << endl;`,
+            output: `2`
+          },
+          {
+            type: 'output',
+            question: 'Apa output yang ditampilkan oleh kode berikut?',
+            code: `int koin = 10;
+koin = 25;
+cout << koin << endl;`,
+            options: ['25', '10', '35', '10 25'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Tipe Data & Konstanta',
+        icon: '🔢',
+        exercises: [
+          {
+            type: 'concept',
+            title: '5 Tipe Data Dasar C++',
+            body: 'C++ memiliki tipe data spesifik sesuai jenis nilainya:\n• `int` : Bilangan bulat (contoh: `42`, `-7`)\n• `double` : Bilangan desimal/pecahan (contoh: `3.14`, `98.5`)\n• `char` : Satu karakter tunggal, diapit kutip satu `\'A\'`\n• `bool` : Nilai kebenaran logika (`true` atau `false`, saat dicetak ke `cout` menghasilkan `1` atau `0`)\n• `string` : Teks yang diapit kutip dua `"Halo"`',
+            code: `double ipk = 3.85;
 char grade = 'A';
-bool aktif = true;
-string nama = "Sinta";` },
-        { type: 'quiz', question: 'Tipe untuk angka desimal?', options: ['double', 'int', 'string', 'bool'], answer: 0 },
-        { type: 'quiz', question: 'Tipe untuk teks?', options: ['string', 'char', 'int', 'bool'], answer: 0 },
-        { type: 'input', question: 'Tipe untuk nilai true/false?', answers: ['bool'] }
-      ] }
+bool lulus = true;
+cout << grade << " " << ipk << " " << lulus << endl;`,
+            output: `A 3.85 1`
+          },
+          {
+            type: 'quiz',
+            question: 'Tipe data apakah yang tepat untuk menyimpan angka desimal seperti `172.5`?',
+            options: ['double', 'int', 'char', 'bool'],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Simpan karakter tunggal `\'Z\'` ke dalam variabel bernama `huruf`:',
+            parts: [0, ' huruf = ', 1, ';'],
+            blanks: [{ answer: 'char' }, { answer: "'Z'" }],
+            bank: ['char', "'Z'", 'string', '"Z"']
+          },
+          {
+            type: 'concept',
+            title: 'Konstanta dengan Kata Kunci const',
+            body: 'Jika sebuah variabel tidak boleh diubah nilainya sepanjang program berjalan (misalnya nilai gravitasi atau batas maksimal), tambahkan kata kunci `const` di depan tipe datanya.\n\nJika kamu mencoba mengubah variabel `const`, kompiler akan menghasilkan error.',
+            code: `const int MAX_NYAWA = 5;
+cout << "Batas: " << MAX_NYAWA << endl;`,
+            output: `Batas: 5`
+          },
+          {
+            type: 'input',
+            question: 'Kata kunci apa yang ditambahkan di depan tipe data agar nilai variabel menjadi konstanta (tidak bisa diubah)?',
+            answers: ['const']
+          }
+        ]
+      }
     ]
   },
   {
-    title: 'Bab 2 · Operator & String', desc: 'Hitung dan string dasar', icon: '➗',
+    title: 'Bab 2 · Operator & Manipulasi String',
+    desc: 'Aritmetika, modulo, dan pengolahan std::string lengkap',
+    icon: '✂️',
     lessons: [
-      { title: 'Operasi Matematika', icon: '🧮', exercises: [
-        { type: 'concept', title: 'Operator', body: 'Operator dasar: `+`, `-`, `*`, `/`, `%`.', code: `cout << 7 + 3 << endl;
-cout << 7 % 2 << endl;` },
-        { type: 'quiz', question: '10 % 3 = ?', options: ['1', '3', '0', '3.33'], answer: 0 },
-        { type: 'output', question: 'Output dari cout << 2 * 2 * 2;', code: `cout << 2 * 2 * 2 << endl;`, options: ['8', '6', '9', '23'], answer: 0 }
-      ] },
-      { title: 'String Dasar', icon: '✂️', exercises: [
-        { type: 'concept', title: 'String di Mode JSCPP', body: 'Kamu bisa memakai `string`, menggabungkan dengan `+` atau `+=`, memotong dengan `.substr(pos, len)`, mencari posisi dengan `.find()`, serta menghitung panjang dengan `.length()`.', code: `#include <iostream>
-#include <string>
-using namespace std;
-
-int main() {
-    string s = "Belajar C++";
-    cout << s.length() << endl;
-    cout << s.substr(0, 7) << endl;
-    return 0;
-}`, output: `11\nBelajar` },
-        { type: 'quiz', question: 'Method untuk panjang string?', options: ['.length()', '.count()', 'len()', '.max()'], answer: 0 },
-        { type: 'fill', question: 'Tampilkan panjang kata', parts: ['cout << kata.', 0, '() << endl;'], blanks: [{ answer: 'length' }], bank: ['length', 'size', 'len', 'count'] },
-        { type: 'output', question: 'Jika input Halo, apa output?', code: `string kata;
-cin >> kata;
-cout << kata.length() << endl;`, options: ['4', 'Halo', '5', 'Error'], answer: 0 }
-      ] }
+      {
+        title: 'Operator Aritmetika & Modulo',
+        icon: '🧮',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Operasi Hitung & Sisa Bagi (%)',
+            body: 'Operator matematika di C++ meliputi:\n• `+` (tambah), `-` (kurang), `*` (kali)\n• `/` (bagi): Jika kedua angkanya `int`, hasilnya dibulatkan ke bawah (desimalnya dibuang). Contoh: `7 / 2` menghasilkan `3`.\n• `%` (modulo): Menghasilkan **sisa pembagian** bilangan bulat. Contoh: `7 % 2` menghasilkan `1` karena 7 dibagi 2 bersisa 1.',
+            code: `cout << 7 / 2 << endl;
+cout << 7 % 2 << endl;`,
+            output: `3
+1`
+          },
+          {
+            type: 'quiz',
+            question: 'Berapakah hasil dari operasi `14 % 4` di C++?',
+            options: ['2', '3', '3.5', '0'],
+            answer: 0
+          },
+          {
+            type: 'concept',
+            title: 'Compound Assignment & Increment',
+            body: 'Untuk memperbarui nilai variabel secara singkat, gunakan operator gabungan:\n• `x += 5;` sama artinya dengan `x = x + 5;`\n• `x -= 2;` sama artinya dengan `x = x - 2;`\n• `x++;` (*increment*) menambah nilai `x` sebanyak `1`\n• `x--;` (*decrement*) mengurangi nilai `x` sebanyak `1`',
+            code: `int skor = 10;
+skor += 5;
+skor++;
+cout << skor << endl;`,
+            output: `16`
+          },
+          {
+            type: 'fill',
+            question: 'Tambahkan nilai variabel `poin` sebanyak 10 menggunakan operator gabungan:',
+            parts: ['int poin = 20;\npoin ', 0, ' ', 1, ';'],
+            blanks: [{ answer: '+=' }, { answer: '10' }],
+            bank: ['+=', '10', '==', '=+']
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari kode berikut?',
+            code: `int a = 9;
+a -= 4;
+a++;
+cout << a << endl;`,
+            options: ['6', '5', '4', '14'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'String Dasar & Akses Karakter',
+        icon: '🔤',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Menggabungkan String & Menghitung Panjang',
+            body: 'Dengan pustaka `#include <string>`, tipe `string` dapat digabungkan (*concatenation*) memakai operator `+` atau `+=`.\n\nUntuk mengetahui jumlah karakter di dalam string, panggil method `.length()` atau `.size()`.',
+            code: `string s = "Halo";
+s += " Dunia";
+cout << s << " (" << s.length() << ")" << endl;`,
+            output: `Halo Dunia (10)`
+          },
+          {
+            type: 'fill',
+            question: 'Tampilkan jumlah karakter dari variabel `pesan` menggunakan method panjang string:',
+            parts: ['string pesan = "C++";\ncout << pesan.', 0, '() << endl;'],
+            blanks: [{ answer: 'length' }],
+            bank: ['length', 'count', 'len', 'max']
+          },
+          {
+            type: 'concept',
+            title: 'Indeks Karakter pada String',
+            body: 'Setiap karakter di dalam `string` memiliki nomor urut (**indeks**) yang dimulai dari **`0`** untuk karakter pertama.\n\nKamu bisa membaca atau mengubah karakter tertentu dengan kurung siku `kata[indeks]`. Kamu juga bisa mengambil karakter paling depan dengan `.front()` dan paling belakang dengan `.back()`.',
+            code: `string kata = "Kopi";
+cout << kata[0] << " dan " << kata.back() << endl;
+kata[0] = 'T';
+cout << kata << endl;`,
+            output: `K dan i
+Topi`
+          },
+          {
+            type: 'quiz',
+            question: 'Pada `string teks = "Belajar";`, karakter apakah yang diakses oleh `teks[2]`?',
+            options: ['l', 'e', 'B', 'a'],
+            answer: 0
+          },
+          {
+            type: 'output',
+            question: 'Apa output yang dihasilkan oleh kode berikut?',
+            code: `string s = "Raja";
+s[0] = 'B';
+cout << s << " " << s.length() << endl;`,
+            options: ['Baja 4', 'Raja 4', 'Baja 3', 'Error'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Method String Lanjutan',
+        icon: '🔍',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Memotong (substr) & Mencari (find)',
+            body: 'Method penting untuk mengolah bagian string:\n• `s.substr(pos, panjang)` : Mengambil potongan string mulai dari indeks `pos` sebanyak `panjang` karakter.\n• `s.find("teks")` : Mencari posisi kemunculan pertama `"teks"`. Jika tidak ditemukan, mengembalikan `string::npos` (atau `-1`).',
+            code: `string kalimat = "Belajar C++ Seru";
+cout << kalimat.substr(8, 3) << endl;
+cout << kalimat.find("Seru") << endl;`,
+            output: `C++
+12`
+          },
+          {
+            type: 'fill',
+            question: 'Ambil potongan kata `"Kode"` (mulai indeks 0, sepanjang 4 karakter) dari variabel `s`:',
+            parts: ['string s = "KodeKu";\ncout << s.', 0, '(0, ', 1, ') << endl;'],
+            blanks: [{ answer: 'substr' }, { answer: '4' }],
+            bank: ['substr', '4', 'find', '3']
+          },
+          {
+            type: 'concept',
+            title: 'Mengganti Teks (replace) & Konversi Angka',
+            body: '• `s.replace(pos, panjang, "baru")` : Mengganti karakter mulai indeks `pos` sepanjang `panjang` dengan teks `"baru"`.\n• `stoi("123")` : Mengubah teks berisi angka menjadi tipe `int` agar bisa dihitung.\n• `to_string(45)` : Mengubah angka menjadi tipe `string`.',
+            code: `string s = "Harga: 100";
+s.replace(7, 3, "250");
+int n = stoi("50") + 25;
+cout << s << " | " << to_string(n) << endl;`,
+            output: `Harga: 250 | 75`
+          },
+          {
+            type: 'quiz',
+            question: 'Fungsi apakah yang digunakan untuk mengubah string `"2026"` menjadi bilangan bulat `int`?',
+            options: ['stoi("2026")', 'to_string("2026")', 'substr("2026")', 'find("2026")'],
+            answer: 0
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari program di bawah ini?',
+            code: `string s = "Halo Budi";
+s.replace(5, 4, "Andi");
+cout << s << endl;`,
+            options: ['Halo Andi', 'Halo Budi', 'Andi Budi', 'Halo '],
+            answer: 0
+          }
+        ]
+      }
     ]
   },
   {
-    title: 'Bab 3 · Logika Program', desc: 'cin, if, dan loop', icon: '🧠',
+    title: 'Bab 3 · Input & Alur Kontrol',
+    desc: 'cin, getline, if-else, operator ternary, dan perulangan',
+    icon: '🧠',
     lessons: [
-      { title: 'Input Pengguna', icon: '⌨️', exercises: [
-        { type: 'concept', title: 'cin', body: 'Gunakan `cin >> variabel;` untuk membaca satu kata, atau `getline(cin, variabel);` untuk membaca satu baris penuh.', code: `string nama;
-cin >> nama;
-cout << "Halo, " << nama << endl;` },
-        { type: 'fill', question: 'Baca nama dari pengguna', parts: [0, ' >> ', 1, ';'], blanks: [{ answer: 'cin' }, { answer: 'nama' }], bank: ['cin', 'nama', 'cout', 'input'] },
-        { type: 'quiz', question: 'Operator untuk membaca input?', options: ['>>', '<<', '==', '+'], answer: 0 }
-      ] },
-      { title: 'Percabangan', icon: '🔀', exercises: [
-        { type: 'concept', title: 'if / else', body: 'Gunakan `if (kondisi) { ... }` dan `else { ... }`.', code: `int nilai = 80;
-if (nilai >= 75) {
-    cout << "Lulus" << endl;
+      {
+        title: 'Input Pengguna (cin & getline)',
+        icon: '⌨️',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Membaca Input dengan cin >>',
+            body: 'Gunakan objek `cin` dengan operator ekstraksi `>>` untuk membaca input dari pengguna ke dalam variabel.\n\nPerlu diingat bahwa `cin >>` berhenti membaca saat bertemu **spasi** atau baris baru. Kamu juga bisa membaca beberapa variabel sekaligus secara berantai seperti `cin >> a >> b;`.',
+            code: `string depan;
+int umur;
+cin >> depan >> umur;
+cout << depan << " (" << umur << ")" << endl;`,
+            output: `Budi (17)`
+          },
+          {
+            type: 'fill',
+            question: 'Baca dua angka sekaligus ke dalam variabel `x` dan `y` menggunakan `cin`:',
+            parts: ['int x, y;\n', 0, ' >> x ', 1, ' y;'],
+            blanks: [{ answer: 'cin' }, { answer: '>>' }],
+            bank: ['cin', '>>', 'cout', '<<']
+          },
+          {
+            type: 'concept',
+            title: 'Membaca Kalimat Utuh dengan getline()',
+            body: 'Karena `cin >>` terpotong oleh spasi, bagaimana jika kita ingin membaca nama lengkap atau satu kalimat penuh beserta spasinya?\n\nGunakan fungsi `getline(cin, variabelString);`. Fungsi ini akan membaca seluruh karakter hingga pengguna menekan tombol Enter.',
+            code: `string kalimat;
+getline(cin, kalimat);
+cout << "Pesan: " << kalimat << endl;`,
+            output: `Pesan: Selamat Pagi Indonesia`
+          },
+          {
+            type: 'quiz',
+            question: 'Perintah manakah yang tepat untuk membaca satu baris kalimat penuh (termasuk spasi) ke variabel `string alamat`?',
+            options: ['getline(cin, alamat);', 'cin >> alamat;', 'cout << alamat;', 'cin.get(alamat);'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Percabangan, Logika & Ternary',
+        icon: '🔀',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Kondisi if, else if, dan else',
+            body: 'Percabangan memungkinkan program mengambil keputusan berdasarkan kondisi:\n• `==` (sama dengan), `!=` (tidak sama dengan)\n• `<` (kurang dari), `>` (lebih dari), `<=`, `>=`\n\nGunakan `if` untuk kondisi pertama, `else if` untuk kondisi alternatif, dan `else` jika semua kondisi di atas bernilai salah (`false`).',
+            code: `int nilai = 82;
+if (nilai >= 90) {
+    cout << "A" << endl;
+} else if (nilai >= 75) {
+    cout << "B" << endl;
 } else {
-    cout << "Tidak lulus" << endl;
-}` },
-        { type: 'quiz', question: 'Operator sama dengan?', options: ['==', '=', '===', '!='], answer: 0 },
-        { type: 'fill', question: 'Lengkapi kondisi lulus', parts: ['if (nilai ', 0, ' 75) { cout << "Lulus" << endl; }'], blanks: [{ answer: '>=' }], bank: ['>=', '<=', '>', '<'] }
-      ] },
-      { title: 'Perulangan', icon: '🔁', exercises: [
-        { type: 'concept', title: 'for & while', body: 'Gunakan `for` untuk jumlah iterasi tertentu, dan `while` selama kondisi benar.', code: `for (int i = 0; i < 3; i++) {
-    cout << i << endl;
-}` },
-        { type: 'quiz', question: 'Berapa kali loop ini berjalan?', code: `for (int i = 0; i < 5; i++) { }`, options: ['5', '4', '6', '1'], answer: 0 },
-        { type: 'fill', question: 'Loop 0 sampai 4', parts: ['for (int i = 0; i < ', 0, '; ', 1, ') { }'], blanks: [{ answer: '5' }, { answer: 'i++' }], bank: ['5', 'i++', '4', 'i--'] }
-      ] }
+    cout << "C" << endl;
+}`,
+            output: `B`
+          },
+          {
+            type: 'quiz',
+            question: 'Operator manakah yang digunakan untuk memeriksa apakah dua nilai **tidak sama** di C++?',
+            options: ['!=', '<>', '==', '='],
+            answer: 0
+          },
+          {
+            type: 'concept',
+            title: 'Operator Logika (&&, ||, !)',
+            body: 'Untuk menggabungkan lebih dari satu kondisi di dalam `if`, gunakan operator logika:\n• `&&` (**AND** / DAN): Bernilai benar hanya jika **kedua** kondisi benar.\n• `||` (**OR** / ATAU): Bernilai benar jika **minimal salah satu** kondisi benar.\n• `!` (**NOT** / Kebalikan): Membalik `true` menjadi `false` dan sebaliknya.',
+            code: `int umur = 20;
+bool punyaSIM = true;
+if (umur >= 17 && punyaSIM) {
+    cout << "Boleh mengemudi" << endl;
+}`,
+            output: `Boleh mengemudi`
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi kondisi agar mencetak "Lulus" jika `skor >= 75` **DAN** `hadir >= 80`:',
+            parts: ['if (skor >= 75 ', 0, ' hadir ', 1, ' 80) {\n    cout << "Lulus";\n}'],
+            blanks: [{ answer: '&&' }, { answer: '>=' }],
+            bank: ['&&', '>=', '||', '==']
+          },
+          {
+            type: 'concept',
+            title: 'Percabangan Singkat: Operator Ternary (? :)',
+            body: 'Operator **Ternary** (`? :`) adalah bentuk singkat satu baris dari `if-else` yang langsung menghasilkan sebuah nilai.\n\nFormat penulisannya:\n`kondisi ? nilai_jika_benar : nilai_jika_salah`\n\nJika `kondisi` bernilai `true`, ekspresi setelah tanda `?` yang dipilih. Jika `false`, ekspresi setelah tanda `:` yang dipilih.',
+            code: `int nilai = 80;
+string status = (nilai >= 75) ? "Lulus" : "Remedial";
+cout << status << endl;
+
+int a = 10, b = 25;
+int maks = (a > b) ? a : b;
+cout << "Terbesar: " << maks << endl;`,
+            output: `Lulus
+Terbesar: 25`
+          },
+          {
+            type: 'quiz',
+            question: 'Pada operator ternary `kondisi ? nilaiA : nilaiB`, kapan `nilaiB` akan dipilih?',
+            options: [
+              'Saat kondisi bernilai salah (false)',
+              'Saat kondisi bernilai benar (true)',
+              'Selalu dipilih keduanya',
+              'Saat program mengalami error'
+            ],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi operator ternary berikut untuk menentukan apakah angka `n` bernilai `"Genap"` atau `"Ganjil"`:',
+            parts: ['string jenis = (n % 2 == 0) ', 0, ' "Genap" ', 1, ' "Ganjil";'],
+            blanks: [{ answer: '?' }, { answer: ':' }],
+            bank: ['?', ':', '&&', '==']
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari kode yang menggunakan operator ternary berikut?',
+            code: `int stok = 0;
+cout << (stok > 0 ? "Tersedia" : "Habis") << endl;`,
+            options: ['Habis', 'Tersedia', '0', 'Error'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Perulangan (for, while, break)',
+        icon: '🔁',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Perulangan for & while',
+            body: 'Perulangan (*loop*) menjalankan blok kode berulang kali:\n• `for (inisialisasi; kondisi; perubahan)` cocok saat jumlah putaran sudah diketahui.\n• `while (kondisi)` terus berulang selama kondisi bernilai `true`.',
+            code: `for (int i = 1; i <= 3; i++) {
+    cout << i << " ";
+}
+cout << endl;`,
+            output: `1 2 3 `
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi perulangan `for` agar mencetak angka `0` sampai `4` (5 kali putaran):',
+            parts: ['for (int i = 0; i < ', 0, '; ', 1, ') {\n    cout << i;\n}'],
+            blanks: [{ answer: '5' }, { answer: 'i++' }],
+            bank: ['5', 'i++', '4', 'i--']
+          },
+          {
+            type: 'concept',
+            title: 'Mengendalikan Loop dengan break & continue',
+            body: 'Di dalam perulangan, kita bisa mengatur jalannya iterasi:\n• `break;` : Langsung **menghentikan seluruh perulangan** saat itu juga.\n• `continue;` : **Melewati sisa kode pada putaran saat ini** dan langsung lanjut ke putaran berikutnya.',
+            code: `for (int i = 1; i <= 5; i++) {
+    if (i == 2) continue; // lewati angka 2
+    if (i == 5) break;    // berhenti saat mencapai 5
+    cout << i << " ";
+}`,
+            output: `1 3 4 `
+          },
+          {
+            type: 'quiz',
+            question: 'Perintah apakah yang digunakan untuk melewati satu putaran saat ini dan langsung melompat ke iterasi berikutnya?',
+            options: ['continue;', 'break;', 'return;', 'stop;'],
+            answer: 0
+          },
+          {
+            type: 'output',
+            question: 'Apa output yang dicetak oleh perulangan berikut?',
+            code: `int n = 1;
+while (n <= 10) {
+    if (n == 4) break;
+    cout << n << " ";
+    n++;
+}`,
+            options: ['1 2 3 ', '1 2 3 4 ', '4 ', '1 2 3 5 '],
+            answer: 0
+          }
+        ]
+      }
     ]
   },
   {
-    title: 'Bab 4 · Array & Fungsi', desc: 'Struktur data sederhana', icon: '📚',
+    title: 'Bab 4 · Fungsi & Rekursi',
+    desc: 'Modularisasi kode, parameter referensi (&), dan rekursi',
+    icon: '🧩',
     lessons: [
-      { title: 'Array', icon: '📋', exercises: [
-        { type: 'concept', title: 'Array Dasar', body: 'Array menyimpan banyak nilai dengan tipe sama.', code: `int angka[3] = {10, 20, 30};
-cout << angka[0] << endl;`, output: `10` },
-        { type: 'quiz', question: 'Nilai angka[0]?', code: `int angka[3] = {10, 20, 30};`, options: ['10', '20', '30', 'Error'], answer: 0 }
-      ] },
-      { title: 'Fungsi', icon: '⚙️', exercises: [
-        { type: 'concept', title: 'Fungsi', body: 'Fungsi mengembalikan nilai dengan `return`.', code: `int kuadrat(int x) {
-    return x * x;
+      {
+        title: 'Fungsi & Nilai Kembalian',
+        icon: '⚙️',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Membuat Fungsi (void vs return)',
+            body: 'Fungsi memecah program besar menjadi bagian-bagian kecil yang dapat dipanggil berulang kali.\n\n• Fungsi yang mengembalikan hasil harus diawali tipe kembaliannya (seperti `int` atau `double`) dan menggunakan perintah `return nilai;`.\n• Fungsi yang hanya menjalankan aksi tanpa mengembalikan nilai menggunakan tipe `void`.',
+            code: `void sapa() {
+    cout << "Halo!" << endl;
+}
+
+int kaliDua(int x) {
+    return x * 2;
 }
 
 int main() {
-    cout << kuadrat(5) << endl;
+    sapa();
+    cout << kaliDua(6) << endl;
     return 0;
-}`, output: `25` },
-        { type: 'fill', question: 'Fungsi kuadrat', parts: ['int ', 0, '(int x) { return x * x; }'], blanks: [{ answer: 'kuadrat' }], bank: ['kuadrat', 'fungsi', 'main', 'return'] }
-      ] },
-      { title: 'String Lanjutan', icon: '🔤', exercises: [
-        { type: 'concept', title: 'Manipulasi String', body: 'Kamu bisa mengambil potongan kata dengan `.substr(awal, panjang)`, mencari teks dengan `.find()`, atau mengubah huruf dengan `toupper()` / `tolower()`.', code: `string kata = "Pemrograman";
-cout << kata.substr(0, 7) << endl;
-cout << kata.find("gram") << endl;`, output: `Pemrogr\n5` },
-        { type: 'quiz', question: 'Apa hasil dari string("Halo").substr(1, 2)?', options: ['al', 'Ha', 'lo', 'alo'], answer: 0 }
-      ] }
+}`,
+            output: `Halo!
+12`
+          },
+          {
+            type: 'quiz',
+            question: 'Tipe apakah yang digunakan untuk mendeklarasikan fungsi yang **tidak** mengembalikan nilai apa pun?',
+            options: ['void', 'int', 'null', 'empty'],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi fungsi `luasPersegi` agar mengembalikan hasil perkalian `s * s`:',
+            parts: [0, ' luasPersegi(int s) {\n    ', 1, ' s * s;\n}'],
+            blanks: [{ answer: 'int' }, { answer: 'return' }],
+            bank: ['int', 'return', 'void', 'cout']
+          }
+        ]
+      },
+      {
+        title: 'Parameter Referensi (&) & Rekursi',
+        icon: '🔄',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Pass by Value vs Pass by Reference (&)',
+            body: 'Secara bawaan (*Pass by Value*), C++ hanya mengirim **salinan** nilai ke dalam fungsi, sehingga variabel asli di `main()` tidak berubah.\n\nJika kamu ingin fungsi mengubah langsung variabel aslinya, tambahkan simbol referensi `&` pada parameter fungsi (*Pass by Reference*), misalnya `void ubah(int &x)`.',
+            code: `void tambahSepuluh(int &n) {
+    n += 10; // mengubah variabel asli
+}
+
+int main() {
+    int skor = 25;
+    tambahSepuluh(skor);
+    cout << skor << endl;
+    return 0;
+}`,
+            output: `35`
+          },
+          {
+            type: 'fill',
+            question: 'Gunakan parameter referensi agar fungsi `resetNol` dapat mengubah nilai variabel asli menjadi `0`:',
+            parts: ['void resetNol(int ', 0, 'x) {\n    x = ', 1, ';\n}'],
+            blanks: [{ answer: '&' }, { answer: '0' }],
+            bank: ['&', '0', '*', 'return']
+          },
+          {
+            type: 'concept',
+            title: 'Fungsi Rekursif (Memanggil Diri Sendiri)',
+            body: '**Rekursi** adalah teknik di mana sebuah fungsi memanggil dirinya sendiri untuk menyelesaikan sub-masalah yang lebih kecil.\n\nSetiap fungsi rekursif wajib memiliki **Base Case** (kondisi berhenti) agar tidak berulang tanpa henti. Contoh klasiknya adalah menghitung faktorial: `f(n) = n * f(n - 1)` dengan base case `if (n <= 1) return 1;`.',
+            code: `int faktorial(int n) {
+    if (n <= 1) return 1; // Base case
+    return n * faktorial(n - 1);
+}
+
+int main() {
+    cout << faktorial(4) << endl;
+    return 0;
+}`,
+            output: `24`
+          },
+          {
+            type: 'quiz',
+            question: 'Mengapa setiap fungsi rekursif wajib memiliki *Base Case* (kondisi dasar)?',
+            options: [
+              'Agar pemanggilan rekursif memiliki titik berhenti',
+              'Agar fungsi berjalan lebih lambat',
+              'Karena C++ tidak mengizinkan perulangan for',
+              'Untuk menghapus variabel dari memori'
+            ],
+            answer: 0
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari pemanggilan fungsi rekursif `hitung(3)` berikut?',
+            code: `int hitung(int n) {
+    if (n == 0) return 0;
+    return n + hitung(n - 1);
+}
+// di main(): cout << hitung(3);`,
+            options: ['6', '3', '0', '9'],
+            answer: 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    title: 'Bab 5 · Struktur Data Statis',
+    desc: 'Array 1D, Matriks 2D, dan pengelompokan data dengan Struct',
+    icon: '🗂️',
+    lessons: [
+      {
+        title: 'Struktur Data Array 1D & 2D',
+        icon: '📋',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Struktur Data Array 1 Dimensi',
+            body: '**Array** adalah struktur data paling dasar yang menyimpan sekumpulan elemen bertipe sama secara berurutan di memori.\n\nIndeks array selalu dimulai dari **`0`** hingga **`ukuran - 1`**. Kita biasa menggunakan perulangan `for` untuk menelusuri (*traversal*) atau menjumlahkan seluruh isi array.',
+            code: `int data[4] = {10, 20, 30, 40};
+int total = 0;
+for (int i = 0; i < 4; i++) {
+    total += data[i];
+}
+cout << "Elemen ke-0: " << data[0] << endl;
+cout << "Total: " << total << endl;`,
+            output: `Elemen ke-0: 10
+Total: 100`
+          },
+          {
+            type: 'quiz',
+            question: 'Jika kita mendeklarasikan `int nilai[5] = {80, 85, 90, 95, 100};`, berapakah indeks untuk mengakses nilai `100`?',
+            options: ['4', '5', '0', '1'],
+            answer: 0
+          },
+          {
+            type: 'concept',
+            title: 'Array 2 Dimensi (Matriks / Grid)',
+            body: 'Array 2 Dimensi memiliki baris dan kolom seperti tabel atau papan catur, dideklarasikan dengan `tipe nama[baris][kolom]`.\n\nIndeks pertama adalah nomor **baris** (mulai dari 0) dan indeks kedua adalah nomor **kolom** (mulai dari 0).',
+            code: `int matriks[2][3] = {
+    {1, 2, 3},
+    {4, 5, 6}
+};
+// Baris ke-1 (kedua), Kolom ke-2 (ketiga)
+cout << matriks[1][2] << endl;`,
+            output: `6`
+          },
+          {
+            type: 'fill',
+            question: 'Akses elemen pada baris indeks `0` dan kolom indeks `2` dari array 2D `grid`:',
+            parts: ['cout << grid[', 0, '][', 1, '] << endl;'],
+            blanks: [{ answer: '0' }, { answer: '2' }],
+            bank: ['0', '2', '1', '3']
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari kode matriks 2D berikut?',
+            code: `int m[2][2] = {{10, 20}, {30, 40}};
+cout << m[0][1] + m[1][0] << endl;`,
+            options: ['50', '30', '70', '40'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Struktur Data Struct (Rekaman)',
+        icon: '🪪',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Mengelompokkan Data Berbeda dengan struct',
+            body: 'Jika Array hanya bisa menyimpan elemen dengan tipe yang sama, **`struct`** memungkinkan kita membuat tipe struktur data baru yang menggabungkan **berbagai tipe data berbeda** dalam satu kesatuan.\n\nUntuk mengakses anggota (*field*) di dalam variabel `struct`, gunakan operator titik (`.`).',
+            code: `struct Siswa {
+    string nama;
+    int nilai;
+};
+
+int main() {
+    Siswa s1;
+    s1.nama = "Rina";
+    s1.nilai = 92;
+    cout << s1.nama << " - " << s1.nilai << endl;
+    return 0;
+}`,
+            output: `Rina - 92`
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi definisi `struct Buku` dan akses properti `harga` menggunakan operator titik:',
+            parts: [0, ' Buku {\n    int harga;\n};\n\nint main() {\n    Buku b;\n    b', 1, 'harga = 50000;\n}'],
+            blanks: [{ answer: 'struct' }, { answer: '.' }],
+            bank: ['struct', '.', '->', 'class']
+          },
+          {
+            type: 'concept',
+            title: 'Array of Struct (Tabel Data)',
+            body: 'Kita bisa menggabungkan `struct` dan `array` untuk menyimpan daftar objek, misalnya daftar barang di toko atau daftar mahasiswa.\n\nSetiap elemen diakses dengan indeks `daftar[i]` lalu diikuti titik `.namaField`.',
+            code: `struct Item {
+    string nama;
+    int stok;
+};
+
+int main() {
+    Item gudang[2];
+    gudang[0].nama = "Buku";
+    gudang[0].stok = 15;
+    gudang[1].nama = "Pena";
+    gudang[1].stok = 40;
+    cout << gudang[1].nama << ": " << gudang[1].stok << endl;
+    return 0;
+}`,
+            output: `Pena: 40`
+          },
+          {
+            type: 'output',
+            question: 'Apa output yang dihasilkan oleh kode berikut?',
+            code: `struct Titik {
+    int x;
+    int y;
+};
+
+int main() {
+    Titik p;
+    p.x = 4;
+    p.y = 7;
+    cout << p.x * p.y << endl;
+    return 0;
+}`,
+            options: ['28', '11', '47', 'Error'],
+            answer: 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    title: 'Bab 6 · Struktur Data Dinamis & Algoritma',
+    desc: 'Pointer, Stack (LIFO), Queue (FIFO), Searching & Sorting',
+    icon: '🏗️',
+    lessons: [
+      {
+        title: 'Pointer & Alamat Memori',
+        icon: '🧭',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Konsep Pointer (* dan &)',
+            body: 'Pointer adalah variabel khusus yang menyimpan **alamat memori** dari variabel lain, yang menjadi pondasi struktur data dinamis.\n\n• Operator `&` (*Address-of*) mengambil alamat memori suatu variabel.\n• Tanda `*` saat deklarasi (`int *ptr`) menandakan variabel pointer.\n• Operator `*` (*Dereference*) saat digunakan pada pointer (`*ptr`) berguna untuk membaca atau mengubah **nilai** di alamat yang ditunjuk.',
+            code: `int angka = 10;
+int *ptr = &angka; // ptr menunjuk ke alamat angka
+*ptr = 99;         // mengubah nilai angka lewat pointer
+cout << angka << endl;`,
+            output: `99`
+          },
+          {
+            type: 'quiz',
+            question: 'Simbol apakah yang digunakan untuk mengambil **alamat memori** dari sebuah variabel?',
+            options: ['&', '*', '#', '@'],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Buat pointer `p` yang menyimpan alamat variabel `x`, lalu tampilkan nilai yang ditunjuk oleh `p`:',
+            parts: ['int x = 42;\nint *p = ', 0, 'x;\ncout << ', 1, 'p << endl;'],
+            blanks: [{ answer: '&' }, { answer: '*' }],
+            bank: ['&', '*', '&&', '->']
+          }
+        ]
+      },
+      {
+        title: 'Struktur Data Stack (Tumpukan)',
+        icon: '🥞',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Prinsip LIFO & Operasi Stack',
+            body: '**Stack** (Tumpukan) bekerja dengan prinsip **LIFO (*Last-In, First-Out*)**: elemen yang **terakhir masuk** adalah elemen yang **pertama keluar** (seperti tumpukan piring).\n\nOperasi utamanya:\n• **Push**: Menambah elemen ke puncak tumpukan (`top++`, lalu simpan di `st[top]`).\n• **Pop**: Mengambil/menghapus elemen dari puncak (`top--`).\n• **Peek / Top**: Melihat elemen paling atas (`st[top]`). Saat kosong, `top` bernilai `-1`.',
+            code: `int st[10];
+int top = -1;
+
+// Push 10, lalu Push 20, lalu Push 30
+st[++top] = 10;
+st[++top] = 20;
+st[++top] = 30;
+
+// Pop satu elemen dari puncak (30 keluar)
+top--;
+cout << "Puncak sekarang: " << st[top] << endl;`,
+            output: `Puncak sekarang: 20`
+          },
+          {
+            type: 'quiz',
+            question: 'Prinsip kerja struktur data **Stack** di mana data yang terakhir masuk akan keluar pertama kali disebut…',
+            options: ['LIFO (Last-In, First-Out)', 'FIFO (First-In, First-Out)', 'Random Access', 'Binary Tree'],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi operasi **Push** untuk memasukkan nilai `50` ke puncak Stack `st`:',
+            parts: ['int st[10];\nint top = -1;\n', 0, ';\nst[', 1, '] = 50;'],
+            blanks: [{ answer: 'top++' }, { answer: 'top' }],
+            bank: ['top++', 'top', 'top--', '0']
+          },
+          {
+            type: 'output',
+            question: 'Apa output dari simulasi Stack berikut?',
+            code: `int st[5];
+int top = -1;
+st[++top] = 5;
+st[++top] = 8;
+st[++top] = 12;
+top--; // Pop 1x
+st[++top] = 99;
+cout << st[top] << endl;`,
+            options: ['99', '12', '8', '5'],
+            answer: 0
+          }
+        ]
+      },
+      {
+        title: 'Struktur Data Queue (Antrean)',
+        icon: '🚶‍♂️',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Prinsip FIFO & Operasi Queue',
+            body: '**Queue** (Antrean) bekerja dengan prinsip **FIFO (*First-In, First-Out*)**: elemen yang **pertama masuk** akan **pertama keluar** (seperti antrean kasir).\n\nQueue menggunakan dua penanda indeks:\n• `head` (atau `front`): menunjuk elemen paling depan yang akan keluar.\n• `tail` (atau `rear`): menunjuk posisi belakang tempat elemen baru masuk.\n• **Enqueue** (masuk): `q[tail++] = data;`\n• **Dequeue** (keluar): `head++;`',
+            code: `int q[10];
+int head = 0, tail = 0;
+
+// Enqueue 3 pelanggan: 101, 102, 103
+q[tail++] = 101;
+q[tail++] = 102;
+q[tail++] = 103;
+
+// Dequeue (101 selesai dilayani)
+head++;
+cout << "Giliran depan: " << q[head] << endl;`,
+            output: `Giliran depan: 102`
+          },
+          {
+            type: 'quiz',
+            question: 'Pada struktur data **Queue (FIFO)**, jika kita memasukkan angka `10`, `20`, lalu `30` secara berurutan, angka manakah yang akan keluar pertama kali saat *Dequeue*?',
+            options: ['10', '30', '20', 'Tidak ada'],
+            answer: 0
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi operasi **Enqueue** (memasukkan data ke belakang) dan **Dequeue** (mengeluarkan data dari depan):',
+            parts: ['int q[10], head = 0, tail = 0;\nq[', 0, '++] = 77; // Enqueue\n', 1, '++; // Dequeue'],
+            blanks: [{ answer: 'tail' }, { answer: 'head' }],
+            bank: ['tail', 'head', 'top', 'q']
+          }
+        ]
+      },
+      {
+        title: 'Searching & Sorting pada Struktur Data',
+        icon: '🔎',
+        exercises: [
+          {
+            type: 'concept',
+            title: 'Linear Search vs Binary Search',
+            body: 'Untuk mencari data di dalam Array:\n• **Linear Search**: Memeriksa elemen satu per satu dari indeks `0` hingga ketemu. Bisa dipakai pada array yang belum terurut.\n• **Binary Search**: Jauh lebih cepat, namun **wajib pada array yang sudah terurut**. Caranya dengan memeriksa nilai tengah (`mid = (kiri + kanan) / 2`), lalu mempersempit pencarian ke separuh kiri atau separuh kanan.',
+            code: `int arr[5] = {10, 25, 40, 55, 70}; // sudah terurut
+int kiri = 0, kanan = 4, cari = 55, pos = -1;
+while (kiri <= kanan) {
+    int mid = (kiri + kanan) / 2;
+    if (arr[mid] == cari) { pos = mid; break; }
+    else if (arr[mid] < cari) kiri = mid + 1;
+    else kanan = mid - 1;
+}
+cout << "Ditemukan di indeks: " << pos << endl;`,
+            output: `Ditemukan di indeks: 3`
+          },
+          {
+            type: 'quiz',
+            question: 'Syarat wajib agar algoritma **Binary Search** dapat bekerja dengan benar pada sebuah array adalah…',
+            options: [
+              'Data di dalam array harus sudah terurut',
+              'Jumlah elemen array harus ganjil',
+              'Isi array harus berupa huruf',
+              'Array harus berukuran 2 dimensi'
+            ],
+            answer: 0
+          },
+          {
+            type: 'concept',
+            title: 'Mengurutkan Data dengan Bubble Sort',
+            body: '**Bubble Sort** mengurutkan array dari kecil ke besar (*ascending*) dengan membandingkan dua elemen bersebelahan `arr[j]` dan `arr[j + 1]`.\n\nJika elemen kiri lebih besar dari elemen kanan (`arr[j] > arr[j + 1]`), maka posisinya **ditukar (swap)**.',
+            code: `int a[4] = {40, 10, 30, 20};
+for (int i = 0; i < 4 - 1; i++) {
+    for (int j = 0; j < 4 - 1 - i; j++) {
+        if (a[j] > a[j + 1]) {
+            int tmp = a[j];
+            a[j] = a[j + 1];
+            a[j + 1] = tmp;
+        }
+    }
+}
+cout << a[0] << " " << a[1] << " " << a[2] << " " << a[3] << endl;`,
+            output: `10 20 30 40`
+          },
+          {
+            type: 'fill',
+            question: 'Lengkapi proses penukaran (*swap*) dua elemen array pada Bubble Sort berikut:',
+            parts: ['if (a[j] > a[j + 1]) {\n    int tmp = a[j];\n    a[j] = ', 0, ';\n    a[j + 1] = ', 1, ';\n}'],
+            blanks: [{ answer: 'a[j + 1]' }, { answer: 'tmp' }],
+            bank: ['a[j + 1]', 'tmp', 'a[j]', '0']
+          }
+        ]
+      }
     ]
   }
 ];
 
-/* ================= TANTANGAN ================= */
+/* ================= TANTANGAN KODE (TERMASUK STRING & STRUKTUR DATA) ================= */
 const CHALLENGES = [
   {
     id: 'sapa', icon: '🤝', title: 'Sapa Pengguna', level: 1, xp: 20, desc: 'Baca nama, tampilkan sapaan.',
-    brief: 'Baca **satu input** nama, lalu tampilkan: `Halo, {nama}!`',
+    brief: 'Baca **satu input** nama dengan `cin >> nama`, lalu tampilkan: `Halo, {nama}!`',
     starter: `#include <iostream>
 #include <string>
 using namespace std;
@@ -760,28 +1655,48 @@ int main() {
     ]
   },
   {
-    id: 'jumlah', icon: '➕', title: 'Penjumlahan', level: 1, xp: 20, desc: 'Jumlahkan dua angka.',
-    brief: 'Baca **dua input** angka, tampilkan jumlahnya.',
+    id: 'jumlah', icon: '➕', title: 'Penjumlahan Dua Angka', level: 1, xp: 20, desc: 'Jumlahkan dua bilangan bulat.',
+    brief: 'Baca **dua input** angka bulat `a` dan `b`, lalu tampilkan hasil penjumlahannya.',
     starter: `#include <iostream>
 using namespace std;
 
 int main() {
     int a, b;
     cin >> a >> b;
-    // Tampilkan a + b
+    // Tampilkan hasil a + b
     
     return 0;
 }
 `,
     example: { in: '3 4', out: '7' },
     tests: [
-      { name: '3+4', inputs: ['3', '4'], expect: '7' },
-      { name: '10+15', inputs: ['10', '15'], expect: '25' }
+      { name: '3 + 4', inputs: ['3', '4'], expect: '7' },
+      { name: '10 + 15', inputs: ['10', '15'], expect: '25' }
     ]
   },
   {
-    id: 'genap', icon: '🔢', title: 'Genap / Ganjil', level: 2, xp: 30, desc: 'Tentukan genap atau ganjil.',
-    brief: 'Baca satu angka, tampilkan `Genap` atau `Ganjil`.',
+    id: 'panjang', icon: '📏', title: 'Panjang Kata', level: 1, xp: 20, desc: 'Hitung jumlah karakter string.',
+    brief: 'Baca satu kata, lalu tampilkan panjangnya menggunakan method `.length()`.',
+    starter: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string kata;
+    cin >> kata;
+    
+    return 0;
+}
+`,
+    example: { in: 'Halo', out: '4' },
+    tests: [
+      { name: 'Halo', inputs: ['Halo'], expect: '4' },
+      { name: 'StrukturData', inputs: ['StrukturData'], expect: '12' }
+    ]
+  },
+  {
+    id: 'genap', icon: '🔢', title: 'Genap atau Ganjil', level: 2, xp: 30, desc: 'Cek sisa bagi dengan modulo (%) atau ternary.',
+    brief: 'Baca satu angka bulat `n`. Jika habis dibagi 2 (`n % 2 == 0`), tampilkan `Genap`, jika tidak tampilkan `Ganjil` (bisa memakai `if-else` atau operator ternary `? :`).',
     starter: `#include <iostream>
 using namespace std;
 
@@ -794,13 +1709,13 @@ int main() {
 `,
     example: { in: '4', out: 'Genap' },
     tests: [
-      { name: '4', inputs: ['4'], expect: 'Genap' },
-      { name: '7', inputs: ['7'], expect: 'Ganjil' }
+      { name: 'Angka 4', inputs: ['4'], expect: 'Genap' },
+      { name: 'Angka 7', inputs: ['7'], expect: 'Ganjil' }
     ]
   },
   {
-    id: 'tabel', icon: '✖️', title: 'Tabel Perkalian', level: 2, xp: 30, desc: 'Cetak perkalian 1 sampai 5.',
-    brief: 'Baca satu angka `n`, tampilkan `n x i = hasil` untuk i = 1 sampai 5.',
+    id: 'tabel', icon: '✖️', title: 'Tabel Perkalian', level: 2, xp: 30, desc: 'Cetak perkalian 1 sampai 5 dengan loop.',
+    brief: 'Baca satu angka `n`, lalu tampilkan baris `n x i = hasil` untuk `i` dari `1` sampai `5`.',
     starter: `#include <iostream>
 using namespace std;
 
@@ -813,12 +1728,101 @@ int main() {
 `,
     example: { in: '3', out: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' },
     tests: [
-      { name: 'n=3', inputs: ['3'], expect: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' }
+      { name: 'n = 3', inputs: ['3'], expect: '3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15' },
+      { name: 'n = 5', inputs: ['5'], expect: '5 x 1 = 5\n5 x 2 = 10\n5 x 3 = 15\n5 x 4 = 20\n5 x 5 = 25' }
     ]
   },
   {
-    id: 'faktorial', icon: '❗', title: 'Faktorial', level: 3, xp: 40, desc: 'Hitung n!',
-    brief: 'Baca satu angka `n`, tampilkan faktorialnya. `0! = 1`.',
+    id: 'sensor', icon: '✂️', title: 'Potong & Gabung String', level: 2, xp: 35, desc: 'Gunakan substr() dan panjang string.',
+    brief: 'Baca satu kata `s` (minimal 3 huruf). Tampilkan **3 huruf pertamanya** dengan `s.substr(0, 3)` diikuti tanda `-` dan panjang total kata tersebut.',
+    starter: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    string s;
+    cin >> s;
+    // Contoh: Program -> Pro-7
+    
+    return 0;
+}
+`,
+    example: { in: 'Program', out: 'Pro-7' },
+    tests: [
+      { name: 'Program', inputs: ['Program'], expect: 'Pro-7' },
+      { name: 'Belajar', inputs: ['Belajar'], expect: 'Bel-7' }
+    ]
+  },
+  {
+    id: 'tertinggi', icon: '🏔️', title: 'Nilai Tertinggi Array', level: 2, xp: 35, desc: 'Cari elemen maksimum dalam Array.',
+    brief: 'Baca `n`, lalu baca `n` buah angka ke dalam array. Cari dan tampilkan angka terbesarnya.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    return 0;
+}
+`,
+    example: { in: '3\n10 50 20', out: '50' },
+    tests: [
+      { name: '3 angka', inputs: ['3', '10', '50', '20'], expect: '50' },
+      { name: '4 angka', inputs: ['4', '12', '99', '45', '88'], expect: '99' }
+    ]
+  },
+  {
+    id: 'struct_mhs', icon: '🪪', title: 'Struct Kelulusan Siswa', level: 2, xp: 40, desc: 'Simpan nama & nilai di dalam struct.',
+    brief: 'Gunakan `struct Siswa` yang menyimpan `string nama` dan `int nilai`. Baca nama dan nilainya. Jika `nilai >= 75`, tampilkan `{nama}: Lulus`, jika kurang tampilkan `{nama}: Remedial`.',
+    starter: `#include <iostream>
+#include <string>
+using namespace std;
+
+struct Siswa {
+    string nama;
+    int nilai;
+};
+
+int main() {
+    Siswa s;
+    cin >> s.nama >> s.nilai;
+    // Tampilkan status kelulusan s
+    
+    return 0;
+}
+`,
+    example: { in: 'Andi 85', out: 'Andi: Lulus' },
+    tests: [
+      { name: 'Andi 85', inputs: ['Andi', '85'], expect: 'Andi: Lulus' },
+      { name: 'Budi 60', inputs: ['Budi', '60'], expect: 'Budi: Remedial' }
+    ]
+  },
+  {
+    id: 'stack_balik', icon: '🥞', title: 'Balik Urutan dengan Stack', level: 3, xp: 45, desc: 'Implementasikan LIFO Stack untuk membalik angka.',
+    brief: 'Baca `n`, lalu masukkan (*Push*) `n` angka ke dalam Stack. Setelah itu, keluarkan (*Pop*) semua elemen dari puncak hingga bawah dan cetak dipisahkan spasi.',
+    starter: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    int st[100];
+    int top = -1;
+    // Push n angka ke st, lalu Pop dan cetak dari atas ke bawah
+    
+    return 0;
+}
+`,
+    example: { in: '3\n10 20 30', out: '30 20 10' },
+    tests: [
+      { name: '3 elemen', inputs: ['3', '10', '20', '30'], expect: '30 20 10' },
+      { name: '4 elemen', inputs: ['4', '1', '2', '3', '4'], expect: '4 3 2 1' }
+    ]
+  },
+  {
+    id: 'faktorial', icon: '❗', title: 'Faktorial (Loop / Rekursi)', level: 3, xp: 40, desc: 'Hitung nilai n! (0! = 1).',
+    brief: 'Baca satu angka `n`, lalu hitung dan tampilkan nilai faktorialnya (`n!`). Ingat bahwa `0! = 1`.',
     starter: `#include <iostream>
 using namespace std;
 
@@ -836,8 +1840,8 @@ int main() {
     ]
   },
   {
-    id: 'prima', icon: '💎', title: 'Bilangan Prima', level: 3, xp: 40, desc: 'Cek prima atau bukan.',
-    brief: 'Baca satu angka, tampilkan `Prima` atau `Bukan Prima`.',
+    id: 'prima', icon: '💎', title: 'Cek Bilangan Prima', level: 3, xp: 40, desc: 'Tentukan apakah n bilangan prima.',
+    brief: 'Baca satu angka bulat `n`. Tampilkan `Prima` jika hanya habis dibagi 1 dan dirinya sendiri (`n >= 2`), atau `Bukan Prima` jika bukan.',
     starter: `#include <iostream>
 using namespace std;
 
@@ -855,28 +1859,8 @@ int main() {
     ]
   },
   {
-    id: 'panjang', icon: '📏', title: 'Panjang Kata', level: 1, xp: 20, desc: 'Hitung panjang string.',
-    brief: 'Baca satu kata, tampilkan panjangnya dengan `.length()`.',
-    starter: `#include <iostream>
-#include <string>
-using namespace std;
-
-int main() {
-    string kata;
-    cin >> kata;
-    
-    return 0;
-}
-`,
-    example: { in: 'Halo', out: '4' },
-    tests: [
-      { name: 'Halo', inputs: ['Halo'], expect: '4' },
-      { name: 'data', inputs: ['data'], expect: '4' }
-    ]
-  },
-  {
-    id: 'palindrom', icon: '🪞', title: 'Palindrom', level: 3, xp: 40, desc: 'Cek kata palindrom.',
-    brief: 'Baca satu kata, abaikan huruf besar/kecil, tampilkan `Palindrom` atau `Bukan`.',
+    id: 'palindrom', icon: '🪞', title: 'Kata Palindrom', level: 3, xp: 45, desc: 'Cek apakah kata dibaca sama dari depan & belakang.',
+    brief: 'Baca satu kata, abaikan perbedaan huruf besar/kecil (gunakan `tolower()`), lalu tampilkan `Palindrom` jika sama saat dibalik atau `Bukan` jika berbeda.',
     starter: `#include <iostream>
 #include <string>
 using namespace std;
@@ -891,25 +1875,7 @@ int main() {
     example: { in: 'Kodok', out: 'Palindrom' },
     tests: [
       { name: 'Kodok', inputs: ['Kodok'], expect: 'Palindrom' },
-      { name: 'Python', inputs: ['Python'], expect: 'Bukan' }
-    ]
-  },
-  {
-    id: 'tertinggi', icon: '🏔️', title: 'Nilai Tertinggi', level: 2, xp: 30, desc: 'Cari angka terbesar.',
-    brief: 'Baca `n`, lalu baca `n` angka. Tampilkan nilai terbesar.',
-    starter: `#include <iostream>
-using namespace std;
-
-int main() {
-    int n;
-    cin >> n;
-    
-    return 0;
-}
-`,
-    example: { in: '3\n10\n50\n20', out: '50' },
-    tests: [
-      { name: '3 angka', inputs: ['3', '10', '50', '20'], expect: '50' }
+      { name: 'Kasur', inputs: ['Kasur'], expect: 'Bukan' }
     ]
   }
 ];
@@ -922,7 +1888,7 @@ const chCount = p => {
 const MAX_HEARTS = 5;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const CPP_RE = /(\/\/[^\n]*)|(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(int|long|short|float|double|char|bool|void|string|size_t|auto|const|if|else|for|while|do|switch|case|default|break|continue|return|include|using|namespace|true|false|std|cout|cin|endl|npos|vector|map|set|pair|array|struct|class|public|private|protected|new|delete|sizeof|template|typename|nullptr)\b|\b(main|length|size|empty|clear|at|front|back|c_str|append|push_back|pop_back|substr|find|rfind|replace|insert|erase|compare|stoi|stol|stod|stof|to_string|getline|tolower|toupper|isdigit|isalpha|isalnum|isspace|islower|isupper|sort|reverse|min|max|swap|abs|pow|sqrt)\b|\b(\d+(?:\.\d+)?[fFlLuU]*)\b/g;
+const CPP_RE = /(\/\/[^\n]*)|(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(int|long|short|float|double|char|bool|void|string|size_t|auto|const|if|else|for|while|do|switch|case|default|break|continue|return|include|using|namespace|true|false|std|cout|cin|endl|npos|vector|map|set|pair|array|struct|typedef|class|public|private|protected|new|delete|sizeof|template|typename|nullptr)\b|\b(main|length|size|empty|clear|at|front|back|c_str|append|push_back|pop_back|substr|find|rfind|replace|insert|erase|compare|stoi|stol|stod|stof|to_string|getline|tolower|toupper|isdigit|isalpha|isalnum|isspace|islower|isupper|sort|reverse|min|max|swap|abs|pow|sqrt)\b|\b(\d+(?:\.\d+)?[fFlLuU]*)\b/g;
 
 function hl(code) {
   let out = '', last = 0, m;
@@ -948,75 +1914,152 @@ function fmt(text) {
 
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
+/* ================= CONTOH KODE BERDASARKAN BAB MATERI (1 BAB = 1 CONTOH) ================= */
 const TPL = {
-  halo: {
-    name: 'Halo Dunia',
-    code: `#include <iostream>
-using namespace std;
-
-int main() {
-    cout << "Halo, Dunia!" << endl;
-    return 0;
-}`
-  },
-  string_input: {
-    name: 'String + cin',
+  bab1: {
+    name: 'Bab 1 · Dasar & Variabel',
     code: `#include <iostream>
 #include <string>
 using namespace std;
 
 int main() {
-    string depan = "Budi";
-    string belakang = "Santoso";
-    string lengkap = depan + " " + belakang;
-    cout << "Halo, " << lengkap << "!" << endl;
+    const int TAHUN = 2026;
+    string nama = "Budi";
+    int umur = 17;
+    double nilai = 94.5;
+    char grade = 'A';
+
+    cout << "=== Profil Pembelajar ===" << endl;
+    cout << "Nama  : " << nama << endl;
+    cout << "Umur  : " << umur << " tahun" << endl;
+    cout << "Nilai : " << nilai << " (Grade " << grade << ")" << endl;
+    cout << "Tahun : " << TAHUN << endl;
     return 0;
 }`
   },
-  string_methods: {
-    name: 'Method String Lengkap',
+  bab2: {
+    name: 'Bab 2 · Operator & String',
     code: `#include <iostream>
 #include <string>
 using namespace std;
 
 int main() {
     string teks = "Belajar C++ di CppMimo";
-    cout << "Panjang : " << teks.length() << endl;
+    cout << "Panjang : " << teks.length() << " karakter" << endl;
     cout << "Substr  : " << teks.substr(0, 11) << endl;
-    cout << "Find C++: indeks " << teks.find("C++") << endl;
+    cout << "Posisi  : indeks ke-" << teks.find("C++") << endl;
 
     teks.replace(15, 7, "JSCPP");
     teks.push_back('!');
-    cout << "Replace : " << teks << endl;
+    cout << "Update  : " << teks << endl;
 
-    int angka = stoi("2025") + 1;
-    cout << "Tahun   : " + to_string(angka) << endl;
+    int bonus = stoi("150") + 50;
+    cout << "Total XP: " + to_string(bonus) << endl;
     return 0;
 }`
   },
-  loop: {
-    name: 'Perulangan',
+  bab3: {
+    name: 'Bab 3 · Alur & Ternary',
     code: `#include <iostream>
+#include <string>
 using namespace std;
 
 int main() {
-    for (int i = 1; i <= 5; i++) {
-        cout << "Baris " << i << endl;
+    int skor = 82;
+
+    // Operator Ternary (? :)
+    string status = (skor >= 75) ? "Lulus" : "Remedial";
+    cout << "Skor " << skor << " -> " << status << endl;
+
+    cout << "Bilangan ganjil (1..9): ";
+    for (int i = 1; i <= 9; i++) {
+        if (i % 2 == 0) continue;
+        cout << i << " ";
+    }
+    cout << endl;
+    return 0;
+}`
+  },
+  bab4: {
+    name: 'Bab 4 · Fungsi & Rekursi',
+    code: `#include <iostream>
+using namespace std;
+
+void gandakan(int &x) {
+    x = x * 2; // Pass by reference (&)
+}
+
+int faktorial(int n) {
+    if (n <= 1) return 1; // Base case rekursi
+    return n * faktorial(n - 1);
+}
+
+int main() {
+    int angka = 15;
+    gandakan(angka);
+    cout << "15 digandakan = " << angka << endl;
+    cout << "Faktorial 5!  = " << faktorial(5) << endl;
+    return 0;
+}`
+  },
+  bab5: {
+    name: 'Bab 5 · Struct & Array',
+    code: `#include <iostream>
+#include <string>
+using namespace std;
+
+struct Mahasiswa {
+    string nama;
+    int nilai;
+};
+
+int main() {
+    Mahasiswa daftar[3];
+    daftar[0].nama = "Sinta";
+    daftar[0].nilai = 95;
+
+    daftar[1].nama = "Andi";
+    daftar[1].nilai = 70;
+
+    daftar[2].nama = "Rina";
+    daftar[2].nilai = 88;
+
+    for (int i = 0; i < 3; i++) {
+        string ket = (daftar[i].nilai >= 75) ? "Lulus" : "Remedial";
+        cout << i + 1 << ". " << daftar[i].nama
+             << " (" << daftar[i].nilai << ") - " << ket << endl;
     }
     return 0;
 }`
   },
-  fungsi: {
-    name: 'Fungsi',
+  bab6: {
+    name: 'Bab 6 · Stack & Sorting',
     code: `#include <iostream>
 using namespace std;
 
-int kuadrat(int x) {
-    return x * x;
-}
-
 int main() {
-    cout << kuadrat(5) << endl;
+    // 1. Simulasi Stack (LIFO)
+    int st[10], top = -1;
+    st[++top] = 100;
+    st[++top] = 200;
+    st[++top] = 300;
+    cout << "Pop dari Stack: " << st[top--] << endl;
+    cout << "Puncak saat ini: " << st[top] << endl;
+
+    // 2. Bubble Sort pada Array
+    int data[5] = {42, 15, 8, 99, 23};
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4 - i; j++) {
+            if (data[j] > data[j + 1]) {
+                int tmp = data[j];
+                data[j] = data[j + 1];
+                data[j + 1] = tmp;
+            }
+        }
+    }
+    cout << "Data terurut  : ";
+    for (int i = 0; i < 5; i++) cout << data[i] << " ";
+    cout << endl;
     return 0;
 }`
   }
@@ -1046,7 +2089,7 @@ COURSE.forEach((ch, ci) => ch.lessons.forEach(l => {
 }));
 const TOTAL = FLAT.length;
 
-/* ================= ENHANCED JSCPP STRING & STDLIB COMPATIBILITY LAYER v2 ================= */
+/* ================= ENHANCED JSCPP STRING, REFERENCE & STRUCT COMPATIBILITY LAYER v6 ================= */
 const JSCPP_STRING_HELPERS = `
 char __mimo_pool[16][512];
 int __mimo_pidx = 0;
@@ -1330,6 +2373,13 @@ char* __mimo_tostr(long val) {
     return __mimo_pool[slot];
 }
 
+char* __mimo_tern_str(int cond, const char a[], const char b[]) {
+    int slot = __mimo_pidx;
+    __mimo_pidx = (__mimo_pidx + 1) % 16;
+    __mimo_copy(__mimo_pool[slot], cond ? a : b);
+    return __mimo_pool[slot];
+}
+
 int __mimo_tolower(int c) { return (c >= 'A' && c <= 'Z') ? (c + 32) : c; }
 int __mimo_toupper(int c) { return (c >= 'a' && c <= 'z') ? (c - 32) : c; }
 int __mimo_isdigit(int c) { return (c >= '0' && c <= '9') ? 1 : 0; }
@@ -1365,6 +2415,71 @@ function splitTopLevelCommas(str) {
   return res;
 }
 
+function transpilePassByReference(code) {
+  const refFuncs = [];
+  const fnRe = /\b(void|int|long|short|float|double|char|bool)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*&[^)]*)\)\s*\{/g;
+  let match;
+
+  while ((match = fnRe.exec(code)) !== null) {
+    const fnName = match[2];
+    if (fnName === 'main') continue;
+    const paramStr = match[3];
+    const params = splitTopLevelCommas(paramStr);
+    const refIndices = [];
+    const refParamNames = [];
+
+    const newParams = params.map((p, idx) => {
+      const m = p.match(/^((?:const\s+)?(?:int|long|short|float|double|char|bool))\s*&\s*([A-Za-z_][A-Za-z0-9_]*)$/);
+      if (m) {
+        refIndices.push(idx);
+        refParamNames.push(m[2]);
+        return m[1] + ' *__ref_' + m[2];
+      }
+      return p;
+    });
+
+    if (!refIndices.length) continue;
+
+    const bodyStart = match.index + match[0].length;
+    let depth = 1, i = bodyStart;
+    while (i < code.length && depth > 0) {
+      if (code[i] === '{') depth++;
+      else if (code[i] === '}') depth--;
+      i++;
+    }
+    const bodyEnd = i - 1;
+    let body = code.slice(bodyStart, bodyEnd);
+
+    refParamNames.forEach(pName => {
+      const safeP = escapeRegExp(pName);
+      body = body.replace(new RegExp('\\b' + safeP + '\\b', 'g'), '(*__ref_' + pName + ')');
+    });
+
+    const newHeader = match[1] + ' ' + fnName + '(' + newParams.join(', ') + ') {';
+    code = code.slice(0, match.index) + newHeader + body + '}' + code.slice(bodyEnd + 1);
+    refFuncs.push({ name: fnName, refIndices });
+    fnRe.lastIndex = match.index + newHeader.length + body.length + 1;
+  }
+
+  refFuncs.forEach(fn => {
+    const safeFn = escapeRegExp(fn.name);
+    const callRe = new RegExp('\\b' + safeFn + '\\s*\\(([^;{}()]*)\\)', 'g');
+    code = code.replace(callRe, function (fullCall, argsStr) {
+      if (/\b(int|long|short|float|double|char|bool|void)\b/.test(argsStr)) return fullCall;
+      const args = splitTopLevelCommas(argsStr);
+      const updatedArgs = args.map((arg, idx) => {
+        if (fn.refIndices.includes(idx) && !arg.startsWith('&')) {
+          return '&(' + arg + ')';
+        }
+        return arg;
+      });
+      return fn.name + '(' + updatedArgs.join(', ') + ')';
+    });
+  });
+
+  return code;
+}
+
 function prepareCppForJSCPP(rawCode) {
   let code = String(rawCode || '');
 
@@ -1388,42 +2503,144 @@ function prepareCppForJSCPP(rawCode) {
     code = code.replace(/(#\s*include\s*<iostream>[^\n]*)/, '$1\nusing namespace std;');
   }
 
-  const stringVars = new Set();
+  // 3. Transpilasi Pass-by-Reference (int &x) menjadi Pointer C
+  code = transpilePassByReference(code);
 
-  // 3. Transformasi parameter fungsi bertipe string (const string& s, string s, string s[])
+  const stringVars = new Set();
+  const structDefs = {};
+  const structInstances = [];
+
+  // 4. STRUCT FLATTENING ENGINE (Two-Pass):
+  //    Pass 1: Kumpulkan definisi struct dan pertahankan jumlah barisnya (dengan komentar) agar nomor baris error tetap akurat
+  code = code.replace(/\bstruct\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{([\s\S]*?)\}\s*([A-Za-z0-9_,\s\[\]]*);/g, function (fullStruct, structName, body, trailingVars) {
+    const fields = [];
+    const lines = body.split('\n');
+    for (const line of lines) {
+      const m = line.match(/^\s*(?:const\s+)?(string|int|long|short|float|double|char|bool)\s+([^;]+);/);
+      if (m) {
+        const fType = m[1];
+        const fNames = m[2].split(',').map(x => x.trim()).filter(Boolean);
+        for (const fn of fNames) {
+          const cleanName = fn.replace(/\[.*\]$/, '').trim();
+          fields.push({ name: cleanName, type: fType });
+        }
+      }
+    }
+    structDefs[structName] = fields;
+    const newlineCount = (fullStruct.match(/\n/g) || []).length;
+    const padLines = '\n'.repeat(newlineCount);
+    if (trailingVars && trailingVars.trim()) {
+      return structName + ' ' + trailingVars.trim() + ';' + padLines;
+    }
+    return '// struct ' + structName + ' terdaftar' + padLines;
+  });
+
+  //    Pass 1b: Ubah deklarasi variabel/array bertipe struct menjadi variabel paralel
+  Object.keys(structDefs).forEach(sName => {
+    const safeS = escapeRegExp(sName);
+    const fields = structDefs[sName];
+
+    const declRe = new RegExp('^([ \\t]*)(?:struct\\s+)?' + safeS + '\\s+([^;\\n]+);', 'gm');
+    code = code.replace(declRe, function (fullMatch, indent, declPart) {
+      const items = splitTopLevelCommas(declPart);
+      const outStmts = [];
+
+      for (const item of items) {
+        let m;
+        if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*\[([^\]]+)\]$/))) {
+          const varName = m[1];
+          const arrSize = m[2];
+          fields.forEach(f => {
+            const flatName = '__st_' + varName + '_' + f.name;
+            if (f.type === 'string') {
+              stringVars.add(flatName);
+              outStmts.push('char ' + flatName + '[' + arrSize + '][512]');
+            } else {
+              outStmts.push(f.type + ' ' + flatName + '[' + arrSize + ']');
+            }
+          });
+          structInstances.push({ varName, isArray: true, fields });
+        } else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\{([^}]*)\}$/))) {
+          const varName = m[1];
+          const initVals = splitTopLevelCommas(m[2]);
+          fields.forEach((f, idx) => {
+            const flatName = '__st_' + varName + '_' + f.name;
+            const val = idx < initVals.length ? initVals[idx] : (f.type === 'string' ? '""' : '0');
+            if (f.type === 'string') {
+              stringVars.add(flatName);
+              outStmts.push('char ' + flatName + '[512]; __mimo_copy(' + flatName + ', ' + val + ')');
+            } else {
+              outStmts.push(f.type + ' ' + flatName + ' = ' + val);
+            }
+          });
+          structInstances.push({ varName, isArray: false, fields });
+        } else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)$/))) {
+          const varName = m[1];
+          fields.forEach(f => {
+            const flatName = '__st_' + varName + '_' + f.name;
+            if (f.type === 'string') {
+              stringVars.add(flatName);
+              outStmts.push('char ' + flatName + '[512]; __mimo_clear(' + flatName + ')');
+            } else {
+              outStmts.push(f.type + ' ' + flatName + ' = 0');
+            }
+          });
+          structInstances.push({ varName, isArray: false, fields });
+        }
+      }
+      return outStmts.length ? (indent + outStmts.join('; ') + ';') : fullMatch;
+    });
+  });
+
+  //    Pass 2: Ganti seluruh akses daftar[idx].field dan m1.field di seluruh kode
+  structInstances.forEach(inst => {
+    const safeVar = escapeRegExp(inst.varName);
+    inst.fields.forEach(f => {
+      const safeF = escapeRegExp(f.name);
+      if (inst.isArray) {
+        const accRe = new RegExp('\\b' + safeVar + '\\s*\\[([^\\]]+)\\]\\s*\\.\\s*' + safeF + '\\b', 'g');
+        code = code.replace(accRe, '__st_' + inst.varName + '_' + f.name + '[$1]');
+      } else {
+        const accRe = new RegExp('\\b' + safeVar + '\\s*\\.\\s*' + safeF + '\\b', 'g');
+        code = code.replace(accRe, '__st_' + inst.varName + '_' + f.name);
+      }
+    });
+  });
+
+  // 5. Transformasi parameter fungsi bertipe string (const string& s, string s, string s[])
   code = code.replace(/\b(?:const\s+)?string\s*(?:&|\*)?\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?=[,\)])/g, function (m, name) {
     stringVars.add(name);
     return 'char ' + name + '[]';
   });
 
-  // 4. Transformasi deklarasi variabel string (mendukung multi-deklarasi, konstruktor, ekspresi, dan array)
-  code = code.replace(/^([ \t]*)(?:const\s+)?string\s+([^;(\n]+);/gm, function (fullMatch, indent, declPart) {
-    if (/\breturn\b/.test(fullMatch)) return fullMatch;
+  // 6. Transformasi ekspresi ternary yang menghasilkan string literal: (kondisi) ? "A" : "B"
+  code = code.replace(/\(([^()\n]+)\)\s*\?\s*"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"/g, '__mimo_tern_str(($1), "$2", "$3")');
+  code = code.replace(/\b([A-Za-z_][A-Za-z0-9_\[\]]*\s*(?:==|!=|<=|>=|<|>)\s*[^?\n]+)\?\s*"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"/g, '__mimo_tern_str(($1), "$2", "$3")');
+
+  // 7. Konstruktor gaya fungsi: string s("Halo");
+  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*"((?:[^"\\]|\\.)*)"\s*\)\s*;/g, function (m, name, val) {
+    stringVars.add(name);
+    return 'char ' + name + '[512]; __mimo_copy(' + name + ', "' + val + '");';
+  });
+
+  // 8. Transformasi deklarasi variabel string
+  code = code.replace(/^([ \t]*)(?:const\s+)?string\s+([^;\n]+);/gm, function (fullMatch, indent, declPart) {
+    if (/^[A-Za-z_][A-Za-z0-9_]*\s*\([^=]*\)\s*$/.test(declPart.trim())) return fullMatch;
     const items = splitTopLevelCommas(declPart);
     if (!items.length) return fullMatch;
 
     const outStmts = [];
     for (const item of items) {
       let m;
-      // Array of strings: string arr[10]
       if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*\[([^\]]+)\]$/))) {
         stringVars.add(m[1]);
         outStmts.push('char ' + m[1] + '[' + m[2] + '][512]');
-      }
-      // Inisialisasi literal: string s = "halo"
-      else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"((?:[^"\\]|\\.)*)"$/))) {
+      } else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/))) {
         stringVars.add(m[1]);
-        outStmts.push('char ' + m[1] + '[512] = "' + m[2] + '"');
-      }
-      // Inisialisasi ekspresi/variabel: string s = expr
-      else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/))) {
+        outStmts.push('char ' + m[1] + '[512]; __mimo_copy(' + m[1] + ', ' + m[2].trim() + ')');
+      } else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)$/))) {
         stringVars.add(m[1]);
-        outStmts.push('char ' + m[1] + '[512] = ""; __mimo_copy(' + m[1] + ', ' + m[2].trim() + ')');
-      }
-      // Deklarasi polos: string s
-      else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)$/))) {
-        stringVars.add(m[1]);
-        outStmts.push('char ' + m[1] + '[512] = ""');
+        outStmts.push('char ' + m[1] + '[512]; __mimo_clear(' + m[1] + ')');
       } else {
         return fullMatch;
       }
@@ -1431,13 +2648,7 @@ function prepareCppForJSCPP(rawCode) {
     return indent + outStmts.join('; ') + ';';
   });
 
-  // Konstruktor gaya fungsi: string s("Halo");
-  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*"((?:[^"\\]|\\.)*)"\s*\)\s*;/g, function (m, name, val) {
-    stringVars.add(name);
-    return 'char ' + name + '[512] = "' + val + '";';
-  });
-
-  // 5. Inisialisasi otomatis variabel numerik yang belum diberi nilai awal (mencegah overflow of NaN(int))
+  // 9. Inisialisasi otomatis variabel numerik yang belum diberi nilai awal
   code = code.replace(/^([ \t]*)(int|long|short|float|double|bool)\s+([^;()=\n]+);/gm, function (match, indent, type, varList) {
     if (/[()]/.test(varList)) return match;
     const parts = varList.split(',').map(p => {
@@ -1450,11 +2661,11 @@ function prepareCppForJSCPP(rawCode) {
     return indent + type + ' ' + parts.join(', ') + ';';
   });
 
-  // 6. Transformasi getline(cin, s) dan algoritma reverse(s.begin(), s.end())
-  code = code.replace(/\bgetline\s*\(\s*cin\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)/g, 'cin.getline($1, 512)');
+  // 10. Transformasi getline(cin, s) dan algoritma reverse(s.begin(), s.end())
+  code = code.replace(/\bgetline\s*\(\s*cin\s*,\s*([A-Za-z_][A-Za-z0-9_.\[\]]*)\s*\)/g, 'cin.getline($1, 512)');
   code = code.replace(/\breverse\s*\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*begin\s*\(\s*\)\s*,\s*\1\s*\.\s*end\s*\(\s*\)\s*\)/g, '__mimo_rev_str($1)');
 
-  // 7. Transformasi fungsi konversi global & <cctype>
+  // 11. Transformasi fungsi konversi global & <cctype>
   code = code.replace(/\b(?:stoi|stol)\s*\(\s*([^)]+)\s*\)/g, '__mimo_stoi($1)');
   code = code.replace(/\b(?:stod|stof)\s*\(\s*([^)]+)\s*\)/g, '__mimo_stod($1)');
   code = code.replace(/\bto_string\s*\(\s*([^)]+)\s*\)/g, '__mimo_tostr($1)');
@@ -1467,7 +2678,7 @@ function prepareCppForJSCPP(rawCode) {
   code = code.replace(/\bislower\s*\(/g, '__mimo_islower(');
   code = code.replace(/\bisupper\s*\(/g, '__mimo_isupper(');
 
-  // 8. Transformasi seluruh method std::string (.length, .substr, .find, .replace, dll.)
+  // 12. Transformasi seluruh method std::string
   const idPat = '([A-Za-z_][A-Za-z0-9_]*(?:\\[[^\\]]+\\])?)';
 
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*(?:length|size)\\s*\\(\\s*\\)', 'g'), '__mimo_len($1)');
@@ -1483,11 +2694,9 @@ function prepareCppForJSCPP(rawCode) {
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*compare\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_cmp($1, $2)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*swap\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_swap_str($1, $2)');
 
-  // .substr(pos, len) & .substr(pos)
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*substr\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_substr($1, $2, $3)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*substr\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_substr($1, $2, -1)');
 
-  // .find(...) & .rfind(...) untuk char dan string
   code = code.replace(new RegExp(idPat + "\\s*\\.\\s*find\\s*\\(\\s*('(?:[^'\\\\]|\\\\.)*')\\s*,\\s*([^)]+)\\s*\\)", 'g'), '__mimo_find_ch($1, $2, $3)');
   code = code.replace(new RegExp(idPat + "\\s*\\.\\s*find\\s*\\(\\s*('(?:[^'\\\\]|\\\\.)*')\\s*\\)", 'g'), '__mimo_find_ch($1, $2, 0)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*find\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_find($1, $2, $3)');
@@ -1498,64 +2707,50 @@ function prepareCppForJSCPP(rawCode) {
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*rfind\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_rfind($1, $2, $3)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*rfind\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_rfind($1, $2, -1)');
 
-  // .erase(pos, len), .erase(pos), .insert(pos, str), .replace(pos, len, str)
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*erase\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_erase($1, $2, $3)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*erase\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_erase($1, $2, -1)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*insert\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_insert($1, $2, $3)');
   code = code.replace(new RegExp(idPat + '\\s*\\.\\s*replace\\s*\\(\\s*([^,)]+)\\s*,\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_replace($1, $2, $3, $4)');
 
-  // 9. Transformasi Konkatenasi Operator + (s1 + s2, s + "lit", "lit" + s, s + 'c')
+  // 13. Transformasi Konkatenasi Operator + (s1 + s2, s + "lit", "lit" + s, s + 'c')
   if (stringVars.size > 0) {
-    const sNames = Array.from(stringVars).map(escapeRegExp).join('|');
-    const sExpr = '(?:' + sNames + '|__mimo_(?:substr|add|add_ch|tostr)\\([^)]*\\))';
+    const sNames = Array.from(stringVars).map(n => escapeRegExp(n) + '(?:\\[[^\\]]+\\])?').join('|');
+    const sExpr = '(?:' + sNames + '|__mimo_(?:substr|add|add_ch|tostr|tern_str)\\([^)]*\\))';
 
     for (let pass = 0; pass < 4; pass++) {
-      // stringVar/expr + 'char'
       code = code.replace(new RegExp('\\b(' + sExpr + ")\\s*\\+\\s*('(?:[^'\\\\]|\\\\.)*')", 'g'), '__mimo_add_ch($1, $2)');
-      // stringVar/expr + "literal"
       code = code.replace(new RegExp('\\b(' + sExpr + ')\\s*\\+\\s*("((?:[^"\\\\]|\\\\.)*)")', 'g'), '__mimo_add($1, $2)');
-      // "literal" + stringVar/expr
       code = code.replace(new RegExp('("((?:[^"\\\\]|\\\\.)*)")\\s*\\+\\s*\\b(' + sExpr + ')', 'g'), '__mimo_add($1, $3)');
-      // stringVar/expr + stringVar/expr
       code = code.replace(new RegExp('\\b(' + sExpr + ')\\s*\\+\\s*\\b(' + sExpr + ')', 'g'), '__mimo_add($1, $2)');
     }
   } else {
-    // Tetap dukung "literal" + to_string(...) meskipun tidak ada variabel string
     code = code.replace(/("((?:[^"\\]|\\.)*)")\s*\+\s*(__mimo_tostr\([^)]+\))/g, '__mimo_add($1, $3)');
     code = code.replace(/(__mimo_tostr\([^)]+\))\s*\+\s*("((?:[^"\\]|\\.)*)")/g, '__mimo_add($1, $2)');
   }
 
-  // 10. Transformasi Assignment (=), Append (+=), dan Perbandingan (==, !=, <, >, <=, >=) pada variabel string
+  // 14. Transformasi Assignment (=), Append (+=), dan Perbandingan pada variabel string & array string
   stringVars.forEach(name => {
     const safe = escapeRegExp(name);
-    // Hanya cocokkan variabel utuh (bukan elemen indeks seperti kata[0])
-    const varNoIdx = '\\b' + safe + '(?!\\s*\\[)';
+    const varTarget = '(?<!\\bchar\\s+)(\\b' + safe + '(?:\\[[^\\]]+\\])?)(?!\\s*\\[)';
 
-    // s += 'c';
-    code = code.replace(new RegExp(varNoIdx + "\\s*\\+=\\s*('(?:[^'\\\\]|\\\\.)*')\\s*;", 'g'), '__mimo_push(' + name + ', $1);');
-    // s += expr;
-    code = code.replace(new RegExp(varNoIdx + '\\s*\\+=\\s*([^;]+);', 'g'), '__mimo_concat(' + name + ', $1);');
-    // s = expr; (hindari mencocokkan == atau !=)
-    code = code.replace(new RegExp('(?<![=!<>])' + varNoIdx + '\\s*=\\s*(?!=)([^;]+);', 'g'), '__mimo_copy(' + name + ', $1);');
-
-    // swap(s1, s2)
+    code = code.replace(new RegExp(varTarget + "\\s*\\+=\\s*('(?:[^'\\\\]|\\\\.)*')\\s*;", 'g'), '__mimo_push($1, $2);');
+    code = code.replace(new RegExp(varTarget + '\\s*\\+=\\s*([^;]+);', 'g'), '__mimo_concat($1, $2);');
+    code = code.replace(new RegExp('(?<![=!<>])' + varTarget + '\\s*=\\s*(?!=)([^;]+);', 'g'), '__mimo_copy($1, $2);');
     code = code.replace(new RegExp('\\bswap\\s*\\(\\s*' + safe + '\\s*,\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*\\)', 'g'), '__mimo_swap_str(' + name + ', $1)');
   });
 
-  // Perbandingan string dengan literal: s == "abc", s != "abc", s < "abc", dll.
-  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*(==|!=|<=|>=|<|>)\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, op, lit) {
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_\[\]]*)\s*(==|!=|<=|>=|<|>)\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, op, lit) {
     if (op === '==') return '__mimo_streq(' + v + ', "' + lit + '")';
     if (op === '!=') return '!__mimo_streq(' + v + ', "' + lit + '")';
     return '(__mimo_cmp(' + v + ', "' + lit + '") ' + op + ' 0)';
   });
 
-  code = code.replace(/"((?:[^"\\]|\\.)*)"\s*(==|!=|<=|>=|<|>)\s*([A-Za-z_][A-Za-z0-9_]*)/g, function (m, lit, op, v) {
+  code = code.replace(/"((?:[^"\\]|\\.)*)"\s*(==|!=|<=|>=|<|>)\s*([A-Za-z_][A-Za-z0-9_\[\]]*)/g, function (m, lit, op, v) {
     if (op === '==') return '__mimo_streq("' + lit + '", ' + v + ')';
     if (op === '!=') return '!__mimo_streq("' + lit + '", ' + v + ')';
     return '(__mimo_cmp("' + lit + '", ' + v + ') ' + op + ' 0)';
   });
 
-  // Perbandingan antar sesama variabel string: s1 == s2, s1 < s2, dll.
   if (stringVars.size > 0) {
     const sNames = Array.from(stringVars).map(escapeRegExp).join('|');
     const reCmpVars = new RegExp('\\b(' + sNames + ')(?!\\s*\\[)\\s*(==|!=|<=|>=|<|>)\\s*\\b(' + sNames + ')(?!\\s*\\[)', 'g');
@@ -1566,7 +2761,7 @@ function prepareCppForJSCPP(rawCode) {
     });
   }
 
-  // 11. Suntikkan pustaka helper __mimo_ tepat setelah using namespace std;
+  // 15. Suntikkan pustaka helper __mimo_ tepat setelah using namespace std;
   if (code.indexOf('__mimo_') !== -1) {
     if (/using\s+namespace\s+std\s*;/.test(code)) {
       code = code.replace(/(using\s+namespace\s+std\s*;)/, '$1\n' + JSCPP_STRING_HELPERS);
@@ -1576,6 +2771,191 @@ function prepareCppForJSCPP(rawCode) {
   }
 
   return code;
+}
+
+/* ================= PENERJEMAH & PENJELAS ERROR C++ BAHASA INDONESIA ================= */
+function cleanInternalNames(name) {
+  return String(name || '')
+    .replace(/^__st_([A-Za-z0-9_]+)_([A-Za-z0-9_]+)$/, '$1.$2')
+    .replace(/^\(\*__ref_([A-Za-z0-9_]+)\)$/, '$1')
+    .replace(/^__ref_([A-Za-z0-9_]+)$/, '$1');
+}
+
+function formatCppError(rawErr, userCode, transpiledCode) {
+  const raw = String(rawErr || '').trim();
+  const userLines = String(userCode || '').split('\n');
+  const transLines = String(transpiledCode || '').split('\n');
+  const lineOffset = Math.max(0, transLines.length - userLines.length);
+
+  // Deteksi nomor baris dan kolom dari format error JSCPP ("line X (column Y)" atau "X:Y")
+  let errLine = null;
+  let errCol = null;
+
+  const mParse = raw.match(/line\s+(\d+)\s*\(\s*column\s+(\d+)\s*\)/i);
+  const mRuntime = raw.match(/(?:^|\n)\s*(\d+)\s*:\s*(\d+)\s+/);
+
+  if (mParse) {
+    errLine = parseInt(mParse[1], 10);
+    errCol = parseInt(mParse[2], 10);
+  } else if (mRuntime) {
+    errLine = parseInt(mRuntime[1], 10);
+    errCol = parseInt(mRuntime[2], 10);
+  }
+
+  if (errLine !== null) {
+    // Sesuaikan nomor baris jika tergeser oleh kode helper __mimo_
+    if (errLine > 3 && lineOffset > 0) {
+      errLine = Math.max(1, errLine - lineOffset);
+    }
+    if (errLine > userLines.length) errLine = userLines.length;
+  }
+
+  const locLabel = errLine
+    ? `Baris ${errLine}` + (errCol ? `, Kolom ${errCol}` : '')
+    : 'Pemeriksaan Kode';
+
+  const codeSnippet = (errLine && userLines[errLine - 1])
+    ? userLines[errLine - 1].trim()
+    : '';
+
+  // 1. Pemeriksaan proaktif pola kesalahan umum pada kode pengguna
+  for (let i = 0; i < userLines.length; i++) {
+    const ln = userLines[i];
+    if (/\bcin\s*<</.test(ln)) {
+      return {
+        type: `Kesalahan Operator Input (Baris ${i + 1})`,
+        msg: `Kamu menggunakan operator '<<' pada 'cin' di baris ${i + 1}.`,
+        hint: `Gunakan tanda panah ke kanan '>>' untuk membaca input, contohnya: cin >> variabel;`,
+        codeLine: ln.trim(),
+        raw
+      };
+    }
+    if (/\bcout\s*>>/.test(ln)) {
+      return {
+        type: `Kesalahan Operator Output (Baris ${i + 1})`,
+        msg: `Kamu menggunakan operator '>>' pada 'cout' di baris ${i + 1}.`,
+        hint: `Gunakan tanda panah ke kiri '<<' untuk menampilkan output, contohnya: cout << "Halo";`,
+        codeLine: ln.trim(),
+        raw
+      };
+    }
+  }
+
+  // 2. Kesalahan Sintaks / Parsing Failure (Titik koma, kurung, tanda kutip)
+  if (/Parsing Failure/i.test(raw)) {
+    const foundMatch = raw.match(/but\s+("[^"]*"|end of input)\s+found/i);
+    const foundToken = foundMatch ? foundMatch[1] : '';
+
+    if (foundToken === 'end of input') {
+      return {
+        type: `Kesalahan Sintaks (${locLabel})`,
+        msg: `Kode program berakhir secara tiba-tiba sebelum blok kode ditutup dengan lengkap.`,
+        hint: `Periksa apakah ada kurung kurawal tutup '}' atau titik koma ';' yang terlewat di bagian akhir fungsi main().`,
+        codeLine: codeSnippet,
+        raw
+      };
+    }
+
+    if (/Expected\s+[^\n]*";"/i.test(raw)) {
+      const prevLine = (errLine && errLine > 1 && userLines[errLine - 2]) ? userLines[errLine - 2].trim() : '';
+      return {
+        type: `Kesalahan Sintaks (${locLabel})`,
+        msg: `Ada penulisan perintah yang belum diakhiri tanda titik koma (;) atau format penulisannya kurang tepat (ditemukan ${foundToken || 'simbol tak terduga'}).`,
+        hint: `Periksa baris ${errLine ? (errLine > 1 ? `${errLine - 1} atau ${errLine}` : errLine) : 'tersebut'}. Pastikan setiap pernyataan diakhiri ';' dan tanda kurung (), {}, serta tanda kutip "..." sudah berpasangan.`,
+        codeLine: codeSnippet || prevLine,
+        raw
+      };
+    }
+
+    return {
+      type: `Kesalahan Penulisan Kode / Sintaks (${locLabel})`,
+      msg: `Kompiler menemukan simbol yang tidak sesuai aturan C++${foundToken ? ` (${foundToken})` : ''} di sekitar ${locLabel.toLowerCase()}.`,
+      hint: `Cek kembali penulisan tanda kurung ( ), kurung kurawal { }, tanda kutip " ", atau titik koma ; pada baris tersebut.`,
+      codeLine: codeSnippet,
+      raw
+    };
+  }
+
+  // 3. Variabel atau fungsi belum dideklarasikan
+  let mVar = raw.match(/variable\s+([A-Za-z0-9_]+)\s+does not exist/i) ||
+             raw.match(/identifier\s+"?([A-Za-z0-9_]+)"?\s+is undefined/i) ||
+             raw.match(/([A-Za-z0-9_]+)\s+was not declared/i);
+  if (mVar) {
+    const vName = cleanInternalNames(mVar[1]);
+    return {
+      type: `Variabel Belum Dideklarasikan (${locLabel})`,
+      msg: `Variabel atau nama '${vName}' tidak ditemukan atau belum dideklarasikan.`,
+      hint: `Pastikan kamu sudah mendeklarasikan '${vName}' beserta tipe datanya (misal: int ${vName}; atau string ${vName};) dan periksa ejaan huruf besar/kecilnya.`,
+      codeLine: codeSnippet,
+      raw
+    };
+  }
+
+  // 4. Tipe data tidak dikenali
+  let mType = raw.match(/type\s+([A-Za-z0-9_\s]+?)\s+is not defined/i);
+  if (mType) {
+    const tName = cleanInternalNames(mType[1].trim());
+    return {
+      type: `Tipe Data Tidak Dikenali (${locLabel})`,
+      msg: `Tipe data '${tName}' tidak dikenali oleh C++.`,
+      hint: `Gunakan tipe data standar C++ (int, double, char, bool, string) atau pastikan nama struct sudah didefinisikan di atas int main().`,
+      codeLine: codeSnippet,
+      raw
+    };
+  }
+
+  // 5. Pembagian dengan Nol (Divide by Zero)
+  if (/divide by zero|division by zero/i.test(raw)) {
+    return {
+      type: `Kesalahan Matematika (${locLabel})`,
+      msg: `Terjadi pembagian atau sisa bagi (%) dengan angka nol (0).`,
+      hint: `Di C++, bilangan tidak boleh dibagi dengan 0. Pastikan variabel pembagi sudah memiliki nilai bukan nol.`,
+      codeLine: codeSnippet,
+      raw
+    };
+  }
+
+  // 6. Overflow of NaN (Variabel belum mendapat nilai yang valid)
+  if (/overflow of NaN/i.test(raw)) {
+    return {
+      type: `Nilai Angka Tidak Valid / Kosong (${locLabel})`,
+      msg: `Variabel angka berisi nilai tidak valid (NaN) saat dihitung.`,
+      hint: `Pastikan input yang kamu masukkan berupa angka yang valid, dan variabel sudah terisi sebelum dihitung.`,
+      codeLine: codeSnippet,
+      raw
+    };
+  }
+
+  // 7. Indeks Array di luar batas (Out of bounds)
+  if (/out of bounds|index out of range/i.test(raw)) {
+    return {
+      type: `Indeks Array Melebihi Batas (${locLabel})`,
+      msg: `Kamu mencoba mengakses nomor indeks array di luar ukuran yang tersedia.`,
+      hint: `Ingat, array berukuran N hanya memiliki indeks dari 0 sampai N - 1. Periksa batas perulangan atau nomor indeks array-mu.`,
+      codeLine: codeSnippet,
+      raw
+    };
+  }
+
+  // 8. Fungsi main tidak ditemukan
+  if (/main.*not found|no main function/i.test(raw)) {
+    return {
+      type: `Fungsi Utama Tidak Ditemukan`,
+      msg: `Program C++ tidak memiliki fungsi utama 'int main()'.`,
+      hint: `Tambahkan fungsi 'int main() { ... return 0; }' sebagai titik awal jalannya program.`,
+      codeLine: '',
+      raw
+    };
+  }
+
+  // Default fallback dalam bahasa Indonesia
+  return {
+    type: `Kesalahan Kompilasi / Eksekusi (${locLabel})`,
+    msg: `Terjadi kesalahan saat menjalankan kode pada ${locLabel.toLowerCase()}: ${raw}`,
+    hint: `Periksa kembali penulisan sintaks, tipe data variabel, dan alur logika pada baris tersebut.`,
+    codeLine: codeSnippet,
+    raw
+  };
 }
 
 /* ================= JSCPP LOADER ================= */
@@ -1651,7 +3031,7 @@ function runJSCPPCode(rawCode, stdin) {
   const lib = window.JSCPP;
 
   if (!lib) {
-    return { output: '', error: 'JSCPP belum siap.' };
+    return { output: '', error: 'JSCPP belum siap.', errorObj: null };
   }
 
   const code = prepareCppForJSCPP(rawCode);
@@ -1667,22 +3047,24 @@ function runJSCPPCode(rawCode, stdin) {
       };
       const exitCode = lib.run(code, stdin || '', config);
       if (exitCode !== 0 && !output) {
-        error = 'Program exit dengan kode: ' + exitCode;
+        error = 'Program berhenti dengan kode keluar (exit code): ' + exitCode;
       }
-      return { output, error };
+      const errorObj = error ? formatCppError(error, rawCode, code) : null;
+      return { output, error, errorObj };
     }
 
     if (typeof lib.createInterpreter === 'function') {
       const interpreter = lib.createInterpreter(code, stdin || '');
       while (interpreter.continue()) {}
       output = interpreter.getStdout();
-      return { output, error: null };
+      return { output, error: null, errorObj: null };
     }
 
-    return { output: '', error: 'JSCPP tidak punya API yang dikenali' };
+    return { output: '', error: 'JSCPP tidak punya API yang dikenali', errorObj: null };
   } catch (err) {
     const msg = err && err.message ? err.message : String(err);
-    return { output, error: msg };
+    const errorObj = formatCppError(msg, rawCode, code);
+    return { output, error: msg, errorObj };
   }
 }
 
@@ -1723,15 +3105,76 @@ const CppEditor = {
     placeholder: { type: String, default: '' },
     readonly: { type: Boolean, default: false },
     badge: { type: String, default: '' },
-    badgeClass: { type: String, default: 'text-mimo/80' }
+    badgeClass: { type: String, default: 'text-mimo/80' },
+    fullscreen: { type: Boolean, default: false }
   },
-  emits: ['update:modelValue', 'blur', 'run'],
+  emits: ['update:modelValue', 'blur', 'run', 'toggle-fullscreen'],
   setup(props, { emit }) {
     const ta = ref(null), pre = ref(null), gutter = ref(null), activeLineEl = ref(null);
     const curLine = ref(1);
     const curCol = ref(1);
     const isFocused = ref(false);
     const copied = ref(false);
+
+    /* === Undo / Redo History Stack === */
+    const history = ref([{ val: props.modelValue || '', start: 0, end: 0 }]);
+    const histIdx = ref(0);
+    let ignoreHistoryWatch = false;
+    let recordTimer = null;
+
+    const canUndo = computed(() => !props.readonly && histIdx.value > 0);
+    const canRedo = computed(() => !props.readonly && histIdx.value < history.value.length - 1);
+
+    function pushHistory(val, start, end, immediate = false) {
+      const pushNow = () => {
+        const cur = history.value[histIdx.value];
+        if (cur && cur.val === val) return;
+        const sliced = history.value.slice(0, histIdx.value + 1);
+        sliced.push({ val, start, end });
+        if (sliced.length > 80) sliced.shift();
+        history.value = sliced;
+        histIdx.value = sliced.length - 1;
+      };
+      clearTimeout(recordTimer);
+      if (immediate) pushNow();
+      else recordTimer = setTimeout(pushNow, 260);
+    }
+
+    function undo() {
+      if (!canUndo.value) return;
+      clearTimeout(recordTimer);
+      histIdx.value -= 1;
+      const snap = history.value[histIdx.value];
+      ignoreHistoryWatch = true;
+      emit('update:modelValue', snap.val);
+      nextTick(() => {
+        ignoreHistoryWatch = false;
+        const t = ta.value;
+        if (!t) return;
+        t.focus();
+        t.setSelectionRange(snap.start, snap.end);
+        updateCursorInfo();
+        syncScroll();
+      });
+    }
+
+    function redo() {
+      if (!canRedo.value) return;
+      clearTimeout(recordTimer);
+      histIdx.value += 1;
+      const snap = history.value[histIdx.value];
+      ignoreHistoryWatch = true;
+      emit('update:modelValue', snap.val);
+      nextTick(() => {
+        ignoreHistoryWatch = false;
+        const t = ta.value;
+        if (!t) return;
+        t.focus();
+        t.setSelectionRange(snap.start, snap.end);
+        updateCursorInfo();
+        syncScroll();
+      });
+    }
 
     const lineCount = computed(() => Math.max(1, (props.modelValue || '').split('\n').length));
     const hlHtml = computed(() => hl(props.modelValue || '') + '\n ');
@@ -1742,11 +3185,14 @@ const CppEditor = {
       { label: '}', val: '}' },
       { label: '(', val: '(' },
       { label: ')', val: ')' },
+      { label: '[', val: '[' },
+      { label: ']', val: ']' },
       { label: '<<', val: '<<' },
       { label: '>>', val: '>>' },
+      { label: '?', val: '?' },
+      { label: ':', val: ':' },
       { label: ';', val: ';' },
       { label: '"', val: '"' },
-      { label: '#', val: '#' },
       { label: '+', val: '+' },
       { label: '-', val: '-' },
       { label: '*', val: '*' },
@@ -1787,9 +3233,12 @@ const CppEditor = {
       activeLineEl.value.style.transform = `translateY(${top}px)`;
     }
 
-    function updateVal(newVal, selStart, selEnd = selStart) {
+    function updateVal(newVal, selStart, selEnd = selStart, immediateHist = true) {
+      ignoreHistoryWatch = true;
       emit('update:modelValue', newVal);
+      pushHistory(newVal, selStart, selEnd, immediateHist);
       nextTick(() => {
+        ignoreHistoryWatch = false;
         const t = ta.value;
         if (!t) return;
         t.focus();
@@ -1800,8 +3249,12 @@ const CppEditor = {
     }
 
     function onInput(e) {
-      emit('update:modelValue', e.target.value);
+      const t = e.target;
+      ignoreHistoryWatch = true;
+      emit('update:modelValue', t.value);
+      pushHistory(t.value, t.selectionStart, t.selectionEnd, false);
       nextTick(() => {
+        ignoreHistoryWatch = false;
         updateCursorInfo();
         syncScroll();
       });
@@ -1845,15 +3298,33 @@ const CppEditor = {
       const newVal = val.slice(0, lineStart) + newLines.join('\n') + val.slice(lineEnd);
       const newStart = Math.max(lineStart, start + deltaFirst);
       const newEnd = Math.max(newStart, end + deltaTotal);
-      updateVal(newVal, newStart, newEnd);
+      updateVal(newVal, newStart, newEnd, true);
     }
 
     function onKeydown(e) {
+      if (e.key === 'Escape' && props.fullscreen) {
+        e.preventDefault();
+        emit('toggle-fullscreen');
+        return;
+      }
+
       if (props.readonly) return;
       const t = e.target;
       const val = t.value;
       const start = t.selectionStart;
       const end = t.selectionEnd;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redo();
+        return;
+      }
 
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
@@ -1896,10 +3367,10 @@ const CppEditor = {
           });
 
           const newVal = val.slice(0, lineStart) + newLines.join('\n') + val.slice(lineEnd);
-          updateVal(newVal, Math.max(lineStart, start + firstDiff), Math.max(lineStart, end + totalDiff));
+          updateVal(newVal, Math.max(lineStart, start + firstDiff), Math.max(lineStart, end + totalDiff), true);
         } else {
           const newVal = val.slice(0, start) + '    ' + val.slice(end);
-          updateVal(newVal, start + 4);
+          updateVal(newVal, start + 4, start + 4, true);
         }
         return;
       }
@@ -1918,7 +3389,7 @@ const CppEditor = {
           const innerIndent = baseIndent + '    ';
           const ins = '\n' + innerIndent + '\n' + baseIndent;
           const newVal = before + ins + after;
-          updateVal(newVal, start + 1 + innerIndent.length);
+          updateVal(newVal, start + 1 + innerIndent.length, start + 1 + innerIndent.length, true);
           return;
         }
 
@@ -1930,7 +3401,7 @@ const CppEditor = {
         if (nextIndent) {
           e.preventDefault();
           const newVal = before + '\n' + nextIndent + after;
-          updateVal(newVal, start + 1 + nextIndent.length);
+          updateVal(newVal, start + 1 + nextIndent.length, start + 1 + nextIndent.length, true);
         }
         return;
       }
@@ -1941,7 +3412,7 @@ const CppEditor = {
       if (start === end && closers.has(e.key) && val.charAt(start) === e.key) {
         if ((e.key === '"' || e.key === "'") && val.charAt(start - 1) === '\\') return;
         e.preventDefault();
-        updateVal(val, start + 1);
+        updateVal(val, start + 1, start + 1, false);
         return;
       }
 
@@ -1951,7 +3422,7 @@ const CppEditor = {
           e.preventDefault();
           const selected = val.slice(start, end);
           const newVal = val.slice(0, start) + e.key + selected + closeChar + val.slice(end);
-          updateVal(newVal, start + 1, end + 1);
+          updateVal(newVal, start + 1, end + 1, true);
           return;
         }
         const nextCh = val.charAt(start);
@@ -1962,7 +3433,7 @@ const CppEditor = {
         if (canAutoClose) {
           e.preventDefault();
           const newVal = val.slice(0, start) + e.key + closeChar + val.slice(end);
-          updateVal(newVal, start + 1);
+          updateVal(newVal, start + 1, start + 1, true);
           return;
         }
       }
@@ -1973,7 +3444,7 @@ const CppEditor = {
         if (/^ {4,}$/.test(currentLineBeforeCursor)) {
           e.preventDefault();
           const newVal = val.slice(0, start - 4) + '}' + val.slice(end);
-          updateVal(newVal, start - 3);
+          updateVal(newVal, start - 3, start - 3, true);
           return;
         }
       }
@@ -1985,7 +3456,7 @@ const CppEditor = {
         if (pairs[prevCh] && pairs[prevCh] === nextCh) {
           e.preventDefault();
           const newVal = val.slice(0, start - 1) + val.slice(start + 1);
-          updateVal(newVal, start - 1);
+          updateVal(newVal, start - 1, start - 1, true);
           return;
         }
 
@@ -1996,7 +3467,7 @@ const CppEditor = {
           if (spacesToRemove > 1) {
             e.preventDefault();
             const newVal = val.slice(0, start - spacesToRemove) + val.slice(start);
-            updateVal(newVal, start - spacesToRemove);
+            updateVal(newVal, start - spacesToRemove, start - spacesToRemove, true);
             return;
           }
         }
@@ -2014,15 +3485,15 @@ const CppEditor = {
       const val = t.value;
       const start = t.selectionStart;
       const end = t.selectionEnd;
-      const pairs = { '{': '}', '(': ')', '"': '"' };
+      const pairs = { '{': '}', '(': ')', '[': ']', '"': '"' };
 
       if (pairs[sym.val] && start === end) {
         const close = pairs[sym.val];
         const newVal = val.slice(0, start) + sym.val + close + val.slice(end);
-        updateVal(newVal, start + 1);
+        updateVal(newVal, start + 1, start + 1, true);
       } else {
         const newVal = val.slice(0, start) + sym.val + val.slice(end);
-        updateVal(newVal, start + sym.val.length);
+        updateVal(newVal, start + sym.val.length, start + sym.val.length, true);
       }
     }
 
@@ -2044,7 +3515,17 @@ const CppEditor = {
       emit('blur');
     }
 
-    watch(() => props.modelValue, () => {
+    watch(() => props.modelValue, (newVal) => {
+      if (!ignoreHistoryWatch) {
+        pushHistory(newVal || '', 0, 0, true);
+      }
+      nextTick(() => {
+        updateCursorInfo();
+        syncScroll();
+      });
+    });
+
+    watch(() => props.fullscreen, () => {
       nextTick(() => {
         updateCursorInfo();
         syncScroll();
@@ -2054,6 +3535,7 @@ const CppEditor = {
     return {
       lineCount, hlHtml, ta, pre, gutter, activeLineEl,
       curLine, curCol, isFocused, copied, quickSymbols,
+      canUndo, canRedo, undo, redo,
       syncScroll, updateCursorInfo, onInput, onKeydown,
       insertSymbol, copyCode, onFocus, onBlur
     };
@@ -2061,16 +3543,41 @@ const CppEditor = {
   template: `
     <div class="rounded-2xl overflow-hidden border transition-colors" :class="isFocused ? 'border-mimo/70 shadow-glow' : 'border-line'">
       <!-- Header Bar -->
-      <div class="flex items-center gap-1.5 px-4 py-2.5 bg-panel2/80 border-b border-line">
+      <div class="flex items-center gap-1.5 px-3.5 py-2 bg-panel2/80 border-b border-line">
         <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f57]"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
-        <span class="ml-2 text-[11px] font-mono font-semibold text-slate-400">{{ filename }}</span>
-        <span v-if="readonly" class="ml-1.5 text-[9px] font-extrabold bg-danger/15 text-danger px-2 py-0.5 rounded-full">READ-ONLY</span>
-        <div class="ml-auto flex items-center gap-2.5">
-          <span v-if="badge" class="text-[9px] font-bold" :class="badgeClass">{{ badge }}</span>
-          <button type="button" @click="copyCode" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-panel border border-line text-slate-400 hover:text-white hover:border-mimo/50 active:scale-95 transition">
-            {{ copied ? '✓ Tersalin' : 'Salin' }}
+        <span class="ml-1.5 text-[11px] font-mono font-semibold text-slate-400 truncate">{{ filename }}</span>
+        <span v-if="readonly" class="ml-1 text-[9px] font-extrabold bg-danger/15 text-danger px-2 py-0.5 rounded-full">READ-ONLY</span>
+
+        <div class="ml-auto flex items-center gap-1.5">
+          <span v-if="badge" class="hidden sm:inline text-[9px] font-bold mr-1" :class="badgeClass">{{ badge }}</span>
+
+          <!-- Tombol Undo -->
+          <button v-if="!readonly" type="button" @click="undo" :disabled="!canUndo" title="Undo (Ctrl+Z)"
+            class="w-7 h-7 rounded-lg bg-panel border border-line flex items-center justify-center text-slate-300 hover:text-white hover:border-mimo/50 disabled:opacity-35 disabled:pointer-events-none active:scale-90 transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+          </button>
+
+          <!-- Tombol Redo -->
+          <button v-if="!readonly" type="button" @click="redo" :disabled="!canRedo" title="Redo (Ctrl+Y)"
+            class="w-7 h-7 rounded-lg bg-panel border border-line flex items-center justify-center text-slate-300 hover:text-white hover:border-mimo/50 disabled:opacity-35 disabled:pointer-events-none active:scale-90 transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+          </button>
+
+          <!-- Tombol Salin -->
+          <button type="button" @click="copyCode" title="Salin Kode"
+            class="h-7 px-2 rounded-lg bg-panel border border-line text-[10px] font-bold text-slate-300 hover:text-white hover:border-mimo/50 active:scale-95 transition">
+            {{ copied ? '✓' : 'Salin' }}
+          </button>
+
+          <!-- Tombol Fullscreen -->
+          <button type="button" @click="$emit('toggle-fullscreen')" :title="fullscreen ? 'Keluar Fullscreen (Esc)' : 'Layar Penuh (Fullscreen)'"
+            class="h-7 px-2.5 rounded-lg border flex items-center gap-1 text-[10px] font-bold active:scale-95 transition"
+            :class="fullscreen ? 'bg-mimo text-night border-mimo' : 'bg-panel border-line text-slate-300 hover:text-white hover:border-mimo/50'">
+            <svg v-if="!fullscreen" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            <svg v-else class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+            <span>{{ fullscreen ? 'Keluar Penuh' : 'Penuh' }}</span>
           </button>
         </div>
       </div>
@@ -2109,7 +3616,8 @@ const CppEditor = {
             autocorrect="off"
             wrap="off"
             :placeholder="placeholder"
-            class="ed-ta relative block w-full min-h-[240px] max-h-[58vh] m-0 pt-3 pb-10 pr-4 pl-[48px] bg-transparent font-mono text-[12.5px] leading-[1.65] resize-y overflow-auto focus:outline-none"></textarea>
+            class="ed-ta relative block w-full m-0 pt-3 pb-10 pr-4 pl-[48px] bg-transparent font-mono text-[12.5px] leading-[1.65] overflow-auto focus:outline-none resize-y"
+            :style="fullscreen ? 'height: 46dvh; min-height: 240px; max-height: 62dvh;' : 'min-height: 240px; max-height: 55vh;'"></textarea>
         </div>
       </div>
 
@@ -2131,8 +3639,8 @@ const CppEditor = {
           <span>{{ lineCount }} baris</span>
         </div>
         <div class="flex items-center gap-2">
-          <span class="hidden sm:inline text-slate-600">Ctrl+Enter: Jalankan · Ctrl+/: Komentar</span>
-          <span>UTF-8 · C++</span>
+          <span class="hidden sm:inline text-slate-600">Ctrl+Z/Y: Undo/Redo · Ctrl+Enter: Run</span>
+          <span>{{ fullscreen ? 'LAYAR PENUH (ESC)' : 'C++' }}</span>
         </div>
       </div>
     </div>
@@ -2151,9 +3659,14 @@ const CppConsole = {
     const box = ref(null);
     const inputEl = ref(null);
     const pendingValue = ref('');
+    const showRawErr = ref(false);
 
     onUpdated(() => {
       if (box.value) box.value.scrollTop = box.value.scrollHeight;
+    });
+
+    watch(() => props.lastError, () => {
+      showRawErr.value = false;
     });
 
     watch(() => props.awaitingInput, (val) => {
@@ -2167,15 +3680,15 @@ const CppConsole = {
       emit('submit-input', v);
     }
 
-    return { box, inputEl, pendingValue, submit };
+    return { box, inputEl, pendingValue, showRawErr, submit };
   },
   template: `
     <div class="rounded-2xl overflow-hidden border border-line">
-      <div class="flex items-center justify-between gap-2 px-4 py-2.5 bg-panel2/70 border-b border-line">
+      <div class="flex items-center justify-between gap-2 px-4 py-2 bg-panel2/70 border-b border-line">
         <span class="text-[10px] font-extrabold tracking-widest text-slate-500">CONSOLE</span>
         <button v-if="rows.length || lastError || awaitingInput" @click="$emit('clear')" class="text-[11px] font-bold text-slate-500 hover:text-danger transition">✕ bersihkan</button>
       </div>
-      <div ref="box" class="bg-[#0a0f1a] px-4 py-3.5 min-h-[110px] max-h-[45vh] overflow-y-auto">
+      <div ref="box" class="bg-[#0a0f1a] px-4 py-3 min-h-[90px] max-h-[32vh] overflow-y-auto">
         <div v-if="!rows.length && !lastError && !awaitingInput" class="font-mono text-[12px] text-slate-600 italic">{{ emptyHint }}</div>
         <div v-for="(r, i) in rows" :key="i" class="font-mono text-[12.5px] leading-relaxed">
           <div class="text-[#6ee7b7] whitespace-pre-wrap break-words">{{ r.text }}</div>
@@ -2187,9 +3700,31 @@ const CppConsole = {
             class="flex-1 bg-transparent border-none outline-none text-[#e2e8f0] caret-[#93c5fd] font-mono text-[12.5px] placeholder-slate-600" />
           <button @click="$emit('signal-eof')" title="Sinyal EOF — akhiri input" class="shrink-0 text-[10px] font-bold text-slate-500 hover:text-danger border border-line/60 rounded px-2 py-0.5">EOF</button>
         </div>
-        <div v-if="lastError" class="rounded-xl bg-danger/10 border border-danger/30 px-3.5 py-3 mt-1.5">
-          <p class="font-mono text-[11.5px] text-danger font-bold">{{ lastError.type }}</p>
-          <p class="font-mono text-[12px] text-[#fda4af] mt-1 leading-relaxed">{{ lastError.msg }}</p>
+
+        <!-- Panel Penjelasan Error Bahasa Indonesia -->
+        <div v-if="lastError" class="rounded-xl bg-danger/10 border border-danger/30 px-3.5 py-3 mt-1.5 space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <p class="font-mono text-[12px] text-danger font-extrabold flex items-center gap-1.5">
+              <span>⚠️</span>
+              <span>{{ lastError.type }}</span>
+            </p>
+            <button v-if="lastError.raw" type="button" @click="showRawErr = !showRawErr"
+              class="shrink-0 text-[10px] font-mono text-slate-400 hover:text-white underline">
+              {{ showRawErr ? 'Sembunyikan detail' : 'Detail teknis' }}
+            </button>
+          </div>
+
+          <p class="font-sans text-[12.5px] text-[#fda4af] leading-relaxed">{{ lastError.msg }}</p>
+
+          <div v-if="lastError.codeLine" class="rounded-lg bg-[#070b12] border border-danger/25 px-3 py-1.5 font-mono text-[11.5px] text-slate-300 overflow-x-auto">
+            <span class="text-danger mr-1.5">→</span>{{ lastError.codeLine }}
+          </div>
+
+          <div v-if="lastError.hint" class="rounded-lg bg-amber-400/10 border border-amber-400/25 px-3 py-2 text-[11.5px] text-amber-200 leading-relaxed">
+            <b>💡 Saran Perbaikan:</b> {{ lastError.hint }}
+          </div>
+
+          <pre v-if="showRawErr && lastError.raw" class="mt-1.5 p-2.5 rounded-lg bg-[#06090f] border border-line text-[10.5px] font-mono text-slate-400 whitespace-pre-wrap break-words overflow-x-auto">{{ lastError.raw }}</pre>
         </div>
       </div>
     </div>
@@ -2201,19 +3736,26 @@ const app = createApp({
   setup() {
     const screen = ref('welcome');
     const tab = ref('home');
+    const editorFullscreen = ref(false);
     const progress = reactive({ completed: 0, xp: 0, streak: 0, lastDay: null, totalCorrect: 0, totalWrong: 0, perfect: 0, ch: {}, hearts: MAX_HEARTS });
 
+    function toggleFullscreen() {
+      editorFullscreen.value = !editorFullscreen.value;
+      document.body.style.overflow = editorFullscreen.value ? 'hidden' : '';
+    }
+
     try {
-      const saved = JSON.parse(PYSTORE.get('cppmimo-jscpp-v1'));
+      const saved = JSON.parse(PYSTORE.get('cppmimo-jscpp-v2'));
       if (saved && typeof saved === 'object') Object.assign(progress, saved);
       if (typeof progress.hearts !== 'number' || progress.hearts < 0 || progress.hearts > MAX_HEARTS) progress.hearts = MAX_HEARTS;
+      if (progress.completed > TOTAL) progress.completed = TOTAL;
     } catch (e) {}
 
     CHALLENGES.forEach(c => {
       if (!progress.ch[c.id]) progress.ch[c.id] = { tries: 0, done: false };
     });
 
-    const save = () => PYSTORE.set('cppmimo-jscpp-v1', JSON.stringify({ ...progress }));
+    const save = () => PYSTORE.set('cppmimo-jscpp-v2', JSON.stringify({ ...progress }));
 
     function loseHeart() {
       if (progress.hearts > 0) {
@@ -2281,7 +3823,7 @@ const app = createApp({
     });
 
     const level = computed(() => Math.floor(progress.xp / 200) + 1);
-    const levelTitle = computed(() => ['Pemula', 'Penjelajah', 'Koder', 'Ahli', 'Master', 'Grandmaster'][Math.min(level.value - 1, 5)]);
+    const levelTitle = computed(() => ['Pemula', 'Penjelajah', 'Koder', 'Arsitek Data', 'Master C++', 'Grandmaster'][Math.min(level.value - 1, 5)]);
     const levelPct = computed(() => (progress.xp % 200) / 2);
 
     function showToast(msg) {
@@ -2307,9 +3849,9 @@ const app = createApp({
       ensureEngineSafe();
     }
 
-    const playCode = ref(PYSTORE.get('cppmimo-jscpp-play') || TPL.halo.code);
+    const curTpl = ref('bab1');
+    const playCode = ref(PYSTORE.get('cppmimo-jscpp-play') || TPL.bab1.code);
     const playRunning = ref(false);
-    const curTpl = ref('halo');
     const conRows = ref([]);
     const lastError = ref(null);
     const hasRun = ref(false);
@@ -2405,7 +3947,7 @@ const app = createApp({
               conRows.value = result.output ? [{ text: result.output }] : [];
               const userInput = await promptInline();
               if (userInput === null) {
-                lastError.value = { type: 'Compile/Runtime Error', msg: result.error };
+                lastError.value = result.errorObj || { type: 'Kesalahan Kompilasi / Eksekusi', msg: result.error };
                 break;
               }
               if (usesGetline) {
@@ -2417,7 +3959,7 @@ const app = createApp({
               continue;
             }
             conRows.value = result.output ? [{ text: result.output }] : [];
-            lastError.value = { type: 'Compile/Runtime Error', msg: result.error };
+            lastError.value = result.errorObj || { type: 'Kesalahan Kompilasi / Eksekusi', msg: result.error };
             break;
           }
 
@@ -2449,7 +3991,7 @@ const app = createApp({
             const finalResult = runJSCPPCode(code, finalStdin);
             conRows.value = finalResult.output ? [{ text: finalResult.output }] : [];
             if (finalResult.error) {
-              lastError.value = { type: 'Error', msg: finalResult.error };
+              lastError.value = finalResult.errorObj || { type: 'Kesalahan Eksekusi', msg: finalResult.error };
             }
             break;
           }
@@ -2463,10 +4005,14 @@ const app = createApp({
         }
 
         if (iterations >= MAX_ITER) {
-          lastError.value = { type: 'Input Limit', msg: 'Batas maksimum input tercapai. Tekan EOF lebih awal jika program memakai loop input.' };
+          lastError.value = {
+            type: 'Batas Input Tercapai',
+            msg: 'Program meminta terlalu banyak input berulang kali.',
+            hint: 'Tekan tombol EOF lebih awal jika programmu menggunakan perulangan while (cin >> x).'
+          };
         }
       } catch (err) {
-        lastError.value = { type: 'Error', msg: String(err && err.message ? err.message : err) };
+        lastError.value = formatCppError(err && err.message ? err.message : err, code, code);
       } finally {
         awaitingInput.value = false;
         playRunning.value = false;
@@ -2542,6 +4088,8 @@ const app = createApp({
 
     function chBack() {
       saveCh();
+      editorFullscreen.value = false;
+      document.body.style.overflow = '';
       chView.value = null;
       chTest.value = null;
       conRows.value = [];
@@ -2568,7 +4116,10 @@ const app = createApp({
     function runCppCapture(code, inputs) {
       const stdin = (inputs || []).join('\n');
       const res = runJSCPPCode(code, stdin);
-      return { out: res.output, err: res.error };
+      const errText = res.errorObj
+        ? `${res.errorObj.type}: ${res.errorObj.msg}${res.errorObj.hint ? '\n💡 ' + res.errorObj.hint : ''}`
+        : res.error;
+      return { out: res.output, err: errText };
     }
 
     async function chSubmit() {
@@ -2582,6 +4133,10 @@ const app = createApp({
       saveCh();
       chTest.value = null;
       chBusy.value = true;
+      if (editorFullscreen.value) {
+        editorFullscreen.value = false;
+        document.body.style.overflow = '';
+      }
 
       const eng = await ensureEngineSafe();
       if (!eng) {
@@ -2638,11 +4193,15 @@ const app = createApp({
     }
 
     function backHome() {
+      editorFullscreen.value = false;
+      document.body.style.overflow = '';
       screen.value = 'app';
       tab.value = 'home';
     }
 
     function goToChallenges() {
+      editorFullscreen.value = false;
+      document.body.style.overflow = '';
       screen.value = 'app';
       tab.value = 'tantangan';
     }
@@ -2702,7 +4261,7 @@ const app = createApp({
         return;
       }
       if (lsn.flat > progress.completed) {
-        showToast('Selesaikan latihan sebelumnya dulu! 🔒');
+        showToast('Selesaikan materi sebelumnya dulu! 🔒');
         return;
       }
       startLesson(lsn.flat);
@@ -2818,6 +4377,7 @@ const app = createApp({
       if (exIdx.value < active.value.exercises.length - 1) {
         exIdx.value += 1;
         prepareExercise();
+        window.scrollTo(0, 0);
       } else {
         finishLesson();
       }
@@ -2878,12 +4438,14 @@ const app = createApp({
     }
 
     watch(tab, v => {
+      editorFullscreen.value = false;
+      document.body.style.overflow = '';
       if (v === 'play' || v === 'tantangan') ensureEngineSafe();
     });
 
     return {
-      screen, tab, progress, toast, showExit, showReset,
-      course: COURSE, TOTAL, MAX_HEARTS, CHALLENGES, TPL,
+      screen, tab, editorFullscreen, toggleFullscreen, progress, toast, showExit, showReset,
+      course: COURSE, TOTAL, MAX_HEARTS, CHALLENGES, TPL, curTpl,
       active, exIdx, ex, lessonPct, selected, feedback, fill, answerText,
       result, confetti, greeting, nextLesson, currentChapterTitle,
       level, levelTitle, levelPct,
