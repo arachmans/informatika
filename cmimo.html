@@ -59,7 +59,7 @@ body { background: radial-gradient(1100px 480px at 50% -8%, rgba(96,165,250,.08)
 pre, code, .font-mono { tab-size: 4; }
 .ic-code { background: #1c2841; color: #93c5fd; padding: 2px 7px; border-radius: 6px; font-family: 'IBM Plex Mono', Consolas, monospace; font-size: .78rem; white-space: nowrap; }
 
-/* Perbaikan styling Code Editor agar presisi dan sinkron */
+/* Code Editor Presisi */
 .ed-ta {
   color: transparent;
   caret-color: #60a5fa;
@@ -134,7 +134,7 @@ html.light .ic-b { color: #0f172a; }
       </div>
       <div>
         <h1 class="text-4xl font-black tracking-tight text-white">Cpp<span class="text-mimo">Mimo</span></h1>
-        <p class="mt-3 text-slate-400 leading-relaxed max-w-xs mx-auto">Belajar C++ dengan JSCPP + mode kompatibilitas <code class="font-mono">&lt;string&gt;</code>. Latihan singkat, kuis, XP, dan streak.</p>
+        <p class="mt-3 text-slate-400 leading-relaxed max-w-xs mx-auto">Belajar C++ dengan JSCPP + kompatibilitas penuh <code class="font-mono">&lt;string&gt;</code>. Latihan singkat, kuis, XP, dan streak.</p>
       </div>
       <div class="grid grid-cols-3 gap-3 w-full">
         <div class="rounded-2xl bg-panel border border-line p-3.5"><p class="text-2xl">⚡</p><p class="text-[11px] text-slate-400 mt-1.5 font-semibold">XP & Level</p></div>
@@ -146,7 +146,7 @@ html.light .ic-b { color: #0f172a; }
       <button @click="startApp" class="w-full bg-mimo hover:bg-mimodeep transition rounded-2xl py-4 font-extrabold text-night text-lg shadow-glow active:scale-[.98]">
         {{ progress.completed ? 'Lanjutkan Belajar' : 'Mulai Belajar' }}
       </button>
-      <p class="text-center text-[11px] text-slate-600">CppMimo · JSCPP + String Compat</p>
+      <p class="text-center text-[11px] text-slate-600">CppMimo · JSCPP + Enhanced String Compat v2</p>
     </div>
   </section>
 
@@ -238,7 +238,7 @@ html.light .ic-b { color: #0f172a; }
       <div class="flex items-start justify-between gap-3">
         <div>
           <h2 class="text-xl font-extrabold text-white">Editor C++</h2>
-          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Jalankan C++ dengan JSCPP · input interaktif di console.</p>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">Jalankan C++ dengan JSCPP + dukungan penuh method <code class="font-mono">&lt;string&gt;</code>.</p>
         </div>
         <span class="shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold bg-mimo/10 text-mimo border border-mimo/25 rounded-full px-2.5 py-1 mt-1">⚙️ C++ · JSCPP</span>
       </div>
@@ -278,7 +278,7 @@ html.light .ic-b { color: #0f172a; }
         :awaiting-input="awaitingInput" @clear="conClear"
         @submit-input="submitInlineInput" @signal-eof="signalEOF"></cpp-console>
 
-      <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Input diketik langsung di console mengikuti alur program (bisa dipisah spasi atau Enter). Untuk program dengan loop <code class="font-mono">while (cin &gt;&gt; x)</code>, tekan <b>EOF</b> saat selesai memberi input.</p>
+      <p class="text-[10px] text-slate-600 leading-relaxed mt-3">💡 Mendukung <code class="font-mono">substr</code>, <code class="font-mono">find</code>, <code class="font-mono">replace</code>, <code class="font-mono">insert</code>, <code class="font-mono">erase</code>, <code class="font-mono">getline</code>, <code class="font-mono">stoi</code>, <code class="font-mono">to_string</code>, dan operator <code class="font-mono">+</code> / <code class="font-mono">+=</code>.</p>
     </div>
 
     <!-- TANTANGAN -->
@@ -660,17 +660,17 @@ cout << 7 % 2 << endl;` },
         { type: 'output', question: 'Output dari cout << 2 * 2 * 2;', code: `cout << 2 * 2 * 2 << endl;`, options: ['8', '6', '9', '23'], answer: 0 }
       ] },
       { title: 'String Dasar', icon: '✂️', exercises: [
-        { type: 'concept', title: 'String di Mode JSCPP', body: 'Kamu bisa menulis `string kata;` lalu memakai `cin >> kata;` dan `cout << kata;`. Untuk panjang, gunakan `.length()`. Mode kompatibilitas akan mengubahnya menjadi fungsi bantuan.', code: `#include <iostream>
+        { type: 'concept', title: 'String di Mode JSCPP', body: 'Kamu bisa memakai `string`, menggabungkan dengan `+` atau `+=`, memotong dengan `.substr(pos, len)`, mencari posisi dengan `.find()`, serta menghitung panjang dengan `.length()`.', code: `#include <iostream>
 #include <string>
 using namespace std;
 
 int main() {
-    string kata;
-    cin >> kata;
-    cout << kata.length() << endl;
+    string s = "Belajar C++";
+    cout << s.length() << endl;
+    cout << s.substr(0, 7) << endl;
     return 0;
-}`, output: `4` },
-        { type: 'quiz', question: 'Method untuk panjang string?', options: ['.length()', '.size()', 'len()', 'count()'], answer: 0 },
+}`, output: `11\nBelajar` },
+        { type: 'quiz', question: 'Method untuk panjang string?', options: ['.length()', '.count()', 'len()', '.max()'], answer: 0 },
         { type: 'fill', question: 'Tampilkan panjang kata', parts: ['cout << kata.', 0, '() << endl;'], blanks: [{ answer: 'length' }], bank: ['length', 'size', 'len', 'count'] },
         { type: 'output', question: 'Jika input Halo, apa output?', code: `string kata;
 cin >> kata;
@@ -682,7 +682,7 @@ cout << kata.length() << endl;`, options: ['4', 'Halo', '5', 'Error'], answer: 0
     title: 'Bab 3 · Logika Program', desc: 'cin, if, dan loop', icon: '🧠',
     lessons: [
       { title: 'Input Pengguna', icon: '⌨️', exercises: [
-        { type: 'concept', title: 'cin', body: 'Gunakan `cin >> variabel;` untuk membaca input.', code: `string nama;
+        { type: 'concept', title: 'cin', body: 'Gunakan `cin >> variabel;` untuk membaca satu kata, atau `getline(cin, variabel);` untuk membaca satu baris penuh.', code: `string nama;
 cin >> nama;
 cout << "Halo, " << nama << endl;` },
         { type: 'fill', question: 'Baca nama dari pengguna', parts: [0, ' >> ', 1, ';'], blanks: [{ answer: 'cin' }, { answer: 'nama' }], bank: ['cin', 'nama', 'cout', 'input'] },
@@ -727,11 +727,10 @@ int main() {
         { type: 'fill', question: 'Fungsi kuadrat', parts: ['int ', 0, '(int x) { return x * x; }'], blanks: [{ answer: 'kuadrat' }], bank: ['kuadrat', 'fungsi', 'main', 'return'] }
       ] },
       { title: 'String Lanjutan', icon: '🔤', exercises: [
-        { type: 'concept', title: 'Indeks Karakter', body: 'String bisa diakses per karakter: `kata[0]`. Panjang dapat diambil dengan `.length()`.', code: `string kata = "Halo";
-cout << kata[0] << endl;
-cout << kata.length() << endl;`, output: `H
-4` },
-        { type: 'quiz', question: 'kata[0] dari "Halo"?', options: ['H', 'a', 'o', 'Error'], answer: 0 }
+        { type: 'concept', title: 'Manipulasi String', body: 'Kamu bisa mengambil potongan kata dengan `.substr(awal, panjang)`, mencari teks dengan `.find()`, atau mengubah huruf dengan `toupper()` / `tolower()`.', code: `string kata = "Pemrograman";
+cout << kata.substr(0, 7) << endl;
+cout << kata.find("gram") << endl;`, output: `Pemrogr\n5` },
+        { type: 'quiz', question: 'Apa hasil dari string("Halo").substr(1, 2)?', options: ['al', 'Ha', 'lo', 'alo'], answer: 0 }
       ] }
     ]
   }
@@ -923,7 +922,7 @@ const chCount = p => {
 const MAX_HEARTS = 5;
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const CPP_RE = /(\/\/[^\n]*)|(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(int|long|float|double|char|bool|void|string|auto|const|if|else|for|while|do|switch|case|default|break|continue|return|include|using|namespace|true|false|std|cout|cin|endl|vector|map|set|pair|array|struct|class|public|private|protected|new|delete|sizeof|template|typename|nullptr)\b|\b(main|length|size|push_back|pop_back|substr|find|stoi|to_string|getline|sort|reverse|min|max|swap|abs|pow|sqrt)\b|\b(\d+(?:\.\d+)?[fFlLuU]*)\b/g;
+const CPP_RE = /(\/\/[^\n]*)|(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(int|long|short|float|double|char|bool|void|string|size_t|auto|const|if|else|for|while|do|switch|case|default|break|continue|return|include|using|namespace|true|false|std|cout|cin|endl|npos|vector|map|set|pair|array|struct|class|public|private|protected|new|delete|sizeof|template|typename|nullptr)\b|\b(main|length|size|empty|clear|at|front|back|c_str|append|push_back|pop_back|substr|find|rfind|replace|insert|erase|compare|stoi|stol|stod|stof|to_string|getline|tolower|toupper|isdigit|isalpha|isalnum|isspace|islower|isupper|sort|reverse|min|max|swap|abs|pow|sqrt)\b|\b(\d+(?:\.\d+)?[fFlLuU]*)\b/g;
 
 function hl(code) {
   let out = '', last = 0, m;
@@ -967,22 +966,31 @@ int main() {
 using namespace std;
 
 int main() {
-    string nama;
-    cin >> nama;
-    cout << "Halo, " << nama << "!" << endl;
+    string depan = "Budi";
+    string belakang = "Santoso";
+    string lengkap = depan + " " + belakang;
+    cout << "Halo, " << lengkap << "!" << endl;
     return 0;
 }`
   },
-  panjang: {
-    name: 'Panjang String',
+  string_methods: {
+    name: 'Method String Lengkap',
     code: `#include <iostream>
 #include <string>
 using namespace std;
 
 int main() {
-    string kata;
-    cin >> kata;
-    cout << kata.length() << endl;
+    string teks = "Belajar C++ di CppMimo";
+    cout << "Panjang : " << teks.length() << endl;
+    cout << "Substr  : " << teks.substr(0, 11) << endl;
+    cout << "Find C++: indeks " << teks.find("C++") << endl;
+
+    teks.replace(15, 7, "JSCPP");
+    teks.push_back('!');
+    cout << "Replace : " << teks << endl;
+
+    int angka = stoi("2025") + 1;
+    cout << "Tahun   : " + to_string(angka) << endl;
     return 0;
 }`
   },
@@ -1038,62 +1046,338 @@ COURSE.forEach((ch, ci) => ch.lessons.forEach(l => {
 }));
 const TOTAL = FLAT.length;
 
-/* ================= JSCPP STRING & INIT COMPAT ================= */
+/* ================= ENHANCED JSCPP STRING & STDLIB COMPATIBILITY LAYER v2 ================= */
 const JSCPP_STRING_HELPERS = `
-int __mimo_len(char s[]) {
+char __mimo_pool[16][512];
+int __mimo_pidx = 0;
+
+int __mimo_len(const char s[]) {
     int n = 0;
-    while (s[n] != 0) {
-        n++;
-    }
+    while (s[n] != 0) n++;
     return n;
 }
 
-int __mimo_streq(char a[], char b[]) {
+int __mimo_cmp(const char a[], const char b[]) {
     int i = 0;
     while (a[i] != 0 && b[i] != 0) {
-        if (a[i] != b[i]) return 0;
+        if (a[i] != b[i]) return (int)a[i] - (int)b[i];
         i++;
     }
-    return a[i] == b[i];
+    return (int)a[i] - (int)b[i];
 }
 
-void __mimo_copy(char dest[], char src[]) {
+int __mimo_streq(const char a[], const char b[]) {
+    return __mimo_cmp(a, b) == 0;
+}
+
+void __mimo_copy(char dest[], const char src[]) {
+    char tmp[512];
     int i = 0;
-    while (src[i] != 0) {
-        dest[i] = src[i];
+    while (src[i] != 0 && i < 510) {
+        tmp[i] = src[i];
         i++;
     }
-    dest[i] = 0;
+    tmp[i] = 0;
+    int j = 0;
+    while (j <= i) {
+        dest[j] = tmp[j];
+        j++;
+    }
 }
 
-void __mimo_concat(char dest[], char src[]) {
+void __mimo_clear(char s[]) {
+    s[0] = 0;
+}
+
+void __mimo_concat(char dest[], const char src[]) {
     int i = __mimo_len(dest);
     int j = 0;
-    while (src[j] != 0) {
+    while (src[j] != 0 && i < 510) {
         dest[i] = src[j];
         i++;
         j++;
     }
     dest[i] = 0;
 }
+
+void __mimo_push(char dest[], char c) {
+    int i = __mimo_len(dest);
+    if (i < 510) {
+        dest[i] = c;
+        dest[i + 1] = 0;
+    }
+}
+
+void __mimo_pop(char dest[]) {
+    int i = __mimo_len(dest);
+    if (i > 0) dest[i - 1] = 0;
+}
+
+char __mimo_front(const char s[]) {
+    return s[0];
+}
+
+char __mimo_back(const char s[]) {
+    int n = __mimo_len(s);
+    return n > 0 ? s[n - 1] : 0;
+}
+
+char* __mimo_add(const char a[], const char b[]) {
+    int slot = __mimo_pidx;
+    __mimo_pidx = (__mimo_pidx + 1) % 16;
+    int i = 0;
+    while (a[i] != 0 && i < 510) {
+        __mimo_pool[slot][i] = a[i];
+        i++;
+    }
+    int j = 0;
+    while (b[j] != 0 && i < 510) {
+        __mimo_pool[slot][i] = b[j];
+        i++;
+        j++;
+    }
+    __mimo_pool[slot][i] = 0;
+    return __mimo_pool[slot];
+}
+
+char* __mimo_add_ch(const char a[], char c) {
+    int slot = __mimo_pidx;
+    __mimo_pidx = (__mimo_pidx + 1) % 16;
+    int i = 0;
+    while (a[i] != 0 && i < 509) {
+        __mimo_pool[slot][i] = a[i];
+        i++;
+    }
+    __mimo_pool[slot][i] = c;
+    __mimo_pool[slot][i + 1] = 0;
+    return __mimo_pool[slot];
+}
+
+char* __mimo_substr(const char s[], int pos, int len) {
+    int slot = __mimo_pidx;
+    __mimo_pidx = (__mimo_pidx + 1) % 16;
+    int n = __mimo_len(s);
+    if (pos < 0) pos = 0;
+    if (pos >= n) {
+        __mimo_pool[slot][0] = 0;
+        return __mimo_pool[slot];
+    }
+    if (len < 0 || pos + len > n) len = n - pos;
+    int i = 0;
+    while (i < len && i < 510) {
+        __mimo_pool[slot][i] = s[pos + i];
+        i++;
+    }
+    __mimo_pool[slot][i] = 0;
+    return __mimo_pool[slot];
+}
+
+int __mimo_find(const char s[], const char sub[], int start) {
+    int n = __mimo_len(s);
+    int m = __mimo_len(sub);
+    if (start < 0) start = 0;
+    if (m == 0) return start <= n ? start : -1;
+    if (m > n) return -1;
+    for (int i = start; i <= n - m; i++) {
+        int ok = 1;
+        for (int j = 0; j < m; j++) {
+            if (s[i + j] != sub[j]) { ok = 0; break; }
+        }
+        if (ok) return i;
+    }
+    return -1;
+}
+
+int __mimo_find_ch(const char s[], char c, int start) {
+    int n = __mimo_len(s);
+    if (start < 0) start = 0;
+    for (int i = start; i < n; i++) {
+        if (s[i] == c) return i;
+    }
+    return -1;
+}
+
+int __mimo_rfind(const char s[], const char sub[], int start) {
+    int n = __mimo_len(s);
+    int m = __mimo_len(sub);
+    if (m == 0) return n;
+    if (m > n) return -1;
+    int from = (start < 0 || start > n - m) ? (n - m) : start;
+    for (int i = from; i >= 0; i--) {
+        int ok = 1;
+        for (int j = 0; j < m; j++) {
+            if (s[i + j] != sub[j]) { ok = 0; break; }
+        }
+        if (ok) return i;
+    }
+    return -1;
+}
+
+int __mimo_rfind_ch(const char s[], char c, int start) {
+    int n = __mimo_len(s);
+    int from = (start < 0 || start >= n) ? (n - 1) : start;
+    for (int i = from; i >= 0; i--) {
+        if (s[i] == c) return i;
+    }
+    return -1;
+}
+
+void __mimo_erase(char s[], int pos, int len) {
+    int n = __mimo_len(s);
+    if (pos < 0 || pos >= n) return;
+    if (len < 0 || pos + len >= n) {
+        s[pos] = 0;
+        return;
+    }
+    int i = pos;
+    while (s[i + len] != 0) {
+        s[i] = s[i + len];
+        i++;
+    }
+    s[i] = 0;
+}
+
+void __mimo_insert(char s[], int pos, const char sub[]) {
+    int n = __mimo_len(s);
+    int m = __mimo_len(sub);
+    if (pos < 0) pos = 0;
+    if (pos > n) pos = n;
+    char tmp[512];
+    int k = 0;
+    for (int i = 0; i < pos && k < 510; i++) tmp[k++] = s[i];
+    for (int i = 0; i < m && k < 510; i++) tmp[k++] = sub[i];
+    for (int i = pos; i < n && k < 510; i++) tmp[k++] = s[i];
+    tmp[k] = 0;
+    __mimo_copy(s, tmp);
+}
+
+void __mimo_replace(char s[], int pos, int len, const char sub[]) {
+    __mimo_erase(s, pos, len);
+    __mimo_insert(s, pos, sub);
+}
+
+void __mimo_rev_str(char s[]) {
+    int n = __mimo_len(s);
+    for (int i = 0; i < n / 2; i++) {
+        char t = s[i];
+        s[i] = s[n - 1 - i];
+        s[n - 1 - i] = t;
+    }
+}
+
+void __mimo_swap_str(char a[], char b[]) {
+    char tmp[512];
+    __mimo_copy(tmp, a);
+    __mimo_copy(a, b);
+    __mimo_copy(b, tmp);
+}
+
+int __mimo_stoi(const char s[]) {
+    int i = 0, sign = 1, res = 0;
+    while (s[i] == ' ' || s[i] == '\\t' || s[i] == '\\n') i++;
+    if (s[i] == '-') { sign = -1; i++; }
+    else if (s[i] == '+') { i++; }
+    while (s[i] >= '0' && s[i] <= '9') {
+        res = res * 10 + (s[i] - '0');
+        i++;
+    }
+    return res * sign;
+}
+
+double __mimo_stod(const char s[]) {
+    int i = 0, sign = 1;
+    double res = 0.0, frac = 0.0, div = 1.0;
+    while (s[i] == ' ' || s[i] == '\\t' || s[i] == '\\n') i++;
+    if (s[i] == '-') { sign = -1; i++; }
+    else if (s[i] == '+') { i++; }
+    while (s[i] >= '0' && s[i] <= '9') {
+        res = res * 10.0 + (s[i] - '0');
+        i++;
+    }
+    if (s[i] == '.') {
+        i++;
+        while (s[i] >= '0' && s[i] <= '9') {
+            frac = frac * 10.0 + (s[i] - '0');
+            div *= 10.0;
+            i++;
+        }
+    }
+    return sign * (res + frac / div);
+}
+
+char* __mimo_tostr(long val) {
+    int slot = __mimo_pidx;
+    __mimo_pidx = (__mimo_pidx + 1) % 16;
+    if (val == 0) {
+        __mimo_pool[slot][0] = '0';
+        __mimo_pool[slot][1] = 0;
+        return __mimo_pool[slot];
+    }
+    int neg = 0;
+    if (val < 0) { neg = 1; val = -val; }
+    char rev[64];
+    int i = 0;
+    while (val > 0 && i < 60) {
+        rev[i++] = (char)('0' + (val % 10));
+        val /= 10;
+    }
+    int j = 0;
+    if (neg) __mimo_pool[slot][j++] = '-';
+    while (i > 0) {
+        __mimo_pool[slot][j++] = rev[--i];
+    }
+    __mimo_pool[slot][j] = 0;
+    return __mimo_pool[slot];
+}
+
+int __mimo_tolower(int c) { return (c >= 'A' && c <= 'Z') ? (c + 32) : c; }
+int __mimo_toupper(int c) { return (c >= 'a' && c <= 'z') ? (c - 32) : c; }
+int __mimo_isdigit(int c) { return (c >= '0' && c <= '9') ? 1 : 0; }
+int __mimo_isalpha(int c) { return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) ? 1 : 0; }
+int __mimo_isalnum(int c) { return (__mimo_isalpha(c) || __mimo_isdigit(c)) ? 1 : 0; }
+int __mimo_isspace(int c) { return (c == ' ' || c == '\\t' || c == '\\n' || c == '\\r') ? 1 : 0; }
+int __mimo_islower(int c) { return (c >= 'a' && c <= 'z') ? 1 : 0; }
+int __mimo_isupper(int c) { return (c >= 'A' && c <= 'Z') ? 1 : 0; }
 `;
 
 function escapeRegExp(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function splitTopLevelCommas(str) {
+  const res = [];
+  let cur = '', depth = 0, inStr = false, strCh = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (inStr) {
+      cur += ch;
+      if (ch === '\\' && i + 1 < str.length) { cur += str[++i]; continue; }
+      if (ch === strCh) inStr = false;
+    } else {
+      if (ch === '"' || ch === "'") { inStr = true; strCh = ch; cur += ch; }
+      else if (ch === '(' || ch === '[' || ch === '{') { depth++; cur += ch; }
+      else if (ch === ')' || ch === ']' || ch === '}') { depth--; cur += ch; }
+      else if (ch === ',' && depth === 0) { res.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+  }
+  if (cur.trim()) res.push(cur.trim());
+  return res;
+}
+
 function prepareCppForJSCPP(rawCode) {
   let code = String(rawCode || '');
 
-  code = code.replace(/std::string/g, 'string');
-  code = code.replace(/std::cout/g, 'cout');
-  code = code.replace(/std::cin/g, 'cin');
-  code = code.replace(/std::endl/g, 'endl');
+  // 1. Normalisasi std:: dan konstanta string::npos
+  code = code.replace(/\bstd::(string|cout|cin|endl|getline|stoi|stol|stod|stof|to_string|reverse|swap|min|max|abs|pow|sqrt|tolower|toupper|isdigit|isalpha|isalnum|isspace|islower|isupper)\b/g, '$1');
+  code = code.replace(/\b(?:std::)?string::npos\b/g, '(-1)');
+  code = code.replace(/\bsize_t\b/g, 'int');
 
+  // 2. Bersihkan header non-iostream agar JSCPP tidak gagal compile
   code = code.replace(/^\s*#\s*include\s*<([^>]+)>/gm, function (m, name) {
     const n = String(name).trim();
     if (n === 'iostream') return m;
-    return '// #include <' + n + '> dihapus oleh mode kompatibilitas JSCPP';
+    return '// #include <' + n + '> (kompatibilitas JSCPP aktif)';
   });
 
   if (!/#\s*include\s*<iostream>/.test(code)) {
@@ -1106,23 +1390,54 @@ function prepareCppForJSCPP(rawCode) {
 
   const stringVars = new Set();
 
-  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"((?:[^"\\]|\\.)*)"\s*;/g, function (m, name, val) {
+  // 3. Transformasi parameter fungsi bertipe string (const string& s, string s, string s[])
+  code = code.replace(/\b(?:const\s+)?string\s*(?:&|\*)?\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?=[,\)])/g, function (m, name) {
     stringVars.add(name);
-    return 'char ' + name + '[256] = "' + val + '";';
+    return 'char ' + name + '[]';
   });
 
-  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([A-Za-z_][A-Za-z0-9_]*)\s*;/g, function (m, name, src) {
-    stringVars.add(name);
-    return 'char ' + name + '[256]; __mimo_copy(' + name + ', ' + src + ');';
+  // 4. Transformasi deklarasi variabel string (mendukung multi-deklarasi, konstruktor, ekspresi, dan array)
+  code = code.replace(/^([ \t]*)(?:const\s+)?string\s+([^;(\n]+);/gm, function (fullMatch, indent, declPart) {
+    if (/\breturn\b/.test(fullMatch)) return fullMatch;
+    const items = splitTopLevelCommas(declPart);
+    if (!items.length) return fullMatch;
+
+    const outStmts = [];
+    for (const item of items) {
+      let m;
+      // Array of strings: string arr[10]
+      if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*\[([^\]]+)\]$/))) {
+        stringVars.add(m[1]);
+        outStmts.push('char ' + m[1] + '[' + m[2] + '][512]');
+      }
+      // Inisialisasi literal: string s = "halo"
+      else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"((?:[^"\\]|\\.)*)"$/))) {
+        stringVars.add(m[1]);
+        outStmts.push('char ' + m[1] + '[512] = "' + m[2] + '"');
+      }
+      // Inisialisasi ekspresi/variabel: string s = expr
+      else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$/))) {
+        stringVars.add(m[1]);
+        outStmts.push('char ' + m[1] + '[512] = ""; __mimo_copy(' + m[1] + ', ' + m[2].trim() + ')');
+      }
+      // Deklarasi polos: string s
+      else if ((m = item.match(/^([A-Za-z_][A-Za-z0-9_]*)$/))) {
+        stringVars.add(m[1]);
+        outStmts.push('char ' + m[1] + '[512] = ""');
+      } else {
+        return fullMatch;
+      }
+    }
+    return indent + outStmts.join('; ') + ';';
   });
 
-  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*;/g, function (m, name) {
+  // Konstruktor gaya fungsi: string s("Halo");
+  code = code.replace(/\b(?:const\s+)?string\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*"((?:[^"\\]|\\.)*)"\s*\)\s*;/g, function (m, name, val) {
     stringVars.add(name);
-    return 'char ' + name + '[256] = "";';
+    return 'char ' + name + '[512] = "' + val + '";';
   });
 
-  // FIX NaN(int): Otomatis beri nilai awal 0 pada variabel primitif yang belum diinisialisasi
-  // agar JSCPP tidak melempar "overflow of NaN(int)" saat pre-run dengan stdin kosong.
+  // 5. Inisialisasi otomatis variabel numerik yang belum diberi nilai awal (mencegah overflow of NaN(int))
   code = code.replace(/^([ \t]*)(int|long|short|float|double|bool)\s+([^;()=\n]+);/gm, function (match, indent, type, varList) {
     if (/[()]/.test(varList)) return match;
     const parts = varList.split(',').map(p => {
@@ -1135,44 +1450,129 @@ function prepareCppForJSCPP(rawCode) {
     return indent + type + ' ' + parts.join(', ') + ';';
   });
 
-  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(?:length|size)\s*\(\s*\)/g, '__mimo_len($1)');
-  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*empty\s*\(\s*\)/g, '(__mimo_len($1) == 0)');
-  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*c_str\s*\(\s*\)/g, '$1');
+  // 6. Transformasi getline(cin, s) dan algoritma reverse(s.begin(), s.end())
+  code = code.replace(/\bgetline\s*\(\s*cin\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)/g, 'cin.getline($1, 512)');
+  code = code.replace(/\breverse\s*\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*begin\s*\(\s*\)\s*,\s*\1\s*\.\s*end\s*\(\s*\)\s*\)/g, '__mimo_rev_str($1)');
 
+  // 7. Transformasi fungsi konversi global & <cctype>
+  code = code.replace(/\b(?:stoi|stol)\s*\(\s*([^)]+)\s*\)/g, '__mimo_stoi($1)');
+  code = code.replace(/\b(?:stod|stof)\s*\(\s*([^)]+)\s*\)/g, '__mimo_stod($1)');
+  code = code.replace(/\bto_string\s*\(\s*([^)]+)\s*\)/g, '__mimo_tostr($1)');
+  code = code.replace(/\btolower\s*\(/g, '__mimo_tolower(');
+  code = code.replace(/\btoupper\s*\(/g, '__mimo_toupper(');
+  code = code.replace(/\bisdigit\s*\(/g, '__mimo_isdigit(');
+  code = code.replace(/\bisalpha\s*\(/g, '__mimo_isalpha(');
+  code = code.replace(/\bisalnum\s*\(/g, '__mimo_isalnum(');
+  code = code.replace(/\bisspace\s*\(/g, '__mimo_isspace(');
+  code = code.replace(/\bislower\s*\(/g, '__mimo_islower(');
+  code = code.replace(/\bisupper\s*\(/g, '__mimo_isupper(');
+
+  // 8. Transformasi seluruh method std::string (.length, .substr, .find, .replace, dll.)
+  const idPat = '([A-Za-z_][A-Za-z0-9_]*(?:\\[[^\\]]+\\])?)';
+
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*(?:length|size)\\s*\\(\\s*\\)', 'g'), '__mimo_len($1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*empty\\s*\\(\\s*\\)', 'g'), '(__mimo_len($1) == 0)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*clear\\s*\\(\\s*\\)', 'g'), '__mimo_clear($1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*c_str\\s*\\(\\s*\\)', 'g'), '$1');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*at\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '$1[$2]');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*front\\s*\\(\\s*\\)', 'g'), '__mimo_front($1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*back\\s*\\(\\s*\\)', 'g'), '__mimo_back($1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*push_back\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_push($1, $2)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*pop_back\\s*\\(\\s*\\)', 'g'), '__mimo_pop($1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*append\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_concat($1, $2)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*compare\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_cmp($1, $2)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*swap\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_swap_str($1, $2)');
+
+  // .substr(pos, len) & .substr(pos)
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*substr\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_substr($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*substr\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_substr($1, $2, -1)');
+
+  // .find(...) & .rfind(...) untuk char dan string
+  code = code.replace(new RegExp(idPat + "\\s*\\.\\s*find\\s*\\(\\s*('(?:[^'\\\\]|\\\\.)*')\\s*,\\s*([^)]+)\\s*\\)", 'g'), '__mimo_find_ch($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + "\\s*\\.\\s*find\\s*\\(\\s*('(?:[^'\\\\]|\\\\.)*')\\s*\\)", 'g'), '__mimo_find_ch($1, $2, 0)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*find\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_find($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*find\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_find($1, $2, 0)');
+
+  code = code.replace(new RegExp(idPat + "\\s*\\.\\s*rfind\\s*\\(\\s*('(?:[^'\\\\]|\\\\.)*')\\s*,\\s*([^)]+)\\s*\\)", 'g'), '__mimo_rfind_ch($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + "\\s*\\.\\s*rfind\\s*\\(\\s*('(?:[^'\\\\]|\\\\.)*')\\s*\\)", 'g'), '__mimo_rfind_ch($1, $2, -1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*rfind\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_rfind($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*rfind\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_rfind($1, $2, -1)');
+
+  // .erase(pos, len), .erase(pos), .insert(pos, str), .replace(pos, len, str)
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*erase\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_erase($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*erase\\s*\\(\\s*([^)]+)\\s*\\)', 'g'), '__mimo_erase($1, $2, -1)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*insert\\s*\\(\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_insert($1, $2, $3)');
+  code = code.replace(new RegExp(idPat + '\\s*\\.\\s*replace\\s*\\(\\s*([^,)]+)\\s*,\\s*([^,)]+)\\s*,\\s*([^)]+)\\s*\\)', 'g'), '__mimo_replace($1, $2, $3, $4)');
+
+  // 9. Transformasi Konkatenasi Operator + (s1 + s2, s + "lit", "lit" + s, s + 'c')
+  if (stringVars.size > 0) {
+    const sNames = Array.from(stringVars).map(escapeRegExp).join('|');
+    const sExpr = '(?:' + sNames + '|__mimo_(?:substr|add|add_ch|tostr)\\([^)]*\\))';
+
+    for (let pass = 0; pass < 4; pass++) {
+      // stringVar/expr + 'char'
+      code = code.replace(new RegExp('\\b(' + sExpr + ")\\s*\\+\\s*('(?:[^'\\\\]|\\\\.)*')", 'g'), '__mimo_add_ch($1, $2)');
+      // stringVar/expr + "literal"
+      code = code.replace(new RegExp('\\b(' + sExpr + ')\\s*\\+\\s*("((?:[^"\\\\]|\\\\.)*)")', 'g'), '__mimo_add($1, $2)');
+      // "literal" + stringVar/expr
+      code = code.replace(new RegExp('("((?:[^"\\\\]|\\\\.)*)")\\s*\\+\\s*\\b(' + sExpr + ')', 'g'), '__mimo_add($1, $3)');
+      // stringVar/expr + stringVar/expr
+      code = code.replace(new RegExp('\\b(' + sExpr + ')\\s*\\+\\s*\\b(' + sExpr + ')', 'g'), '__mimo_add($1, $2)');
+    }
+  } else {
+    // Tetap dukung "literal" + to_string(...) meskipun tidak ada variabel string
+    code = code.replace(/("((?:[^"\\]|\\.)*)")\s*\+\s*(__mimo_tostr\([^)]+\))/g, '__mimo_add($1, $3)');
+    code = code.replace(/(__mimo_tostr\([^)]+\))\s*\+\s*("((?:[^"\\]|\\.)*)")/g, '__mimo_add($1, $2)');
+  }
+
+  // 10. Transformasi Assignment (=), Append (+=), dan Perbandingan (==, !=, <, >, <=, >=) pada variabel string
   stringVars.forEach(name => {
     const safe = escapeRegExp(name);
+    // Hanya cocokkan variabel utuh (bukan elemen indeks seperti kata[0])
+    const varNoIdx = '\\b' + safe + '(?!\\s*\\[)';
 
-    const reLit = new RegExp('\\b' + safe + '\\s*=\\s*"((?:[^"\\\\]|\\\\.)*)"\\s*;', 'g');
-    code = code.replace(reLit, function (m, val) {
-      return '__mimo_copy(' + name + ', "' + val + '");';
-    });
+    // s += 'c';
+    code = code.replace(new RegExp(varNoIdx + "\\s*\\+=\\s*('(?:[^'\\\\]|\\\\.)*')\\s*;", 'g'), '__mimo_push(' + name + ', $1);');
+    // s += expr;
+    code = code.replace(new RegExp(varNoIdx + '\\s*\\+=\\s*([^;]+);', 'g'), '__mimo_concat(' + name + ', $1);');
+    // s = expr; (hindari mencocokkan == atau !=)
+    code = code.replace(new RegExp('(?<![=!<>])' + varNoIdx + '\\s*=\\s*(?!=)([^;]+);', 'g'), '__mimo_copy(' + name + ', $1);');
 
-    const reVar = new RegExp('\\b' + safe + '\\s*=\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*;', 'g');
-    code = code.replace(reVar, function (m, src) {
-      return '__mimo_copy(' + name + ', ' + src + ');';
-    });
-
-    const reAddLit = new RegExp('\\b' + safe + '\\s*\\+=\\s*"((?:[^"\\\\]|\\\\.)*)"\\s*;', 'g');
-    code = code.replace(reAddLit, function (m, val) {
-      return '__mimo_concat(' + name + ', "' + val + '");';
-    });
+    // swap(s1, s2)
+    code = code.replace(new RegExp('\\bswap\\s*\\(\\s*' + safe + '\\s*,\\s*([A-Za-z_][A-Za-z0-9_]*)\\s*\\)', 'g'), '__mimo_swap_str(' + name + ', $1)');
   });
 
-  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*==\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, lit) {
-    return '__mimo_streq(' + v + ', "' + lit + '")';
+  // Perbandingan string dengan literal: s == "abc", s != "abc", s < "abc", dll.
+  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*(==|!=|<=|>=|<|>)\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, op, lit) {
+    if (op === '==') return '__mimo_streq(' + v + ', "' + lit + '")';
+    if (op === '!=') return '!__mimo_streq(' + v + ', "' + lit + '")';
+    return '(__mimo_cmp(' + v + ', "' + lit + '") ' + op + ' 0)';
   });
 
-  code = code.replace(/"((?:[^"\\]|\\.)*)"\s*==\s*([A-Za-z_][A-Za-z0-9_]*)/g, function (m, lit, v) {
-    return '__mimo_streq(' + v + ', "' + lit + '")';
-  });
-  code = code.replace(/([A-Za-z_][A-Za-z0-9_]*)\s*!=\s*"((?:[^"\\]|\\.)*)"/g, function (m, v, lit) {
-    return '!__mimo_streq(' + v + ', "' + lit + '")';
+  code = code.replace(/"((?:[^"\\]|\\.)*)"\s*(==|!=|<=|>=|<|>)\s*([A-Za-z_][A-Za-z0-9_]*)/g, function (m, lit, op, v) {
+    if (op === '==') return '__mimo_streq("' + lit + '", ' + v + ')';
+    if (op === '!=') return '!__mimo_streq("' + lit + '", ' + v + ')';
+    return '(__mimo_cmp("' + lit + '", ' + v + ') ' + op + ' 0)';
   });
 
-  if (code.indexOf('__mimo_') !== -1 && /int\s+main\s*\(/.test(code)) {
-    code = code.replace(/int\s+main\s*\(/, function () {
-      return JSCPP_STRING_HELPERS + '\nint main(';
+  // Perbandingan antar sesama variabel string: s1 == s2, s1 < s2, dll.
+  if (stringVars.size > 0) {
+    const sNames = Array.from(stringVars).map(escapeRegExp).join('|');
+    const reCmpVars = new RegExp('\\b(' + sNames + ')(?!\\s*\\[)\\s*(==|!=|<=|>=|<|>)\\s*\\b(' + sNames + ')(?!\\s*\\[)', 'g');
+    code = code.replace(reCmpVars, function (m, v1, op, v2) {
+      if (op === '==') return '__mimo_streq(' + v1 + ', ' + v2 + ')';
+      if (op === '!=') return '!__mimo_streq(' + v1 + ', ' + v2 + ')';
+      return '(__mimo_cmp(' + v1 + ', ' + v2 + ') ' + op + ' 0)';
     });
+  }
+
+  // 11. Suntikkan pustaka helper __mimo_ tepat setelah using namespace std;
+  if (code.indexOf('__mimo_') !== -1) {
+    if (/using\s+namespace\s+std\s*;/.test(code)) {
+      code = code.replace(/(using\s+namespace\s+std\s*;)/, '$1\n' + JSCPP_STRING_HELPERS);
+    } else if (/int\s+main\s*\(/.test(code)) {
+      code = code.replace(/int\s+main\s*\(/, JSCPP_STRING_HELPERS + '\nint main(');
+    }
   }
 
   return code;
@@ -1296,7 +1696,16 @@ function countCinOperations(code) {
   for (const m of matches) {
     total += (m.match(/>>/g) || []).length;
   }
+  const getlineMatches = cleaned.match(/\bgetline\s*\(\s*cin\b/g) || [];
+  total += getlineMatches.length;
   return total;
+}
+
+function hasGetlineOperation(code) {
+  const cleaned = String(code || '')
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  return /\bgetline\s*\(\s*cin\b/.test(cleaned);
 }
 
 function findDivergence(a, b) {
@@ -1333,11 +1742,16 @@ const CppEditor = {
       { label: '}', val: '}' },
       { label: '(', val: '(' },
       { label: ')', val: ')' },
-      { label: '<<', val: ' << ' },
-      { label: '>>', val: ' >> ' },
+      { label: '<<', val: '<<' },
+      { label: '>>', val: '>>' },
       { label: ';', val: ';' },
       { label: '"', val: '"' },
       { label: '#', val: '#' },
+      { label: '+', val: '+' },
+      { label: '-', val: '-' },
+      { label: '*', val: '*' },
+      { label: '/', val: '/' },
+      { label: '%', val: '%' },
       { label: '//', action: 'comment' }
     ];
 
@@ -1953,7 +2367,7 @@ const app = createApp({
       hasRun.value = false;
     }
 
-    /* === Interactive runner (Diperbaiki agar tahan terhadap error pre-run & mendukung multi-token input) === */
+    /* === Interactive runner === */
     async function runCodeInteractive(code) {
       if (playRunning.value) return;
 
@@ -1974,6 +2388,7 @@ const app = createApp({
 
       const inputs = [];
       const staticCount = countCinOperations(code);
+      const usesGetline = hasGetlineOperation(code);
       let iterations = 0;
       const MAX_ITER = 60;
 
@@ -1984,8 +2399,6 @@ const app = createApp({
           const stdin = inputs.length ? inputs.join('\n') + '\n' : '';
           const result = runJSCPPCode(code, stdin);
 
-          // Jika terjadi runtime error (misal overflow of NaN atau divide by zero) padahal jumlah input
-          // masih kurang dari jumlah cin di kode, minta input dulu alih-alih langsung gagal.
           if (result.error) {
             const isRuntimeInputError = /overflow of NaN|divide by zero|undef/i.test(result.error);
             if (inputs.length < staticCount && isRuntimeInputError) {
@@ -1995,8 +2408,12 @@ const app = createApp({
                 lastError.value = { type: 'Compile/Runtime Error', msg: result.error };
                 break;
               }
-              const tokens = userInput.trim() ? userInput.trim().split(/\s+/) : [''];
-              inputs.push(...tokens);
+              if (usesGetline) {
+                inputs.push(userInput);
+              } else {
+                const tokens = userInput.trim() ? userInput.trim().split(/\s+/) : [''];
+                inputs.push(...tokens);
+              }
               continue;
             }
             conRows.value = result.output ? [{ text: result.output }] : [];
@@ -2037,9 +2454,12 @@ const app = createApp({
             break;
           }
 
-          // Pecah input berdasarkan spasi agar pengguna bisa mengetik "3 4" sekaligus untuk "cin >> a >> b"
-          const tokens = userInput.trim() ? userInput.trim().split(/\s+/) : [''];
-          inputs.push(...tokens);
+          if (usesGetline) {
+            inputs.push(userInput);
+          } else {
+            const tokens = userInput.trim() ? userInput.trim().split(/\s+/) : [''];
+            inputs.push(...tokens);
+          }
         }
 
         if (iterations >= MAX_ITER) {
