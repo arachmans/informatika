@@ -178,6 +178,23 @@ html.light .ic-b { color: #0f172a; }
     max-height: 60vh !important;
   }
 }
+@media (min-width: 1024px) {
+  /* Toggle tema jadi pill selebar container profil */
+  .theme-toggle {
+    border-radius: 9999px;
+    padding: 0.35rem;
+  }
+  .theme-toggle > button {
+    border-radius: 9999px;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+    letter-spacing: 0.01em;
+  }
+  /* Tombol reset jadi pill juga */
+  .btn-reset {
+    border-radius: 9999px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up, .anim-slide-up, .anim-pop, .anim-float, .anim-beat, .node-active, .confetti-piece, .caret { animation: none !important; transform: none !important; }
 }
@@ -512,7 +529,7 @@ html.light .ic-b { color: #0f172a; }
     </div>
 
     <!-- PROFILE -->
-    <div v-else class="anim-fade-up px-5 pt-6">
+    <div v-else class="anim-fade-up px-5 pt-6 lg:max-w-2xl lg:mx-auto">
       <h2 class="text-xl font-extrabold text-white">Profil</h2>
       <div class="mt-4 rounded-3xl bg-gradient-to-br from-panel to-panel2 border border-line p-5">
         <div class="flex items-center gap-4">
@@ -527,7 +544,7 @@ html.light .ic-b { color: #0f172a; }
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mt-4 lg:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3 mt-4">
         <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">⚡</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.xp }}</p><p class="text-[11px] text-slate-500">Total XP</p></div>
         <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">❤️</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.hearts }}/{{ MAX_HEARTS }}</p><p class="text-[11px] text-slate-500">Nyawa</p></div>
         <div class="rounded-2xl bg-panel border border-line p-4"><p class="text-2xl">🔥</p><p class="text-xl font-extrabold text-white mt-1">{{ progress.streak }}</p><p class="text-[11px] text-slate-500">Streak hari</p></div>
@@ -535,12 +552,12 @@ html.light .ic-b { color: #0f172a; }
       </div>
 
       <h3 class="font-extrabold text-white mt-7 mb-3">🎨 Tampilan</h3>
-      <div class="rounded-2xl bg-panel border border-line p-1.5 flex gap-1.5 lg:max-w-sm">
+      <div class="theme-toggle rounded-2xl bg-panel border border-line p-1.5 flex gap-1.5">
         <button @click="setTheme('light')" class="flex-1 rounded-xl py-2.5 text-sm font-bold transition" :class="theme === 'light' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">Terang</button>
         <button @click="setTheme('dark')" class="flex-1 rounded-xl py-2.5 text-sm font-bold transition" :class="theme === 'dark' ? 'bg-mimo text-night shadow-glow' : 'text-slate-400'">Gelap</button>
       </div>
 
-      <button @click="showReset = true" class="w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition lg:max-w-sm">Reset Progres</button>
+      <button @click="showReset = true" class="btn-reset w-full mt-7 rounded-xl border-2 border-danger/40 text-danger font-bold py-3 active:scale-[.98] transition">Reset Progres</button>
     </div>
 
     <!-- NAV BAWAH (Disembunyikan otomatis saat Code Editor Fullscreen aktif) -->
