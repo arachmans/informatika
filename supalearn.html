@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SupaLearn — Belajar PostgreSQL & Supabase Ala Mimo</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue.js 3 Global Build -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            pastel: {
+              bg: '#F8FAFC',
+              mint: '#D1FAE5',
+              mintDark: '#059669',
+              supa: '#10B981',
+              pgLight: '#DBEAFE',
+              pg: '#2563EB',
+              pgDark: '#1D4ED8',
+              purpleLight: '#F3E8FF',
+              purple: '#7C3AED',
+              amberLight: '#FEF3C7',
+              amber: '#D97706',
+              roseLight: '#FFE4E6',
+              rose: '#E11D48'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F4F7FB;
+      color: #1E293B;
+      overflow-x: hidden;
+    }
+
+    /* Tactile 3D Button Style Ala Mimo / Duolingo */
+    .btn-3d-emerald {
+      background-color: #10B981;
+      border-bottom: 4px solid #059669;
+      transition: all 0.12s ease;
+    }
+    .btn-3d-emerald:hover:not(:disabled) {
+      background-color: #059669;
+      transform: translateY(-1px);
+    }
+    .btn-3d-emerald:active:not(:disabled) {
+      border-bottom-width: 0px;
+      transform: translateY(4px);
+    }
+
+    .btn-3d-blue {
+      background-color: #3B82F6;
+      border-bottom: 4px solid #1D4ED8;
+      transition: all 0.12s ease;
+    }
+    .btn-3d-blue:hover:not(:disabled) {
+      background-color: #2563EB;
+      transform: translateY(-1px);
+    }
+    .btn-3d-blue:active:not(:disabled) {
+      border-bottom-width: 0px;
+      transform: translateY(4px);
+    }
+
+    .btn-3d-white {
+      background-color: #FFFFFF;
+      border: 2px solid #E2E8F0;
+      border-bottom-width: 4px;
+      transition: all 0.12s ease;
+    }
+    .btn-3d-white:hover:not(:disabled) {
+      background-color: #F8FAFC;
+      border-color: #CBD5E1;
+      transform: translateY(-1px);
+    }
+    .btn-3d-white:active:not(:disabled) {
+      border-bottom-width: 2px;
+      transform: translateY(2px);
+    }
+
+    .card-mimo {
+      background: #FFFFFF;
+      border: 2px solid #E2E8F0;
+      border-bottom-width: 5px;
+      border-radius: 1.25rem;
+      transition: all 0.2s ease;
+    }
+    .card-mimo:hover {
+      border-color: #CBD5E1;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.94); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<div id="app" class="min-h-screen flex flex-col">
+
+  <!-- ======================= TOP GAMIFIED BAR ======================= -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b-2 border-slate-200/80 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" @click="activeTab = 'path'">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white shadow-sm border-b-4 border-emerald-700">
+          <i class="ph-fill ph-database text-2xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-xl tracking-tight text-slate-800">Supa<span class="text-emerald-600">Learn</span></span>
+            <span class="hidden sm:inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+              PostgreSQL + Supabase
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">Belajar Database Interaktif & Terstruktur Ala Mimo</p>
+        </div>
+      </div>
+
+      <!-- Gamification Pills (Streak, XP, Hearts, Sound) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Streak Pill -->
+        <div
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 font-bold text-xs sm:text-sm"
+          title="Rentetan Hari Belajar"
+        >
+          <i class="ph-fill ph-fire text-amber-500 text-lg"></i>
+          <span>{{ stats.streak }}</span>
+          <span class="hidden md:inline text-xs font-semibold text-amber-600">Hari</span>
+        </div>
+
+        <!-- XP Pill -->
+        <div
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-blue-50 border-2 border-blue-200 text-blue-700 font-bold text-xs sm:text-sm"
+          title="Total Poin Pengalaman dari Latihan Soal"
+        >
+          <i class="ph-fill ph-sparkle text-blue-500 text-lg"></i>
+          <span>{{ stats.xp }} XP</span>
+        </div>
+
+        <!-- Hearts Pill -->
+        <div
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-bold text-xs sm:text-sm cursor-pointer hover:bg-rose-100 transition"
+          @click="refillHearts"
+          title="Klik untuk isi ulang energi hati"
+        >
+          <i class="ph-fill ph-heart text-rose-500 text-lg"></i>
+          <span>{{ stats.hearts }}/5</span>
+        </div>
+
+        <!-- Audio Toggle -->
+        <button
+          @click="soundEnabled = !soundEnabled"
+          class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 flex items-center justify-center text-slate-600 transition"
+          :title="soundEnabled ? 'Suara Aktif' : 'Suara Bisu'"
+        >
+          <i :class="soundEnabled ? 'ph-fill ph-speaker-high text-emerald-600' : 'ph ph-speaker-slash text-slate-400'" class="text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================= MAIN WORKSPACE ======================= -->
+  <div class="flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 lg:px-8 py-6 pb-24 lg:pb-10">
+
+    <!-- LEFT NAVIGATION SIDEBAR (Desktop) -->
+    <aside class="hidden lg:flex lg:col-span-3 flex-col gap-5">
+      <nav class="card-mimo p-3 space-y-1.5">
+        <button
+          v-for="item in navItems"
+          :key="item.id"
+          @click="activeTab = item.id"
+          :class="[
+            'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm transition-all',
+            activeTab === item.id
+              ? 'bg-emerald-50 text-emerald-700 border-2 border-emerald-300 shadow-sm'
+              : 'text-slate-600 hover:bg-slate-50 border-2 border-transparent'
+          ]"
+        >
+          <i :class="[item.icon, 'text-xl', activeTab === item.id ? 'text-emerald-600' : 'text-slate-400']"></i>
+          <span>{{ item.label }}</span>
+          <span
+            v-if="item.badge"
+            class="ml-auto text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700"
+          >
+            {{ item.badge }}
+          </span>
+        </button>
+      </nav>
+
+      <!-- Progress Ring & Level Card -->
+      <div class="card-mimo p-5 bg-gradient-to-br from-emerald-50/70 via-white to-blue-50/70">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-700">Level {{ userLevel }}</span>
+            <h3 class="font-extrabold text-slate-800 text-base">{{ levelTitle }}</h3>
+          </div>
+          <div class="w-11 h-11 rounded-2xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-emerald-700 font-black">
+            L{{ userLevel }}
+          </div>
+        </div>
+        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 mb-2">
+          <div
+            class="h-full bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full transition-all duration-500"
+            :style="{ width: levelProgressPercent + '%' }"
+          ></div>
+        </div>
+        <div class="flex justify-between text-xs text-slate-500 font-medium">
+          <span>{{ stats.xp % 100 }} / 100 XP ke Level {{ userLevel + 1 }}</span>
+          <span>{{ overallProgressPercent }}% Lulus</span>
+        </div>
+      </div>
+
+      <!-- Daily Quests Card -->
+      <div class="card-mimo p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+            <i class="ph-fill ph-target text-amber-500 text-lg"></i>
+            Misi Belajar Harian
+          </h4>
+          <span class="text-xs font-bold text-slate-400">{{ completedQuestsCount }}/{{ dailyQuests.length }}</span>
+        </div>
+        <div class="space-y-3">
+          <div
+            v-for="quest in dailyQuests"
+            :key="quest.id"
+            class="p-3 rounded-2xl bg-slate-50 border border-slate-200/80"
+          >
+            <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+              <span>{{ quest.title }}</span>
+              <span class="text-emerald-600">+{{ quest.xp }} XP</span>
+            </div>
+            <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-amber-400 rounded-full transition-all duration-300"
+                :style="{ width: Math.min(100, (quest.current / quest.target) * 100) + '%' }"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER / RIGHT MAIN CONTENT AREA -->
+    <main class="lg:col-span-9 space-y-6">
+
+      <!-- =================================================================== -->
+      <!-- TAB 1: JALUR BELAJAR ALA MIMO (LEARNING PATH)                       -->
+      <!-- =================================================================== -->
+      <section v-if="activeTab === 'path'" class="space-y-6 animate-pop">
+        <!-- Hero Banner -->
+        <div class="card-mimo p-6 sm:p-7 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-blue-50 border-emerald-200 relative overflow-hidden">
+          <div class="max-w-xl relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 border border-emerald-200 text-emerald-700 text-xs font-extrabold mb-3">
+              <i class="ph-fill ph-sparkle"></i>
+              <span>Kurikulum Lengkap 8 Bab (48 Langkah Konsep & Latihan)</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-tight mb-2">
+              Kuasai <span class="text-blue-600">PostgreSQL</span> & <span class="text-emerald-600">Supabase</span> Langkah demi Langkah
+            </h1>
+            <p class="text-sm text-slate-600 leading-relaxed mb-5">
+              Setiap bab dirancang sistematis: pelajari <strong>Konsep & Bedah Sintaks</strong> terlebih dahulu, lalu buktikan pemahamanmu di <strong>Latihan Terpadu</strong> yang langsung menguji materi tersebut.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                @click="startNextUnfinishedModule"
+                class="btn-3d-emerald text-white font-extrabold text-sm px-5 py-3 rounded-2xl flex items-center gap-2"
+              >
+                <i class="ph-fill ph-play-circle text-lg"></i>
+                <span>{{ stats.completedModules.length === 0 ? 'Mulai Bab 1 Sekarang' : 'Lanjutkan Belajar' }}</span>
+              </button>
+              <button
+                @click="activeTab = 'sandbox'"
+                class="btn-3d-white text-slate-700 font-bold text-sm px-4 py-3 rounded-2xl flex items-center gap-2"
+              >
+                <i class="ph-fill ph-terminal-window text-blue-600 text-lg"></i>
+                <span>Buka Simulasi Tabel</span>
+              </button>
+            </div>
+          </div>
+          <!-- Decorative Icon -->
+          <div class="hidden md:flex absolute right-6 bottom-4 opacity-15 pointer-events-none">
+            <i class="ph-fill ph-database text-[140px] text-emerald-700"></i>
+          </div>
+        </div>
+
+        <!-- Track Filter / Curriculum Overview -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-extrabold text-slate-800">Peta Kurikulum Pembelajaran (8 Bab)</h2>
+            <p class="text-xs text-slate-500">Setiap soal latihan dijamin sudah dibahas tuntas pada slide konsep tepat sebelumnya</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-bold">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span> Bab 1–4: PostgreSQL
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Bab 5–8: Supabase & RLS
+            </span>
+          </div>
+        </div>
+
+        <!-- Mimo-Style Vertical Learning Nodes -->
+        <div class="space-y-4">
+          <div
+            v-for="(mod, index) in modules"
+            :key="mod.id"
+            class="card-mimo p-5 sm:p-6 transition-all"
+            :class="[
+              isModuleCompleted(mod.id)
+                ? 'border-emerald-300 bg-gradient-to-r from-white to-emerald-50/30'
+                : 'border-slate-200 bg-white'
+            ]"
+          >
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <!-- Node Icon Badge -->
+                <div
+                  :class="[
+                    'w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 border-b-4 relative',
+                    mod.theme === 'pg'
+                      ? 'bg-blue-100 text-blue-700 border-blue-300'
+                      : mod.theme === 'supa'
+                      ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                      : 'bg-purple-100 text-purple-700 border-purple-300'
+                  ]"
+                >
+                  <i :class="mod.icon"></i>
+                  <div
+                    v-if="isModuleCompleted(mod.id)"
+                    class=" -top-1.5 -right-1.5 absolute w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shadow"
+                  >
+                    <i class="ph-bold ph-check"></i>
+                  </div>
+                </div>
+
+                <!-- Module Info -->
+                <div class="space-y-1.5">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span
+                      :class="[
+                        'text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-lg',
+                        mod.theme === 'pg'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : mod.theme === 'supa'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-purple-50 text-purple-700 border border-purple-200'
+                      ]"
+                    >
+                      Bab {{ index + 1 }} • {{ mod.category }}
+                    </span>
+                    <span class="text-xs font-bold text-slate-400 flex items-center gap-1">
+                      <i class="ph-fill ph-List-checks"></i> {{ mod.steps.length }} Langkah (3 Konsep + 3 Latihan)
+                    </span>
+                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">
+                      <i class="ph-fill ph-sparkle"></i> +{{ mod.xpReward }} XP
+                    </span>
+                  </div>
+
+                  <h3 class="text-lg font-extrabold text-slate-800">{{ mod.title }}</h3>
+                  <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">{{ mod.description }}</p>
+
+                  <!-- Topics Pills -->
+                  <div class="flex flex-wrap gap-1.5 pt-1">
+                    <span
+                      v-for="tag in mod.tags"
+                      :key="tag"
+                      class="font-mono text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200"
+                    >
+                      {{ tag }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Button -->
+              <div class="sm:self-center shrink-0">
+                <button
+                  @click="openModule(mod)"
+                  :class="[
+                    'w-full sm:w-auto px-5 py-3 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2',
+                    isModuleCompleted(mod.id)
+                      ? 'btn-3d-white text-emerald-700'
+                      : index === nextModuleIndex
+                      ? 'btn-3d-emerald text-white'
+                      : 'btn-3d-blue text-white'
+                  ]"
+                >
+                  <i :class="isModuleCompleted(mod.id) ? 'ph-bold ph-arrow-counter-clockwise' : 'ph-fill ph-play'"></i>
+                  <span>{{ isModuleCompleted(mod.id) ? 'Ulangi Bab' : 'Mulai Belajar' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 2: SIMULASI TABEL & SQL / SUPABASE SANDBOX                      -->
+      <!-- =================================================================== -->
+      <section v-if="activeTab === 'sandbox'" class="space-y-6 animate-pop">
+        <!-- Header Card -->
+        <div class="card-mimo p-6 bg-gradient-to-r from-blue-50 via-white to-emerald-50">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700">
+                Interactive Database Playground
+              </span>
+              <h2 class="text-2xl font-extrabold text-slate-800 mt-2">Simulasi Tabel PostgreSQL & Supabase JS</h2>
+              <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                Uji coba perintah SQL (SELECT, INSERT, UPDATE, DELETE, INNER JOIN) maupun kode JavaScript Supabase secara langsung pada tabel contoh.
+              </p>
+            </div>
+            <!-- Mode Switcher -->
+            <div class="inline-flex p-1.5 rounded-2xl bg-slate-100 border-2 border-slate-200 self-start">
+              <button
+                @click="switchSandboxMode('sql')"
+                :class="[
+                  'px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition',
+                  sandboxMode === 'sql' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'
+                ]"
+              >
+                <i class="ph-fill ph-terminal"></i>
+                <span>Mode SQL Editor</span>
+              </button>
+              <button
+                @click="switchSandboxMode('supabase')"
+                :class="[
+                  'px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition',
+                  sandboxMode === 'supabase' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'
+                ]"
+              >
+                <i class="ph-fill ph-code"></i>
+                <span>Mode Supabase JS</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Database Tables Inspector -->
+        <div class="card-mimo p-5 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Tabel Database Aktif:</span>
+              <button
+                @click="activeSandboxTable = 'siswa'"
+                :class="[
+                  'px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition',
+                  activeSandboxTable === 'siswa' ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                ]"
+              >
+                <i class="ph-fill ph-table"></i> public.siswa ({{ dbTables.siswa.length }} baris)
+              </button>
+              <button
+                @click="activeSandboxTable = 'projek_informatika'"
+                :class="[
+                  'px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition',
+                  activeSandboxTable === 'projek_informatika' ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                ]"
+              >
+                <i class="ph-fill ph-table"></i> public.projek_informatika ({{ dbTables.projek_informatika.length }} baris)
+              </button>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1.5 rounded-xl">
+                <i class="ph-fill ph-flask text-emerald-600"></i> Mode Eksperimen Bebas (Tidak menambah XP / Level)
+              </span>
+              <button
+                @click="resetSandboxTables"
+                class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition"
+              >
+                <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset Data Awal
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Preview -->
+          <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-700 font-mono text-xs">
+                  <th
+                    v-for="col in currentTableColumns"
+                    :key="col.name"
+                    class="py-3 px-4 font-bold whitespace-nowrap"
+                  >
+                    <div class="flex items-center gap-1.5">
+                      <i v-if="col.pk" class="ph-fill ph-key text-amber-500" title="Primary Key"></i>
+                      <span>{{ col.name }}</span>
+                      <span class="text-[10px] font-normal px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-600">{{ col.type }}</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 font-mono text-xs bg-white">
+                <tr
+                  v-for="(row, rIdx) in dbTables[activeSandboxTable]"
+                  :key="rIdx"
+                  class="hover:bg-blue-50/40 transition"
+                >
+                  <td
+                    v-for="col in currentTableColumns"
+                    :key="col.name"
+                    class="py-2.5 px-4 whitespace-nowrap text-slate-700"
+                  >
+                    <span v-if="typeof row[col.name] === 'boolean'" :class="row[col.name] ? 'text-emerald-600 font-bold' : 'text-rose-500'">
+                      {{ row[col.name] }}
+                    </span>
+                    <span v-else>{{ row[col.name] }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Preset Quick Buttons & Code Editor -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Editor Column -->
+          <div class="lg:col-span-7 card-mimo p-5 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                  {{ sandboxMode === 'sql' ? 'PostgreSQL Query Editor' : 'Supabase Client JS Editor' }}
+                </span>
+                <span class="text-[11px] font-mono text-slate-400">Klik tombol contoh di bawah untuk mengisi otomatis</span>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                <button
+                  v-for="(preset, pIdx) in currentSandboxPresets"
+                  :key="pIdx"
+                  @click="loadPreset(preset)"
+                  class="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200 transition"
+                >
+                  {{ preset.label }}
+                </button>
+              </div>
+
+              <!-- Code Textarea -->
+              <div class="relative rounded-2xl overflow-hidden border-2 border-slate-800 bg-slate-900">
+                <div class="flex items-center justify-between px-4 py-2 bg-slate-800 text-slate-400 text-xs font-mono">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <span class="ml-2 text-slate-300 font-semibold">{{ sandboxMode === 'sql' ? 'query.sql' : 'supabaseClient.js' }}</span>
+                  </div>
+                  <span>UTF-8</span>
+                </div>
+                <textarea
+                  v-model="sandboxCode"
+                  rows="5"
+                  spellcheck="false"
+                  class="w-full p-4 bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm focus:outline-none resize-none leading-relaxed"
+                  placeholder="Tulis perintah SQL atau Supabase JS di sini..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="text-xs text-slate-500">
+                <i class="ph-fill ph-lightbulb text-amber-500"></i>
+                Tip: Gunakan preset di atas untuk melihat contoh INSERT, UPDATE, DELETE, atau JOIN.
+              </span>
+              <button
+                @click="executeSandboxQuery(true)"
+                class="btn-3d-emerald text-white font-extrabold text-sm px-5 py-2.5 rounded-2xl flex items-center gap-2"
+              >
+                <i class="ph-fill ph-play"></i>
+                <span>Jalankan Kode</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Output / Result Column -->
+          <div class="lg:col-span-5 card-mimo p-5 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Hasil Eksekusi Query</span>
+                <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+                  <button
+                    @click="sandboxResultView = 'table'"
+                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'table' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500']"
+                  >
+                    Tabel
+                  </button>
+                  <button
+                    @click="sandboxResultView = 'json'"
+                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'json' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500']"
+                  >
+                    JSON API
+                  </button>
+                </div>
+              </div>
+
+              <!-- Status Message Banner -->
+              <div
+                v-if="sandboxResult.error"
+                class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs font-medium mb-3 flex items-start gap-2.5"
+              >
+                <i class="ph-fill ph-warning-circle text-lg shrink-0 mt-0.5"></i>
+                <div>
+                  <div class="font-extrabold mb-0.5">Pesan Error / Petunjuk Sintaks:</div>
+                  <div class="font-mono">{{ sandboxResult.error }}</div>
+                </div>
+              </div>
+
+              <div
+                v-else
+                class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between mb-3"
+              >
+                <span class="font-bold flex items-center gap-1.5">
+                  <i class="ph-fill ph-check-circle text-emerald-600 text-base"></i>
+                  {{ sandboxResult.statusText }}
+                </span>
+                <span class="font-mono font-bold">{{ sandboxResult.data.length }} baris</span>
+              </div>
+
+              <!-- View 1: Result Table -->
+              <div v-if="sandboxResultView === 'table' && !sandboxResult.error" class="overflow-x-auto rounded-2xl border border-slate-200 max-h-60">
+                <table v-if="sandboxResult.data.length > 0" class="w-full text-left border-collapse font-mono text-xs">
+                  <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                      <th
+                        v-for="key in Object.keys(sandboxResult.data[0])"
+                        :key="key"
+                        class="py-2.5 px-3 font-bold"
+                      >
+                        {{ key }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="(r, i) in sandboxResult.data" :key="i" class="hover:bg-slate-50">
+                      <td v-for="key in Object.keys(sandboxResult.data[0])" :key="key" class="py-2 px-3 text-slate-700">
+                        {{ r[key] }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-else class="p-6 text-center text-xs text-slate-400">
+                  Tidak ada baris data yang cocok dengan filter query.
+                </div>
+              </div>
+
+              <!-- View 2: JSON Response (Supabase Format) -->
+              <div v-if="sandboxResultView === 'json' && !sandboxResult.error" class="rounded-2xl bg-slate-900 text-blue-300 p-3.5 font-mono text-xs overflow-auto max-h-60">
+                <pre>{{ JSON.stringify({ data: sandboxResult.data, error: null, status: 200 }, null, 2) }}</pre>
+              </div>
+            </div>
+
+            <!-- Explanation Note -->
+            <div class="p-3 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900">
+              <span class="font-extrabold">Penjelasan Eksekusi:</span>
+              <p class="mt-0.5 text-blue-800 leading-relaxed">{{ sandboxResult.explanation }}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 3: KAMUS CEPAT (CHEAT SHEET SQL VS SUPABASE JS)                 -->
+      <!-- =================================================================== -->
+      <section v-if="activeTab === 'cheatsheet'" class="space-y-6 animate-pop">
+        <div class="card-mimo p-6 bg-gradient-to-r from-purple-50 via-white to-blue-50">
+          <span class="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-purple-100 text-purple-700">
+            Referensi berdampingan
+          </span>
+          <h2 class="text-2xl font-extrabold text-slate-800 mt-2">Kamus Cepat: PostgreSQL vs Supabase JS</h2>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1">
+            Bandingkan cara penulisan query SQL murni di PostgreSQL dengan method JavaScript SDK di Supabase.
+          </p>
+          <!-- Search input -->
+          <div class="mt-4 relative max-w-md">
+            <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+            <input
+              v-model="cheatSearch"
+              type="text"
+              placeholder="Cari perintah (misal: SELECT, INSERT, WHERE, RLS, JOIN)..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border-2 border-slate-200 text-sm focus:outline-none focus:border-emerald-400"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            v-for="item in filteredCheatSheet"
+            :key="item.title"
+            class="card-mimo p-5 flex flex-col justify-between space-y-3"
+          >
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">
+                  {{ item.category }}
+                </span>
+                <button
+                  @click="tryInSandbox(item)"
+                  class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                >
+                  <span>Coba di Sandbox</span>
+                  <i class="ph-bold ph-arrow-right"></i>
+                </button>
+              </div>
+              <h3 class="font-extrabold text-slate-800 text-base">{{ item.title }}</h3>
+              <p class="text-xs text-slate-500 mt-0.5">{{ item.desc }}</p>
+            </div>
+
+            <div class="space-y-2 pt-1">
+              <!-- SQL Box -->
+              <div class="rounded-xl bg-blue-950 text-blue-200 p-3 font-mono text-xs relative group">
+                <div class="flex items-center justify-between text-[10px] uppercase tracking-wider text-blue-400 font-bold mb-1">
+                  <span>PostgreSQL Query</span>
+                  <button @click="copyCode(item.sql)" class="hover:text-white">Salin</button>
+                </div>
+                <pre class="overflow-x-auto whitespace-pre-wrap">{{ item.sql }}</pre>
+              </div>
+
+              <!-- Supabase JS Box -->
+              <div class="rounded-xl bg-slate-900 text-emerald-300 p-3 font-mono text-xs relative group">
+                <div class="flex items-center justify-between text-[10px] uppercase tracking-wider text-emerald-500 font-bold mb-1">
+                  <span>Supabase Client JS</span>
+                  <button @click="copyCode(item.supabase)" class="hover:text-white">Salin</button>
+                </div>
+                <pre class="overflow-x-auto whitespace-pre-wrap">{{ item.supabase }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- TAB 4: PROFIL & PENCAPAIAN SISWA                                    -->
+      <!-- =================================================================== -->
+      <section v-if="activeTab === 'profile'" class="space-y-6 animate-pop">
+        <div class="card-mimo p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-400 to-blue-500 text-white flex items-center justify-center text-3xl font-black border-b-4 border-emerald-700">
+              {{ studentName.charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <input
+                  v-model="studentName"
+                  @change="saveProgress"
+                  class="font-extrabold text-xl text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:outline-none focus:border-emerald-500"
+                />
+                <i class="ph ph-pencil-simple text-slate-400 text-sm"></i>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Level {{ userLevel }} • {{ levelTitle }}</p>
+            </div>
+          </div>
+          <button
+            @click="resetAllProgress"
+            class="px-4 py-2 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-700 font-bold text-xs hover:bg-rose-100 transition"
+          >
+            Reset Semua Progres Belajar
+          </button>
+        </div>
+
+        <!-- Statistics Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="card-mimo p-4 bg-blue-50/50 border-blue-200">
+            <span class="text-xs font-bold text-blue-600">Total XP</span>
+            <div class="text-2xl font-black text-slate-800 mt-1">{{ stats.xp }}</div>
+          </div>
+          <div class="card-mimo p-4 bg-emerald-50/50 border-emerald-200">
+            <span class="text-xs font-bold text-emerald-600">Bab Selesai</span>
+            <div class="text-2xl font-black text-slate-800 mt-1">{{ stats.completedModules.length }} / {{ modules.length }}</div>
+          </div>
+          <div class="card-mimo p-4 bg-amber-50/50 border-amber-200">
+            <span class="text-xs font-bold text-amber-600">Streak Belajar</span>
+            <div class="text-2xl font-black text-slate-800 mt-1">{{ stats.streak }} Hari</div>
+          </div>
+          <div class="card-mimo p-4 bg-purple-50/50 border-purple-200">
+            <span class="text-xs font-bold text-purple-600">Query Sandbox</span>
+            <div class="text-2xl font-black text-slate-800 mt-1">{{ stats.queriesRun }}x</div>
+          </div>
+        </div>
+
+        <!-- Badges Section -->
+        <div class="card-mimo p-6">
+          <h3 class="font-extrabold text-slate-800 text-base mb-4">Lencana Keahlian Database</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div
+              v-for="badge in achievements"
+              :key="badge.id"
+              :class="[
+                'p-4 rounded-2xl border-2 flex items-start gap-3 transition',
+                badge.unlocked
+                  ? 'bg-emerald-50/60 border-emerald-300 text-slate-800'
+                  : 'bg-slate-50 border-slate-200 text-slate-400 opacity-75'
+              ]"
+            >
+              <div
+                :class="[
+                  'w-11 h-11 rounded-2xl flex items-center justify-center text-xl shrink-0',
+                  badge.unlocked ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'
+                ]"
+              >
+                <i :class="badge.icon"></i>
+              </div>
+              <div>
+                <h4 class="font-extrabold text-sm">{{ badge.title }}</h4>
+                <p class="text-xs mt-0.5 leading-relaxed">{{ badge.desc }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ======================= MOBILE BOTTOM NAVIGATION ======================= -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t-2 border-slate-200 px-2 py-2 flex items-center justify-around">
+    <button
+      v-for="item in navItems"
+      :key="item.id"
+      @click="activeTab = item.id"
+      :class="[
+        'flex flex-col items-center gap-1 py-1 px-3 rounded-xl font-bold text-xs transition',
+        activeTab === item.id ? 'text-emerald-600 bg-emerald-50' : 'text-slate-500'
+      ]"
+    >
+      <i :class="[item.icon, 'text-xl']"></i>
+      <span>{{ item.shortLabel }}</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- FULLSCREEN INTERACTIVE LESSON MODAL (MIMO LESSON PLAYER)                  -->
+  <!-- ========================================================================= -->
+  <div
+    v-if="activeLesson"
+    class="fixed inset-0 z-50 bg-slate-50 flex flex-col justify-between overflow-y-auto"
+  >
+    <!-- Top Lesson Progress Header -->
+    <div class="sticky top-0 z-20 bg-white border-b-2 border-slate-200 px-4 py-3.5">
+      <div class="max-w-2xl mx-auto flex items-center gap-4">
+        <button
+          @click="closeLessonModal"
+          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition"
+          title="Keluar dari Sesi Belajar"
+        >
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+
+        <!-- Progress Bar -->
+        <div class="flex-1 h-3.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+          <div
+            class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-300"
+            :style="{ width: lessonProgressPercent + '%' }"
+          ></div>
+        </div>
+
+        <!-- Hearts Indicator inside Lesson -->
+        <div class="flex items-center gap-1 text-rose-600 font-extrabold text-sm">
+          <i class="ph-fill ph-heart text-rose-500 text-lg"></i>
+          <span>{{ stats.hearts }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Lesson Step Slide -->
+    <div class="flex-1 max-w-2xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col justify-center">
+
+      <!-- VIEW A: LESSON COMPLETED CELEBRATION -->
+      <div v-if="lessonCompletedScreen" class="card-mimo p-8 text-center space-y-5 animate-pop">
+        <div class="w-20 h-20 rounded-3xl bg-emerald-100 border-b-4 border-emerald-300 text-emerald-600 flex items-center justify-center text-4xl mx-auto">
+          <i class="ph-fill ph-trophy"></i>
+        </div>
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100 text-amber-800">
+            Bab {{ activeLesson.id }} Selesai!
+          </span>
+          <h2 class="text-2xl font-extrabold text-slate-800 mt-2">{{ activeLesson.title }}</h2>
+          <p class="text-sm text-slate-500 mt-1">
+            Luar biasa! Kamu telah menyelesaikan seluruh materi konsep dan latihan terpadu pada bab ini.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+          <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200">
+            <div class="text-xs font-bold text-blue-600">Hadiah XP</div>
+            <div class="text-xl font-black text-blue-800">+{{ activeLesson.xpReward }} XP</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
+            <div class="text-xs font-bold text-emerald-600">Status</div>
+            <div class="text-xl font-black text-emerald-800">Lulus 100%</div>
+          </div>
+        </div>
+
+        <button
+          @click="closeLessonModal"
+          class="btn-3d-emerald text-white font-extrabold text-sm px-8 py-3.5 rounded-2xl w-full sm:w-auto"
+        >
+          Kembali ke Jalur Belajar
+        </button>
+      </div>
+
+      <!-- VIEW B: ACTIVE STEP SLIDE -->
+      <div v-else class="space-y-6 animate-pop" :key="currentStepIndex">
+        <!-- Step Header Badge -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <button
+              v-if="currentStepIndex > 0"
+              @click="prevLessonStep"
+              class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-xs flex items-center gap-1 transition"
+              title="Kembali ke langkah sebelumnya"
+            >
+              <i class="ph-bold ph-arrow-left"></i>
+              <span>Sebelumnya</span>
+            </button>
+            <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600">
+              Langkah {{ currentStepIndex + 1 }} / {{ activeLesson.steps.length }} • {{ stepTypeLabel(currentStep.type) }}
+            </span>
+          </div>
+          <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+            Bab {{ activeLesson.id }}: {{ activeLesson.title }}
+          </span>
+        </div>
+
+        <!-- Step Title & Deep Explanation Card -->
+        <div class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 shadow-sm space-y-5">
+          <div class="flex items-start justify-between gap-3">
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 leading-snug">
+              {{ currentStep.title }}
+            </h2>
+            <span
+              v-if="currentStep.type === 'theory'"
+              class="shrink-0 text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200"
+            >
+              Materi Konsep
+            </span>
+            <span
+              v-else
+              class="shrink-0 text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200"
+            >
+              Latihan Terpadu
+            </span>
+          </div>
+
+          <div class="text-sm sm:text-base text-slate-600 leading-relaxed space-y-2" v-html="currentStep.content"></div>
+
+          <!-- Bedah Sintaks & Anatomi Kode (Rendered on Concept Slides) -->
+          <div
+            v-if="currentStep.syntaxAnatomy && currentStep.syntaxAnatomy.length"
+            class="rounded-2xl bg-slate-50 border border-slate-200/90 overflow-hidden"
+          >
+            <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center gap-2 text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+              <i class="ph-fill ph-code-block text-blue-600 text-base"></i>
+              <span>Bedah Sintaks & Anatomi Kode</span>
+            </div>
+            <div class="divide-y divide-slate-200/70">
+              <div
+                v-for="(anat, aIdx) in currentStep.syntaxAnatomy"
+                :key="aIdx"
+                class="p-3.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs"
+              >
+                <div class="sm:w-52 shrink-0">
+                  <code class="font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg inline-block">
+                    {{ anat.syntax }}
+                  </code>
+                </div>
+                <div class="flex-1 text-slate-600 leading-relaxed">
+                  <span class="font-extrabold text-slate-800 mr-1">{{ anat.role }}:</span>
+                  <span>{{ anat.desc }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complete Annotated Code Illustration -->
+          <div v-if="currentStep.codeExample" class="rounded-2xl bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm overflow-hidden border border-slate-800">
+            <div class="px-4 py-2 bg-slate-800/90 border-b border-slate-700 text-[11px] text-slate-300 flex items-center justify-between">
+              <span>Contoh Kode Lengkap</span>
+              <span class="text-emerald-400 font-semibold">Dipakai pada latihan berikutnya</span>
+            </div>
+            <pre class="p-4 overflow-x-auto leading-relaxed">{{ currentStep.codeExample }}</pre>
+          </div>
+
+          <!-- Visual Table Illustration -->
+          <div v-if="currentStep.visualTable" class="overflow-x-auto rounded-2xl border border-slate-200">
+            <div v-if="currentStep.visualTable.caption" class="px-4 py-2 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
+              {{ currentStep.visualTable.caption }}
+            </div>
+            <table class="w-full text-left border-collapse text-xs font-mono">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                  <th v-for="h in currentStep.visualTable.headers" :key="h" class="py-2.5 px-3 font-bold">{{ h }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="(r, idx) in currentStep.visualTable.rows" :key="idx">
+                  <td v-for="(cell, cIdx) in r" :key="cIdx" class="py-2 px-3 text-slate-600">{{ cell }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Catatan Penting / Tips Praktis Callout -->
+          <div
+            v-if="currentStep.practicalTip"
+            class="p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-3 text-xs sm:text-sm text-amber-900"
+          >
+            <i class="ph-fill ph-lightbulb-filament text-amber-500 text-xl shrink-0 mt-0.5"></i>
+            <div class="leading-relaxed">
+              <span class="font-extrabold block mb-0.5">Catatan Penting & Tips Praktis:</span>
+              <span v-html="currentStep.practicalTip"></span>
+            </div>
+          </div>
+
+          <!-- Collapsible Reference to Preceding Concept Slide (Available on all Practice Exercises) -->
+          <div v-if="currentStep.type !== 'theory' && previousConceptStep" class="pt-1">
+            <button
+              @click="showPrevConceptHint = !showPrevConceptHint"
+              class="w-full py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-extrabold text-xs flex items-center justify-between transition"
+            >
+              <span class="flex items-center gap-2">
+                <i class="ph-fill ph-book-open-text text-blue-600 text-base"></i>
+                <span>Lihat Catatan Konsep Sebelumnya: "{{ previousConceptStep.title }}"</span>
+              </span>
+              <i :class="['ph-bold', showPrevConceptHint ? 'ph-caret-up' : 'ph-caret-down']"></i>
+            </button>
+
+            <div
+              v-if="showPrevConceptHint"
+              class="mt-3 p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-3 text-xs text-slate-700 animate-pop"
+            >
+              <div class="font-bold text-blue-900">Ringkasan Materi Sebelumnya:</div>
+              <div class="leading-relaxed" v-html="previousConceptStep.content"></div>
+              <div v-if="previousConceptStep.syntaxAnatomy" class="space-y-1.5 pt-1">
+                <div class="font-extrabold text-blue-900">Bedah Sintaks:</div>
+                <div
+                  v-for="(anat, idx) in previousConceptStep.syntaxAnatomy"
+                  :key="idx"
+                  class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-xl border border-blue-100"
+                >
+                  <code class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">{{ anat.syntax }}</code>
+                  <span class="font-bold text-slate-800">{{ anat.role }}:</span>
+                  <span class="text-slate-600">{{ anat.desc }}</span>
+                </div>
+              </div>
+              <pre
+                v-if="previousConceptStep.codeExample"
+                class="p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono text-xs overflow-x-auto"
+              >{{ previousConceptStep.codeExample }}</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- INTERACTIVE EXERCISE TYPE 1: SUSUN KODE (TAP CODE BLOCKS)       -->
+        <!-- =============================================================== -->
+        <div v-if="currentStep.type === 'arrange'" class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 space-y-4">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+            {{ currentStep.prompt || 'Ketuk blok kode di bawah untuk menyusun perintah yang benar:' }}
+          </div>
+
+          <!-- Answer Slots Box -->
+          <div class="min-h-[76px] p-4 rounded-2xl bg-slate-900 border-2 border-slate-800 flex flex-wrap items-center gap-2">
+            <span v-if="arrangedTokens.length === 0" class="text-xs font-mono text-slate-500">
+              Ketuk potongan kode di bawah untuk menyusunnya di sini...
+            </span>
+            <button
+              v-for="(tok, idx) in arrangedTokens"
+              :key="'ans-' + idx"
+              @click="removeArrangedToken(idx)"
+              :disabled="feedbackState.visible"
+              class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-rose-500 text-white font-mono text-xs sm:text-sm font-bold transition shadow-sm"
+            >
+              {{ tok.text }}
+            </button>
+          </div>
+
+          <!-- Available Token Pool -->
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button
+              v-for="tok in availablePoolTokens"
+              :key="tok.uid"
+              @click="selectArrangeToken(tok)"
+              :disabled="tok.used || feedbackState.visible"
+              :class="[
+                'px-3.5 py-2 rounded-xl font-mono text-xs sm:text-sm font-bold transition',
+                tok.used
+                  ? 'bg-slate-100 text-transparent border-2 border-slate-200 cursor-default select-none'
+                  : 'btn-3d-white text-slate-800'
+              ]"
+            >
+              {{ tok.text }}
+            </button>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- INTERACTIVE EXERCISE TYPE 2: ISI BAGIAN KOSONG (FILL BLANK)     -->
+        <!-- =============================================================== -->
+        <div v-if="currentStep.type === 'fill'" class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 space-y-4">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+            {{ currentStep.prompt }}
+          </div>
+
+          <!-- Code Snippet with Blank Slot -->
+          <div class="p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs sm:text-sm leading-relaxed flex flex-wrap items-center gap-2">
+            <span>{{ currentStep.codePrefix }}</span>
+            <span
+              :class="[
+                'px-3 py-1 rounded-lg font-bold border-2 transition',
+                fillSelectedOption
+                  ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                  : 'bg-slate-800 border-dashed border-slate-600 text-slate-400'
+              ]"
+            >
+              {{ fillSelectedOption || '____' }}
+            </span>
+            <span>{{ currentStep.codeSuffix }}</span>
+          </div>
+
+          <!-- Option Chips -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+            <button
+              v-for="opt in currentStep.options"
+              :key="opt"
+              @click=" selectFillOption(opt)"
+              :disabled="feedbackState.visible"
+              :class="[
+                'p-3 rounded-2xl font-mono text-xs sm:text-sm font-bold text-center transition',
+                fillSelectedOption === opt
+                  ? 'bg-blue-600 text-white border-b-4 border-blue-800'
+                  : 'btn-3d-white text-slate-700'
+              ]"
+            >
+              {{ opt }}
+            </button>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- INTERACTIVE EXERCISE TYPE 3: PILIHAN GANDA (QUIZ)               -->
+        <!-- =============================================================== -->
+        <div v-if="currentStep.type === 'quiz'" class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 space-y-3">
+          <div class="text-sm font-extrabold text-slate-700 mb-2">
+            {{ currentStep.question }}
+          </div>
+          <button
+            v-for="(opt, idx) in currentStep.options"
+            :key="idx"
+            @click="selectQuizOption(idx)"
+            :disabled="feedbackState.visible"
+            :class="[
+              'w-full text-left p-4 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-between transition',
+              quizSelectedOption === idx
+                ? 'bg-blue-50 border-2 border-blue-500 text-blue-800'
+                : 'btn-3d-white text-slate-700'
+            ]"
+          >
+            <span>{{ opt }}</span>
+            <span
+              :class="[
+                'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 ml-2',
+                quizSelectedOption === idx ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'
+              ]"
+            >
+              <i v-if="quizSelectedOption === idx" class="ph-bold ph-check"></i>
+            </span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom Lesson Action Bar & Mimo Feedback Drawer -->
+    <div
+      v-if="!lessonCompletedScreen"
+      :class="[
+        'sticky bottom-0 z-30 border-t-2 transition-colors duration-200 px-4 py-4 sm:py-5',
+        !feedbackState.visible
+          ? 'bg-white border-slate-200'
+          : feedbackState.isCorrect
+          ? 'bg-emerald-50 border-emerald-300'
+          : 'bg-rose-50 border-rose-300'
+      ]"
+    >
+      <div class="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        
+        <!-- Feedback Message When Checked -->
+        <div v-if="feedbackState.visible" class="flex items-start gap-3">
+          <div
+            :class="[
+              'w-10 h-10 rounded-2xl flex items-center justify-center text-xl shrink-0 mt-0.5',
+              feedbackState.isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+            ]"
+          >
+            <i :class="feedbackState.isCorrect ? 'ph-bold ph-check' : 'ph-bold ph-x'"></i>
+          </div>
+          <div>
+            <div :class="['font-extrabold text-sm sm:text-base', feedbackState.isCorrect ? 'text-emerald-900' : 'text-rose-900']">
+              {{ feedbackState.title }}
+            </div>
+            <p :class="['text-xs sm:text-sm mt-0.5 leading-relaxed', feedbackState.isCorrect ? 'text-emerald-800' : 'text-rose-800']">
+              {{ feedbackState.explanation }}
+            </p>
+          </div>
+        </div>
+        <div v-else class="hidden sm:block text-xs text-slate-400 font-semibold">
+          {{ currentStep.type === 'theory' ? 'Pelajari konsep & bedah sintaks di atas, lalu klik Lanjutkan.' : 'Selesaikan soal sesuai konsep yang baru dipelajari, lalu klik Periksa Jawaban.' }}
+        </div>
+
+        <!-- Primary Action Button -->
+        <div class="w-full sm:w-auto shrink-0">
+          <!-- Theory Slide Button -->
+          <button
+            v-if="currentStep.type === 'theory'"
+            @click="nextLessonStep"
+            class="btn-3d-emerald w-full sm:w-auto text-white font-extrabold text-sm px-8 py-3.5 rounded-2xl flex items-center justify-center gap-2"
+          >
+            <span>Paham, Lanjutkan</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </button>
+
+          <!-- Check Answer Button -->
+          <button
+            v-else-if="!feedbackState.visible"
+            @click="checkStepAnswer"
+            :disabled="!canCheckAnswer"
+            :class="[
+              'w-full sm:w-auto font-extrabold text-sm px-8 py-3.5 rounded-2xl transition',
+              canCheckAnswer
+                ? 'btn-3d-blue text-white'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            ]"
+          >
+            Periksa Jawaban
+          </button>
+
+          <!-- Next / Retry Button after Feedback -->
+          <button
+            v-else
+            @click="handlePostFeedbackAction"
+            :class="[
+              'w-full sm:w-auto font-extrabold text-sm px-8 py-3.5 rounded-2xl text-white',
+              feedbackState.isCorrect ? 'btn-3d-emerald' : 'bg-rose-600 border-b-4 border-rose-800 hover:bg-rose-700'
+            ]"
+          >
+            {{ feedbackState.isCorrect ? 'Lanjutkan' : 'Coba Lagi' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div
+    v-if="toastMessage"
+    class="fixed bottom-20 lg:bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 animate-pop"
+  >
+    <i class="ph-fill ph-check-circle text-emerald-400 text-lg"></i>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+</div>
+
+<!-- ======================= VUE 3 APPLICATION LOGIC ======================= -->
+<script>
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return {
+      activeTab: 'path',
+      soundEnabled: true,
+      studentName: 'Pelajar Informatika',
+      toastMessage: '',
+
+      // Gamification State
+      stats: {
+        xp: 120,
+        streak: 3,
+        hearts: 5,
+        completedModules: [],
+        queriesRun: 0
+      },
+
+      // Navigation Items
+      navItems: [
+        { id: 'path', label: 'Jalur Belajar', shortLabel: 'Belajar', icon: 'ph-fill ph-map-trifold', badge: '8 Bab' },
+        { id: 'sandbox', label: 'Simulasi Tabel & SQL', shortLabel: 'Sandbox', icon: 'ph-fill ph-terminal-window' },
+        { id: 'cheatsheet', label: 'Kamus Cepat', shortLabel: 'Kamus', icon: 'ph-fill ph-book-bookmark' },
+        { id: 'profile', label: 'Profil & Statistik', shortLabel: 'Profil', icon: 'ph-fill ph-user-circle' }
+      ],
+
+      // Daily Quests (Hanya dari progres belajar & latihan soal, bukan dari klik Sandbox)
+      dailyQuests: [
+        { id: 'q1', title: 'Selesaikan 1 Bab Pembelajaran', current: 0, target: 1, xp: 50 },
+        { id: 'q2', title: 'Jawab 3 Latihan Terpadu dengan Benar', current: 0, target: 3, xp: 30 },
+        { id: 'q3', title: 'Jawab 6 Latihan Terpadu dengan Benar', current: 0, target: 6, xp: 45 }
+      ],
+
+      // ==================== 8 COMPREHENSIVE MODULES (48 STEPS TOTAL) ====================
+      modules: [
+        // =========================================================================
+        // BAB 1: FONDASI DATABASE RELASIONAL & TIPE DATA POSTGRESQL
+        // =========================================================================
+        {
+          id: 1,
+          title: 'Fondasi Database Relasional & Tipe Data PostgreSQL',
+          category: 'PostgreSQL Dasar',
+          theme: 'pg',
+          icon: 'ph-fill ph-table',
+          xpReward: 70,
+          description: 'Pelajari konsep RDBMS, struktur tabel (baris & kolom), peran SERIAL PRIMARY KEY, tipe data PostgreSQL, constraint NOT NULL, dan anatomi CREATE TABLE.',
+          tags: ['SERIAL PRIMARY KEY', 'TEXT', 'INT', 'NOT NULL', 'CREATE TABLE'],
+          steps: [
+            // Konsep 1.1
+            {
+              type: 'theory',
+              title: 'Konsep 1.1: RDBMS, Struktur Tabel & Primary Key',
+              content: '<strong>PostgreSQL</strong> adalah sistem manajemen basis data relasional (<em>Relational Database Management System</em> / RDBMS). Di dalam RDBMS, data disimpan secara terstruktur di dalam <strong>Tabel</strong>.<br><br>Setiap tabel memiliki dua komponen utama:<br>• <strong>Kolom (Field / Atribut)</strong>: Kategori data secara vertikal (misalnya: <code>id</code>, <code>nama</code>, <code>kelas</code>).<br>• <strong>Baris (Row / Record)</strong>: Satu kesatuan data utuh secara horizontal milik satu objek.<br><br>Agar setiap baris tidak pernah tertukar (walaupun ada dua siswa bernama sama), setiap tabel wajib memiliki <strong>Primary Key</strong> (Kunci Utama) yang nilainya selalu unik menggunakan tipe <code>SERIAL PRIMARY KEY</code>.',
+              syntaxAnatomy: [
+                { syntax: 'Tabel (Table)', role: 'Wadah Data', desc: 'Tempat menyimpan kumpulan data sejenis (contoh: tabel siswa).' },
+                { syntax: 'Kolom (Column/Field)', role: 'Atribut Vertikal', desc: 'Mendefinisikan jenis informasi, misalnya kolom nama atau nilai.' },
+                { syntax: 'Baris (Row/Record)', role: 'Satu Entitas Data', desc: 'Satu baris data lengkap milik seorang siswa.' },
+                { syntax: 'SERIAL PRIMARY KEY', role: 'Kunci Utama Otomatis', desc: 'Menghasilkan angka unik berurutan otomatis (1, 2, 3, dst.) sebagai identitas unik tiap baris.' }
+              ],
+              visualTable: {
+                caption: 'Ilustrasi Tabel public.siswa (3 Kolom & 3 Baris/Record)',
+                headers: ['id (SERIAL PRIMARY KEY)', 'nama (Kolom)', 'kelas (Kolom)'],
+                rows: [
+                  ['1 (Unik)', 'Budi Santoso', 'XI-A'],
+                  ['2 (Unik)', 'Budi Santoso', 'XI-B'],
+                  ['3 (Unik)', 'Siti Aminah', 'XII-A']
+                ]
+              },
+              practicalTip: 'Perhatikan baris ke-1 dan ke-2 memiliki <code>nama</code> yang sama persis ("Budi Santoso"), tetapi PostgreSQL tetap bisa membedakan keduanya karena memiliki <code>id (SERIAL PRIMARY KEY)</code> yang berbeda (1 dan 2).'
+            },
+            // Latihan 1.1
+            {
+              type: 'quiz',
+              title: 'Latihan 1.1: Struktur Tabel & SERIAL PRIMARY KEY',
+              content: 'Mari uji pemahamanmu tentang struktur baris, kolom, dan peran <code>SERIAL PRIMARY KEY</code> yang baru saja kita bahas.',
+              question: 'Mengapa kolom "id" pada tabel PostgreSQL hampir selalu diberi atribut SERIAL PRIMARY KEY?',
+              options: [
+                'Agar setiap baris (record) memiliki nomor identitas unik otomatis (1, 2, 3...) yang tidak akan pernah kembar meskipun nama siswanya sama',
+                'Agar kolom tersebut hanya bisa diisi dengan kalimat panjang',
+                'Agar tabel otomatis terhapus setiap kali browser ditutup',
+                'Agar semua baris di dalam tabel memiliki nomor ID yang sama persis'
+              ],
+              correctIndex: 0,
+              explanation: 'Tepat sekali! Sesuai Konsep 1.1, SERIAL PRIMARY KEY memberikan nomor urut unik otomatis (1, 2, 3...) sehingga setiap baris dapat dibedakan dengan pasti.'
+            },
+            // Konsep 1.2
+            {
+              type: 'theory',
+              title: 'Konsep 1.2: Tipe Data PostgreSQL & Constraint NOT NULL',
+              content: 'Di PostgreSQL, setiap kolom harus ditentukan <strong>Tipe Data</strong>-nya agar data yang masuk selalu valid (misalnya kolom nilai ujian tidak boleh diisi huruf). Selain itu, kita bisa menambahkan aturan (<strong>Constraint</strong>) seperti <code>NOT NULL</code> agar kolom tersebut wajib diisi dan tidak boleh dikosongkan.',
+              syntaxAnatomy: [
+                { syntax: 'TEXT', role: 'Teks Bebas', desc: 'Menyimpan huruf, kata, atau kalimat dengan panjang bebas (contoh: nama siswa, alamat).' },
+                { syntax: 'INT', role: 'Angka Bulat (Integer)', desc: 'Menyimpan bilangan bulat tanpa desimal (contoh: nilai 90, umur 16).' },
+                { syntax: 'BOOLEAN', role: 'Logika Benar/Salah', desc: 'Hanya menerima nilai true (benar) atau false (salah), misalnya status kelulusan.' },
+                { syntax: 'TIMESTAMPTZ', role: 'Waktu & Tanggal', desc: 'Menyimpan tanggal beserta jam dan zona waktu (contoh: waktu pengumpulan tugas).' },
+                { syntax: 'NOT NULL', role: 'Constraint Wajib Isi', desc: 'Mencegah kolom disimpan dalam keadaan kosong (NULL).' },
+                { syntax: 'DEFAULT nilai', role: 'Nilai Bawaan', desc: 'Memberikan nilai awal otomatis jika kolom tidak diisi saat penyimpanan.' }
+              ],
+              codeExample: `-- Contoh definisi kolom dengan Tipe Data & Constraint:\nnama TEXT NOT NULL,         -- Teks dan wajib diisi\nnilai INT DEFAULT 0,        -- Angka bulat, nilai awal 0\nlulus BOOLEAN DEFAULT true  -- Nilai true/false`,
+              practicalTip: 'Gunakan <code>TEXT</code> untuk nama atau kelas, <code>INT</code> untuk skor atau angka bulat, serta tambahkan <code>NOT NULL</code> pada kolom yang tidak boleh kosong.'
+            },
+            // Latihan 1.2
+            {
+              type: 'fill',
+              title: 'Latihan 1.2: Menentukan Tipe Data & Constraint Wajib Isi',
+              content: 'Berdasarkan Konsep 1.2, kolom teks menggunakan <code>TEXT</code> dan aturan agar kolom wajib diisi (tidak boleh kosong) menggunakan <code>NOT NULL</code>.',
+              prompt: 'Lengkapi definisi kolom "nama" di bawah ini agar bertipe teks dan wajib diisi:',
+              codePrefix: 'nama',
+              codeSuffix: ', nilai INT',
+              options: ['TEXT NOT NULL', 'INT BOOLEAN', 'SERIAL NULL'],
+              answer: 'TEXT NOT NULL',
+              explanation: 'Benar! Sesuai Konsep 1.2, TEXT digunakan untuk menyimpan data teks/nama, dan NOT NULL memastikan kolom nama wajib diisi.'
+            },
+            // Konsep 1.3
+            {
+              type: 'theory',
+              title: 'Konsep 1.3: Anatomi Perintah CREATE TABLE',
+              content: 'Sekarang kita gabungkan Primary Key, Tipe Data, dan Constraint ke dalam perintah pembuatan tabel utuh: <code>CREATE TABLE nama_tabel (...);</code>.<br><br>Perhatikan aturan tanda bacanya:<br>1. Setelah nama tabel, buka tanda kurung <code>(</code>.<br>2. Setiap definisi kolom dipisahkan dengan tanda koma <code>,</code>.<br>3. Akhiri seluruh perintah dengan kurung tutup dan titik koma <code>);</code>.',
+              syntaxAnatomy: [
+                { syntax: 'CREATE TABLE siswa', role: 'Perintah Buat Tabel', desc: 'Membuat tabel baru bernama "siswa".' },
+                { syntax: '( ... )', role: 'Blok Definisi Kolom', desc: 'Membungkus seluruh daftar kolom tabel.' },
+                { syntax: 'id SERIAL PRIMARY KEY,', role: 'Kolom ke-1', desc: 'Kolom id sebagai kunci utama otomatis, diakhiri koma.' },
+                { syntax: 'nama TEXT NOT NULL,', role: 'Kolom ke-2', desc: 'Kolom nama bertipe teks dan wajib diisi, diakhiri koma.' },
+                { syntax: 'nilai INT', role: 'Kolom Terakhir', desc: 'Kolom nilai bertipe angka bulat (tanpa koma karena kolom terakhir).' },
+                { syntax: ');', role: 'Penutup Statement', desc: 'Menutup kurung daftar kolom dan mengakhiri query SQL.' }
+              ],
+              codeExample: `CREATE TABLE siswa (\n  id SERIAL PRIMARY KEY,\n  nama TEXT NOT NULL,\n  nilai INT\n);`,
+              practicalTip: 'Ingat urutan bakunya: <code>CREATE TABLE nama_tabel (kolom1 tipe1, kolom2 tipe2, kolom3 tipe3);</code>.'
+            },
+            // Latihan 1.3
+            {
+              type: 'arrange',
+              title: 'Latihan 1.3: Menyusun Perintah CREATE TABLE siswa',
+              content: 'Gunakan anatomi kode dari Konsep 1.3 untuk menyusun perintah pembuatan tabel <code>siswa</code> dengan tiga kolom: <code>id</code>, <code>nama</code>, dan <code>nilai</code>.',
+              prompt: 'Susun blok kode berikut menjadi perintah SQL CREATE TABLE yang valid:',
+              tokens: ['CREATE TABLE', 'siswa', '(', 'id SERIAL PRIMARY KEY,', 'nama TEXT NOT NULL,', 'nilai INT', ');'],
+              distractors: ['SELECT *', 'VALUES'],
+              explanation: 'Sempurna! Kamu telah menyusun perintah CREATE TABLE siswa lengkap dengan SERIAL PRIMARY KEY, TEXT NOT NULL, dan INT.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 2: MANIPULASI DATA DASAR (CRUD SQL: INSERT & SELECT)
+        // =========================================================================
+        {
+          id: 2,
+          title: 'Manipulasi Data Dasar (CRUD SQL: INSERT & SELECT)',
+          category: 'PostgreSQL CRUD',
+          theme: 'pg',
+          icon: 'ph-fill ph-magnifying-glass',
+          xpReward: 80,
+          description: 'Kuasai cara menambahkan baris data dengan INSERT INTO ... VALUES, memilih kolom dengan SELECT, serta menyaring baris dengan WHERE dan operator logika AND / OR.',
+          tags: ['INSERT INTO', 'VALUES', 'SELECT', 'WHERE', 'AND / OR'],
+          steps: [
+            // Konsep 2.1
+            {
+              type: 'theory',
+              title: 'Konsep 2.1: Menambahkan Data Baru dengan INSERT INTO',
+              content: 'Untuk memasukkan baris data baru ke dalam tabel yang sudah dibuat, gunakan perintah <code>INSERT INTO nama_tabel (daftar_kolom) VALUES (daftar_nilai);</code>.<br><br><strong>Aturan Penting Penulisan Nilai di <code>VALUES</code>:</strong><br>• Nilai bertipe <strong>Teks (TEXT)</strong> wajib diapit tanda <strong>kutip tunggal</strong> seperti <code>\'Budi\'</code> atau <code>\'XI-A\'</code>.<br>• Nilai bertipe <strong>Angka (INT)</strong> ditulis langsung <strong>tanpa tanda kutip</strong> seperti <code>90</code>.',
+              syntaxAnatomy: [
+                { syntax: 'INSERT INTO siswa', role: 'Target Tabel', desc: 'Menentukan bahwa data baru akan dimasukkan ke tabel "siswa".' },
+                { syntax: '(nama, kelas, nilai)', role: 'Daftar Kolom Tujuan', desc: 'Menentukan urutan kolom yang akan diisi nilainya.' },
+                { syntax: 'VALUES', role: 'Kata Kunci Nilai', desc: 'Mengawali daftar nilai data yang akan dimasukkan.' },
+                { syntax: "('Budi', 'XI-A', 90);", role: 'Daftar Nilai Data', desc: "'Budi' untuk nama, 'XI-A' untuk kelas (pakai kutip tunggal), dan 90 untuk nilai (tanpa kutip)." }
+              ],
+              codeExample: `INSERT INTO siswa (nama, kelas, nilai)\nVALUES ('Budi', 'XI-A', 90);`,
+              practicalTip: 'Kolom <code>id</code> tidak perlu ditulis di dalam <code>INSERT INTO</code> karena sudah bertipe <code>SERIAL</code> yang terisi otomatis oleh PostgreSQL.'
+            },
+            // Latihan 2.1
+            {
+              type: 'arrange',
+              title: 'Latihan 2.1: Menyusun Query INSERT INTO siswa',
+              content: 'Sesuai Konsep 2.1, mari masukkan data siswa bernama <code>\'Budi\'</code> di kelas <code>\'XI-A\'</code> dengan nilai <code>90</code>.',
+              prompt: 'Susun potongan kode berikut untuk menambahkan 1 baris siswa baru:',
+              tokens: ['INSERT INTO', 'siswa', '(nama, kelas, nilai)', 'VALUES', "('Budi', 'XI-A', 90);"],
+              distractors: ['SELECT', 'WHERE'],
+              explanation: 'Mantap! Urutan INSERT INTO siswa (nama, kelas, nilai) VALUES (\'Budi\', \'XI-A\', 90); sudah tepat sesuai aturan kutip tunggal dan angka.'
+            },
+            // Konsep 2.2
+            {
+              type: 'theory',
+              title: 'Konsep 2.2: Membaca Data dengan SELECT (* vs Kolom Spesifik)',
+              content: 'Untuk membaca atau menampilkan data dari tabel, gunakan perintah <code>SELECT ... FROM nama_tabel;</code>.<br><br>Ada dua cara memilih kolom:<br>1. <strong>Semua Kolom (<code>*</code>)</strong>: Menulis <code>SELECT * FROM siswa;</code> akan mengambil seluruh kolom yang ada di tabel.<br>2. <strong>Kolom Spesifik</strong>: Menulis nama kolom dipisahkan koma, misalnya <code>SELECT nama, nilai FROM siswa;</code> hanya akan mengambil kolom <code>nama</code> dan <code>nilai</code> saja.',
+              syntaxAnatomy: [
+                { syntax: 'SELECT *', role: 'Pilih Semua Kolom', desc: 'Tanda bintang (*) mewakili seluruh kolom di dalam tabel.' },
+                { syntax: 'SELECT nama, nilai', role: 'Pilih Kolom Spesifik', desc: 'Hanya mengambil kolom "nama" dan "nilai" (dipisahkan tanda koma).' },
+                { syntax: 'FROM siswa;', role: 'Sumber Tabel', desc: 'Menentukan bahwa data diambil dari tabel "siswa".' }
+              ],
+              codeExample: `-- 1. Mengambil semua kolom:\nSELECT * FROM siswa;\n\n-- 2. Mengambil hanya kolom nama dan nilai:\nSELECT nama, nilai FROM siswa;`,
+              practicalTip: 'Pada aplikasi nyata, mengambil kolom spesifik seperti <code>SELECT nama, nilai</code> lebih hemat memori dan lebih cepat dibandingkan selalu memakai <code>SELECT *</code>.'
+            },
+            // Latihan 2.2
+            {
+              type: 'fill',
+              title: 'Latihan 2.2: Mengambil Kolom Spesifik dengan SELECT',
+              content: 'Ingat dari Konsep 2.2: jika kita hanya membutuhkan kolom tertentu, sebutkan nama kolomnya dipisahkan koma setelah kata <code>SELECT</code>.',
+              prompt: 'Lengkapi query berikut untuk menampilkan HANYA kolom "nama" dan "nilai" dari tabel siswa:',
+              codePrefix: 'SELECT',
+              codeSuffix: 'FROM siswa;',
+              options: ['nama, nilai', '* ALL', 'VALUES (nama, nilai)'],
+              answer: 'nama, nilai',
+              explanation: 'Tepat! SELECT nama, nilai FROM siswa; hanya mengambil dua kolom tersebut tanpa mengambil kolom lainnya.'
+            },
+            // Konsep 2.3
+            {
+              type: 'theory',
+              title: 'Konsep 2.3: Menyaring Baris Data dengan WHERE, Perbandingan & AND/OR',
+              content: 'Jika tabel memiliki ribuan siswa, kita tidak ingin menampilkan semuanya sekaligus. Gunakan klausa <code>WHERE</code> untuk menyaring baris yang memenuhi syarat tertentu.<br><br>Kita juga bisa menggabungkan dua syarat sekaligus menggunakan operator logika <code>AND</code> (kedua syarat wajib terpenuhi) atau <code>OR</code> (salah satu syarat terpenuhi).',
+              syntaxAnatomy: [
+                { syntax: 'WHERE', role: 'Klausa Penyaring', desc: 'Menyaring baris data agar hanya baris yang cocok dengan kondisi yang ditampilkan.' },
+                { syntax: '= , > , < , >= , <=', role: 'Operator Perbandingan', desc: 'Sama dengan (=), lebih dari (>), kurang dari (<), lebih dari atau sama dengan (>=).' },
+                { syntax: "kelas = 'XI-A'", role: 'Syarat Pertama', desc: 'Menyaring hanya siswa yang berada di kelas XI-A.' },
+                { syntax: 'AND', role: 'Operator Logika DAN', desc: 'Menggabungkan dua kondisi; baris hanya diambil jika KEDUA kondisi bernilai benar.' },
+                { syntax: 'nilai >= 85', role: 'Syarat Kedua', desc: 'Menyaring hanya siswa yang nilainya minimal 85 (85 ke atas).' }
+              ],
+              codeExample: `SELECT * FROM siswa\nWHERE kelas = 'XI-A' AND nilai >= 85;`,
+              practicalTip: 'Jika kamu memakai <code>AND</code>, maka siswa harus berada di kelas <code>\'XI-A\'</code> <strong>sekaligus</strong> memiliki <code>nilai >= 85</code>. Jika memakai <code>OR</code>, cukup salah satu syarat saja yang terpenuhi.'
+            },
+            // Latihan 2.3
+            {
+              type: 'arrange',
+              title: 'Latihan 2.3: Menyaring Data dengan WHERE dan AND',
+              content: 'Terapkan Konsep 2.3 untuk menyaring semua kolom dari tabel <code>siswa</code> yang berada di kelas <code>\'XI-A\'</code> dan memiliki <code>nilai >= 85</code>.',
+              prompt: 'Susun blok kode berikut menjadi query penyaringan dua kondisi yang benar:',
+              tokens: ['SELECT *', 'FROM siswa', 'WHERE', "kelas = 'XI-A'", 'AND', 'nilai >= 85;'],
+              distractors: ['VALUES', 'CREATE'],
+              explanation: 'Luar biasa! Klausa WHERE kelas = \'XI-A\' AND nilai >= 85 berhasil menyaring siswa yang memenuhi kedua kriteria tersebut.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 3: PENGURUTAN, PEMBATASAN, PEMBARUAN & PENGHAPUSAN DATA
+        // =========================================================================
+        {
+          id: 3,
+          title: 'Pengurutan, Pembatasan, Pembaruan & Penghapusan Data',
+          category: 'PostgreSQL Lanjutan',
+          theme: 'pg',
+          icon: 'ph-fill ph-arrows-down-up',
+          xpReward: 85,
+          description: 'Pelajari cara mengurutkan hasil dengan ORDER BY (ASC/DESC), membatasi jumlah baris dengan LIMIT, mengubah data dengan UPDATE ... SET, dan menghapus baris dengan DELETE.',
+          tags: ['ORDER BY', 'ASC / DESC', 'LIMIT', 'UPDATE SET', 'DELETE FROM'],
+          steps: [
+            // Konsep 3.1
+            {
+              type: 'theory',
+              title: 'Konsep 3.1: Mengurutkan Data (ORDER BY) & Membatasi Hasil (LIMIT)',
+              content: 'Saat membuat papan peringkat (<em>leaderboard</em>) nilai ujian, kita perlu mengurutkan data dari nilai tertinggi ke terendah dan mengambil 3 peringkat teratas saja.<br><br>Di PostgreSQL, gunakan:<br>• <code>ORDER BY nama_kolom ASC</code> untuk urutan naik (kecil ke besar / A-Z).<br>• <code>ORDER BY nama_kolom DESC</code> untuk urutan turun (besar ke kecil / tertinggi dulu).<br>• <code>LIMIT angka</code> di bagian paling akhir untuk membatasi jumlah baris yang ditampilkan.',
+              syntaxAnatomy: [
+                { syntax: 'ORDER BY nilai', role: 'Klausa Pengurutan', desc: 'Menentukan bahwa hasil diurutkan berdasarkan kolom "nilai".' },
+                { syntax: 'ASC', role: 'Ascending (Naik)', desc: 'Urutan dari terkecil ke terbesar (contoh: 60, 75, 90).' },
+                { syntax: 'DESC', role: 'Descending (Turun)', desc: 'Urutan dari terbesar ke terkecil (contoh: 95, 90, 85).' },
+                { syntax: 'LIMIT 3', role: 'Batas Jumlah Baris', desc: 'Hanya mengambil maksimal 3 baris teratas dari hasil pengurutan.' }
+              ],
+              codeExample: `-- Menampilkan 3 siswa dengan nilai tertinggi:\nSELECT nama, nilai FROM siswa\nORDER BY nilai DESC\nLIMIT 3;`,
+              practicalTip: 'Selalu tulis <code>ORDER BY</code> terlebih dahulu sebelum <code>LIMIT</code>, agar data diurutkan dulu baru diambil 3 teratas.'
+            },
+            // Latihan 3.1
+            {
+              type: 'arrange',
+              title: 'Latihan 3.1: Menyusun Query Peringkat 3 Besar (ORDER BY & LIMIT)',
+              content: 'Gunakan sintaks dari Konsep 3.1 untuk mengambil kolom <code>nama, nilai</code> dari tabel <code>siswa</code>, diurutkan dari nilai tertinggi ke terendah (<code>DESC</code>), dan dibatasi hanya <code>3</code> baris.',
+              prompt: 'Susun blok kode berikut menjadi query peringkat 3 teratas:',
+              tokens: ['SELECT nama, nilai', 'FROM siswa', 'ORDER BY', 'nilai DESC', 'LIMIT 3;'],
+              distractors: ['WHERE', 'INSERT'],
+              explanation: 'Tepat sekali! Kombinasi ORDER BY nilai DESC LIMIT 3 adalah rumus standar membuat leaderboard 3 besar.'
+            },
+            // Konsep 3.2
+            {
+              type: 'theory',
+              title: 'Konsep 3.2: Memperbarui Data dengan UPDATE ... SET ... WHERE',
+              content: 'Bagaimana jika guru ingin memperbaiki nilai seorang siswa yang sudah terlanjur tersimpan di tabel? Kita menggunakan perintah <code>UPDATE</code>.<br><br>Anatomi perintahnya adalah:<br><code>UPDATE nama_tabel SET kolom = nilai_baru WHERE kondisi;</code>',
+              syntaxAnatomy: [
+                { syntax: 'UPDATE siswa', role: 'Target Tabel', desc: 'Menentukan tabel "siswa" yang datanya ingin diperbarui.' },
+                { syntax: 'SET nilai = 95', role: 'Perubahan Nilai', desc: 'Mengubah isi kolom "nilai" menjadi 95.' },
+                { syntax: 'WHERE id = 2;', role: 'Filter Baris Spesifik', desc: 'Memastikan perubahan HANYA diterapkan pada siswa yang memiliki id = 2.' }
+              ],
+              codeExample: `UPDATE siswa\nSET nilai = 95\nWHERE id = 2;`,
+              practicalTip: '<strong>BAHAYA FATAL:</strong> Jangan pernah lupa menulis klausa <code>WHERE</code> saat menjalankan <code>UPDATE</code>! Jika kamu menulis <code>UPDATE siswa SET nilai = 95;</code> tanpa <code>WHERE</code>, maka <strong>seluruh siswa satu sekolah</strong> nilainya akan berubah menjadi 95!'
+            },
+            // Latihan 3.2
+            {
+              type: 'fill',
+              title: 'Latihan 3.2: Memperbarui Nilai Siswa dengan UPDATE & SET',
+              content: 'Sesuai Konsep 3.2, perintah <code>UPDATE nama_tabel</code> selalu dipasangkan dengan kata kunci <code>SET</code> untuk menentukan nilai baru, lalu diikuti <code>WHERE</code>.',
+              prompt: 'Lengkapi query berikut untuk mengubah nilai menjadi 95 khusus untuk siswa dengan id = 2:',
+              codePrefix: 'UPDATE siswa',
+              codeSuffix: 'WHERE id = 2;',
+              options: ['SET nilai = 95', 'VALUES (95)', 'SELECT nilai = 95'],
+              answer: 'SET nilai = 95',
+              explanation: 'Benar! UPDATE siswa SET nilai = 95 WHERE id = 2; akan memperbarui kolom nilai hanya untuk baris dengan id = 2.'
+            },
+            // Konsep 3.3
+            {
+              type: 'theory',
+              title: 'Konsep 3.3: Menghapus Baris Data dengan DELETE FROM ... WHERE',
+              content: 'Untuk menghapus baris data dari tabel, gunakan perintah <code>DELETE FROM nama_tabel WHERE kondisi;</code>.<br><br>Perhatikan bahwa berbeda dengan <code>SELECT</code>, perintah <code>DELETE</code> tidak menggunakan tanda bintang (<code>*</code>) karena yang dihapus adalah satu baris utuh.',
+              syntaxAnatomy: [
+                { syntax: 'DELETE FROM siswa', role: 'Perintah Hapus Baris', desc: 'Menghapus baris dari tabel "siswa".' },
+                { syntax: 'WHERE id = 4;', role: 'Target Baris', desc: 'Menentukan secara spesifik bahwa hanya baris dengan id = 4 yang dihapus.' }
+              ],
+              codeExample: `DELETE FROM siswa\nWHERE id = 4;`,
+              practicalTip: 'Sama seperti <code>UPDATE</code>, wajib sertakan <code>WHERE id = ...</code> pada perintah <code>DELETE FROM</code> agar tidak menghapus seluruh isi tabel!'
+            },
+            // Latihan 3.3
+            {
+              type: 'arrange',
+              title: 'Latihan 3.3: Menghapus Baris Spesifik dengan DELETE FROM',
+              content: 'Berdasarkan Konsep 3.3, susunlah perintah SQL untuk menghapus data siswa yang memiliki <code>id = 4</code>.',
+              prompt: 'Susun blok kode berikut untuk menghapus baris siswa ber-ID 4:',
+              tokens: ['DELETE FROM', 'siswa', 'WHERE', 'id = 4;'],
+              distractors: ['DELETE *', 'SET'],
+              explanation: 'Bagus sekali! DELETE FROM siswa WHERE id = 4; menghapus tepat satu baris siswa yang memiliki id = 4.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 4: RELASI ANTAR TABEL (FOREIGN KEY, JOIN & AGREGASI)
+        // =========================================================================
+        {
+          id: 4,
+          title: 'Relasi Antar Tabel (Foreign Key, JOIN & Agregasi)',
+          category: 'Relasi Database',
+          theme: 'pg',
+          icon: 'ph-fill ph-git-merge',
+          xpReward: 95,
+          description: 'Pahami cara menghubungkan dua tabel menggunakan Foreign Key (REFERENCES), menggabungkan tabel dengan INNER JOIN ... ON, serta fungsi agregasi COUNT, AVG, dan GROUP BY.',
+          tags: ['REFERENCES', 'FOREIGN KEY', 'INNER JOIN', 'COUNT & AVG', 'GROUP BY'],
+          steps: [
+            // Konsep 4.1
+            {
+              type: 'theory',
+              title: 'Konsep 4.1: Relasi Tabel & Foreign Key (REFERENCES)',
+              content: 'Mengapa disebut database <em>Relasional</em>? Karena tabel-tabel di dalamnya saling berhubungan! Misalnya kita punya tabel <code>siswa</code> dan tabel <code>projek_informatika</code>.<br><br>Daripada menulis ulang nama dan kelas siswa di setiap projek, kita cukup menyimpan nomor ID siswanya di kolom <code>siswa_id</code>. Kolom penunjuk ke tabel lain ini disebut <strong>Foreign Key</strong> (Kunci Tamu), yang didefinisikan dengan kata kunci <code>REFERENCES tabel_induk(id)</code>.',
+              syntaxAnatomy: [
+                { syntax: 'siswa_id INT', role: 'Kolom Foreign Key', desc: 'Kolom bertipe angka bulat untuk menyimpan ID milik siswa pembuat projek.' },
+                { syntax: 'REFERENCES siswa(id)', role: 'Penghubung Relasi', desc: 'Menyatakan bahwa nilai siswa_id wajib merujuk ke kolom "id" yang sah di tabel "siswa".' },
+                { syntax: 'ON DELETE CASCADE', role: 'Aturan Hapus Berantai', desc: 'Jika data siswa dihapus dari tabel induk, maka projek miliknya ikut terhapus otomatis.' }
+              ],
+              codeExample: `CREATE TABLE projek_informatika (\n  id SERIAL PRIMARY KEY,\n  judul TEXT NOT NULL,\n  siswa_id INT REFERENCES siswa(id) ON DELETE CASCADE\n);`,
+              practicalTip: 'Dengan <code>REFERENCES siswa(id)</code>, PostgreSQL menjamin tidak akan ada projek "yatim piatu" yang merujuk ke ID siswa fiktif!'
+            },
+            // Latihan 4.1
+            {
+              type: 'fill',
+              title: 'Latihan 4.1: Mendefinisikan Foreign Key dengan REFERENCES',
+              content: 'Sesuai Konsep 4.1, kata kunci <code>REFERENCES nama_tabel_induk(kolom_pk)</code> digunakan untuk menghubungkan kolom Foreign Key ke tabel induk.',
+              prompt: 'Lengkapi definisi kolom "siswa_id" pada tabel projek_informatika agar terhubung ke kolom "id" milik tabel "siswa":',
+              codePrefix: 'siswa_id INT',
+              codeSuffix: 'ON DELETE CASCADE',
+              options: ['REFERENCES siswa(id)', 'JOIN siswa(id)', 'FOREIGN siswa.id'],
+              answer: 'REFERENCES siswa(id)',
+              explanation: 'Tepat! Sintaks siswa_id INT REFERENCES siswa(id) membentuk relasi Foreign Key ke tabel siswa.'
+            },
+            // Konsep 4.2
+            {
+              type: 'theory',
+              title: 'Konsep 4.2: Menggabungkan Dua Tabel dengan INNER JOIN ... ON',
+              content: 'Ketika data sudah dipisah ke tabel <code>projek_informatika</code> dan tabel <code>siswa</code>, bagaimana cara menampilkan <strong>judul projek beserta nama siswa pembuatnya</strong> dalam satu tabel hasil?<br><br>Kita menggunakan perintah <code>INNER JOIN</code> diikuti klausa <code>ON</code> yang mencocokkan Foreign Key dengan Primary Key.',
+              syntaxAnatomy: [
+                { syntax: 'SELECT projek_informatika.judul, siswa.nama', role: 'Kolom Lintas Tabel', desc: 'Mengambil kolom "judul" dari tabel projek dan kolom "nama" dari tabel siswa.' },
+                { syntax: 'FROM projek_informatika', role: 'Tabel Pertama', desc: 'Tabel utama yang dibaca.' },
+                { syntax: 'INNER JOIN siswa', role: 'Tabel Kedua', desc: 'Menggabungkan dengan tabel "siswa".' },
+                { syntax: 'ON projek_informatika.siswa_id = siswa.id;', role: 'Kunci Pencocokan (ON)', desc: 'Menghubungkan baris di mana siswa_id pada projek sama dengan id pada tabel siswa.' }
+              ],
+              codeExample: `SELECT projek_informatika.judul, siswa.nama\nFROM projek_informatika\nINNER JOIN siswa\nON projek_informatika.siswa_id = siswa.id;`,
+              practicalTip: 'Rumus mudah mengingat JOIN: <code>INNER JOIN tabel_tujuan ON tabel_anak.foreign_key = tabel_induk.id</code>.'
+            },
+            // Latihan 4.2
+            {
+              type: 'arrange',
+              title: 'Latihan 4.2: Menyusun Query INNER JOIN Dua Tabel',
+              content: 'Gunakan rumus dari Konsep 4.2 untuk menggabungkan tabel <code>projek_informatika</code> dengan tabel <code>siswa</code> menggunakan <code>INNER JOIN</code> dan <code>ON</code>.',
+              prompt: 'Susun blok kode berikut untuk menampilkan judul projek beserta nama siswa pembuatnya:',
+              tokens: [
+                'SELECT projek_informatika.judul, siswa.nama',
+                'FROM projek_informatika',
+                'INNER JOIN siswa',
+                'ON projek_informatika.siswa_id = siswa.id;'
+              ],
+              distractors: ['WHERE NULL', 'VALUES'],
+              explanation: 'Luar biasa! INNER JOIN siswa ON projek_informatika.siswa_id = siswa.id berhasil menyatukan informasi dari kedua tabel.'
+            },
+            // Konsep 4.3
+            {
+              type: 'theory',
+              title: 'Konsep 4.3: Fungsi Agregasi (COUNT, AVG, MAX) & GROUP BY',
+              content: 'PostgreSQL menyediakan fungsi matematika bawaan (<strong>Fungsi Agregasi</strong>) untuk merangkum data, serta klausa <code>GROUP BY</code> untuk mengelompokkan hasil perhitungan per kategori (misalnya rata-rata nilai per kelas).',
+              syntaxAnatomy: [
+                { syntax: 'COUNT(*)', role: 'Hitung Jumlah Baris', desc: 'Menghitung total banyaknya baris data.' },
+                { syntax: 'AVG(nilai)', role: 'Hitung Rata-rata', desc: 'Menghitung nilai rata-rata (Average) dari kolom angka "nilai".' },
+                { syntax: 'MAX(nilai)', role: 'Nilai Maksimum', desc: 'Mencari angka paling tinggi pada kolom "nilai".' },
+                { syntax: 'GROUP BY kelas', role: 'Pengelompokan Kategori', desc: 'Mengelompokkan hasil perhitungan COUNT atau AVG berdasarkan masing-masing kelas.' }
+              ],
+              codeExample: `-- Menghitung jumlah siswa & rata-rata nilai untuk setiap kelas:\nSELECT kelas, COUNT(*), AVG(nilai)\nFROM siswa\nGROUP BY kelas;`,
+              practicalTip: 'Jika kamu menampilkan kolom biasa (seperti <code>kelas</code>) bersama fungsi agregasi (seperti <code>COUNT(*)</code> atau <code>AVG(nilai)</code>), kamu wajib mencantumkan <code>GROUP BY kelas</code> di akhir query.'
+            },
+            // Latihan 4.3
+            {
+              type: 'fill',
+              title: 'Latihan 4.3: Menghitung Rata-rata per Kelas dengan AVG & GROUP BY',
+              content: 'Sesuai Konsep 4.3, fungsi <code>COUNT(*)</code> menghitung jumlah baris, <code>AVG(nilai)</code> menghitung rata-rata nilai, dan <code>GROUP BY kelas</code> mengelompokkannya per kelas.',
+              prompt: 'Lengkapi query berikut untuk menampilkan kelas, jumlah siswa, dan rata-rata nilai yang dikelompokkan per kelas:',
+              codePrefix: 'SELECT kelas, COUNT(*),',
+              codeSuffix: 'FROM siswa GROUP BY kelas;',
+              options: ['AVG(nilai)', 'JOIN(nilai)', 'LIMIT(nilai)'],
+              answer: 'AVG(nilai)',
+              explanation: 'Tepat sekali! AVG(nilai) menghitung rata-rata kolom nilai untuk setiap kelompok kelas yang ditentukan oleh GROUP BY kelas.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 5: MENGENAL EKOSISTEM SUPABASE & INISIALISASI CLIENT JS
+        // =========================================================================
+        {
+          id: 5,
+          title: 'Mengenal Ekosistem Supabase & Inisialisasi Client JS',
+          category: 'Supabase Core',
+          theme: 'supa',
+          icon: 'ph-fill ph-lightning',
+          xpReward: 85,
+          description: 'Pahami arsitektur Supabase (PostgreSQL + PostgREST API), kredensial SUPABASE_URL & ANON_KEY, fungsi createClient(), serta pola async/await { data, error }.',
+          tags: ['PostgREST API', 'createClient()', 'SUPABASE_ANON_KEY', 'async / await', 'data & error'],
+          steps: [
+            // Konsep 5.1
+            {
+              type: 'theory',
+              title: 'Konsep 5.1: Arsitektur Supabase & Peran PostgREST',
+              content: 'Secara tradisional, aplikasi web (HTML/Vue/React) tidak bisa langsung terhubung ke database PostgreSQL dari browser. Kita harus membuat server backend terlebih dahulu.<br><br><strong>Supabase</strong> memangkas kerumitan itu sebagai platform <em>Backend-as-a-Service (BaaS)</em> berbasis <strong>PostgreSQL 100% asli</strong>. Begitu kamu membuat tabel di Supabase, komponen bernama <strong>PostgREST</strong> secara otomatis membuatkan REST API instan sehingga aplikasi webmu bisa langsung mengambil dan menyimpan data!',
+              syntaxAnatomy: [
+                { syntax: 'Database PostgreSQL', role: 'Inti Penyimpanan', desc: 'Setiap proyek Supabase memiliki mesin database PostgreSQL murni.' },
+                { syntax: 'PostgREST', role: 'Generator API Instan', desc: 'Mengubah tabel PostgreSQL menjadi REST API otomatis tanpa perlu koding server.' },
+                { syntax: 'Table Editor', role: 'Antarmuka Spreadsheet', desc: 'Menu visual di dashboard Supabase untuk membuat tabel & mengedit data seperti Excel.' },
+                { syntax: 'SQL Editor', role: 'Terminal Query SQL', desc: 'Menu di dashboard Supabase untuk menjalankan script CREATE TABLE, JOIN, atau RLS.' }
+              ],
+              visualTable: {
+                caption: 'Alur Kerja Aplikasi Web dengan Supabase',
+                headers: ['Aplikasi Web (Vue / HTML)', 'Jembatan Otomatis', 'Database Backend'],
+                rows: [
+                  ['Kode JavaScript (@supabase/supabase-js)', 'PostgREST (Auto REST API)', 'Tabel PostgreSQL (public.siswa)']
+                ]
+              },
+              practicalTip: 'Tabel yang kamu buat di <strong>Table Editor</strong> maupun lewat <strong>SQL Editor</strong> berada di database PostgreSQL yang sama dan langsung memiliki API otomatis berkat PostgREST.'
+            },
+            // Latihan 5.1
+            {
+              type: 'quiz',
+              title: 'Latihan 5.1: Arsitektur Supabase & PostgREST',
+              content: 'Mari tinjau kembali cara Supabase menghubungkan database PostgreSQL dengan aplikasi web berdasarkan Konsep 5.1.',
+              question: 'Komponen apa di dalam arsitektur Supabase yang bertugas mengubah tabel PostgreSQL menjadi REST API secara otomatis?',
+              options: [
+                'PostgREST',
+                'Microsoft Excel',
+                'CSS Grid',
+                'HTML Canvas'
+              ],
+              correctIndex: 0,
+              explanation: 'Benar! Sesuai Konsep 5.1, PostgREST adalah layanan di Supabase yang secara otomatis menerjemahkan tabel PostgreSQL menjadi endpoint REST API siap pakai.'
+            },
+            // Konsep 5.2
+            {
+              type: 'theory',
+              title: 'Konsep 5.2: Kredensial Proyek & Fungsi createClient()',
+              content: 'Untuk menghubungkan kode JavaScript di website kita ke proyek Supabase, kita memerlukan library resmi <code>@supabase/supabase-js</code> dan dua kredensial dari menu <em>Project Settings &gt; API</em>:<br>1. <code>supabaseUrl</code>: Alamat URL unik proyek Supabase kamu.<br>2. <code>supabaseKey</code> (<code>anon public key</code>): Kunci akses publik untuk aplikasi frontend.<br><br>Kedua nilai tersebut dimasukkan ke dalam fungsi <code>createClient(supabaseUrl, supabaseKey)</code>.',
+              syntaxAnatomy: [
+                { syntax: "import { createClient } from '@supabase/supabase-js'", role: 'Impor Fungsi SDK', desc: 'Mengambil fungsi pembuat koneksi dari paket resmi Supabase JS.' },
+                { syntax: 'supabaseUrl', role: 'Parameter ke-1 (URL)', desc: 'Alamat URL proyek (contoh: https://xyz.supabase.co).' },
+                { syntax: 'supabaseKey', role: 'Parameter ke-2 (Anon Key)', desc: 'Kunci API publik (anon key) yang dikirim di setiap permintaan.' },
+                { syntax: 'const supabase = createClient(supabaseUrl, supabaseKey);', role: 'Inisialisasi Client', desc: 'Membuat objek "supabase" yang siap dipakai memanggil tabel.' }
+              ],
+              codeExample: `import { createClient } from '@supabase/supabase-js';\n\nconst supabaseUrl = 'https://xyzcompany.supabase.co';\nconst supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6...';\n\nconst supabase = createClient(supabaseUrl, supabaseKey);`,
+              practicalTip: 'Urutan argumen di dalam <code>createClient(supabaseUrl, supabaseKey)</code> tidak boleh terbalik: masukkan <strong>URL</strong> terlebih dahulu, baru diikuti <strong>Key</strong>.'
+            },
+            // Latihan 5.2
+            {
+              type: 'arrange',
+              title: 'Latihan 5.2: Inisialisasi Koneksi dengan createClient()',
+              content: 'Berdasarkan Konsep 5.2, susunlah baris kode JavaScript untuk menginisialisasi variabel <code>supabase</code> menggunakan fungsi <code>createClient</code>.',
+              prompt: 'Susun blok kode berikut untuk membuat koneksi Supabase Client:',
+              tokens: ['const', 'supabase', '=', 'createClient(', 'supabaseUrl,', 'supabaseKey', ');'],
+              distractors: ['createTable(', 'SELECT'],
+              explanation: 'Tepat! const supabase = createClient(supabaseUrl, supabaseKey); membuat instance koneksi yang siap digunakan di seluruh aplikasi.'
+            },
+            // Konsep 5.3
+            {
+              type: 'theory',
+              title: 'Konsep 5.3: Pola async/await & Destructuring Respons { data, error }',
+              content: 'Mengambil data dari database melalui internet membutuhkan waktu beberapa milidetik. Oleh karena itu, setiap pemanggilan Supabase JS bersifat <strong>Asynchronous</strong> dan selalu diawali kata kunci <code>await</code>.<br><br>Uniknya, Supabase selalu mengembalikan sebuah objek yang memiliki dua properti utama: <code>{ data, error }</code>:<br>• Jika berhasil: <code>data</code> berisi array baris tabel, dan <code>error</code> bernilai <code>null</code>.<br>• Jika gagal: <code>data</code> bernilai <code>null</code>, dan <code>error</code> berisi pesan kesalahan.',
+              syntaxAnatomy: [
+                { syntax: 'const { data, error } =', role: 'Object Destructuring', desc: 'Menangkap hasil data tabel ke variabel "data" dan pesan kendala ke variabel "error".' },
+                { syntax: 'await', role: 'Tunggu Respons Server', desc: 'Menunggu hingga proses pengambilan data dari server Supabase selesai.' },
+                { syntax: "supabase.from('siswa').select('*')", role: 'Pemanggilan Tabel', desc: 'Meminta seluruh baris dari tabel "siswa".' }
+              ],
+              codeExample: `async function muatSiswa() {\n  const { data, error } = await supabase\n    .from('siswa')\n    .select('*');\n\n  if (error) {\n    console.error('Gagal memuat:', error.message);\n  } else {\n    console.log('Data siswa:', data);\n  }\n}`,
+              practicalTip: 'Selalu gunakan pola <code>const { data, error } = await supabase...</code> agar aplikasimu mudah mengecek apakah query berhasil atau mengalami error.'
+            },
+            // Latihan 5.3
+            {
+              type: 'fill',
+              title: 'Latihan 5.3: Menangkap Respons { data, error } dengan await',
+              content: 'Sesuai Konsep 5.3, kita menggunakan destructuring <code>{ data, error }</code> dan kata kunci <code>await</code> saat memanggil Supabase.',
+              prompt: 'Lengkapi baris kode berikut untuk menangkap respons data dan error dari Supabase secara asynchronous:',
+              codePrefix: 'const',
+              codeSuffix: "= await supabase.from('siswa').select('*');",
+              options: ['{ data, error }', '[ rows, status ]', '( table, sql )'],
+              answer: '{ data, error }',
+              explanation: 'Sempurna! const { data, error } = await supabase... adalah pola standar di setiap pemanggilan Supabase Client JS.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 6: MEMBACA & MENYARING DATA DENGAN SUPABASE JS SDK
+        // =========================================================================
+        {
+          id: 6,
+          title: 'Membaca & Menyaring Data dengan Supabase JS SDK',
+          category: 'Supabase Query',
+          theme: 'supa',
+          icon: 'ph-fill ph-funnel',
+          xpReward: 95,
+          description: 'Terjemahkan query SELECT, WHERE, ORDER BY, dan LIMIT ke method rantai JavaScript: .from().select(), .eq(), .gt(), .gte(), .ilike(), .order(), dan .limit().',
+          tags: ['.select()', '.eq() & .gte()', '.ilike()', '.order()', '.limit()'],
+          steps: [
+            // Konsep 6.1
+            {
+              type: 'theory',
+              title: 'Konsep 6.1: Membaca Semua Kolom vs Kolom Spesifik di Supabase JS',
+              content: 'Di Bab 2 kita telah belajar <code>SELECT *</code> dan <code>SELECT nama, kelas</code> di SQL. Bagaimana cara menulisnya di JavaScript menggunakan Supabase SDK?<br><br>Kita selalu memulai dengan <code>supabase.from(\'nama_tabel\')</code> lalu merangkainya dengan method <code>.select()</code>:<br>• <code>.select(\'*\')</code> mengambil semua kolom.<br>• <code>.select(\'nama, kelas\')</code> hanya mengambil kolom <code>nama</code> dan <code>kelas</code> (ditulis dalam satu string dipisahkan koma).',
+              syntaxAnatomy: [
+                { syntax: ".from('siswa')", role: 'Pilih Tabel Tujuan', desc: 'Setara dengan klausa FROM siswa pada SQL.' },
+                { syntax: ".select('*')", role: 'Ambil Semua Kolom', desc: 'Setara dengan SELECT * pada SQL.' },
+                { syntax: ".select('nama, kelas')", role: 'Ambil Kolom Tertentu', desc: 'Setara dengan SELECT nama, kelas pada SQL.' }
+              ],
+              codeExample: `// 1. Mengambil semua kolom:\nconst { data } = await supabase\n  .from('siswa')\n  .select('*');\n\n// 2. Mengambil hanya kolom nama dan kelas:\nconst { data } = await supabase\n  .from('siswa')\n  .select('nama, kelas');`,
+              practicalTip: 'Perhatikan bahwa di dalam <code>.select(\'nama, kelas\')</code>, daftar nama kolom dibungkus di dalam satu tanda kutip tunggal sebagai satu teks.'
+            },
+            // Latihan 6.1
+            {
+              type: 'arrange',
+              title: 'Latihan 6.1: Membaca Kolom nama dan kelas dengan Supabase JS',
+              content: 'Terapkan Konsep 6.1 untuk mengambil hanya kolom <code>nama, kelas</code> dari tabel <code>siswa</code> menggunakan Supabase JS.',
+              prompt: 'Susun blok kode berikut untuk membaca kolom nama dan kelas dari tabel siswa:',
+              tokens: ['const { data, error } =', 'await supabase', ".from('siswa')", ".select('nama, kelas');"],
+              distractors: ['.where()', 'FROM siswa'],
+              explanation: 'Mantap! Rangkaian supabase.from(\'siswa\').select(\'nama, kelas\') mengambil kedua kolom tersebut dan mengembalikannya sebagai array JSON.'
+            },
+            // Konsep 6.2
+            {
+              type: 'theory',
+              title: 'Konsep 6.2: Method Penyaringan Data (.eq, .gt, .gte, .ilike)',
+              content: 'Di Supabase JS, kita tidak menulis kata <code>WHERE</code>. Sebagai gantinya, kita menyambungkan (<em>chaining</em>) method filter setelah <code>.select()</code>.<br><br>Jika kita menyambungkan dua method filter berurutan, Supabase otomatis menggabungkannya dengan logika <strong>AND</strong>!',
+              syntaxAnatomy: [
+                { syntax: ".eq('kelas', 'XI-A')", role: 'Equals (Sama Dengan =)', desc: "Setara dengan WHERE kelas = 'XI-A'." },
+                { syntax: ".gt('nilai', 80)", role: 'Greater Than (Lebih Dari >)', desc: 'Setara dengan WHERE nilai > 80.' },
+                { syntax: ".gte('nilai', 85)", role: 'Greater Than or Equal (>=)', desc: 'Setara dengan WHERE nilai >= 85 (minimal 85).' },
+                { syntax: ".ilike('nama', '%budi%')", role: 'Pencarian Teks (Case-Insensitive)', desc: 'Mencari teks yang mengandung kata "budi" tanpa peduli huruf besar/kecil.' }
+              ],
+              codeExample: `// Mencari siswa kelas 'XI-A' DAN memiliki nilai >= 85:\nconst { data, error } = await supabase\n  .from('siswa')\n  .select('*')\n  .eq('kelas', 'XI-A')\n  .gte('nilai', 85);`,
+              practicalTip: 'Ingat singkatan bahasa Inggrisnya: <code>eq</code> = <em>equal</em> (<code>=</code>), <code>gt</code> = <em>greater than</em> (<code>&gt;</code>), dan <code>gte</code> = <em>greater than or equal</em> (<code>&gt;=</code>).'
+            },
+            // Latihan 6.2
+            {
+              type: 'arrange',
+              title: 'Latihan 6.2: Menyaring dengan .eq() dan .gte()',
+              content: 'Sesuai contoh pada Konsep 6.2, susun kode Supabase JS untuk mengambil semua kolom dari tabel <code>siswa</code> yang berada di kelas <code>\'XI-A\'</code> (<code>.eq</code>) dan memiliki nilai minimal <code>85</code> (<code>.gte</code>).',
+              prompt: 'Susun blok kode berikut untuk menerapkan kedua filter tersebut:',
+              tokens: [
+                'await supabase',
+                ".from('siswa')",
+                ".select('*')",
+                ".eq('kelas', 'XI-A')",
+                ".gte('nilai', 85);"
+              ],
+              distractors: ['.where()', '.and()'],
+              explanation: 'Tepat sekali! Merangkai .eq(\'kelas\', \'XI-A\') dengan .gte(\'nilai\', 85) otomatis menjalankan WHERE kelas = \'XI-A\' AND nilai >= 85.'
+            },
+            // Konsep 6.3
+            {
+              type: 'theory',
+              title: 'Konsep 6.3: Mengurutkan (.order) & Membatasi Hasil (.limit)',
+              content: 'Untuk mengurutkan hasil di Supabase JS, gunakan method <code>.order(\'nama_kolom\', { ascending: false })</code>, lalu batasi jumlah barisnya dengan <code>.limit(angka)</code>.',
+              syntaxAnatomy: [
+                { syntax: ".order('nilai', { ascending: true })", role: 'Urut Naik (ASC)', desc: 'Mengurutkan kolom nilai dari terkecil ke terbesar.' },
+                { syntax: ".order('nilai', { ascending: false })", role: 'Urut Turun (DESC)', desc: 'Mengurutkan kolom nilai dari terbesar ke terkecil (tertinggi dulu).' },
+                { syntax: '.limit(5)', role: 'Batasi Jumlah Baris', desc: 'Hanya mengambil maksimal 5 baris teratas.' }
+              ],
+              codeExample: `// Mengambil 5 siswa dengan nilai tertinggi:\nconst { data, error } = await supabase\n  .from('siswa')\n  .select('nama, nilai')\n  .order('nilai', { ascending: false })\n  .limit(5);`,
+              practicalTip: 'Karena <em>ascending</em> artinya naik (kecil ke besar), maka untuk mengurutkan dari <strong>nilai tertinggi ke terendah (DESC)</strong> kita memberi nilai <code>{ ascending: false }</code>.'
+            },
+            // Latihan 6.3
+            {
+              type: 'fill',
+              title: 'Latihan 6.3: Mengurutkan Nilai Tertinggi dengan .order() & .limit()',
+              content: 'Berdasarkan Konsep 6.3, gunakan <code>.order(\'nilai\', { ascending: false })</code> untuk mengurutkan dari nilai tertinggi ke terendah.',
+              prompt: 'Lengkapi kode berikut untuk menampilkan 5 siswa dengan nilai tertinggi:',
+              codePrefix: "await supabase.from('siswa').select('nama, nilai')",
+              codeSuffix: '.limit(5);',
+              options: [
+                ".order('nilai', { ascending: false })",
+                ".sort('nilai', 'DESC')",
+                ".orderBy('nilai')"
+              ],
+              answer: ".order('nilai', { ascending: false })",
+              explanation: 'Benar! Method .order(\'nilai\', { ascending: false }) diikuti .limit(5) mengambil 5 siswa dengan nilai paling tinggi.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 7: MENAMBAH, MENGUBAH, MENGHAPUS & RELASI DATA DI SUPABASE JS
+        // =========================================================================
+        {
+          id: 7,
+          title: 'Menambah, Mengubah, Menghapus & Relasi Data di Supabase JS',
+          category: 'Supabase Mutasi & Relasi',
+          theme: 'supa',
+          icon: 'ph-fill ph-arrows-clockwise',
+          xpReward: 105,
+          description: 'Kuasai operasi tulis dan relasi di Supabase JS: menambahkan data dengan .insert([...]).select(), mengubah dengan .update(), menghapus dengan .delete(), serta nested relational query.',
+          tags: ['.insert([...])', '.update({...})', '.delete()', 'Relational .select()'],
+          steps: [
+            // Konsep 7.1
+            {
+              type: 'theory',
+              title: 'Konsep 7.1: Menambahkan Data Baru dengan .insert([...]).select()',
+              content: 'Untuk menyimpan data baru dari aplikasi web ke tabel Supabase, gunakan method <code>.insert([...])</code>.<br><br>Data yang dikirim berbentuk <strong>Array of Objects</strong> (<code>[{ kolom: nilai }]</code>) sehingga kita bisa memasukkan satu atau banyak baris sekaligus. Pada Supabase JS v2, kita merangkaikan <code>.select()</code> di belakang <code>.insert()</code> agar baris yang baru saja tersimpan (beserta <code>id</code> barunya) dikembalikan ke variabel <code>data</code>.',
+              syntaxAnatomy: [
+                { syntax: ".from('siswa')", role: 'Tabel Tujuan', desc: 'Menentukan tabel tempat data baru disimpan.' },
+                { syntax: '.insert([ ... ])', role: 'Method Tambah Data', desc: 'Menerima array berisi objek data baris baru.' },
+                { syntax: "{ nama: 'Dinda', kelas: 'X-A', nilai: 92 }", role: 'Objek Data Baru', desc: 'Pasangan nama_kolom: nilai yang akan disimpan.' },
+                { syntax: '.select()', role: 'Kembalikan Data Baru', desc: 'Meminta Supabase mengembalikan baris yang baru saja berhasil dimasukkan.' }
+              ],
+              codeExample: `const { data, error } = await supabase\n  .from('siswa')\n  .insert([\n    { nama: 'Dinda', kelas: 'X-A', nilai: 92 }\n  ])\n  .select();`,
+              practicalTip: 'Menambahkan <code>.select()</code> setelah <code>.insert([...])</code> sangat berguna agar tampilan tabel di layar website bisa langsung diperbarui dengan data baru tersebut!'
+            },
+            // Latihan 7.1
+            {
+              type: 'arrange',
+              title: 'Latihan 7.1: Menyimpan Siswa Baru dengan .insert().select()',
+              content: 'Gunakan anatomi dari Konsep 7.1 untuk menyimpan siswa baru bernama <code>\'Dinda\'</code>, kelas <code>\'X-A\'</code>, nilai <code>92</code> ke tabel <code>siswa</code> lalu mengembalikan hasilnya.',
+              prompt: 'Susun blok kode berikut untuk menjalankan operasi insert di Supabase JS:',
+              tokens: [
+                'await supabase',
+                ".from('siswa')",
+                '.insert([',
+                "{ nama: 'Dinda', kelas: 'X-A', nilai: 92 }",
+                '])',
+                '.select();'
+              ],
+              distractors: ['.values()', 'INTO'],
+              explanation: 'Bagus sekali! Rangkaian .from(\'siswa\').insert([{ nama: \'Dinda\', kelas: \'X-A\', nilai: 92 }]).select() sudah lengkap dan akurat.'
+            },
+            // Konsep 7.2
+            {
+              type: 'theory',
+              title: 'Konsep 7.2: Mengubah (.update) & Menghapus Data (.delete) di Supabase JS',
+              content: 'Untuk memperbarui atau menghapus baris tertentu di Supabase JS, kita wajib menyertakan filter seperti <code>.eq(\'id\', nilaiId)</code> di belakangnya:<br>• <strong>Update Data</strong>: <code>.update({ kolom: nilaiBaru }).eq(\'id\', 2)</code><br>• <strong>Delete Data</strong>: <code>.delete().eq(\'id\', 2)</code>',
+              syntaxAnatomy: [
+                { syntax: '.update({ nilai: 98 })', role: 'Method Ubah Data', desc: 'Menerima objek berisi kolom dan nilai baru yang ingin diubah (setara SET nilai = 98).' },
+                { syntax: '.delete()', role: 'Method Hapus Data', desc: 'Menandai operasi penghapusan baris (setara DELETE FROM).' },
+                { syntax: ".eq('id', 2)", role: 'Filter Baris Wajib', desc: 'Menentukan bahwa hanya baris dengan id = 2 yang diubah atau dihapus.' }
+              ],
+              codeExample: `// 1. Mengubah nilai siswa ber-ID 2 menjadi 98:\nawait supabase\n  .from('siswa')\n  .update({ nilai: 98 })\n  .eq('id', 2);\n\n// 2. Menghapus siswa ber-ID 2:\nawait supabase\n  .from('siswa')\n  .delete()\n  .eq('id', 2);`,
+              practicalTip: 'Demi keamanan, Supabase secara otomatis menolak perintah <code>.update()</code> atau <code>.delete()</code> yang tidak disertai method filter seperti <code>.eq()</code>.'
+            },
+            // Latihan 7.2
+            {
+              type: 'fill',
+              title: 'Latihan 7.2: Memperbarui Data Siswa dengan .update() dan .eq()',
+              content: 'Sesuai Konsep 7.2, gunakan <code>.update({ nilai: 98 })</code> diikuti <code>.eq(\'id\', 2)</code> untuk memperbarui data siswa yang memiliki ID 2.',
+              prompt: 'Lengkapi kode berikut untuk mengubah nilai menjadi 98 pada siswa dengan id = 2:',
+              codePrefix: "await supabase.from('siswa')",
+              codeSuffix: ".eq('id', 2);",
+              options: [
+                '.update({ nilai: 98 })',
+                '.set(nilai = 98)',
+                '.insert({ nilai: 98 })'
+              ],
+              answer: '.update({ nilai: 98 })',
+              explanation: 'Tepat! Method .update({ nilai: 98 }).eq(\'id\', 2) mengubah kolom nilai menjadi 98 khusus untuk baris ber-ID 2.'
+            },
+            // Konsep 7.3
+            {
+              type: 'theory',
+              title: 'Konsep 7.3: Membaca Data Berelasi (Nested Relational Select)',
+              content: 'Ingat perintah <code>INNER JOIN</code> di Bab 4? Di Supabase JS, kita <strong>tidak perlu menulis INNER JOIN panjang</strong>! Selama tabel <code>projek_informatika</code> memiliki Foreign Key ke tabel <code>siswa</code>, kita cukup menulis nama tabel relasinya di dalam <code>.select()</code> seperti ini:<br><code>.select(\'judul_projek, kategori, siswa(nama, kelas)\')</code>',
+              syntaxAnatomy: [
+                { syntax: ".from('projek_informatika')", role: 'Tabel Utama', desc: 'Membaca data dari tabel projek_informatika.' },
+                { syntax: 'judul_projek, kategori,', role: 'Kolom Tabel Utama', desc: 'Mengambil kolom judul_projek dan kategori dari tabel projek.' },
+                { syntax: 'siswa(nama, kelas)', role: 'Nested Join Otomatis', desc: 'Otomatis melakukan JOIN ke tabel "siswa" dan mengambil kolom "nama" serta "kelas" pemilik projek!' }
+              ],
+              codeExample: `const { data, error } = await supabase\n  .from('projek_informatika')\n  .select('judul_projek, kategori, siswa(nama, kelas)');`,
+              practicalTip: 'Fitur <em>Nested Relational Query</em> (<code>siswa(nama, kelas)</code>) adalah salah satu fitur paling disukai developer di Supabase karena PostgREST mendeteksi Foreign Key secara otomatis!'
+            },
+            // Latihan 7.3
+            {
+              type: 'arrange',
+              title: 'Latihan 7.3: Mengambil Data Projek Beserta Relasi Siswa',
+              content: 'Berdasarkan Konsep 7.3, susun kode Supabase JS untuk mengambil <code>judul_projek, kategori</code> dari tabel <code>projek_informatika</code> beserta data relasi <code>siswa(nama, kelas)</code>.',
+              prompt: 'Susun blok kode berikut untuk melakukan relational query di Supabase JS:',
+              tokens: [
+                'await supabase',
+                ".from('projek_informatika')",
+                ".select('judul_projek, kategori, siswa(nama, kelas)');"
+              ],
+              distractors: ['.innerJoin()', 'ON siswa.id'],
+              explanation: 'Sempurna! Dengan .select(\'judul_projek, kategori, siswa(nama, kelas)\'), Supabase otomatis menggabungkan data projek beserta objek siswa pembuatnya.'
+            }
+          ]
+        },
+
+        // =========================================================================
+        // BAB 8: KEAMANAN DATABASE & ROW LEVEL SECURITY (RLS)
+        // =========================================================================
+        {
+          id: 8,
+          title: 'Keamanan Database & Row Level Security (RLS)',
+          category: 'Security & RLS',
+          theme: 'purple',
+          icon: 'ph-fill ph-shield-check',
+          xpReward: 120,
+          description: 'Lindungi database dari akses ilegal menggunakan Row Level Security (RLS), pahami klausa USING vs WITH CHECK pada CREATE POLICY, serta otorisasi pengguna login dengan auth.uid().',
+          tags: ['ENABLE RLS', 'CREATE POLICY', 'USING vs WITH CHECK', 'auth.uid()'],
+          steps: [
+            // Konsep 8.1
+            {
+              type: 'theory',
+              title: 'Konsep 8.1: Mengapa RLS Wajib? Mengaktifkan RLS & Default-Deny',
+              content: 'Karena kode JavaScript website berjalan di browser pengguna, siapa pun dapat membuka <em>Inspect Element</em> dan melihat <code>SUPABASE_ANON_KEY</code> kita. Jika tabel tidak dilindungi, orang jahil bisa menjalankan <code>supabase.from(\'siswa\').delete()</code>!<br><br>Solusinya adalah fitur <strong>Row Level Security (RLS)</strong> milik PostgreSQL. Saat RLS diaktifkan dengan perintah <code>ALTER TABLE nama_tabel ENABLE ROW LEVEL SECURITY;</code>, tabel langsung masuk ke mode <strong>Default-Deny</strong> (menolak seluruh akses dan mengembalikan array kosong <code>[]</code> sampai kita membuat aturan <em>Policy</em>).',
+              syntaxAnatomy: [
+                { syntax: 'ALTER TABLE siswa', role: 'Ubah Pengaturan Tabel', desc: 'Memodifikasi konfigurasi keamanan pada tabel "siswa".' },
+                { syntax: 'ENABLE ROW LEVEL SECURITY;', role: 'Aktifkan Perisai RLS', desc: 'Menyalakan perlindungan tingkat baris pada tabel tersebut.' },
+                { syntax: 'Default-Deny (Tolak Semua)', role: 'Perilaku Bawaan RLS', desc: 'Begitu RLS aktif tanpa Policy, semua request dari luar ditolak otomatis demi keamanan.' }
+              ],
+              codeExample: `-- Mengaktifkan Row Level Security pada tabel siswa:\nALTER TABLE siswa ENABLE ROW LEVEL SECURITY;`,
+              practicalTip: 'Setiap kali kamu membuat tabel publik di Supabase, pastikan RLS selalu dalam keadaan <strong>Enabled (Aktif)</strong>.'
+            },
+            // Latihan 8.1
+            {
+              type: 'arrange',
+              title: 'Latihan 8.1: Mengaktifkan Row Level Security pada Tabel siswa',
+              content: 'Gunakan perintah SQL dari Konsep 8.1 untuk menyalakan fitur <code>ROW LEVEL SECURITY</code> pada tabel <code>siswa</code>.',
+              prompt: 'Susun blok kode berikut untuk mengaktifkan RLS pada tabel siswa:',
+              tokens: ['ALTER TABLE', 'siswa', 'ENABLE', 'ROW LEVEL SECURITY;'],
+              distractors: ['CREATE TABLE', 'SELECT *'],
+              explanation: 'Tepat! ALTER TABLE siswa ENABLE ROW LEVEL SECURITY; mengaktifkan perisai keamanan tingkat baris pada tabel siswa.'
+            },
+            // Konsep 8.2
+            {
+              type: 'theory',
+              title: 'Konsep 8.2: Anatomi CREATE POLICY, Operasi CRUD & USING vs WITH CHECK',
+              content: 'Setelah RLS aktif, kita harus membuat aturan izin yang disebut <strong>Policy</strong> menggunakan perintah <code>CREATE POLICY</code>.<br><br>Di dalam Policy, kita menentukan:<br>1. <strong>Operasi yang diizinkan</strong>: <code>FOR SELECT</code> (baca), <code>FOR INSERT</code> (tambah), <code>FOR UPDATE</code> (ubah), atau <code>FOR DELETE</code> (hapus).<br>2. <strong>Klausa Pengecekan</strong>:<br>• <code>USING (kondisi)</code>: Mengecek baris yang <strong>sudah ada di tabel</strong> (dipakai pada <code>SELECT</code>, <code>UPDATE</code>, dan <code>DELETE</code>). Jika diisi <code>USING (true)</code>, berarti semua orang diizinkan.<br>• <code>WITH CHECK (kondisi)</code>: Mengecek baris <strong>baru yang akan dimasukkan/diubah</strong> (dipakai pada <code>INSERT</code> dan <code>UPDATE</code>).',
+              syntaxAnatomy: [
+                { syntax: 'CREATE POLICY "Baca Publik"', role: 'Nama Aturan Policy', desc: 'Membuat aturan baru dengan nama deskriptif di dalam tanda kutip ganda.' },
+                { syntax: 'ON siswa', role: 'Tabel Target', desc: 'Menerapkan policy tersebut pada tabel "siswa".' },
+                { syntax: 'FOR SELECT', role: 'Jenis Operasi', desc: 'Aturan ini hanya berlaku untuk operasi membaca data (SELECT).' },
+                { syntax: 'USING (true);', role: 'Syarat Baris Lama', desc: 'Nilai true berarti seluruh baris diizinkan untuk dibaca oleh publik.' },
+                { syntax: 'WITH CHECK (kondisi)', role: 'Syarat Data Baru', desc: 'Memvalidasi apakah baris baru yang dikirim saat INSERT/UPDATE memenuhi syarat.' }
+              ],
+              codeExample: `-- Mengizinkan semua pengunjung membaca data tabel siswa:\nCREATE POLICY "Baca Publik"\nON siswa\nFOR SELECT\nUSING (true);`,
+              practicalTip: 'Dengan hanya membuat policy <code>FOR SELECT USING (true)</code>, pengunjung website bisa membaca daftar siswa, tetapi tetap <strong>tidak bisa menghapus atau mengubah</strong> data karena belum ada policy untuk <code>DELETE</code> maupun <code>UPDATE</code>!'
+            },
+            // Latihan 8.2
+            {
+              type: 'arrange',
+              title: 'Latihan 8.2: Membuat Policy Akses Baca Publik (FOR SELECT)',
+              content: 'Sesuai Konsep 8.2, susun perintah pembuatan policy bernama <code>"Baca Publik"</code> pada tabel <code>siswa</code> khusus untuk operasi <code>FOR SELECT</code> dengan syarat <code>USING (true);</code>.',
+              prompt: 'Susun blok kode berikut untuk membuat Policy baca publik:',
+              tokens: ['CREATE POLICY', '"Baca Publik"', 'ON siswa', 'FOR SELECT', 'USING (true);'],
+              distractors: ['DROP POLICY', 'WHERE false'],
+              explanation: 'Mantap! CREATE POLICY "Baca Publik" ON siswa FOR SELECT USING (true); membuka izin baca tanpa membuka celah hapus/ubah.'
+            },
+            // Konsep 8.3
+            {
+              type: 'theory',
+              title: 'Konsep 8.3: Membatasi Akses Milik Sendiri dengan auth.uid() = user_id',
+              content: 'Bagaimana agar seorang siswa yang sudah login hanya bisa menambah atau mengubah projek miliknya sendiri dan tidak bisa mengutak-atik projek temannya?<br><br>Supabase menyediakan fungsi khusus bernama <code>auth.uid()</code> yang mengembalikan ID unik dari pengguna yang sedang login saat itu. Kita cukup membandingkannya dengan kolom <code>user_id</code> pada tabel: <code>auth.uid() = user_id</code>.',
+              syntaxAnatomy: [
+                { syntax: 'auth.uid()', role: 'ID User yang Sedang Login', desc: 'Fungsi bawaan Supabase Auth yang mengambil UUID pengguna yang sedang aktif.' },
+                { syntax: 'user_id', role: 'Kolom Pemilik Baris', desc: 'Kolom pada tabel yang menyimpan ID pengguna pemilik baris data tersebut.' },
+                { syntax: 'WITH CHECK (auth.uid() = user_id)', role: 'Proteksi Saat INSERT', desc: 'Memastikan user hanya bisa menambahkan baris baru atas namanya sendiri.' },
+                { syntax: 'USING (auth.uid() = user_id)', role: 'Proteksi Saat UPDATE/DELETE', desc: 'Memastikan user hanya bisa mengubah/menghapus baris yang user_id-nya cocok dengan dirinya.' }
+              ],
+              codeExample: `-- 1. Policy INSERT: User hanya boleh menambah data miliknya sendiri\nCREATE POLICY "Tambah Projek Sendiri"\nON projek_informatika FOR INSERT\nWITH CHECK (auth.uid() = user_id);\n\n-- 2. Policy UPDATE: User hanya boleh mengubah baris miliknya sendiri\nCREATE POLICY "Ubah Projek Sendiri"\nON projek_informatika FOR UPDATE\nUSING (auth.uid() = user_id)\nWITH CHECK (auth.uid() = user_id);`,
+              practicalTip: 'Rumus emas keamanan Supabase: gunakan <code>auth.uid() = user_id</code> di dalam <code>WITH CHECK</code> untuk <code>FOR INSERT</code>, serta di dalam <code>USING</code> dan <code>WITH CHECK</code> untuk <code>FOR UPDATE</code>.'
+            },
+            // Latihan 8.3
+            {
+              type: 'fill',
+              title: 'Latihan 8.3: Memverifikasi Pemilik Data dengan auth.uid() = user_id',
+              content: 'Berdasarkan Konsep 8.3, fungsi <code>auth.uid()</code> dibandingkan dengan kolom <code>user_id</code> untuk memastikan pengguna hanya bisa memodifikasi datanya sendiri.',
+              prompt: 'Lengkapi Policy FOR UPDATE di bawah ini agar siswa hanya dapat mengubah projek miliknya sendiri:',
+              codePrefix: 'CREATE POLICY "Ubah Projek Sendiri" ON projek_informatika FOR UPDATE USING (',
+              codeSuffix: ') WITH CHECK (auth.uid() = user_id);',
+              options: [
+                'auth.uid() = user_id',
+                'true = false',
+                'SELECT * FROM siswa'
+              ],
+              answer: 'auth.uid() = user_id',
+              explanation: 'Luar biasa! Kamu telah menguasai konsep keamanan Row Level Security (RLS) dan otorisasi pengguna menggunakan auth.uid() = user_id.'
+            }
+          ]
+        }
+      ],
+
+      // ==================== ACTIVE LESSON PLAYER STATE ====================
+      activeLesson: null,
+      currentStepIndex: 0,
+      lessonCompletedScreen: false,
+      showPrevConceptHint: false,
+      arrangedTokens: [],
+      availablePoolTokens: [],
+      fillSelectedOption: '',
+      quizSelectedOption: null,
+      feedbackState: {
+        visible: false,
+        isCorrect: false,
+        title: '',
+        explanation: ''
+      },
+
+      // ==================== SANDBOX STATE ====================
+      sandboxMode: 'sql',
+      activeSandboxTable: 'siswa',
+      sandboxResultView: 'table',
+      sandboxCode: 'SELECT * FROM siswa WHERE kelas = 12 ORDER BY skor_coding DESC;',
+      dbTables: {
+        siswa: [],
+        projek_informatika: []
+      },
+      sandboxResult: {
+        statusText: '200 OK',
+        data: [],
+        error: null,
+        explanation: 'Menampilkan seluruh baris dari tabel siswa.'
+      },
+
+      // ==================== CHEAT SHEET DATA ====================
+      cheatSearch: '',
+      cheatSheetItems: [
+        {
+          category: 'Membaca Data (Read)',
+          title: 'Mengambil Semua Kolom & Baris',
+          desc: 'Membaca seluruh data yang tersimpan di dalam tabel siswa.',
+          table: 'siswa',
+          sql: 'SELECT * FROM siswa;',
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .select('*');"
+        },
+        {
+          category: 'Membaca Data (Read)',
+          title: 'Mengambil Kolom Tertentu Saja',
+          desc: 'Hanya mengambil kolom nama dan jurusan agar lebih hemat bandwidth.',
+          table: 'siswa',
+          sql: 'SELECT nama, jurusan FROM siswa;',
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .select('nama, jurusan');"
+        },
+        {
+          category: 'Menyaring Data (Filter)',
+          title: 'Filter Sama Dengan (WHERE / .eq)',
+          desc: 'Menyaring siswa yang berada di jurusan RPL.',
+          table: 'siswa',
+          sql: "SELECT * FROM siswa WHERE jurusan = 'RPL';",
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .select('*')\n  .eq('jurusan', 'RPL');"
+        },
+        {
+          category: 'Menyaring Data (Filter)',
+          title: 'Filter Lebih Besar Dari (WHERE > / .gt)',
+          desc: 'Menyaring siswa dengan skor_coding di atas 88.',
+          table: 'siswa',
+          sql: 'SELECT * FROM siswa WHERE skor_coding > 88;',
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .select('*')\n  .gt('skor_coding', 88);"
+        },
+        {
+          category: 'Pengurutan & Batas',
+          title: 'Urutkan Terbesar ke Terkecil (ORDER BY / .order)',
+          desc: 'Mengurutkan siswa berdasarkan skor_coding tertinggi.',
+          table: 'siswa',
+          sql: 'SELECT * FROM siswa ORDER BY skor_coding DESC;',
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .select('*')\n  .order('skor_coding', { ascending: false });"
+        },
+        {
+          category: 'Menambah Data (Create)',
+          title: 'Menambahkan Baris Baru (INSERT / .insert)',
+          desc: 'Menyimpan satu data siswa baru ke dalam tabel.',
+          table: 'siswa',
+          sql: "INSERT INTO siswa (nama, kelas, jurusan, skor_coding)\nVALUES ('Fajar Nugraha', 11, 'SIJA', 91);",
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .insert([{ nama: 'Fajar Nugraha', kelas: 11, jurusan: 'SIJA', skor_coding: 91 }])\n  .select();"
+        },
+        {
+          category: 'Memperbarui & Menghapus',
+          title: 'Mengubah Data Baris (UPDATE / .update)',
+          desc: 'Mengubah skor_coding milik siswa ber-ID 2 menjadi 96.',
+          table: 'siswa',
+          sql: 'UPDATE siswa SET skor_coding = 96 WHERE id = 2;',
+          supabase: "const { data, error } = await supabase\n  .from('siswa')\n  .update({ skor_coding: 96 })\n  .eq('id', 2);"
+        },
+        {
+          category: 'Relasi & Keamanan',
+          title: 'Menggabungkan Dua Tabel (INNER JOIN / Relational Select)',
+          desc: 'Menampilkan judul projek beserta nama siswa pembuatnya.',
+          table: 'projek_informatika',
+          sql: 'SELECT projek_informatika.judul_projek, siswa.nama FROM projek_informatika INNER JOIN siswa ON projek_informatika.siswa_id = siswa.id;',
+          supabase: "const { data, error } = await supabase\n  .from('projek_informatika')\n  .select('judul_projek, kategori, siswa(nama, jurusan)');"
+        }
+      ]
+    };
+  },
+
+  computed: {
+    userLevel() {
+      return Math.floor(this.stats.xp / 100) + 1;
+    },
+    levelTitle() {
+      const titles = ['Penjelajah SQL', 'Perancang Tabel', 'Arsitek Postgres', 'Praktisi Supabase', 'Master Backend'];
+      return titles[Math.min(this.userLevel - 1, titles.length - 1)];
+    },
+    levelProgressPercent() {
+      return this.stats.xp % 100;
+    },
+    overallProgressPercent() {
+      return Math.round((this.stats.completedModules.length / this.modules.length) * 100);
+    },
+    nextModuleIndex() {
+      const idx = this.modules.findIndex(m => !this.stats.completedModules.includes(m.id));
+      return idx === -1 ? 0 : idx;
+    },
+    completedQuestsCount() {
+      return this.dailyQuests.filter(q => q.current >= q.target).length;
+    },
+    currentStep() {
+      if (!this.activeLesson) return null;
+      return this.activeLesson.steps[this.currentStepIndex];
+    },
+    previousConceptStep() {
+      if (!this.activeLesson || this.currentStepIndex === 0) return null;
+      for (let i = this.currentStepIndex - 1; i >= 0; i--) {
+        if (this.activeLesson.steps[i].type === 'theory') {
+          return this.activeLesson.steps[i];
+        }
+      }
+      return null;
+    },
+    lessonProgressPercent() {
+      if (!this.activeLesson) return 0;
+      if (this.lessonCompletedScreen) return 100;
+      return Math.round(((this.currentStepIndex + 1) / this.activeLesson.steps.length) * 100);
+    },
+    canCheckAnswer() {
+      if (!this.currentStep) return false;
+      if (this.currentStep.type === 'arrange') return this.arrangedTokens.length > 0;
+      if (this.currentStep.type === 'fill') return this.fillSelectedOption !== '';
+      if (this.currentStep.type === 'quiz') return this.quizSelectedOption !== null;
+      return true;
+    },
+    currentTableColumns() {
+      if (this.activeSandboxTable === 'siswa') {
+        return [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'nama', type: 'text', pk: false },
+          { name: 'kelas', type: 'int4', pk: false },
+          { name: 'jurusan', type: 'text', pk: false },
+          { name: 'skor_coding', type: 'int4', pk: false }
+        ];
+      }
+      return [
+        { name: 'id', type: 'serial', pk: true },
+        { name: 'judul_projek', type: 'text', pk: false },
+        { name: 'kategori', type: 'text', pk: false },
+        { name: 'bintang', type: 'int4', pk: false },
+        { name: 'status', type: 'text', pk: false },
+        { name: 'siswa_id', type: 'int4 (FK)', pk: false }
+      ];
+    },
+    currentSandboxPresets() {
+      if (this.sandboxMode === 'sql') {
+        return [
+          {
+            label: 'Semua Siswa',
+            table: 'siswa',
+            code: 'SELECT * FROM siswa;'
+          },
+          {
+            label: 'Filter Kelas 12 & Urut Skor',
+            table: 'siswa',
+            code: 'SELECT * FROM siswa WHERE kelas = 12 ORDER BY skor_coding DESC;'
+          },
+          {
+            label: 'Tambah Siswa (INSERT)',
+            table: 'siswa',
+            code: "INSERT INTO siswa (nama, kelas, jurusan, skor_coding) VALUES ('Nabila Putri', 11, 'RPL', 94);"
+          },
+          {
+            label: 'Ubah Skor (UPDATE)',
+            table: 'siswa',
+            code: 'UPDATE siswa SET skor_coding = 99 WHERE id = 1;'
+          },
+          {
+            label: 'Hapus Baris (DELETE)',
+            table: 'siswa',
+            code: 'DELETE FROM siswa WHERE id = 4;'
+          },
+          {
+            label: 'INNER JOIN Projek & Siswa',
+            table: 'projek_informatika',
+            code: 'SELECT projek_informatika.judul_projek, siswa.nama FROM projek_informatika INNER JOIN siswa ON projek_informatika.siswa_id = siswa.id;'
+          }
+        ];
+      }
+      return [
+        {
+          label: ".from('siswa').select('*')",
+          table: 'siswa',
+          code: "await supabase.from('siswa').select('*')"
+        },
+        {
+          label: "Filter .eq('jurusan', 'RPL')",
+          table: 'siswa',
+          code: "await supabase.from('siswa').select('*').eq('jurusan', 'RPL')"
+        },
+        {
+          label: 'Urut & Batas .order().limit(3)',
+          table: 'siswa',
+          code: "await supabase.from('siswa').select('nama, skor_coding').order('skor_coding', { ascending: false }).limit(3)"
+        },
+        {
+          label: 'Tambah Data .insert([...])',
+          table: 'siswa',
+          code: "await supabase.from('siswa').insert([{ nama: 'Galih Pratama', kelas: 12, jurusan: 'RPL', skor_coding: 91 }]).select()"
+        },
+        {
+          label: "Update .update().eq('id', 2)",
+          table: 'siswa',
+          code: "await supabase.from('siswa').update({ skor_coding: 96 }).eq('id', 2)"
+        },
+        {
+          label: "Relasi .select('..., siswa(...)')",
+          table: 'projek_informatika',
+          code: "await supabase.from('projek_informatika').select('judul_projek, kategori, siswa(nama, jurusan)')"
+        }
+      ];
+    },
+    filteredCheatSheet() {
+      const q = this.cheatSearch.trim().toLowerCase();
+      if (!q) return this.cheatSheetItems;
+      return this.cheatSheetItems.filter(
+        item =>
+          item.title.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q) ||
+          item.sql.toLowerCase().includes(q) ||
+          item.supabase.toLowerCase().includes(q)
+      );
+    },
+    achievements() {
+      return [
+        {
+          id: 'b1',
+          title: 'Fondasi & CRUD SQL',
+          desc: 'Menyelesaikan Bab 1, 2, dan 3 PostgreSQL',
+          icon: 'ph-fill ph-table',
+          unlocked: [1, 2, 3].every(id => this.stats.completedModules.includes(id))
+        },
+        {
+          id: 'b2',
+          title: 'Arsitek Relasi & JOIN',
+          desc: 'Menyelesaikan Bab 4 Foreign Key, JOIN & Agregasi',
+          icon: 'ph-fill ph-git-merge',
+          unlocked: this.stats.completedModules.includes(4)
+        },
+        {
+          id: 'b3',
+          title: 'Praktisi Supabase SDK',
+          desc: 'Menyelesaikan Bab 5, 6, dan 7 Supabase Client JS',
+          icon: 'ph-fill ph-lightning',
+          unlocked: [5, 6, 7].every(id => this.stats.completedModules.includes(id))
+        },
+        {
+          id: 'b4',
+          title: 'Penjaga Keamanan RLS',
+          desc: 'Menyelesaikan Bab 8 Row Level Security & Policy',
+          icon: 'ph-fill ph-shield-check',
+          unlocked: this.stats.completedModules.includes(8)
+        },
+        {
+          id: 'b5',
+          title: 'Eksperimenter Sandbox',
+          desc: 'Menjalankan minimal 3 simulasi query di Sandbox',
+          icon: 'ph-fill ph-terminal-window',
+          unlocked: this.stats.queriesRun >= 3
+        },
+        {
+          id: 'b6',
+          title: 'Lulusan Terbaik SupaLearn',
+          desc: 'Menyelesaikan seluruh 8 Bab kurikulum pembelajaran',
+          icon: 'ph-fill ph-trophy',
+          unlocked: this.stats.completedModules.length === this.modules.length
+        }
+      ];
+    }
+  },
+
+  created() {
+    this.loadProgress();
+    this.resetSandboxTables(false);
+    this.executeSandboxQuery(false);
+  },
+
+  methods: {
+    // ==================== AUDIO FEEDBACK (WEB AUDIO API) ====================
+    playTone(type) {
+      if (!this.soundEnabled) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+        if (type === 'tap') {
+          osc.frequency.setValueAtTime(420, now);
+          gain.gain.setValueAtTime(0.06, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        } else if (type === 'success') {
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.setValueAtTime(659.25, now + 0.09);
+          osc.frequency.setValueAtTime(783.99, now + 0.18);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.setValueAtTime(175, now + 0.12);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+          osc.start(now);
+          osc.stop(now + 0.28);
+        }
+      } catch (e) {
+        // Ignore audio context restriction errors
+      }
+    },
+
+    showToast(msg) {
+      this.toastMessage = msg;
+      setTimeout(() => {
+        if (this.toastMessage === msg) this.toastMessage = '';
+      }, 2800);
+    },
+
+    // ==================== MODULE & LESSON FLOW ====================
+    isModuleCompleted(id) {
+      return this.stats.completedModules.includes(id);
+    },
+
+    startNextUnfinishedModule() {
+      const target = this.modules[this.nextModuleIndex] || this.modules[0];
+      this.openModule(target);
+    },
+
+    openModule(mod) {
+      if (this.stats.hearts <= 0) {
+        this.stats.hearts = 5;
+        this.showToast('Energi hati telah diisi penuh kembali! Selamat belajar.');
+      }
+      this.activeLesson = mod;
+      this.currentStepIndex = 0;
+      this.lessonCompletedScreen = false;
+      this.setupCurrentStepState();
+    },
+
+    closeLessonModal() {
+      this.activeLesson = null;
+      this.lessonCompletedScreen = false;
+    },
+
+    stepTypeLabel(type) {
+      if (type === 'theory') return 'Konsep & Bedah Sintaks';
+      if (type === 'arrange') return 'Susun Blok Kode';
+      if (type === 'fill') return 'Lengkapi Sintaks';
+      return 'Kuis Pemahaman';
+    },
+
+    setupCurrentStepState() {
+      this.feedbackState = {
+        visible: false,
+        isCorrect: false,
+        title: '',
+        explanation: ''
+      };
+      this.showPrevConceptHint = false;
+      this.arrangedTokens = [];
+      this.fillSelectedOption = '';
+      this.quizSelectedOption = null;
+
+      if (!this.currentStep) return;
+
+      if (this.currentStep.type === 'arrange') {
+        const combined = [
+          ...this.currentStep.tokens,
+          ...(this.currentStep.distractors || [])
+        ];
+        const shuffled = combined
+          .map((text, idx) => ({ uid: idx + '-' + text, text, used: false }))
+          .sort(() => Math.random() - 0.5);
+        this.availablePoolTokens = shuffled;
+      }
+    },
+
+    prevLessonStep() {
+      if (this.currentStepIndex > 0) {
+        this.currentStepIndex--;
+        this.setupCurrentStepState();
+      }
+    },
+
+    selectArrangeToken(token) {
+      if (token.used || this.feedbackState.visible) return;
+      this.playTone('tap');
+      token.used = true;
+      this.arrangedTokens.push(token);
+    },
+
+    removeArrangedToken(idx) {
+      if (this.feedbackState.visible) return;
+      this.playTone('tap');
+      const removed = this.arrangedTokens.splice(idx, 1)[0];
+      if (removed) {
+        const found = this.availablePoolTokens.find(t => t.uid === removed.uid);
+        if (found) found.used = false;
+      }
+    },
+
+    selectFillOption(opt) {
+      if (this.feedbackState.visible) return;
+      this.playTone('tap');
+      this.fillSelectedOption = opt;
+    },
+
+    selectQuizOption(idx) {
+      if (this.feedbackState.visible) return;
+      this.playTone('tap');
+      this.quizSelectedOption = idx;
+    },
+
+    checkStepAnswer() {
+      const step = this.currentStep;
+      let correct = false;
+
+      if (step.type === 'arrange') {
+        const userJoined = this.arrangedTokens.map(t => t.text).join(' ').trim();
+        const targetJoined = step.tokens.join(' ').trim();
+        correct = userJoined === targetJoined;
+      } else if (step.type === 'fill') {
+        correct = this.fillSelectedOption === step.answer;
+      } else if (step.type === 'quiz') {
+        correct = this.quizSelectedOption === step.correctIndex;
+      }
+
+      if (correct) {
+        this.playTone('success');
+        this.stats.xp += 15;
+        this.incrementQuest('q2', 1);
+        this.incrementQuest('q3', 1);
+        this.feedbackState = {
+          visible: true,
+          isCorrect: true,
+          title: 'Benar! Kerja bagus! (+15 XP)',
+          explanation: step.explanation
+        };
+      } else {
+        this.playTone('error');
+        if (this.stats.hearts > 0) this.stats.hearts--;
+        this.feedbackState = {
+          visible: true,
+          isCorrect: false,
+          title: 'Belum tepat, mari periksa kembali!',
+          explanation: step.explanation
+        };
+      }
+      this.saveProgress();
+    },
+
+    handlePostFeedbackAction() {
+      if (this.feedbackState.isCorrect) {
+        this.nextLessonStep();
+      } else {
+        this.setupCurrentStepState();
+      }
+    },
+
+    nextLessonStep() {
+      this.playTone('tap');
+      if (this.currentStepIndex + 1 < this.activeLesson.steps.length) {
+        this.currentStepIndex++;
+        this.setupCurrentStepState();
+      } else {
+        this.completeActiveLesson();
+      }
+    },
+
+    completeActiveLesson() {
+      this.playTone('success');
+      this.lessonCompletedScreen = true;
+      if (!this.stats.completedModules.includes(this.activeLesson.id)) {
+        this.stats.completedModules.push(this.activeLesson.id);
+        this.stats.xp += this.activeLesson.xpReward;
+      } else {
+        this.stats.xp += 20;
+      }
+      this.incrementQuest('q1', 1);
+      this.saveProgress();
+    },
+
+    refillHearts() {
+      this.stats.hearts = 5;
+      this.playTone('success');
+      this.showToast('Energi Hati diisi ulang menjadi 5/5!');
+      this.saveProgress();
+    },
+
+    incrementQuest(questId, amount) {
+      const q = this.dailyQuests.find(item => item.id === questId);
+      if (q && q.current < q.target) {
+        q.current = Math.min(q.target, q.current + amount);
+        if (q.current === q.target) {
+          this.stats.xp += q.xp;
+          this.showToast(`Misi Harian Selesai: ${q.title} (+${q.xp} XP)`);
+        }
+      }
+    },
+
+    // ==================== SANDBOX ENGINE (SQL & SUPABASE JS) ====================
+    resetSandboxTables(notify = true) {
+      this.dbTables.siswa = [
+        { id: 1, nama: 'Budi Santoso', kelas: 12, jurusan: 'RPL', skor_coding: 92 },
+        { id: 2, nama: 'Siti Aminah', kelas: 11, jurusan: 'TKJ', skor_coding: 85 },
+        { id: 3, nama: 'Dimas Pratama', kelas: 12, jurusan: 'RPL', skor_coding: 89 },
+        { id: 4, nama: 'Alya Putri', kelas: 10, jurusan: 'DKV', skor_coding: 78 },
+        { id: 5, nama: 'Rizky Ramadhan', kelas: 12, jurusan: 'SIJA', skor_coding: 95 }
+      ];
+      this.dbTables.projek_informatika = [
+        { id: 1, judul_projek: 'Aplikasi Kasir Sekolah', kategori: 'Web App', bintang: 48, status: 'Rilis', siswa_id: 1 },
+        { id: 2, judul_projek: 'Bot Absensi Telegram', kategori: 'Automation', bintang: 62, status: 'Rilis', siswa_id: 3 },
+        { id: 3, judul_projek: 'Portal Perpustakaan Digital', kategori: 'Web App', bintang: 35, status: 'Beta', siswa_id: 2 },
+        { id: 4, judul_projek: 'Sistem Monitoring IoT Hidroponik', kategori: 'IoT', bintang: 74, status: 'Rilis', siswa_id: 5 }
+      ];
+      if (notify) {
+        this.executeSandboxQuery(false);
+        this.showToast('Data tabel Sandbox berhasil dikembalikan ke kondisi awal.');
+      }
+    },
+
+    switchSandboxMode(mode) {
+      this.sandboxMode = mode;
+      const firstPreset = this.currentSandboxPresets[0];
+      if (firstPreset) {
+        this.loadPreset(firstPreset);
+      }
+    },
+
+    loadPreset(preset) {
+      this.activeSandboxTable = preset.table;
+      this.sandboxCode = preset.code;
+      this.executeSandboxQuery(true);
+    },
+
+    // PENTING: Menjalankan simulasi tabel TIDAK menambah XP dan TIDAK menaikkan Level
+    executeSandboxQuery(countStats = true) {
+      const raw = this.sandboxCode.trim();
+      this.sandboxResult.error = null;
+
+      try {
+        if (this.sandboxMode === 'sql') {
+          this.runSqlInterpreter(raw);
+        } else {
+          this.runSupabaseJsInterpreter(raw);
+        }
+        if (countStats) {
+          this.stats.queriesRun++;
+          this.playTone('tap');
+          this.saveProgress();
+        }
+      } catch (err) {
+        this.sandboxResult.statusText = '400 Syntax Error';
+        this.sandboxResult.error = err.message;
+      }
+    },
+
+    runSqlInterpreter(sql) {
+      const clean = sql.replace(/;$/, '').trim();
+
+      // 1. Check if INSERT INTO
+      const insertMatch = clean.match(/^INSERT\s+INTO\s+(\w+)\s*\(([^)]+)\)\s*VALUES\s*\(([^)]+)\)/i);
+      if (insertMatch) {
+        const tableName = insertMatch[1].toLowerCase();
+        if (!this.dbTables[tableName]) {
+          throw new Error(`Tabel "${tableName}" tidak ditemukan. Gunakan tabel "siswa" atau "projek_informatika".`);
+        }
+        const cols = insertMatch[2].split(',').map(c => c.trim());
+        const vals = insertMatch[3].split(',').map(v => {
+          const trimmed = v.trim();
+          if (/^'.*'$/.test(trimmed) || /^".*"$/.test(trimmed)) {
+            return trimmed.slice(1, -1);
+          }
+          return isNaN(Number(trimmed)) ? trimmed : Number(trimmed);
+        });
+
+        const nextId = this.dbTables[tableName].reduce((max, r) => Math.max(max, r.id || 0), 0) + 1;
+        const newRow = { id: nextId };
+        cols.forEach((col, i) => {
+          newRow[col] = vals[i];
+        });
+        this.dbTables[tableName].push(newRow);
+        this.activeSandboxTable = tableName;
+        this.sandboxResult.statusText = '201 Created (INSERT 0 1)';
+        this.sandboxResult.data = [newRow];
+        this.sandboxResult.explanation = `Perintah INSERT INTO berhasil menambahkan 1 baris baru ke dalam tabel "${tableName}" dengan ID otomatis ${newRow.id}.`;
+        return;
+      }
+
+      // 2. Check if UPDATE ... SET ... WHERE
+      const updateMatch = clean.match(/^UPDATE\s+(\w+)\s+SET\s+(\w+)\s*=\s*(.+?)(?:\s+WHERE\s+(\w+)\s*=\s*(.+))?$/i);
+      if (updateMatch) {
+        const tableName = updateMatch[1].toLowerCase();
+        if (!this.dbTables[tableName]) {
+          throw new Error(`Tabel "${tableName}" tidak ditemukan.`);
+        }
+        const setCol = updateMatch[2].trim();
+        let setVal = updateMatch[3].trim().replace(/^['"]|['"]$/g, '');
+        if (!isNaN(Number(setVal))) setVal = Number(setVal);
+
+        const whereCol = updateMatch[4];
+        const whereVal = updateMatch[5] ? updateMatch[5].trim().replace(/^['"]|['"]$/g, '') : null;
+
+        const updatedRows = [];
+        this.dbTables[tableName].forEach(row => {
+          if (!whereCol || String(row[whereCol]).toLowerCase() === String(whereVal).toLowerCase()) {
+            row[setCol] = setVal;
+            updatedRows.push({ ...row });
+          }
+        });
+        this.activeSandboxTable = tableName;
+        this.sandboxResult.statusText = `200 OK (UPDATE ${updatedRows.length})`;
+        this.sandboxResult.data = updatedRows;
+        this.sandboxResult.explanation = `Perintah UPDATE berhasil memperbarui kolom "${setCol}" menjadi "${setVal}" pada ${updatedRows.length} baris di tabel "${tableName}".`;
+        return;
+      }
+
+      // 3. Check if DELETE FROM ... WHERE
+      const deleteMatch = clean.match(/^DELETE\s+FROM\s+(\w+)(?:\s+WHERE\s+(\w+)\s*=\s*(.+))?$/i);
+      if (deleteMatch) {
+        const tableName = deleteMatch[1].toLowerCase();
+        if (!this.dbTables[tableName]) {
+          throw new Error(`Tabel "${tableName}" tidak ditemukan.`);
+        }
+        const whereCol = deleteMatch[2];
+        const whereVal = deleteMatch[3] ? deleteMatch[3].trim().replace(/^['"]|['"]$/g, '') : null;
+        if (!whereCol) {
+          throw new Error('Demi keamanan latihan, sertakan klausa WHERE pada perintah DELETE FROM (contoh: WHERE id = 4).');
+        }
+        const removed = [];
+        this.dbTables[tableName] = this.dbTables[tableName].filter(row => {
+          const match = String(row[whereCol]).toLowerCase() === String(whereVal).toLowerCase();
+          if (match) removed.push(row);
+          return !match;
+        });
+        this.activeSandboxTable = tableName;
+        this.sandboxResult.statusText = `200 OK (DELETE ${removed.length})`;
+        this.sandboxResult.data = removed;
+        this.sandboxResult.explanation = `Perintah DELETE FROM berhasil menghapus ${removed.length} baris dari tabel "${tableName}" yang memenuhi kondisi WHERE ${whereCol} = ${whereVal}.`;
+        return;
+      }
+
+      // 4. Check if SELECT ... INNER JOIN
+      const joinMatch = clean.match(/^SELECT\s+(.+?)\s+FROM\s+(\w+)\s+INNER\s+JOIN\s+(\w+)\s+ON\s+([\w.]+)\s*=\s*([\w.]+)$/i);
+      if (joinMatch) {
+        const selectCols = joinMatch[1].split(',').map(s => s.trim());
+        const t1 = joinMatch[2].toLowerCase();
+        const t2 = joinMatch[3].toLowerCase();
+        if (!this.dbTables[t1] || !this.dbTables[t2]) {
+          throw new Error('Tabel pada INNER JOIN tidak ditemukan.');
+        }
+        const joined = [];
+        this.dbTables[t1].forEach(r1 => {
+          this.dbTables[t2].forEach(r2 => {
+            const match = (r1.siswa_id && r1.siswa_id === r2.id) || (r2.siswa_id && r2.siswa_id === r1.id);
+            if (match) {
+              const combined = { ...r1, ...r2 };
+              const projected = {};
+              selectCols.forEach(colExpr => {
+                const parts = colExpr.split('.');
+                const colName = parts[parts.length - 1];
+                projected[colExpr] = combined[colName];
+              });
+              joined.push(projected);
+            }
+          });
+        });
+        this.sandboxResult.statusText = '200 OK (JOIN)';
+        this.sandboxResult.data = joined;
+        this.sandboxResult.explanation = `Perintah INNER JOIN menggabungkan baris dari tabel "${t1}" dan "${t2}" berdasarkan kecocokan Foreign Key siswa_id = id.`;
+        return;
+      }
+
+      // 5. Standard SELECT with optional WHERE, ORDER BY, LIMIT
+      const selectMatch = clean.match(/^SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(\w+)(?:\s+(ASC|DESC))?)?(?:\s+LIMIT\s+(\d+))?$/i);
+      if (!selectMatch) {
+        throw new Error('Format SQL belum sesuai. Gunakan SELECT, INSERT INTO, UPDATE ... SET, DELETE FROM, atau INNER JOIN.');
+      }
+
+      const selectCols = selectMatch[1].trim();
+      const tableName = selectMatch[2].toLowerCase();
+      const whereClause = selectMatch[3];
+      const orderCol = selectMatch[4];
+      const orderDir = (selectMatch[5] || 'ASC').toUpperCase();
+      const limitNum = selectMatch[6] ? Number(selectMatch[6]) : null;
+
+      if (!this.dbTables[tableName]) {
+        throw new Error(`Tabel "${tableName}" tidak ditemukan di database.`);
+      }
+
+      this.activeSandboxTable = tableName;
+      let rows = [...this.dbTables[tableName]];
+      let explanationParts = [`Mengambil data dari tabel "${tableName}"`];
+
+      // Apply WHERE (Supports single condition or AND)
+      if (whereClause) {
+        const subConditions = whereClause.split(/\s+AND\s+/i);
+        subConditions.forEach(condStr => {
+          const condMatch = condStr.trim().match(/^(\w+)\s*(=|>|<|>=|<=)\s*(.+)$/);
+          if (condMatch) {
+            const col = condMatch[1];
+            const op = condMatch[2];
+            let val = condMatch[3].trim().replace(/^['"]|['"]$/g, '');
+            const numVal = Number(val);
+
+            rows = rows.filter(r => {
+              const cell = r[col];
+              if (op === '=') return String(cell).toLowerCase() === String(val).toLowerCase();
+              if (op === '>') return Number(cell) > numVal;
+              if (op === '<') return Number(cell) < numVal;
+              if (op === '>=') return Number(cell) >= numVal;
+              if (op === '<=') return Number(cell) <= numVal;
+              return true;
+            });
+          }
+        });
+        explanationParts.push(`menyaring baris dengan kondisi WHERE ${whereClause}`);
+      }
+
+      // Apply ORDER BY
+      if (orderCol) {
+        rows.sort((a, b) => {
+          if (a[orderCol] < b[orderCol]) return orderDir === 'ASC' ? -1 : 1;
+          if (a[orderCol] > b[orderCol]) return orderDir === 'ASC' ? 1 : -1;
+          return 0;
+        });
+        explanationParts.push(`mengurutkan berdasarkan kolom "${orderCol}" (${orderDir})`);
+      }
+
+      // Apply LIMIT
+      if (limitNum !== null) {
+        rows = rows.slice(0, limitNum);
+        explanationParts.push(`membatasi maksimal ${limitNum} baris teratas (LIMIT ${limitNum})`);
+      }
+
+      // Apply Selected Columns
+      if (selectCols !== '*') {
+        const requested = selectCols.split(',').map(c => c.trim());
+        rows = rows.map(r => {
+          const subset = {};
+          requested.forEach(k => {
+            if (k in r) subset[k] = r[k];
+          });
+          return subset;
+        });
+        explanationParts.push(`hanya mengambil kolom (${requested.join(', ')})`);
+      }
+
+      this.sandboxResult.statusText = '200 OK';
+      this.sandboxResult.data = rows;
+      this.sandboxResult.explanation = explanationParts.join(', lalu ') + `. Ditemukan ${rows.length} baris.`;
+    },
+
+    runSupabaseJsInterpreter(code) {
+      const fromMatch = code.match(/\.from\(\s*['"](\w+)['"]\s*\)/);
+      if (!fromMatch) {
+        throw new Error("Kode harus diawali dengan supabase.from('nama_tabel')");
+      }
+      const tableName = fromMatch[1];
+      if (!this.dbTables[tableName]) {
+        throw new Error(`Tabel "${tableName}" tidak ditemukan. Pilih 'siswa' atau 'projek_informatika'.`);
+      }
+      this.activeSandboxTable = tableName;
+
+      // 1. Check .insert([...])
+      const insertMatch = code.match(/\.insert\(\s*(\[[\s\S]*?\])\s*\)/);
+      if (insertMatch) {
+        const rawObj = insertMatch[1];
+        const jsonReady = rawObj
+          .replace(/(\w+)\s*:/g, '"$1":')
+          .replace(/'/g, '"');
+        const parsedArr = JSON.parse(jsonReady);
+        const insertedRows = [];
+        parsedArr.forEach(item => {
+          const nextId = this.dbTables[tableName].reduce((max, r) => Math.max(max, r.id || 0), 0) + 1;
+          const newRow = { id: nextId, ...item };
+          this.dbTables[tableName].push(newRow);
+          insertedRows.push(newRow);
+        });
+        this.sandboxResult.statusText = '201 Created';
+        this.sandboxResult.data = insertedRows;
+        this.sandboxResult.explanation = `SDK Supabase JS mengubah .insert() menjadi permintaan HTTP POST ke PostgREST dan menyimpan ${insertedRows.length} baris baru ke tabel "${tableName}".`;
+        return;
+      }
+
+      // 2. Check .update({...}).eq('col', val)
+      const updateMatch = code.match(/\.update\(\s*(\{[\s\S]*?\})\s*\)/);
+      if (updateMatch) {
+        const rawObj = updateMatch[1].replace(/(\w+)\s*:/g, '"$1":').replace(/'/g, '"');
+        const changes = JSON.parse(rawObj);
+        const eqMatch = code.match(/\.eq\(\s*['"](\w+)['"]\s*,\s*(['"]?[^)'"]+['"]?)\s*\)/);
+        if (!eqMatch) {
+          throw new Error('Sertakan filter .eq(kolom, nilai) setelah .update() untuk menentukan baris yang diubah.');
+        }
+        const col = eqMatch[1];
+        const val = eqMatch[2].replace(/^['"]|['"]$/g, '');
+        const updated = [];
+        this.dbTables[tableName].forEach(r => {
+          if (String(r[col]).toLowerCase() === String(val).toLowerCase()) {
+            Object.assign(r, changes);
+            updated.push({ ...r });
+          }
+        });
+        this.sandboxResult.statusText = '200 OK (Updated)';
+        this.sandboxResult.data = updated;
+        this.sandboxResult.explanation = `Method .update() memperbarui baris pada tabel "${tableName}" yang memenuhi filter .eq('${col}', ${val}).`;
+        return;
+      }
+
+      // 3. Check .delete().eq('col', val)
+      if (/\.delete\(\s*\)/.test(code)) {
+        const eqMatch = code.match(/\.eq\(\s*['"](\w+)['"]\s*,\s*(['"]?[^)'"]+['"]?)\s*\)/);
+        if (!eqMatch) {
+          throw new Error('Sertakan filter .eq(kolom, nilai) setelah .delete() untuk menentukan baris yang dihapus.');
+        }
+        const col = eqMatch[1];
+        const val = eqMatch[2].replace(/^['"]|['"]$/g, '');
+        const deleted = [];
+        this.dbTables[tableName] = this.dbTables[tableName].filter(r => {
+          const match = String(r[col]).toLowerCase() === String(val).toLowerCase();
+          if (match) deleted.push(r);
+          return !match;
+        });
+        this.sandboxResult.statusText = '200 OK (Deleted)';
+        this.sandboxResult.data = deleted;
+        this.sandboxResult.explanation = `Method .delete().eq('${col}', ${val}) menghapus ${deleted.length} baris dari tabel "${tableName}".`;
+        return;
+      }
+
+      // 4. Check .select(...)
+      const selectMatch = code.match(/\.select\(\s*['"]([^'"]+)['"]\s*\)/);
+      if (!selectMatch) {
+        throw new Error(`Tambahkan method .select('*'), .insert([...]), .update({...}), atau .delete() setelah .from('${tableName}')`);
+      }
+
+      const selectCols = selectMatch[1].trim();
+      let rows = [...this.dbTables[tableName]];
+      let explain = [`Supabase Client memanggil tabel "${tableName}"`];
+
+      // Check .eq('col', val)
+      const eqMatch = code.match(/\.eq\(\s*['"](\w+)['"]\s*,\s*(['"]?[^)'"]+['"]?)\s*\)/);
+      if (eqMatch) {
+        const col = eqMatch[1];
+        const val = eqMatch[2].replace(/^['"]|['"]$/g, '');
+        rows = rows.filter(r => String(r[col]).toLowerCase() === String(val).toLowerCase());
+        explain.push(`menyaring dengan .eq('${col}', '${val}')`);
+      }
+
+      // Check .gt('col', val)
+      const gtMatch = code.match(/\.gt\(\s*['"](\w+)['"]\s*,\s*(\d+)\s*\)/);
+      if (gtMatch) {
+        const col = gtMatch[1];
+        const val = Number(gtMatch[2]);
+        rows = rows.filter(r => Number(r[col]) > val);
+        explain.push(`menyaring dengan .gt('${col}', ${val})`);
+      }
+
+      // Check .gte('col', val)
+      const gteMatch = code.match(/\.gte\(\s*['"](\w+)['"]\s*,\s*(\d+)\s*\)/);
+      if (gteMatch) {
+        const col = gteMatch[1];
+        const val = Number(gteMatch[2]);
+        rows = rows.filter(r => Number(r[col]) >= val);
+        explain.push(`menyaring dengan .gte('${col}', ${val})`);
+      }
+
+      // Check .order('col', { ascending: bool })
+      const orderMatch = code.match(/\.order\(\s*['"](\w+)['"]\s*(?:,\s*\{\s*ascending\s*:\s*(true|false)\s*\})?\s*\)/);
+      if (orderMatch) {
+        const oCol = orderMatch[1];
+        const asc = orderMatch[2] !== 'false';
+        rows.sort((a, b) => {
+          if (a[oCol] < b[oCol]) return asc ? -1 : 1;
+          if (a[oCol] > b[oCol]) return asc ? 1 : -1;
+          return 0;
+        });
+        explain.push(`mengurutkan kolom "${oCol}" secara ${asc ? 'ASC' : 'DESC'}`);
+      }
+
+      // Check .limit(n)
+      const limitMatch = code.match(/\.limit\(\s*(\d+)\s*\)/);
+      if (limitMatch) {
+        const lim = Number(limitMatch[1]);
+        rows = rows.slice(0, lim);
+        explain.push(`membatasi hasil maksimal ${lim} baris`);
+      }
+
+      // Check nested relational query e.g. judul_projek, kategori, siswa(nama, jurusan)
+      const relMatch = selectCols.match(/^(.*?)(\w+)\(([^)]+)\)(.*)$/);
+      if (relMatch) {
+        const relTable = relMatch[2].trim();
+        const relCols = relMatch[3].split(',').map(s => s.trim());
+        const mainCols = relMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+        rows = rows.map(r => {
+          const obj = {};
+          mainCols.forEach(mc => {
+            if (mc in r) obj[mc] = r[mc];
+          });
+          const relatedItem = (this.dbTables[relTable] || []).find(item => item.id === r.siswa_id);
+          if (relatedItem) {
+            const relObj = {};
+            relCols.forEach(rc => {
+              relObj[rc] = relatedItem[rc];
+            });
+            obj[relTable] = JSON.stringify(relObj);
+          } else {
+            obj[relTable] = null;
+          }
+          return obj;
+        });
+        explain.push(`menggabungkan data relasi dari tabel "${relTable}" secara otomatis`);
+      } else if (selectCols !== '*') {
+        const cols = selectCols.split(',').map(c => c.trim());
+        rows = rows.map(r => {
+          const obj = {};
+          cols.forEach(c => {
+            if (c in r) obj[c] = r[c];
+          });
+          return obj;
+        });
+      }
+
+      this.sandboxResult.statusText = '200 OK';
+      this.sandboxResult.data = rows;
+      this.sandboxResult.explanation = explain.join(', lalu ') + `. Mengembalikan JSON berisi ${rows.length} baris data.`;
+    },
+
+    // ==================== CHEAT SHEET ACTIONS ====================
+    copyCode(text) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      this.playTone('tap');
+      this.showToast('Kode berhasil disalin ke clipboard!');
+    },
+
+    tryInSandbox(item) {
+      this.activeTab = 'sandbox';
+      this.activeSandboxTable = item.table || 'siswa';
+      this.sandboxMode = 'sql';
+      this.sandboxCode = item.sql.replace(/\n/g, ' ');
+      this.executeSandboxQuery(true);
+    },
+
+    // ==================== LOCAL STORAGE PERSISTENCE ====================
+    saveProgress() {
+      try {
+        const payload = {
+          studentName: this.studentName,
+          stats: this.stats,
+          dailyQuests: this.dailyQuests
+        };
+        localStorage.setItem('supalearn_progress_v2', JSON.stringify(payload));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    },
+
+    loadProgress() {
+      try {
+        const saved = localStorage.getItem('supalearn_progress_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.studentName) this.studentName = parsed.studentName;
+          if (parsed.stats) this.stats = { ...this.stats, ...parsed.stats };
+          if (parsed.dailyQuests) this.dailyQuests = parsed.dailyQuests;
+        }
+      } catch (e) {
+        // Ignore storage errors
+      }
+    },
+
+    resetAllProgress() {
+      this.stats = {
+        xp: 100,
+        streak: 1,
+        hearts: 5,
+        completedModules: [],
+        queriesRun: 0
+      };
+      this.dailyQuests.forEach(q => {
+        q.current = 0;
+      });
+      this.saveProgress();
+      this.showToast('Seluruh progres belajar telah direset ke awal.');
+    }
+  }
+}).mount('#app');
+</script>
+
+</body>
+</html>
