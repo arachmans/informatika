@@ -51,6 +51,22 @@
       background-color: #F4F7FB;
       color: #1E293B;
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* Hide scrollbar for horizontal chip carousels on mobile */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Safe area padding for modern smartphones */
+    .pb-safe {
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
     }
 
     /* Tactile 3D Button Style Ala Mimo / Duolingo */
@@ -139,16 +155,16 @@
 <div id="app" class="min-h-screen flex flex-col">
 
   <!-- ======================= TOP GAMIFIED BAR ======================= -->
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b-2 border-slate-200/80 px-4 lg:px-8 py-3">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b-2 border-slate-200/80 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
       <!-- Brand Logo -->
-      <div class="flex items-center gap-3 cursor-pointer" @click="activeTab = 'path'">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white shadow-sm border-b-4 border-emerald-700">
-          <i class="ph-fill ph-database text-2xl"></i>
+      <div class="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0" @click="activeTab = 'path'">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white shadow-sm border-b-4 border-emerald-700">
+          <i class="ph-fill ph-database text-lg sm:text-2xl"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-extrabold text-xl tracking-tight text-slate-800">Supa<span class="text-emerald-600">Learn</span></span>
+            <span class="font-extrabold text-base sm:text-xl tracking-tight text-slate-800">Supa<span class="text-emerald-600">Learn</span></span>
             <span class="hidden sm:inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
               PostgreSQL + Supabase
             </span>
@@ -158,50 +174,50 @@
       </div>
 
       <!-- Gamification Pills (Streak, XP, Hearts, Sound) -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-2.5">
         <!-- Streak Pill -->
         <div
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 font-bold text-xs sm:text-sm"
+          class="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 font-extrabold text-xs sm:text-sm"
           title="Rentetan Hari Belajar"
         >
-          <i class="ph-fill ph-fire text-amber-500 text-lg"></i>
+          <i class="ph-fill ph-fire text-amber-500 text-sm sm:text-lg"></i>
           <span>{{ stats.streak }}</span>
           <span class="hidden md:inline text-xs font-semibold text-amber-600">Hari</span>
         </div>
 
         <!-- XP Pill -->
         <div
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-blue-50 border-2 border-blue-200 text-blue-700 font-bold text-xs sm:text-sm"
+          class="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-blue-50 border-2 border-blue-200 text-blue-700 font-extrabold text-xs sm:text-sm"
           title="Total Poin Pengalaman dari Latihan Soal"
         >
-          <i class="ph-fill ph-sparkle text-blue-500 text-lg"></i>
-          <span>{{ stats.xp }} XP</span>
+          <i class="ph-fill ph-sparkle text-blue-500 text-sm sm:text-lg"></i>
+          <span>{{ stats.xp }}<span class="hidden xs:inline"> XP</span></span>
         </div>
 
         <!-- Hearts Pill -->
         <div
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-bold text-xs sm:text-sm cursor-pointer hover:bg-rose-100 transition"
+          class="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 font-extrabold text-xs sm:text-sm cursor-pointer active:scale-95 hover:bg-rose-100 transition"
           @click="refillHearts"
-          title="Klik untuk isi ulang energi hati"
+          title="Ketuk untuk isi ulang energi hati"
         >
-          <i class="ph-fill ph-heart text-rose-500 text-lg"></i>
-          <span>{{ stats.hearts }}/5</span>
+          <i class="ph-fill ph-heart text-rose-500 text-sm sm:text-lg"></i>
+          <span>{{ stats.hearts }}<span class="hidden sm:inline">/5</span></span>
         </div>
 
         <!-- Audio Toggle -->
         <button
           @click="soundEnabled = !soundEnabled"
-          class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 flex items-center justify-center text-slate-600 transition"
+          class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 flex items-center justify-center text-slate-600 transition shrink-0"
           :title="soundEnabled ? 'Suara Aktif' : 'Suara Bisu'"
         >
-          <i :class="soundEnabled ? 'ph-fill ph-speaker-high text-emerald-600' : 'ph ph-speaker-slash text-slate-400'" class="text-lg"></i>
+          <i :class="soundEnabled ? 'ph-fill ph-speaker-high text-emerald-600' : 'ph ph-speaker-slash text-slate-400'" class="text-base sm:text-lg"></i>
         </button>
       </div>
     </div>
   </header>
 
   <!-- ======================= MAIN WORKSPACE ======================= -->
-  <div class="flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 lg:px-8 py-6 pb-24 lg:pb-10">
+  <div class="flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 lg:pb-10">
 
     <!-- LEFT NAVIGATION SIDEBAR (Desktop) -->
     <aside class="hidden lg:flex lg:col-span-3 flex-col gap-5">
@@ -282,36 +298,88 @@
     </aside>
 
     <!-- CENTER / RIGHT MAIN CONTENT AREA -->
-    <main class="lg:col-span-9 space-y-6">
+    <main class="lg:col-span-9 space-y-5 sm:space-y-6">
 
       <!-- =================================================================== -->
       <!-- TAB 1: JALUR BELAJAR ALA MIMO (LEARNING PATH)                       -->
       <!-- =================================================================== -->
-      <section v-if="activeTab === 'path'" class="space-y-6 animate-pop">
-        <!-- Hero Banner -->
-        <div class="card-mimo p-6 sm:p-7 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-blue-50 border-emerald-200 relative overflow-hidden">
-          <div class="max-w-xl relative z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 border border-emerald-200 text-emerald-700 text-xs font-extrabold mb-3">
-              <i class="ph-fill ph-sparkle"></i>
-              <span>Kurikulum Lengkap 8 Bab (48 Langkah Konsep & Latihan)</span>
+      <section v-if="activeTab === 'path'" class="space-y-4 sm:space-y-6 animate-pop">
+
+        <!-- Mobile-Only Compact Level & Daily Mission Bar -->
+        <div class="lg:hidden card-mimo p-3.5 bg-white">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center text-emerald-700 font-black text-sm shrink-0">
+                L{{ userLevel }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="font-extrabold text-slate-800 truncate">{{ levelTitle }}</span>
+                  <span class="font-bold text-emerald-600 shrink-0">{{ overallProgressPercent }}% Lulus</span>
+                </div>
+                <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                  <div
+                    class="h-full bg-gradient-to-r from-emerald-400 to-blue-500 rounded-full transition-all duration-500"
+                    :style="{ width: levelProgressPercent + '%' }"
+                  ></div>
+                </div>
+              </div>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-tight mb-2">
+            <button
+              @click="showMobileQuests = !showMobileQuests"
+              class="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs flex items-center gap-1 shrink-0"
+            >
+              <i class="ph-fill ph-target text-amber-500 text-base"></i>
+              <span>{{ completedQuestsCount }}/{{ dailyQuests.length }}</span>
+              <i :class="['ph-bold', showMobileQuests ? 'ph-caret-up' : 'ph-caret-down']"></i>
+            </button>
+          </div>
+
+          <!-- Expandable Mobile Daily Quests -->
+          <div v-if="showMobileQuests" class="mt-3 pt-3 border-t border-slate-100 space-y-2 animate-pop">
+            <div
+              v-for="quest in dailyQuests"
+              :key="'mob-' + quest.id"
+              class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80"
+            >
+              <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+                <span>{{ quest.title }}</span>
+                <span class="text-emerald-600">+{{ quest.xp }} XP</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-amber-400 rounded-full transition-all duration-300"
+                  :style="{ width: Math.min(100, (quest.current / quest.target) * 100) + '%' }"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Banner -->
+        <div class="card-mimo p-4 sm:p-7 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-blue-50 border-emerald-200 relative overflow-hidden">
+          <div class="max-w-xl relative z-10">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 border border-emerald-200 text-emerald-700 text-[11px] sm:text-xs font-extrabold mb-2.5 sm:mb-3">
+              <i class="ph-fill ph-sparkle"></i>
+              <span>8 Bab Lengkap • 48 Langkah Belajar</span>
+            </div>
+            <h1 class="text-xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-snug mb-2">
               Kuasai <span class="text-blue-600">PostgreSQL</span> & <span class="text-emerald-600">Supabase</span> Langkah demi Langkah
             </h1>
-            <p class="text-sm text-slate-600 leading-relaxed mb-5">
-              Setiap bab dirancang sistematis: pelajari <strong>Konsep & Bedah Sintaks</strong> terlebih dahulu, lalu buktikan pemahamanmu di <strong>Latihan Terpadu</strong> yang langsung menguji materi tersebut.
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 sm:mb-5">
+              Pelajari <strong>Konsep & Bedah Sintaks</strong> terlebih dahulu, lalu buktikan pemahamanmu di <strong>Latihan Terpadu</strong>.
             </p>
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3">
               <button
                 @click="startNextUnfinishedModule"
-                class="btn-3d-emerald text-white font-extrabold text-sm px-5 py-3 rounded-2xl flex items-center gap-2"
+                class="btn-3d-emerald w-full sm:w-auto text-white font-extrabold text-sm px-5 py-3 rounded-2xl flex items-center justify-center gap-2"
               >
                 <i class="ph-fill ph-play-circle text-lg"></i>
                 <span>{{ stats.completedModules.length === 0 ? 'Mulai Bab 1 Sekarang' : 'Lanjutkan Belajar' }}</span>
               </button>
               <button
                 @click="activeTab = 'sandbox'"
-                class="btn-3d-white text-slate-700 font-bold text-sm px-4 py-3 rounded-2xl flex items-center gap-2"
+                class="btn-3d-white w-full sm:w-auto text-slate-700 font-bold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2"
               >
                 <i class="ph-fill ph-terminal-window text-blue-600 text-lg"></i>
                 <span>Buka Simulasi Tabel</span>
@@ -325,39 +393,39 @@
         </div>
 
         <!-- Track Filter / Curriculum Overview -->
-        <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
-            <h2 class="text-lg font-extrabold text-slate-800">Peta Kurikulum Pembelajaran (8 Bab)</h2>
-            <p class="text-xs text-slate-500">Setiap soal latihan dijamin sudah dibahas tuntas pada slide konsep tepat sebelumnya</p>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Peta Kurikulum Pembelajaran (8 Bab)</h2>
+            <p class="text-xs text-slate-500">Setiap latihan dijamin sudah dibahas pada konsep sebelumnya</p>
           </div>
-          <div class="flex items-center gap-2 text-xs font-bold">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200">
+          <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar pb-0.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
               <span class="w-2 h-2 rounded-full bg-blue-500"></span> Bab 1–4: PostgreSQL
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
               <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Bab 5–8: Supabase & RLS
             </span>
           </div>
         </div>
 
         <!-- Mimo-Style Vertical Learning Nodes -->
-        <div class="space-y-4">
+        <div class="space-y-3.5 sm:space-y-4">
           <div
             v-for="(mod, index) in modules"
             :key="mod.id"
-            class="card-mimo p-5 sm:p-6 transition-all"
+            class="card-mimo p-4 sm:p-6 transition-all"
             :class="[
               isModuleCompleted(mod.id)
                 ? 'border-emerald-300 bg-gradient-to-r from-white to-emerald-50/30'
                 : 'border-slate-200 bg-white'
             ]"
           >
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div class="flex items-start gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+              <div class="flex items-start gap-3 sm:gap-4">
                 <!-- Node Icon Badge -->
                 <div
                   :class="[
-                    'w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 border-b-4 relative',
+                    'w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl shrink-0 border-b-4 relative',
                     mod.theme === 'pg'
                       ? 'bg-blue-100 text-blue-700 border-blue-300'
                       : mod.theme === 'supa'
@@ -368,18 +436,18 @@
                   <i :class="mod.icon"></i>
                   <div
                     v-if="isModuleCompleted(mod.id)"
-                    class=" -top-1.5 -right-1.5 absolute w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shadow"
+                    class="-top-1.5 -right-1.5 absolute w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] sm:text-xs shadow"
                   >
                     <i class="ph-bold ph-check"></i>
                   </div>
                 </div>
 
                 <!-- Module Info -->
-                <div class="space-y-1.5">
-                  <div class="flex flex-wrap items-center gap-2">
+                <div class="space-y-1 min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     <span
                       :class="[
-                        'text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-lg',
+                        'text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-lg',
                         mod.theme === 'pg'
                           ? 'bg-blue-50 text-blue-700 border border-blue-200'
                           : mod.theme === 'supa'
@@ -389,23 +457,23 @@
                     >
                       Bab {{ index + 1 }} • {{ mod.category }}
                     </span>
-                    <span class="text-xs font-bold text-slate-400 flex items-center gap-1">
-                      <i class="ph-fill ph-List-checks"></i> {{ mod.steps.length }} Langkah (3 Konsep + 3 Latihan)
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-400 flex items-center gap-1">
+                      <i class="ph-fill ph-list-checks"></i> {{ mod.steps.length }} Langkah
                     </span>
-                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">
+                    <span class="text-[11px] sm:text-xs font-bold text-amber-600 flex items-center gap-0.5">
                       <i class="ph-fill ph-sparkle"></i> +{{ mod.xpReward }} XP
                     </span>
                   </div>
 
-                  <h3 class="text-lg font-extrabold text-slate-800">{{ mod.title }}</h3>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-800 leading-snug">{{ mod.title }}</h3>
                   <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">{{ mod.description }}</p>
 
                   <!-- Topics Pills -->
-                  <div class="flex flex-wrap gap-1.5 pt-1">
+                  <div class="flex flex-wrap gap-1 sm:gap-1.5 pt-1">
                     <span
                       v-for="tag in mod.tags"
                       :key="tag"
-                      class="font-mono text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200"
+                      class="font-mono text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200"
                     >
                       {{ tag }}
                     </span>
@@ -414,11 +482,11 @@
               </div>
 
               <!-- Action Button -->
-              <div class="sm:self-center shrink-0">
+              <div class="sm:self-center shrink-0 pt-1 sm:pt-0">
                 <button
                   @click="openModule(mod)"
                   :class="[
-                    'w-full sm:w-auto px-5 py-3 rounded-2xl font-extrabold text-sm flex items-center justify-center gap-2',
+                    'w-full sm:w-auto px-5 py-3 rounded-2xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2',
                     isModuleCompleted(mod.id)
                       ? 'btn-3d-white text-emerald-700'
                       : index === nextModuleIndex
@@ -438,91 +506,95 @@
       <!-- =================================================================== -->
       <!-- TAB 2: SIMULASI TABEL & SQL / SUPABASE SANDBOX                      -->
       <!-- =================================================================== -->
-      <section v-if="activeTab === 'sandbox'" class="space-y-6 animate-pop">
+      <section v-if="activeTab === 'sandbox'" class="space-y-4 sm:space-y-6 animate-pop">
         <!-- Header Card -->
-        <div class="card-mimo p-6 bg-gradient-to-r from-blue-50 via-white to-emerald-50">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="card-mimo p-4 sm:p-6 bg-gradient-to-r from-blue-50 via-white to-emerald-50">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-4">
             <div>
-              <span class="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700">
+              <span class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700">
                 Interactive Database Playground
               </span>
-              <h2 class="text-2xl font-extrabold text-slate-800 mt-2">Simulasi Tabel PostgreSQL & Supabase JS</h2>
+              <h2 class="text-lg sm:text-2xl font-extrabold text-slate-800 mt-2">Simulasi Tabel PostgreSQL & Supabase JS</h2>
               <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                Uji coba perintah SQL (SELECT, INSERT, UPDATE, DELETE, INNER JOIN) maupun kode JavaScript Supabase secara langsung pada tabel contoh.
+                Uji coba perintah SQL maupun kode JavaScript Supabase secara langsung pada tabel contoh.
               </p>
             </div>
-            <!-- Mode Switcher -->
-            <div class="inline-flex p-1.5 rounded-2xl bg-slate-100 border-2 border-slate-200 self-start">
+            <!-- Mode Switcher (Full width on mobile) -->
+            <div class="grid grid-cols-2 sm:inline-flex p-1.5 rounded-2xl bg-slate-100 border-2 border-slate-200 w-full sm:w-auto">
               <button
                 @click="switchSandboxMode('sql')"
                 :class="[
-                  'px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition',
+                  'px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition',
                   sandboxMode === 'sql' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'
                 ]"
               >
                 <i class="ph-fill ph-terminal"></i>
-                <span>Mode SQL Editor</span>
+                <span>SQL Editor</span>
               </button>
               <button
                 @click="switchSandboxMode('supabase')"
                 :class="[
-                  'px-4 py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition',
+                  'px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition',
                   sandboxMode === 'supabase' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'
                 ]"
               >
                 <i class="ph-fill ph-code"></i>
-                <span>Mode Supabase JS</span>
+                <span>Supabase JS</span>
               </button>
             </div>
           </div>
         </div>
 
         <!-- Live Database Tables Inspector -->
-        <div class="card-mimo p-5 sm:p-6">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Tabel Database Aktif:</span>
+        <div class="card-mimo p-4 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-3.5">
+            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+              <span class="hidden sm:inline text-xs font-extrabold uppercase tracking-wider text-slate-400">Tabel:</span>
               <button
                 @click="activeSandboxTable = 'siswa'"
                 :class="[
-                  'px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition',
+                  'px-3 py-2 sm:py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition shrink-0',
                   activeSandboxTable === 'siswa' ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                 ]"
               >
-                <i class="ph-fill ph-table"></i> public.siswa ({{ dbTables.siswa.length }} baris)
+                <i class="ph-fill ph-table"></i> public.siswa ({{ dbTables.siswa.length }})
               </button>
               <button
                 @click="activeSandboxTable = 'projek_informatika'"
                 :class="[
-                  'px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition',
+                  'px-3 py-2 sm:py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition shrink-0',
                   activeSandboxTable === 'projek_informatika' ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                 ]"
               >
-                <i class="ph-fill ph-table"></i> public.projek_informatika ({{ dbTables.projek_informatika.length }} baris)
+                <i class="ph-fill ph-table"></i> public.projek_informatika ({{ dbTables.projek_informatika.length }})
               </button>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-500 font-semibold bg-slate-100 px-3 py-1.5 rounded-xl">
-                <i class="ph-fill ph-flask text-emerald-600"></i> Mode Eksperimen Bebas (Tidak menambah XP / Level)
+            <div class="flex items-center justify-between sm:justify-end gap-2">
+              <span class="text-[11px] sm:text-xs text-slate-500 font-semibold bg-slate-100 px-2.5 py-1.5 rounded-xl">
+                <i class="ph-fill ph-flask text-emerald-600"></i> Bebas Eksperimen (Tanpa XP)
               </span>
               <button
                 @click="resetSandboxTables"
-                class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition"
+                class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition shrink-0"
               >
-                <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset Data Awal
+                <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset
               </button>
             </div>
+          </div>
+
+          <div class="sm:hidden text-[11px] text-slate-400 font-medium mb-1.5 flex items-center gap-1">
+            <i class="ph ph-arrows-left-right"></i> Geser tabel ke samping untuk melihat seluruh kolom
           </div>
 
           <!-- Table Preview -->
           <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-700 font-mono text-xs">
+                <tr class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-700 font-mono text-[11px] sm:text-xs">
                   <th
                     v-for="col in currentTableColumns"
                     :key="col.name"
-                    class="py-3 px-4 font-bold whitespace-nowrap"
+                    class="py-2.5 sm:py-3 px-3 sm:px-4 font-bold whitespace-nowrap"
                   >
                     <div class="flex items-center gap-1.5">
                       <i v-if="col.pk" class="ph-fill ph-key text-amber-500" title="Primary Key"></i>
@@ -532,7 +604,7 @@
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 font-mono text-xs bg-white">
+              <tbody class="divide-y divide-slate-200 font-mono text-[11px] sm:text-xs bg-white">
                 <tr
                   v-for="(row, rIdx) in dbTables[activeSandboxTable]"
                   :key="rIdx"
@@ -541,7 +613,7 @@
                   <td
                     v-for="col in currentTableColumns"
                     :key="col.name"
-                    class="py-2.5 px-4 whitespace-nowrap text-slate-700"
+                    class="py-2 sm:py-2.5 px-3 sm:px-4 whitespace-nowrap text-slate-700"
                   >
                     <span v-if="typeof row[col.name] === 'boolean'" :class="row[col.name] ? 'text-emerald-600 font-bold' : 'text-rose-500'">
                       {{ row[col.name] }}
@@ -555,24 +627,24 @@
         </div>
 
         <!-- Preset Quick Buttons & Code Editor -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
           <!-- Editor Column -->
-          <div class="lg:col-span-7 card-mimo p-5 flex flex-col justify-between space-y-4">
+          <div class="lg:col-span-7 card-mimo p-4 sm:p-5 flex flex-col justify-between space-y-4">
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
                   {{ sandboxMode === 'sql' ? 'PostgreSQL Query Editor' : 'Supabase Client JS Editor' }}
                 </span>
-                <span class="text-[11px] font-mono text-slate-400">Klik tombol contoh di bawah untuk mengisi otomatis</span>
+                <span class="text-[11px] font-mono text-slate-400">Ketuk preset contoh:</span>
               </div>
 
-              <!-- Quick Presets -->
-              <div class="flex flex-wrap gap-1.5 mb-3">
+              <!-- Quick Presets (Horizontal swipe on mobile, wrap on desktop) -->
+              <div class="flex sm:flex-wrap gap-1.5 overflow-x-auto no-scrollbar pb-1.5 mb-2.5">
                 <button
                   v-for="(preset, pIdx) in currentSandboxPresets"
                   :key="pIdx"
                   @click="loadPreset(preset)"
-                  class="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200 transition"
+                  class="text-xs font-bold px-3 py-2 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200 transition shrink-0"
                 >
                   {{ preset.label }}
                 </button>
@@ -580,7 +652,7 @@
 
               <!-- Code Textarea -->
               <div class="relative rounded-2xl overflow-hidden border-2 border-slate-800 bg-slate-900">
-                <div class="flex items-center justify-between px-4 py-2 bg-slate-800 text-slate-400 text-xs font-mono">
+                <div class="flex items-center justify-between px-3.5 py-2 bg-slate-800 text-slate-400 text-xs font-mono">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
@@ -591,22 +663,22 @@
                 </div>
                 <textarea
                   v-model="sandboxCode"
-                  rows="5"
+                  rows="4"
                   spellcheck="false"
-                  class="w-full p-4 bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm focus:outline-none resize-none leading-relaxed"
+                  class="w-full p-3.5 sm:p-4 bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm focus:outline-none resize-none leading-relaxed"
                   placeholder="Tulis perintah SQL atau Supabase JS di sini..."
                 ></textarea>
               </div>
             </div>
 
-            <div class="flex items-center justify-between pt-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <span class="text-xs text-slate-500">
                 <i class="ph-fill ph-lightbulb text-amber-500"></i>
-                Tip: Gunakan preset di atas untuk melihat contoh INSERT, UPDATE, DELETE, atau JOIN.
+                Tip: Geser tombol contoh di atas untuk mencoba INSERT, UPDATE, DELETE, atau JOIN.
               </span>
               <button
                 @click="executeSandboxQuery(true)"
-                class="btn-3d-emerald text-white font-extrabold text-sm px-5 py-2.5 rounded-2xl flex items-center gap-2"
+                class="btn-3d-emerald w-full sm:w-auto text-white font-extrabold text-sm px-5 py-3 sm:py-2.5 rounded-2xl flex items-center justify-center gap-2 shrink-0"
               >
                 <i class="ph-fill ph-play"></i>
                 <span>Jalankan Kode</span>
@@ -615,66 +687,67 @@
           </div>
 
           <!-- Output / Result Column -->
-          <div class="lg:col-span-5 card-mimo p-5 flex flex-col justify-between space-y-4">
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Hasil Eksekusi Query</span>
-                <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+          <div class="lg:col-span-5 card-mimo p-4 sm:p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Hasil Query</span>
+                  <span
+                    :class="[
+                      'text-[11px] font-extrabold px-2 py-0.5 rounded-full',
+                      sandboxResult.error ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
+                    ]"
+                  >
+                    {{ sandboxResult.statusText }}
+                  </span>
+                </div>
+
+                <!-- Toggle Output View: Tabel vs JSON API -->
+                <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
                   <button
                     @click="sandboxResultView = 'table'"
-                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'table' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500']"
+                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'table' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500']"
                   >
                     Tabel
                   </button>
                   <button
                     @click="sandboxResultView = 'json'"
-                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'json' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500']"
+                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'json' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500']"
                   >
                     JSON API
                   </button>
                 </div>
               </div>
 
-              <!-- Status Message Banner -->
+              <!-- Error Alert -->
               <div
                 v-if="sandboxResult.error"
-                class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs font-medium mb-3 flex items-start gap-2.5"
+                class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs font-mono space-y-1"
               >
-                <i class="ph-fill ph-warning-circle text-lg shrink-0 mt-0.5"></i>
-                <div>
-                  <div class="font-extrabold mb-0.5">Pesan Error / Petunjuk Sintaks:</div>
-                  <div class="font-mono">{{ sandboxResult.error }}</div>
+                <div class="font-bold flex items-center gap-1.5 text-rose-800">
+                  <i class="ph-fill ph-warning-circle text-base"></i>
+                  <span>Pesan Kesalahan Sintaks:</span>
                 </div>
+                <p>{{ sandboxResult.error }}</p>
               </div>
 
-              <div
-                v-else
-                class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between mb-3"
-              >
-                <span class="font-bold flex items-center gap-1.5">
-                  <i class="ph-fill ph-check-circle text-emerald-600 text-base"></i>
-                  {{ sandboxResult.statusText }}
-                </span>
-                <span class="font-mono font-bold">{{ sandboxResult.data.length }} baris</span>
-              </div>
-
-              <!-- View 1: Result Table -->
-              <div v-if="sandboxResultView === 'table' && !sandboxResult.error" class="overflow-x-auto rounded-2xl border border-slate-200 max-h-60">
+              <!-- View 1: Table Result -->
+              <div v-else-if="sandboxResultView === 'table'" class="overflow-x-auto rounded-2xl border-2 border-slate-200 max-h-60">
                 <table v-if="sandboxResult.data.length > 0" class="w-full text-left border-collapse font-mono text-xs">
                   <thead>
-                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                    <tr class="bg-emerald-50 border-b border-emerald-200 text-emerald-900">
                       <th
                         v-for="key in Object.keys(sandboxResult.data[0])"
                         :key="key"
-                        class="py-2.5 px-3 font-bold"
+                        class="py-2 px-3 font-bold whitespace-nowrap"
                       >
                         {{ key }}
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-slate-100">
+                  <tbody class="divide-y divide-slate-100 bg-white">
                     <tr v-for="(r, i) in sandboxResult.data" :key="i" class="hover:bg-slate-50">
-                      <td v-for="key in Object.keys(sandboxResult.data[0])" :key="key" class="py-2 px-3 text-slate-700">
+                      <td v-for="key in Object.keys(sandboxResult.data[0])" :key="key" class="py-2 px-3 text-slate-700 whitespace-nowrap">
                         {{ r[key] }}
                       </td>
                     </tr>
@@ -773,27 +846,27 @@
       <!-- =================================================================== -->
       <!-- TAB 4: PROFIL & PENCAPAIAN SISWA                                    -->
       <!-- =================================================================== -->
-      <section v-if="activeTab === 'profile'" class="space-y-6 animate-pop">
-        <div class="card-mimo p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-400 to-blue-500 text-white flex items-center justify-center text-3xl font-black border-b-4 border-emerald-700">
+      <section v-if="activeTab === 'profile'" class="space-y-4 sm:space-y-6 animate-pop">
+        <div class="card-mimo p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5 sm:gap-4 w-full sm:w-auto">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-400 to-blue-500 text-white flex items-center justify-center text-2xl sm:text-3xl font-black border-b-4 border-emerald-700 shrink-0">
               {{ studentName.charAt(0).toUpperCase() }}
             </div>
-            <div>
+            <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <input
                   v-model="studentName"
                   @change="saveProgress"
-                  class="font-extrabold text-xl text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:outline-none focus:border-emerald-500"
+                  class="font-extrabold text-lg sm:text-xl text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:outline-none focus:border-emerald-500 w-full max-w-[220px]"
                 />
-                <i class="ph ph-pencil-simple text-slate-400 text-sm"></i>
+                <i class="ph ph-pencil-simple text-slate-400 text-sm shrink-0"></i>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">Level {{ userLevel }} • {{ levelTitle }}</p>
             </div>
           </div>
           <button
             @click="resetAllProgress"
-            class="px-4 py-2 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-700 font-bold text-xs hover:bg-rose-100 transition"
+            class="w-full sm:w-auto px-4 py-2.5 rounded-xl border-2 border-rose-200 bg-rose-50 text-rose-700 font-bold text-xs hover:bg-rose-100 transition text-center"
           >
             Reset Semua Progres Belajar
           </button>
@@ -854,17 +927,17 @@
   </div>
 
   <!-- ======================= MOBILE BOTTOM NAVIGATION ======================= -->
-  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t-2 border-slate-200 px-2 py-2 flex items-center justify-around">
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t-2 border-slate-200 px-2 pt-1.5 pb-safe flex items-center justify-around shadow-lg">
     <button
       v-for="item in navItems"
       :key="item.id"
       @click="activeTab = item.id"
       :class="[
-        'flex flex-col items-center gap-1 py-1 px-3 rounded-xl font-bold text-xs transition',
-        activeTab === item.id ? 'text-emerald-600 bg-emerald-50' : 'text-slate-500'
+        'flex-1 flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-2xl font-extrabold text-[11px] transition active:scale-95',
+        activeTab === item.id ? 'text-emerald-700 bg-emerald-50/90' : 'text-slate-500'
       ]"
     >
-      <i :class="[item.icon, 'text-xl']"></i>
+      <i :class="[item.icon, 'text-xl', activeTab === item.id ? 'text-emerald-600' : 'text-slate-400']"></i>
       <span>{{ item.shortLabel }}</span>
     </button>
   </nav>
@@ -874,349 +947,368 @@
   <!-- ========================================================================= -->
   <div
     v-if="activeLesson"
-    class="fixed inset-0 z-50 bg-slate-50 flex flex-col justify-between overflow-y-auto"
+    class="fixed inset-0 z-50 bg-slate-50 h-[100dvh] flex flex-col justify-between overflow-hidden"
   >
     <!-- Top Lesson Progress Header -->
-    <div class="sticky top-0 z-20 bg-white border-b-2 border-slate-200 px-4 py-3.5">
-      <div class="max-w-2xl mx-auto flex items-center gap-4">
+    <div class="shrink-0 z-20 bg-white border-b-2 border-slate-200 px-3 sm:px-4 py-2.5 sm:py-3.5">
+      <div class="max-w-2xl mx-auto flex items-center gap-3 sm:gap-4">
         <button
           @click="closeLessonModal"
-          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition"
+          class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center text-slate-600 transition shrink-0"
           title="Keluar dari Sesi Belajar"
         >
           <i class="ph-bold ph-x text-lg"></i>
         </button>
 
         <!-- Progress Bar -->
-        <div class="flex-1 h-3.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+        <div class="flex-1 h-3 sm:h-3.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
           <div
             class="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-300"
             :style="{ width: lessonProgressPercent + '%' }"
           ></div>
         </div>
 
-        <!-- Hearts Indicator inside Lesson -->
-        <div class="flex items-center gap-1 text-rose-600 font-extrabold text-sm">
-          <i class="ph-fill ph-heart text-rose-500 text-lg"></i>
-          <span>{{ stats.hearts }}</span>
+        <!-- Step Counter & Hearts Indicator inside Lesson -->
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="text-[11px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">
+            {{ currentStepIndex + 1 }}/{{ activeLesson.steps.length }}
+          </span>
+          <div class="flex items-center gap-1 text-rose-600 font-extrabold text-xs sm:text-sm">
+            <i class="ph-fill ph-heart text-rose-500 text-base sm:text-lg"></i>
+            <span>{{ stats.hearts }}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Center Lesson Step Slide -->
-    <div class="flex-1 max-w-2xl w-full mx-auto px-4 py-6 sm:py-8 flex flex-col justify-center">
+    <!-- Center Scrollable Lesson Step Slide -->
+    <div
+      ref="lessonScrollContainer"
+      class="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-8"
+    >
+      <div class="max-w-2xl w-full mx-auto flex flex-col justify-center min-h-full">
 
-      <!-- VIEW A: LESSON COMPLETED CELEBRATION -->
-      <div v-if="lessonCompletedScreen" class="card-mimo p-8 text-center space-y-5 animate-pop">
-        <div class="w-20 h-20 rounded-3xl bg-emerald-100 border-b-4 border-emerald-300 text-emerald-600 flex items-center justify-center text-4xl mx-auto">
-          <i class="ph-fill ph-trophy"></i>
-        </div>
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100 text-amber-800">
-            Bab {{ activeLesson.id }} Selesai!
-          </span>
-          <h2 class="text-2xl font-extrabold text-slate-800 mt-2">{{ activeLesson.title }}</h2>
-          <p class="text-sm text-slate-500 mt-1">
-            Luar biasa! Kamu telah menyelesaikan seluruh materi konsep dan latihan terpadu pada bab ini.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto">
-          <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200">
-            <div class="text-xs font-bold text-blue-600">Hadiah XP</div>
-            <div class="text-xl font-black text-blue-800">+{{ activeLesson.xpReward }} XP</div>
+        <!-- VIEW A: LESSON COMPLETED CELEBRATION -->
+        <div v-if="lessonCompletedScreen" class="card-mimo p-6 sm:p-8 text-center space-y-5 animate-pop my-auto">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-emerald-100 border-b-4 border-emerald-300 text-emerald-600 flex items-center justify-center text-3xl sm:text-4xl mx-auto">
+            <i class="ph-fill ph-trophy"></i>
           </div>
-          <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
-            <div class="text-xs font-bold text-emerald-600">Status</div>
-            <div class="text-xl font-black text-emerald-800">Lulus 100%</div>
-          </div>
-        </div>
-
-        <button
-          @click="closeLessonModal"
-          class="btn-3d-emerald text-white font-extrabold text-sm px-8 py-3.5 rounded-2xl w-full sm:w-auto"
-        >
-          Kembali ke Jalur Belajar
-        </button>
-      </div>
-
-      <!-- VIEW B: ACTIVE STEP SLIDE -->
-      <div v-else class="space-y-6 animate-pop" :key="currentStepIndex">
-        <!-- Step Header Badge -->
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <button
-              v-if="currentStepIndex > 0"
-              @click="prevLessonStep"
-              class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 font-extrabold text-xs flex items-center gap-1 transition"
-              title="Kembali ke langkah sebelumnya"
-            >
-              <i class="ph-bold ph-arrow-left"></i>
-              <span>Sebelumnya</span>
-            </button>
-            <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600">
-              Langkah {{ currentStepIndex + 1 }} / {{ activeLesson.steps.length }} • {{ stepTypeLabel(currentStep.type) }}
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100 text-amber-800">
+              Bab {{ activeLesson.id }} Selesai!
             </span>
-          </div>
-          <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-            Bab {{ activeLesson.id }}: {{ activeLesson.title }}
-          </span>
-        </div>
-
-        <!-- Step Title & Deep Explanation Card -->
-        <div class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 shadow-sm space-y-5">
-          <div class="flex items-start justify-between gap-3">
-            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 leading-snug">
-              {{ currentStep.title }}
-            </h2>
-            <span
-              v-if="currentStep.type === 'theory'"
-              class="shrink-0 text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200"
-            >
-              Materi Konsep
-            </span>
-            <span
-              v-else
-              class="shrink-0 text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200"
-            >
-              Latihan Terpadu
-            </span>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-2">{{ activeLesson.title }}</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              Luar biasa! Kamu telah menyelesaikan seluruh materi konsep dan latihan terpadu pada bab ini.
+            </p>
           </div>
 
-          <div class="text-sm sm:text-base text-slate-600 leading-relaxed space-y-2" v-html="currentStep.content"></div>
-
-          <!-- Bedah Sintaks & Anatomi Kode (Rendered on Concept Slides) -->
-          <div
-            v-if="currentStep.syntaxAnatomy && currentStep.syntaxAnatomy.length"
-            class="rounded-2xl bg-slate-50 border border-slate-200/90 overflow-hidden"
-          >
-            <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center gap-2 text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-              <i class="ph-fill ph-code-block text-blue-600 text-base"></i>
-              <span>Bedah Sintaks & Anatomi Kode</span>
+          <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto">
+            <div class="p-3 sm:p-3.5 rounded-2xl bg-blue-50 border border-blue-200">
+              <div class="text-xs font-bold text-blue-600">Hadiah XP</div>
+              <div class="text-lg sm:text-xl font-black text-blue-800">+{{ activeLesson.xpReward }} XP</div>
             </div>
-            <div class="divide-y divide-slate-200/70">
-              <div
-                v-for="(anat, aIdx) in currentStep.syntaxAnatomy"
-                :key="aIdx"
-                class="p-3.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs"
-              >
-                <div class="sm:w-52 shrink-0">
-                  <code class="font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg inline-block">
-                    {{ anat.syntax }}
-                  </code>
-                </div>
-                <div class="flex-1 text-slate-600 leading-relaxed">
-                  <span class="font-extrabold text-slate-800 mr-1">{{ anat.role }}:</span>
-                  <span>{{ anat.desc }}</span>
-                </div>
-              </div>
+            <div class="p-3 sm:p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200">
+              <div class="text-xs font-bold text-emerald-600">Status</div>
+              <div class="text-lg sm:text-xl font-black text-emerald-800">Lulus 100%</div>
             </div>
           </div>
 
-          <!-- Complete Annotated Code Illustration -->
-          <div v-if="currentStep.codeExample" class="rounded-2xl bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm overflow-hidden border border-slate-800">
-            <div class="px-4 py-2 bg-slate-800/90 border-b border-slate-700 text-[11px] text-slate-300 flex items-center justify-between">
-              <span>Contoh Kode Lengkap</span>
-              <span class="text-emerald-400 font-semibold">Dipakai pada latihan berikutnya</span>
-            </div>
-            <pre class="p-4 overflow-x-auto leading-relaxed">{{ currentStep.codeExample }}</pre>
-          </div>
-
-          <!-- Visual Table Illustration -->
-          <div v-if="currentStep.visualTable" class="overflow-x-auto rounded-2xl border border-slate-200">
-            <div v-if="currentStep.visualTable.caption" class="px-4 py-2 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
-              {{ currentStep.visualTable.caption }}
-            </div>
-            <table class="w-full text-left border-collapse text-xs font-mono">
-              <thead>
-                <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
-                  <th v-for="h in currentStep.visualTable.headers" :key="h" class="py-2.5 px-3 font-bold">{{ h }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr v-for="(r, idx) in currentStep.visualTable.rows" :key="idx">
-                  <td v-for="(cell, cIdx) in r" :key="cIdx" class="py-2 px-3 text-slate-600">{{ cell }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Catatan Penting / Tips Praktis Callout -->
-          <div
-            v-if="currentStep.practicalTip"
-            class="p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-3 text-xs sm:text-sm text-amber-900"
-          >
-            <i class="ph-fill ph-lightbulb-filament text-amber-500 text-xl shrink-0 mt-0.5"></i>
-            <div class="leading-relaxed">
-              <span class="font-extrabold block mb-0.5">Catatan Penting & Tips Praktis:</span>
-              <span v-html="currentStep.practicalTip"></span>
-            </div>
-          </div>
-
-          <!-- Collapsible Reference to Preceding Concept Slide (Available on all Practice Exercises) -->
-          <div v-if="currentStep.type !== 'theory' && previousConceptStep" class="pt-1">
-            <button
-              @click="showPrevConceptHint = !showPrevConceptHint"
-              class="w-full py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-extrabold text-xs flex items-center justify-between transition"
-            >
-              <span class="flex items-center gap-2">
-                <i class="ph-fill ph-book-open-text text-blue-600 text-base"></i>
-                <span>Lihat Catatan Konsep Sebelumnya: "{{ previousConceptStep.title }}"</span>
-              </span>
-              <i :class="['ph-bold', showPrevConceptHint ? 'ph-caret-up' : 'ph-caret-down']"></i>
-            </button>
-
-            <div
-              v-if="showPrevConceptHint"
-              class="mt-3 p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-3 text-xs text-slate-700 animate-pop"
-            >
-              <div class="font-bold text-blue-900">Ringkasan Materi Sebelumnya:</div>
-              <div class="leading-relaxed" v-html="previousConceptStep.content"></div>
-              <div v-if="previousConceptStep.syntaxAnatomy" class="space-y-1.5 pt-1">
-                <div class="font-extrabold text-blue-900">Bedah Sintaks:</div>
-                <div
-                  v-for="(anat, idx) in previousConceptStep.syntaxAnatomy"
-                  :key="idx"
-                  class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-xl border border-blue-100"
-                >
-                  <code class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">{{ anat.syntax }}</code>
-                  <span class="font-bold text-slate-800">{{ anat.role }}:</span>
-                  <span class="text-slate-600">{{ anat.desc }}</span>
-                </div>
-              </div>
-              <pre
-                v-if="previousConceptStep.codeExample"
-                class="p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono text-xs overflow-x-auto"
-              >{{ previousConceptStep.codeExample }}</pre>
-            </div>
-          </div>
-        </div>
-
-        <!-- =============================================================== -->
-        <!-- INTERACTIVE EXERCISE TYPE 1: SUSUN KODE (TAP CODE BLOCKS)       -->
-        <!-- =============================================================== -->
-        <div v-if="currentStep.type === 'arrange'" class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 space-y-4">
-          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-            {{ currentStep.prompt || 'Ketuk blok kode di bawah untuk menyusun perintah yang benar:' }}
-          </div>
-
-          <!-- Answer Slots Box -->
-          <div class="min-h-[76px] p-4 rounded-2xl bg-slate-900 border-2 border-slate-800 flex flex-wrap items-center gap-2">
-            <span v-if="arrangedTokens.length === 0" class="text-xs font-mono text-slate-500">
-              Ketuk potongan kode di bawah untuk menyusunnya di sini...
-            </span>
-            <button
-              v-for="(tok, idx) in arrangedTokens"
-              :key="'ans-' + idx"
-              @click="removeArrangedToken(idx)"
-              :disabled="feedbackState.visible"
-              class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-rose-500 text-white font-mono text-xs sm:text-sm font-bold transition shadow-sm"
-            >
-              {{ tok.text }}
-            </button>
-          </div>
-
-          <!-- Available Token Pool -->
-          <div class="flex flex-wrap gap-2 pt-2">
-            <button
-              v-for="tok in availablePoolTokens"
-              :key="tok.uid"
-              @click="selectArrangeToken(tok)"
-              :disabled="tok.used || feedbackState.visible"
-              :class="[
-                'px-3.5 py-2 rounded-xl font-mono text-xs sm:text-sm font-bold transition',
-                tok.used
-                  ? 'bg-slate-100 text-transparent border-2 border-slate-200 cursor-default select-none'
-                  : 'btn-3d-white text-slate-800'
-              ]"
-            >
-              {{ tok.text }}
-            </button>
-          </div>
-        </div>
-
-        <!-- =============================================================== -->
-        <!-- INTERACTIVE EXERCISE TYPE 2: ISI BAGIAN KOSONG (FILL BLANK)     -->
-        <!-- =============================================================== -->
-        <div v-if="currentStep.type === 'fill'" class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 space-y-4">
-          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-            {{ currentStep.prompt }}
-          </div>
-
-          <!-- Code Snippet with Blank Slot -->
-          <div class="p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs sm:text-sm leading-relaxed flex flex-wrap items-center gap-2">
-            <span>{{ currentStep.codePrefix }}</span>
-            <span
-              :class="[
-                'px-3 py-1 rounded-lg font-bold border-2 transition',
-                fillSelectedOption
-                  ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                  : 'bg-slate-800 border-dashed border-slate-600 text-slate-400'
-              ]"
-            >
-              {{ fillSelectedOption || '____' }}
-            </span>
-            <span>{{ currentStep.codeSuffix }}</span>
-          </div>
-
-          <!-- Option Chips -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
-            <button
-              v-for="opt in currentStep.options"
-              :key="opt"
-              @click=" selectFillOption(opt)"
-              :disabled="feedbackState.visible"
-              :class="[
-                'p-3 rounded-2xl font-mono text-xs sm:text-sm font-bold text-center transition',
-                fillSelectedOption === opt
-                  ? 'bg-blue-600 text-white border-b-4 border-blue-800'
-                  : 'btn-3d-white text-slate-700'
-              ]"
-            >
-              {{ opt }}
-            </button>
-          </div>
-        </div>
-
-        <!-- =============================================================== -->
-        <!-- INTERACTIVE EXERCISE TYPE 3: PILIHAN GANDA (QUIZ)               -->
-        <!-- =============================================================== -->
-        <div v-if="currentStep.type === 'quiz'" class="bg-white rounded-3xl p-6 border-2 border-slate-200/80 space-y-3">
-          <div class="text-sm font-extrabold text-slate-700 mb-2">
-            {{ currentStep.question }}
-          </div>
           <button
-            v-for="(opt, idx) in currentStep.options"
-            :key="idx"
-            @click="selectQuizOption(idx)"
-            :disabled="feedbackState.visible"
-            :class="[
-              'w-full text-left p-4 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-between transition',
-              quizSelectedOption === idx
-                ? 'bg-blue-50 border-2 border-blue-500 text-blue-800'
-                : 'btn-3d-white text-slate-700'
-            ]"
+            @click="closeLessonModal"
+            class="btn-3d-emerald text-white font-extrabold text-sm px-8 py-3.5 rounded-2xl w-full sm:w-auto"
           >
-            <span>{{ opt }}</span>
-            <span
-              :class="[
-                'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0 ml-2',
-                quizSelectedOption === idx ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'
-              ]"
-            >
-              <i v-if="quizSelectedOption === idx" class="ph-bold ph-check"></i>
-            </span>
+            Kembali ke Jalur Belajar
           </button>
         </div>
 
+        <!-- VIEW B: ACTIVE STEP SLIDE -->
+        <div v-else class="space-y-4 sm:space-y-6 animate-pop pb-4" :key="currentStepIndex">
+          <!-- Step Header Badge -->
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <button
+                v-if="currentStepIndex > 0"
+                @click="prevLessonStep"
+                class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 active:scale-95 border border-slate-200 text-slate-600 font-extrabold text-xs flex items-center gap-1 transition"
+                title="Kembali ke langkah sebelumnya"
+              >
+                <i class="ph-bold ph-arrow-left"></i>
+                <span>Sebelumnya</span>
+              </button>
+              <span class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 sm:px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600">
+                {{ stepTypeLabel(currentStep.type) }}
+              </span>
+            </div>
+            <span class="text-[11px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 truncate max-w-[200px] sm:max-w-none">
+              Bab {{ activeLesson.id }}: {{ activeLesson.title }}
+            </span>
+          </div>
+
+          <!-- Step Title & Deep Explanation Card -->
+          <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-slate-200/80 shadow-sm space-y-4 sm:space-y-5">
+            <div class="flex items-start justify-between gap-2.5">
+              <h2 class="text-lg sm:text-2xl font-extrabold text-slate-800 leading-snug">
+                {{ currentStep.title }}
+              </h2>
+              <span
+                v-if="currentStep.type === 'theory'"
+                class="shrink-0 text-[10px] sm:text-[11px] font-extrabold uppercase px-2 sm:px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200"
+              >
+                Konsep
+              </span>
+              <span
+                v-else
+                class="shrink-0 text-[10px] sm:text-[11px] font-extrabold uppercase px-2 sm:px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200"
+              >
+                Latihan
+              </span>
+            </div>
+
+            <div class="text-xs sm:text-base text-slate-600 leading-relaxed space-y-2" v-html="currentStep.content"></div>
+
+            <!-- Bedah Sintaks & Anatomi Kode (Rendered on Concept Slides) -->
+            <div
+              v-if="currentStep.syntaxAnatomy && currentStep.syntaxAnatomy.length"
+              class="rounded-2xl bg-slate-50 border border-slate-200/90 overflow-hidden"
+            >
+              <div class="px-3.5 sm:px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex items-center gap-2 text-[11px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                <i class="ph-fill ph-code-block text-blue-600 text-base"></i>
+                <span>Bedah Sintaks & Anatomi Kode</span>
+              </div>
+              <div class="divide-y divide-slate-200/70">
+                <div
+                  v-for="(anat, aIdx) in currentStep.syntaxAnatomy"
+                  :key="aIdx"
+                  class="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 text-xs"
+                >
+                  <div class="sm:w-52 shrink-0">
+                    <code class="font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg inline-block break-all sm:break-normal text-[11px] sm:text-xs">
+                      {{ anat.syntax }}
+                    </code>
+                  </div>
+                  <div class="flex-1 text-slate-600 leading-relaxed">
+                    <span class="font-extrabold text-slate-800 mr-1">{{ anat.role }}:</span>
+                    <span>{{ anat.desc }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Complete Annotated Code Illustration -->
+            <div v-if="currentStep.codeExample" class="rounded-2xl bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm overflow-hidden border border-slate-800">
+              <div class="px-3.5 sm:px-4 py-2 bg-slate-800/90 border-b border-slate-700 text-[10px] sm:text-[11px] text-slate-300 flex items-center justify-between">
+                <span>Contoh Kode Lengkap</span>
+                <span class="text-emerald-400 font-semibold">Dipakai pada latihan</span>
+              </div>
+              <pre class="p-3.5 sm:p-4 overflow-x-auto leading-relaxed text-[11px] sm:text-sm">{{ currentStep.codeExample }}</pre>
+            </div>
+
+            <!-- Visual Table Illustration -->
+            <div v-if="currentStep.visualTable" class="overflow-x-auto rounded-2xl border border-slate-200">
+              <div v-if="currentStep.visualTable.caption" class="px-3.5 py-2 bg-slate-50 border-b border-slate-200 text-[11px] sm:text-xs font-bold text-slate-600">
+                {{ currentStep.visualTable.caption }}
+              </div>
+              <table class="w-full text-left border-collapse text-[11px] sm:text-xs font-mono">
+                <thead>
+                  <tr class="bg-slate-100 border-b border-slate-200 text-slate-700">
+                    <th v-for="h in currentStep.visualTable.headers" :key="h" class="py-2 sm:py-2.5 px-2.5 sm:px-3 font-bold whitespace-nowrap">{{ h }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="(r, idx) in currentStep.visualTable.rows" :key="idx">
+                    <td v-for="(cell, cIdx) in r" :key="cIdx" class="py-2 px-2.5 sm:px-3 text-slate-600 whitespace-nowrap">{{ cell }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Catatan Penting / Tips Praktis Callout -->
+            <div
+              v-if="currentStep.practicalTip"
+              class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-amber-900"
+            >
+              <i class="ph-fill ph-lightbulb-filament text-amber-500 text-lg sm:text-xl shrink-0 mt-0.5"></i>
+              <div class="leading-relaxed">
+                <span class="font-extrabold block mb-0.5">Catatan Penting & Tips Praktis:</span>
+                <span v-html="currentStep.practicalTip"></span>
+              </div>
+            </div>
+
+            <!-- Collapsible Reference to Preceding Concept Slide (Available on all Practice Exercises) -->
+            <div v-if="currentStep.type !== 'theory' && previousConceptStep" class="pt-1">
+              <button
+                @click="showPrevConceptHint = !showPrevConceptHint"
+                class="w-full py-2.5 px-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-extrabold text-xs flex items-center justify-between gap-2 transition text-left"
+              >
+                <span class="flex items-center gap-2 min-w-0">
+                  <i class="ph-fill ph-book-open-text text-blue-600 text-base shrink-0"></i>
+                  <span class="truncate">Buka Catatan Konsep: "{{ previousConceptStep.title }}"</span>
+                </span>
+                <i :class="['ph-bold shrink-0', showPrevConceptHint ? 'ph-caret-up' : 'ph-caret-down']"></i>
+              </button>
+
+              <div
+                v-if="showPrevConceptHint"
+                class="mt-2.5 p-3.5 sm:p-4 rounded-2xl bg-blue-50/60 border border-blue-200 space-y-3 text-xs text-slate-700 animate-pop"
+              >
+                <div class="font-bold text-blue-900">Ringkasan Materi Sebelumnya:</div>
+                <div class="leading-relaxed" v-html="previousConceptStep.content"></div>
+                <div v-if="previousConceptStep.syntaxAnatomy" class="space-y-1.5 pt-1">
+                  <div class="font-extrabold text-blue-900">Bedah Sintaks:</div>
+                  <div
+                    v-for="(anat, idx) in previousConceptStep.syntaxAnatomy"
+                    :key="idx"
+                    class="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-xl border border-blue-100"
+                  >
+                    <code class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[11px]">{{ anat.syntax }}</code>
+                    <span class="font-bold text-slate-800">{{ anat.role }}:</span>
+                    <span class="text-slate-600">{{ anat.desc }}</span>
+                  </div>
+                </div>
+                <pre
+                  v-if="previousConceptStep.codeExample"
+                  class="p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono text-[11px] overflow-x-auto"
+                >{{ previousConceptStep.codeExample }}</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- INTERACTIVE EXERCISE TYPE 1: SUSUN KODE (TAP CODE BLOCKS)       -->
+          <!-- =============================================================== -->
+          <div v-if="currentStep.type === 'arrange'" class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-slate-200/80 space-y-3.5 sm:space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                {{ currentStep.prompt || 'Ketuk blok kode di bawah untuk menyusun perintah:' }}
+              </div>
+              <button
+                v-if="arrangedTokens.length > 0 && !feedbackState.visible"
+                @click="setupCurrentStepState"
+                class="text-[11px] font-bold text-rose-600 hover:text-rose-700 shrink-0 flex items-center gap-1"
+              >
+                <i class="ph-bold ph-arrow-counter-clockwise"></i> Ulang Susunan
+              </button>
+            </div>
+
+            <!-- Answer Slots Box -->
+            <div class="min-h-[72px] p-3 sm:p-4 rounded-2xl bg-slate-900 border-2 border-slate-800 flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span v-if="arrangedTokens.length === 0" class="text-xs font-mono text-slate-400">
+                Ketuk potongan kode di bawah untuk menyusunnya di sini...
+              </span>
+              <button
+                v-for="(tok, idx) in arrangedTokens"
+                :key="'ans-' + idx"
+                @click="removeArrangedToken(idx)"
+                :disabled="feedbackState.visible"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-emerald-500 active:bg-rose-500 hover:bg-rose-500 text-white font-mono text-xs sm:text-sm font-bold transition shadow-sm"
+              >
+                {{ tok.text }}
+              </button>
+            </div>
+
+            <!-- Available Token Pool -->
+            <div class="flex flex-wrap gap-2 pt-1">
+              <button
+                v-for="tok in availablePoolTokens"
+                :key="tok.uid"
+                @click="selectArrangeToken(tok)"
+                :disabled="tok.used || feedbackState.visible"
+                :class="[
+                  'px-3 sm:px-3.5 py-2.5 sm:py-2 rounded-xl font-mono text-xs sm:text-sm font-bold transition',
+                  tok.used
+                    ? 'bg-slate-100 text-transparent border-2 border-slate-200 cursor-default select-none'
+                    : 'btn-3d-white text-slate-800 active:scale-95'
+                ]"
+              >
+                {{ tok.text }}
+              </button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- INTERACTIVE EXERCISE TYPE 2: ISI BAGIAN KOSONG (FILL BLANK)     -->
+          <!-- =============================================================== -->
+          <div v-if="currentStep.type === 'fill'" class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-slate-200/80 space-y-3.5 sm:space-y-4">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+              {{ currentStep.prompt }}
+            </div>
+
+            <!-- Code Snippet with Blank Slot -->
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs sm:text-sm leading-relaxed flex flex-wrap items-center gap-1.5 sm:gap-2 overflow-x-auto">
+              <span>{{ currentStep.codePrefix }}</span>
+              <span
+                :class="[
+                  'px-2.5 sm:px-3 py-1 rounded-lg font-bold border-2 transition',
+                  fillSelectedOption
+                    ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                    : 'bg-slate-800 border-dashed border-slate-600 text-slate-400'
+                ]"
+              >
+                {{ fillSelectedOption || '____' }}
+              </span>
+              <span>{{ currentStep.codeSuffix }}</span>
+            </div>
+
+            <!-- Option Chips -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+              <button
+                v-for="opt in currentStep.options"
+                :key="opt"
+                @click="selectFillOption(opt)"
+                :disabled="feedbackState.visible"
+                :class="[
+                  'p-3 sm:p-3.5 rounded-2xl font-mono text-xs sm:text-sm font-bold text-center transition',
+                  fillSelectedOption === opt
+                    ? 'bg-blue-600 text-white border-b-4 border-blue-800'
+                    : 'btn-3d-white text-slate-700'
+                ]"
+              >
+                {{ opt }}
+              </button>
+            </div>
+          </div>
+
+          <!-- =============================================================== -->
+          <!-- INTERACTIVE EXERCISE TYPE 3: PILIHAN GANDA (QUIZ)               -->
+          <!-- =============================================================== -->
+          <div v-if="currentStep.type === 'quiz'" class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-slate-200/80 space-y-2.5 sm:space-y-3">
+            <div class="text-xs sm:text-sm font-extrabold text-slate-700 mb-1">
+              {{ currentStep.question }}
+            </div>
+            <button
+              v-for="(opt, idx) in currentStep.options"
+              :key="idx"
+              @click="selectQuizOption(idx)"
+              :disabled="feedbackState.visible"
+              :class="[
+                'w-full text-left p-3.5 sm:p-4 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-between transition gap-2',
+                quizSelectedOption === idx
+                  ? 'bg-blue-50 border-2 border-blue-500 text-blue-800'
+                  : 'btn-3d-white text-slate-700'
+              ]"
+            >
+              <span class="leading-relaxed">{{ opt }}</span>
+              <span
+                :class="[
+                  'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs shrink-0',
+                  quizSelectedOption === idx ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'
+                ]"
+              >
+                <i v-if="quizSelectedOption === idx" class="ph-bold ph-check"></i>
+              </span>
+            </button>
+          </div>
+
+        </div>
       </div>
     </div>
 
-    <!-- Bottom Lesson Action Bar & Mimo Feedback Drawer -->
+    <!-- Bottom Lesson Action Bar & Mimo Feedback Drawer (Pinned at bottom of 100dvh) -->
     <div
       v-if="!lessonCompletedScreen"
       :class="[
-        'sticky bottom-0 z-30 border-t-2 transition-colors duration-200 px-4 py-4 sm:py-5',
+        'shrink-0 z-30 border-t-2 transition-colors duration-200 px-3 sm:px-4 pt-3 pb-safe sm:py-5',
         !feedbackState.visible
           ? 'bg-white border-slate-200'
           : feedbackState.isCorrect
@@ -1224,20 +1316,20 @@
           : 'bg-rose-50 border-rose-300'
       ]"
     >
-      <div class="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="max-w-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         
         <!-- Feedback Message When Checked -->
-        <div v-if="feedbackState.visible" class="flex items-start gap-3">
+        <div v-if="feedbackState.visible" class="flex items-start gap-2.5 sm:gap-3">
           <div
             :class="[
-              'w-10 h-10 rounded-2xl flex items-center justify-center text-xl shrink-0 mt-0.5',
+              'w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl shrink-0 mt-0.5',
               feedbackState.isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
             ]"
           >
             <i :class="feedbackState.isCorrect ? 'ph-bold ph-check' : 'ph-bold ph-x'"></i>
           </div>
-          <div>
-            <div :class="['font-extrabold text-sm sm:text-base', feedbackState.isCorrect ? 'text-emerald-900' : 'text-rose-900']">
+          <div class="max-h-28 overflow-y-auto pr-1">
+            <div :class="['font-extrabold text-xs sm:text-base', feedbackState.isCorrect ? 'text-emerald-900' : 'text-rose-900']">
               {{ feedbackState.title }}
             </div>
             <p :class="['text-xs sm:text-sm mt-0.5 leading-relaxed', feedbackState.isCorrect ? 'text-emerald-800' : 'text-rose-800']">
@@ -1296,9 +1388,9 @@
   <!-- Toast Notification -->
   <div
     v-if="toastMessage"
-    class="fixed bottom-20 lg:bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-lg border border-slate-700 text-xs font-bold flex items-center gap-2 animate-pop"
+    class="fixed bottom-20 lg:bottom-6 inset-x-4 sm:inset-x-auto sm:right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-lg border border-slate-700 text-xs font-bold flex items-center justify-center sm:justify-start gap-2 animate-pop"
   >
-    <i class="ph-fill ph-check-circle text-emerald-400 text-lg"></i>
+    <i class="ph-fill ph-check-circle text-emerald-400 text-lg shrink-0"></i>
     <span>{{ toastMessage }}</span>
   </div>
 
@@ -1313,6 +1405,7 @@ createApp({
     return {
       activeTab: 'path',
       soundEnabled: true,
+      showMobileQuests: false,
       studentName: 'Pelajar Informatika',
       toastMessage: '',
 
@@ -2523,6 +2616,12 @@ createApp({
           .sort(() => Math.random() - 0.5);
         this.availablePoolTokens = shuffled;
       }
+
+      this.$nextTick(() => {
+        if (this.$refs.lessonScrollContainer) {
+          this.$refs.lessonScrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
     },
 
     prevLessonStep() {
