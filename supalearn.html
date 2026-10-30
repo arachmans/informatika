@@ -361,13 +361,13 @@
           <div class="max-w-xl relative z-10">
             <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 border border-emerald-200 text-emerald-700 text-[11px] sm:text-xs font-extrabold mb-2.5 sm:mb-3">
               <i class="ph-fill ph-sparkle"></i>
-              <span>8 Bab Lengkap • 48 Langkah Belajar</span>
+              <span>9 Bab Lengkap • 54 Langkah Belajar</span>
             </div>
             <h1 class="text-xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-snug mb-2">
-              Kuasai <span class="text-blue-600">PostgreSQL</span> & <span class="text-emerald-600">Supabase</span> Langkah demi Langkah
+              Kuasai <span class="text-blue-600">PostgreSQL</span>, <span class="text-emerald-600">Supabase</span> & <span class="text-teal-600">Netlify</span>
             </h1>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 sm:mb-5">
-              Pelajari <strong>Konsep & Bedah Sintaks</strong> terlebih dahulu, lalu buktikan pemahamanmu di <strong>Latihan Terpadu</strong>.
+              Pelajari <strong>Konsep & Bedah Sintaks</strong> dari dasar database hingga menghubungkan Supabase ke Netlify lengkap dengan <strong>Simulasi Implementasi Langsung</strong>.
             </p>
             <div class="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3">
               <button
@@ -378,11 +378,11 @@
                 <span>{{ stats.completedModules.length === 0 ? 'Mulai Bab 1 Sekarang' : 'Lanjutkan Belajar' }}</span>
               </button>
               <button
-                @click="activeTab = 'sandbox'"
+                @click="activeTab = 'netlify'"
                 class="btn-3d-white w-full sm:w-auto text-slate-700 font-bold text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2"
               >
-                <i class="ph-fill ph-terminal-window text-blue-600 text-lg"></i>
-                <span>Buka Simulasi Tabel</span>
+                <i class="ph-fill ph-cloud-arrow-up text-teal-600 text-lg"></i>
+                <span>Coba Implementasi Netlify</span>
               </button>
             </div>
           </div>
@@ -395,7 +395,7 @@
         <!-- Track Filter / Curriculum Overview -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div>
-            <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Peta Kurikulum Pembelajaran (8 Bab)</h2>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-800">Peta Kurikulum Pembelajaran (9 Bab)</h2>
             <p class="text-xs text-slate-500">Setiap latihan dijamin sudah dibahas pada konsep sebelumnya</p>
           </div>
           <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold overflow-x-auto no-scrollbar pb-0.5">
@@ -404,6 +404,9 @@
             </span>
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
               <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Bab 5–8: Supabase & RLS
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span> Bab 9: Integrasi Netlify
             </span>
           </div>
         </div>
@@ -504,340 +507,299 @@
       </section>
 
       <!-- =================================================================== -->
-      <!-- TAB 2: SIMULASI TABEL & SQL / SUPABASE SANDBOX                      -->
+      <!-- TAB 3.5: IMPLEMENTASI LANGSUNG SUPABASE + NETLIFY                   -->
       <!-- =================================================================== -->
-      <section v-if="activeTab === 'sandbox'" class="space-y-4 sm:space-y-6 animate-pop">
-        <!-- Header Card -->
-        <div class="card-mimo p-4 sm:p-6 bg-gradient-to-r from-blue-50 via-white to-emerald-50">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-4">
-            <div>
-              <span class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100 text-blue-700">
-                Interactive Database Playground
-              </span>
-              <h2 class="text-lg sm:text-2xl font-extrabold text-slate-800 mt-2">Simulasi Tabel PostgreSQL & Supabase JS</h2>
-              <p class="text-xs sm:text-sm text-slate-600 mt-1">
-                Uji coba perintah SQL maupun kode JavaScript Supabase secara langsung pada tabel contoh.
+      <section v-if="activeTab === 'netlify'" class="space-y-4 sm:space-y-6 animate-pop">
+        <!-- Header Banner -->
+        <div class="card-mimo p-4 sm:p-6 bg-gradient-to-r from-teal-50 via-emerald-50/70 to-blue-50 border-teal-200">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1.5">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 text-[11px] sm:text-xs font-extrabold uppercase tracking-wider">
+                <i class="ph-fill ph-cloud-arrow-up"></i>
+                <span>Panduan & Lab Implementasi Full-Stack</span>
+              </div>
+              <h2 class="text-lg sm:text-2xl font-extrabold text-slate-800">
+                Menghubungkan Supabase dengan Netlify (Implementasi Langsung)
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Pelajari arsitektur deployment nyata, uji coba pengiriman data dari aplikasi web yang di-<em>host</em> di Netlify ke database Supabase, dan salin template kode siap pakai.
               </p>
             </div>
-            <!-- Mode Switcher (Full width on mobile) -->
-            <div class="grid grid-cols-2 sm:inline-flex p-1.5 rounded-2xl bg-slate-100 border-2 border-slate-200 w-full sm:w-auto">
-              <button
-                @click="switchSandboxMode('sql')"
-                :class="[
-                  'px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition',
-                  sandboxMode === 'sql' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'
-                ]"
-              >
-                <i class="ph-fill ph-terminal"></i>
-                <span>SQL Editor</span>
-              </button>
-              <button
-                @click="switchSandboxMode('supabase')"
-                :class="[
-                  'px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 transition',
-                  sandboxMode === 'supabase' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-800'
-                ]"
-              >
-                <i class="ph-fill ph-code"></i>
-                <span>Supabase JS</span>
-              </button>
-            </div>
+            <button
+              @click="openModule(modules[8])"
+              class="btn-3d-emerald w-full md:w-auto text-white font-extrabold text-xs sm:text-sm px-4 py-3 rounded-2xl flex items-center justify-center gap-2 shrink-0"
+            >
+              <i class="ph-fill ph-book-open-text text-lg"></i>
+              <span>Buka Latihan Bab 9</span>
+            </button>
           </div>
         </div>
 
-        <!-- Live Database Tables Inspector -->
-        <div class="card-mimo p-4 sm:p-6">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-3.5">
-            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
-              <span class="hidden sm:inline text-xs font-extrabold uppercase tracking-wider text-slate-400">Tabel:</span>
-              <button
-                @click="activeSandboxTable = 'siswa'"
-                :class="[
-                  'px-3 py-2 sm:py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition shrink-0',
-                  activeSandboxTable === 'siswa' ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                ]"
-              >
-                <i class="ph-fill ph-table"></i> public.siswa ({{ dbTables.siswa.length }})
-              </button>
-              <button
-                @click="activeSandboxTable = 'projek_informatika'"
-                :class="[
-                  'px-3 py-2 sm:py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border transition shrink-0',
-                  activeSandboxTable === 'projek_informatika' ? 'bg-emerald-50 border-emerald-300 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                ]"
-              >
-                <i class="ph-fill ph-table"></i> public.projek_informatika ({{ dbTables.projek_informatika.length }})
-              </button>
+        <!-- 4-Step Visual Architecture Workflow -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="card-mimo p-4 bg-white space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800">Langkah 1</span>
+              <i class="ph-fill ph-database text-emerald-600 text-xl"></i>
             </div>
-            <div class="flex items-center justify-between sm:justify-end gap-2">
-              <span class="text-[11px] sm:text-xs text-slate-500 font-semibold bg-slate-100 px-2.5 py-1.5 rounded-xl">
-                <i class="ph-fill ph-flask text-emerald-600"></i> Bebas Eksperimen (Tanpa XP)
-              </span>
-              <button
-                @click="resetSandboxTables"
-                class="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition shrink-0"
-              >
-                <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset
-              </button>
-            </div>
+            <h3 class="font-extrabold text-sm text-slate-800">Siapkan Tabel & RLS di Supabase</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Buat tabel <code>projek_informatika</code> di Supabase, aktifkan RLS, dan tambahkan Policy <code>FOR SELECT</code> serta <code>FOR INSERT</code>.
+            </p>
           </div>
 
-          <div class="sm:hidden text-[11px] text-slate-400 font-medium mb-1.5 flex items-center gap-1">
-            <i class="ph ph-arrows-left-right"></i> Geser tabel ke samping untuk melihat seluruh kolom
+          <div class="card-mimo p-4 bg-white space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg bg-teal-100 text-teal-800">Langkah 2</span>
+              <i class="ph-fill ph-key text-teal-600 text-xl"></i>
+            </div>
+            <h3 class="font-extrabold text-sm text-slate-800">Set Environment Variables Netlify</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Di <em>Site Configuration &gt; Environment Variables</em> Netlify (atau lewat <strong>Supabase Extension</strong>), simpan <code>VITE_SUPABASE_URL</code> dan <code>VITE_SUPABASE_ANON_KEY</code>.
+            </p>
           </div>
 
-          <!-- Table Preview -->
-          <div class="overflow-x-auto rounded-2xl border-2 border-slate-200">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-100/90 border-b-2 border-slate-200 text-slate-700 font-mono text-[11px] sm:text-xs">
-                  <th
-                    v-for="col in currentTableColumns"
-                    :key="col.name"
-                    class="py-2.5 sm:py-3 px-3 sm:px-4 font-bold whitespace-nowrap"
-                  >
-                    <div class="flex items-center gap-1.5">
-                      <i v-if="col.pk" class="ph-fill ph-key text-amber-500" title="Primary Key"></i>
-                      <span>{{ col.name }}</span>
-                      <span class="text-[10px] font-normal px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-600">{{ col.type }}</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200 font-mono text-[11px] sm:text-xs bg-white">
-                <tr
-                  v-for="(row, rIdx) in dbTables[activeSandboxTable]"
-                  :key="rIdx"
-                  class="hover:bg-blue-50/40 transition"
-                >
-                  <td
-                    v-for="col in currentTableColumns"
-                    :key="col.name"
-                    class="py-2 sm:py-2.5 px-3 sm:px-4 whitespace-nowrap text-slate-700"
-                  >
-                    <span v-if="typeof row[col.name] === 'boolean'" :class="row[col.name] ? 'text-emerald-600 font-bold' : 'text-rose-500'">
-                      {{ row[col.name] }}
-                    </span>
-                    <span v-else>{{ row[col.name] }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="card-mimo p-4 bg-white space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg bg-blue-100 text-blue-800">Langkah 3</span>
+              <i class="ph-fill ph-shield-check text-blue-600 text-xl"></i>
+            </div>
+            <h3 class="font-extrabold text-sm text-slate-800">Daftarkan Site URL di Supabase</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Masukkan domain <code>https://nama-app.netlify.app</code> ke menu <em>Authentication &gt; URL Configuration</em> di dashboard Supabase.
+            </p>
+          </div>
+
+          <div class="card-mimo p-4 bg-white space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800">Langkah 4</span>
+              <i class="ph-fill ph-rocket-launch text-purple-600 text-xl"></i>
+            </div>
+            <h3 class="font-extrabold text-sm text-slate-800">Deploy Otomatis / Netlify Drop</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Push ke GitHub untuk <em>Auto-Deploy</em> dengan <code>netlify.toml</code>, atau tarik folder HTML ke <code>app.netlify.com/drop</code>.
+            </p>
           </div>
         </div>
 
-        <!-- Preset Quick Buttons & Code Editor -->
+        <!-- LIVE INTERACTIVE IMPLEMENTATION SIMULATOR -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-          <!-- Editor Column -->
-          <div class="lg:col-span-7 card-mimo p-4 sm:p-5 flex flex-col justify-between space-y-4">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                  {{ sandboxMode === 'sql' ? 'PostgreSQL Query Editor' : 'Supabase Client JS Editor' }}
-                </span>
-                <span class="text-[11px] font-mono text-slate-400">Ketuk preset contoh:</span>
+          <!-- Left Column: Netlify Environment & Live Deployed App Preview -->
+          <div class="lg:col-span-7 card-mimo p-4 sm:p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-teal-700">Live App Simulator</span>
+                <h3 class="font-extrabold text-base sm:text-lg text-slate-800">Simulasi Aplikasi Web di Netlify</h3>
               </div>
-
-              <!-- Quick Presets (Horizontal swipe on mobile, wrap on desktop) -->
-              <div class="flex sm:flex-wrap gap-1.5 overflow-x-auto no-scrollbar pb-1.5 mb-2.5">
-                <button
-                  v-for="(preset, pIdx) in currentSandboxPresets"
-                  :key="pIdx"
-                  @click="loadPreset(preset)"
-                  class="text-xs font-bold px-3 py-2 sm:py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200 transition shrink-0"
-                >
-                  {{ preset.label }}
-                </button>
-              </div>
-
-              <!-- Code Textarea -->
-              <div class="relative rounded-2xl overflow-hidden border-2 border-slate-800 bg-slate-900">
-                <div class="flex items-center justify-between px-3.5 py-2 bg-slate-800 text-slate-400 text-xs font-mono">
-                  <div class="flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                    <span class="ml-2 text-slate-300 font-semibold">{{ sandboxMode === 'sql' ? 'query.sql' : 'supabaseClient.js' }}</span>
-                  </div>
-                  <span>UTF-8</span>
-                </div>
-                <textarea
-                  v-model="sandboxCode"
-                  rows="4"
-                  spellcheck="false"
-                  class="w-full p-3.5 sm:p-4 bg-slate-900 text-emerald-300 font-mono text-xs sm:text-sm focus:outline-none resize-none leading-relaxed"
-                  placeholder="Tulis perintah SQL atau Supabase JS di sini..."
-                ></textarea>
-              </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-              <span class="text-xs text-slate-500">
-                <i class="ph-fill ph-lightbulb text-amber-500"></i>
-                Tip: Geser tombol contoh di atas untuk mencoba INSERT, UPDATE, DELETE, atau JOIN.
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-extrabold">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Published • netlify.app</span>
               </span>
-              <button
-                @click="executeSandboxQuery(true)"
-                class="btn-3d-emerald w-full sm:w-auto text-white font-extrabold text-sm px-5 py-3 sm:py-2.5 rounded-2xl flex items-center justify-center gap-2 shrink-0"
-              >
-                <i class="ph-fill ph-play"></i>
-                <span>Jalankan Kode</span>
-              </button>
             </div>
-          </div>
 
-          <!-- Output / Result Column -->
-          <div class="lg:col-span-5 card-mimo p-4 sm:p-5 flex flex-col justify-between space-y-4">
-            <div class="space-y-3">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Hasil Query</span>
-                  <span
-                    :class="[
-                      'text-[11px] font-extrabold px-2 py-0.5 rounded-full',
-                      sandboxResult.error ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
-                    ]"
-                  >
-                    {{ sandboxResult.statusText }}
+            <!-- Simulated Netlify Environment Variables Panel -->
+            <div class="p-3.5 rounded-2xl bg-slate-900 text-slate-200 space-y-2.5 font-mono text-xs">
+              <div class="flex items-center justify-between text-[11px] text-slate-400">
+                <span class="font-bold text-teal-400 flex items-center gap-1.5">
+                  <i class="ph-fill ph-sliders-horizontal"></i>
+                  Netlify Environment Variables
+                </span>
+                <span>Site: supalearn-sekolah.netlify.app</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700">
+                  <label class="block text-[10px] text-slate-400 mb-0.5">VITE_SUPABASE_URL</label>
+                  <input
+                    v-model="netlifySim.supabaseUrl"
+                    type="text"
+                    class="w-full bg-transparent text-emerald-300 focus:outline-none text-xs"
+                  />
+                </div>
+                <div class="bg-slate-800/90 p-2 rounded-xl border border-slate-700">
+                  <label class="block text-[10px] text-slate-400 mb-0.5">VITE_SUPABASE_ANON_KEY</label>
+                  <input
+                    v-model="netlifySim.supabaseKey"
+                    type="text"
+                    class="w-full bg-transparent text-amber-300 focus:outline-none text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated Browser Window Running on Netlify -->
+            <div class="rounded-2xl border-2 border-slate-200 overflow-hidden bg-slate-50">
+              <!-- Browser Bar -->
+              <div class="bg-slate-200/80 px-3 py-2 flex items-center gap-2 border-b border-slate-300">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                </div>
+                <div class="flex-1 bg-white rounded-lg px-3 py-1 text-[11px] font-mono text-slate-600 flex items-center gap-1.5 truncate">
+                  <i class="ph-fill ph-lock-key text-emerald-600"></i>
+                  <span class="truncate">https://supalearn-sekolah.netlify.app</span>
+                </div>
+              </div>
+
+              <!-- Mini App Body: Form Input + Live Table from Supabase -->
+              <div class="p-4 space-y-4 bg-white">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="font-extrabold text-sm text-slate-800">Portal Pengumpulan Projek Informatika</h4>
+                    <p class="text-[11px] text-slate-500">Terhubung langsung ke tabel <code>public.projek_informatika</code></p>
+                  </div>
+                  <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                    {{ dbTables.projek_informatika.length }} Projek
                   </span>
                 </div>
 
-                <!-- Toggle Output View: Tabel vs JSON API -->
-                <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
-                  <button
-                    @click="sandboxResultView = 'table'"
-                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'table' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500']"
+                <!-- Form Tambah Projek -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                  <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Judul Projek</label>
+                    <input
+                      v-model="netlifySim.newJudul"
+                      type="text"
+                      placeholder="Misal: Web Koperasi"
+                      class="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-xs focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Kategori</label>
+                    <select
+                      v-model="netlifySim.newKategori"
+                      class="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-xs focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="Web App">Web App</option>
+                      <option value="IoT">IoT</option>
+                      <option value="Mobile App">Mobile App</option>
+                      <option value="AI / Data">AI / Data</option>
+                    </select>
+                  </div>
+                  <div class="flex items-end">
+                    <button
+                      @click="submitNetlifyDemoProject"
+                      class="btn-3d-emerald w-full text-white font-extrabold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5"
+                    >
+                      <i class="ph-bold ph-paper-plane-tilt"></i>
+                      <span>Kirim ke Supabase</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Daftar Projek Live -->
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  <div
+                    v-for="proj in dbTables.projek_informatika.slice().reverse()"
+                    :key="proj.id"
+                    class="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2 text-xs hover:bg-slate-50"
                   >
-                    Tabel
-                  </button>
-                  <button
-                    @click="sandboxResultView = 'json'"
-                    :class="['px-2.5 py-1 rounded-lg transition', sandboxResultView === 'json' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500']"
-                  >
-                    JSON API
-                  </button>
+                    <div class="min-w-0">
+                      <div class="font-extrabold text-slate-800 truncate">{{ proj.judul_projek }}</div>
+                      <div class="text-[11px] text-slate-500">
+                        ID: #{{ proj.id }} • Kategori: <span class="font-semibold text-emerald-700">{{ proj.kategori }}</span>
+                      </div>
+                    </div>
+                    <span class="shrink-0 font-mono text-[11px] px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200">
+                      ★ {{ proj.bintang }}
+                    </span>
+                  </div>
                 </div>
-              </div>
-
-              <!-- Error Alert -->
-              <div
-                v-if="sandboxResult.error"
-                class="p-4 rounded-2xl bg-rose-50 border-2 border-rose-200 text-rose-700 text-xs font-mono space-y-1"
-              >
-                <div class="font-bold flex items-center gap-1.5 text-rose-800">
-                  <i class="ph-fill ph-warning-circle text-base"></i>
-                  <span>Pesan Kesalahan Sintaks:</span>
-                </div>
-                <p>{{ sandboxResult.error }}</p>
-              </div>
-
-              <!-- View 1: Table Result -->
-              <div v-else-if="sandboxResultView === 'table'" class="overflow-x-auto rounded-2xl border-2 border-slate-200 max-h-60">
-                <table v-if="sandboxResult.data.length > 0" class="w-full text-left border-collapse font-mono text-xs">
-                  <thead>
-                    <tr class="bg-emerald-50 border-b border-emerald-200 text-emerald-900">
-                      <th
-                        v-for="key in Object.keys(sandboxResult.data[0])"
-                        :key="key"
-                        class="py-2 px-3 font-bold whitespace-nowrap"
-                      >
-                        {{ key }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100 bg-white">
-                    <tr v-for="(r, i) in sandboxResult.data" :key="i" class="hover:bg-slate-50">
-                      <td v-for="key in Object.keys(sandboxResult.data[0])" :key="key" class="py-2 px-3 text-slate-700 whitespace-nowrap">
-                        {{ r[key] }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div v-else class="p-6 text-center text-xs text-slate-400">
-                  Tidak ada baris data yang cocok dengan filter query.
-                </div>
-              </div>
-
-              <!-- View 2: JSON Response (Supabase Format) -->
-              <div v-if="sandboxResultView === 'json' && !sandboxResult.error" class="rounded-2xl bg-slate-900 text-blue-300 p-3.5 font-mono text-xs overflow-auto max-h-60">
-                <pre>{{ JSON.stringify({ data: sandboxResult.data, error: null, status: 200 }, null, 2) }}</pre>
               </div>
             </div>
-
-            <!-- Explanation Note -->
-            <div class="p-3 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900">
-              <span class="font-extrabold">Penjelasan Eksekusi:</span>
-              <p class="mt-0.5 text-blue-800 leading-relaxed">{{ sandboxResult.explanation }}</p>
-            </div>
           </div>
-        </div>
-      </section>
 
-      <!-- =================================================================== -->
-      <!-- TAB 3: KAMUS CEPAT (CHEAT SHEET SQL VS SUPABASE JS)                 -->
-      <!-- =================================================================== -->
-      <section v-if="activeTab === 'cheatsheet'" class="space-y-6 animate-pop">
-        <div class="card-mimo p-6 bg-gradient-to-r from-purple-50 via-white to-blue-50">
-          <span class="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-purple-100 text-purple-700">
-            Referensi berdampingan
-          </span>
-          <h2 class="text-2xl font-extrabold text-slate-800 mt-2">Kamus Cepat: PostgreSQL vs Supabase JS</h2>
-          <p class="text-xs sm:text-sm text-slate-600 mt-1">
-            Bandingkan cara penulisan query SQL murni di PostgreSQL dengan method JavaScript SDK di Supabase.
-          </p>
-          <!-- Search input -->
-          <div class="mt-4 relative max-w-md">
-            <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-            <input
-              v-model="cheatSearch"
-              type="text"
-              placeholder="Cari perintah (misal: SELECT, INSERT, WHERE, RLS, JOIN)..."
-              class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border-2 border-slate-200 text-sm focus:outline-none focus:border-emerald-400"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div
-            v-for="item in filteredCheatSheet"
-            :key="item.title"
-            class="card-mimo p-5 flex flex-col justify-between space-y-3"
-          >
-            <div>
-              <div class="flex items-center justify-between gap-2 mb-1.5">
-                <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700">
-                  {{ item.category }}
+          <!-- Right Column: Network Request Inspector (Netlify -> Supabase PostgREST) -->
+          <div class="lg:col-span-5 card-mimo p-4 sm:p-6 flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                  Log Komunikasi Netlify ↔ Supabase
                 </span>
-                <button
-                  @click="tryInSandbox(item)"
-                  class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
-                >
-                  <span>Coba di Sandbox</span>
-                  <i class="ph-bold ph-arrow-right"></i>
-                </button>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
+                  HTTPS / PostgREST
+                </span>
               </div>
-              <h3 class="font-extrabold text-slate-800 text-base">{{ item.title }}</h3>
-              <p class="text-xs text-slate-500 mt-0.5">{{ item.desc }}</p>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                Setiap kali pengunjung di domain <code>.netlify.app</code> menambah atau membaca data, <code>@supabase/supabase-js</code> mengirimkan request HTTPS seperti di bawah ini:
+              </p>
+
+              <div class="rounded-2xl bg-slate-900 text-slate-200 p-3.5 font-mono text-[11px] space-y-2.5 overflow-x-auto max-h-80">
+                <div
+                  v-for="(log, lIdx) in netlifySim.logs"
+                  :key="lIdx"
+                  class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700 space-y-1"
+                >
+                  <div class="flex items-center justify-between text-[10px]">
+                    <span class="font-bold text-emerald-400">{{ log.method }} {{ log.endpoint }}</span>
+                    <span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">{{ log.status }}</span>
+                  </div>
+                  <div class="text-slate-400 text-[10px]">Origin: https://supalearn-sekolah.netlify.app</div>
+                  <pre class="text-blue-300 overflow-x-auto pt-1">{{ log.payload }}</pre>
+                </div>
+              </div>
             </div>
 
-            <div class="space-y-2 pt-1">
-              <!-- SQL Box -->
-              <div class="rounded-xl bg-blue-950 text-blue-200 p-3 font-mono text-xs relative group">
-                <div class="flex items-center justify-between text-[10px] uppercase tracking-wider text-blue-400 font-bold mb-1">
-                  <span>PostgreSQL Query</span>
-                  <button @click="copyCode(item.sql)" class="hover:text-white">Salin</button>
-                </div>
-                <pre class="overflow-x-auto whitespace-pre-wrap">{{ item.sql }}</pre>
+            <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+              <div class="font-extrabold flex items-center gap-1.5">
+                <i class="ph-fill ph-shield-warning text-amber-600 text-base"></i>
+                <span>Tips Keamanan Penting di Netlify:</span>
               </div>
+              <p class="leading-relaxed">
+                Gunakan hanya <code>SUPABASE_ANON_KEY</code> pada kode frontend di Netlify. Jangan pernah menaruh <code>SERVICE_ROLE_KEY</code> di kode HTML/Vue publik karena kunci tersebut melewati perlindungan RLS!
+              </p>
+            </div>
+          </div>
+        </div>
 
-              <!-- Supabase JS Box -->
-              <div class="rounded-xl bg-slate-900 text-emerald-300 p-3 font-mono text-xs relative group">
-                <div class="flex items-center justify-between text-[10px] uppercase tracking-wider text-emerald-500 font-bold mb-1">
-                  <span>Supabase Client JS</span>
-                  <button @click="copyCode(item.supabase)" class="hover:text-white">Salin</button>
-                </div>
-                <pre class="overflow-x-auto whitespace-pre-wrap">{{ item.supabase }}</pre>
+        <!-- COMPLETE COPYABLE IMPLEMENTATION TEMPLATES -->
+        <div class="card-mimo p-4 sm:p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-extrabold uppercase tracking-wider text-purple-700">Starter Kit Siap Pakai</span>
+              <h3 class="text-base sm:text-xl font-extrabold text-slate-800">Contoh Kode Implementasi Lengkap</h3>
+              <p class="text-xs text-slate-500">Pilih arsitektur proyek yang ingin kamu deploy ke Netlify:</p>
+            </div>
+
+            <!-- Template Switcher Buttons -->
+            <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+              <button
+                v-for="tpl in netlifyTemplates"
+                :key="tpl.id"
+                @click="activeNetlifyTemplate = tpl.id"
+                :class="[
+                  'px-3.5 py-2 rounded-xl font-extrabold text-xs transition shrink-0 border',
+                  activeNetlifyTemplate === tpl.id
+                    ? 'bg-slate-900 text-white border-slate-900'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                ]"
+              >
+                {{ tpl.label }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="currentNetlifyTemplateObj" class="space-y-3">
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="text-xs text-slate-600">
+                <strong class="text-slate-800">{{ currentNetlifyTemplateObj.title }}:</strong>
+                {{ currentNetlifyTemplateObj.desc }}
               </div>
+              <button
+                @click="copyCode(currentNetlifyTemplateObj.code)"
+                class="btn-3d-white px-3.5 py-2 rounded-xl font-extrabold text-xs text-emerald-700 flex items-center justify-center gap-1.5 shrink-0"
+              >
+                <i class="ph-bold ph-copy"></i>
+                <span>Salin Kode</span>
+              </button>
+            </div>
+
+            <div class="rounded-2xl bg-slate-900 text-emerald-300 font-mono text-xs overflow-hidden border-2 border-slate-800">
+              <div class="px-4 py-2 bg-slate-800 text-slate-300 flex items-center justify-between text-[11px]">
+                <span class="font-bold">{{ currentNetlifyTemplateObj.filename }}</span>
+                <span class="text-slate-400">Siap Deploy ke Netlify</span>
+              </div>
+              <pre class="p-4 overflow-x-auto leading-relaxed max-h-96">{{ currentNetlifyTemplateObj.code }}</pre>
             </div>
           </div>
         </div>
@@ -927,18 +889,18 @@
   </div>
 
   <!-- ======================= MOBILE BOTTOM NAVIGATION ======================= -->
-  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t-2 border-slate-200 px-2 pt-1.5 pb-safe flex items-center justify-around shadow-lg">
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t-2 border-slate-200 px-1.5 pt-1.5 pb-safe flex items-center justify-around shadow-lg">
     <button
       v-for="item in navItems"
       :key="item.id"
       @click="activeTab = item.id"
       :class="[
-        'flex-1 flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-2xl font-extrabold text-[11px] transition active:scale-95',
+        'flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-2xl font-extrabold text-[10px] sm:text-[11px] transition active:scale-95',
         activeTab === item.id ? 'text-emerald-700 bg-emerald-50/90' : 'text-slate-500'
       ]"
     >
-      <i :class="[item.icon, 'text-xl', activeTab === item.id ? 'text-emerald-600' : 'text-slate-400']"></i>
-      <span>{{ item.shortLabel }}</span>
+      <i :class="[item.icon, 'text-lg sm:text-xl', activeTab === item.id ? 'text-emerald-600' : 'text-slate-400']"></i>
+      <span class="truncate">{{ item.shortLabel }}</span>
     </button>
   </nav>
 
@@ -1420,8 +1382,9 @@ createApp({
 
       // Navigation Items
       navItems: [
-        { id: 'path', label: 'Jalur Belajar', shortLabel: 'Belajar', icon: 'ph-fill ph-map-trifold', badge: '8 Bab' },
+        { id: 'path', label: 'Jalur Belajar', shortLabel: 'Belajar', icon: 'ph-fill ph-map-trifold', badge: '9 Bab' },
         { id: 'sandbox', label: 'Simulasi Tabel & SQL', shortLabel: 'Sandbox', icon: 'ph-fill ph-terminal-window' },
+        { id: 'netlify', label: 'Implementasi Netlify', shortLabel: 'Netlify', icon: 'ph-fill ph-cloud-arrow-up', badge: 'Live' },
         { id: 'cheatsheet', label: 'Kamus Cepat', shortLabel: 'Kamus', icon: 'ph-fill ph-book-bookmark' },
         { id: 'profile', label: 'Profil & Statistik', shortLabel: 'Profil', icon: 'ph-fill ph-user-circle' }
       ],
@@ -2208,6 +2171,109 @@ createApp({
               explanation: 'Luar biasa! Kamu telah menguasai konsep keamanan Row Level Security (RLS) dan otorisasi pengguna menggunakan auth.uid() = user_id.'
             }
           ]
+        },
+
+        // =========================================================================
+        // BAB 9: MENGHUBUNGKAN SUPABASE DENGAN NETLIFY & IMPLEMENTASI LANGSUNG
+        // =========================================================================
+        {
+          id: 9,
+          title: 'Menghubungkan Supabase dengan Netlify & Implementasi Langsung',
+          category: 'Deployment & Cloud',
+          theme: 'supa',
+          icon: 'ph-fill ph-cloud-arrow-up',
+          xpReward: 130,
+          description: 'Pelajari cara men-deploy aplikasi web ke Netlify, menghubungkan kredensial Supabase lewat Environment Variables (import.meta.env), mengatur netlify.toml, dan contoh implementasi langsung.',
+          tags: ['Netlify Env Vars', 'import.meta.env', 'netlify.toml', 'Site URL Auth', 'Live CRUD App'],
+          steps: [
+            // Konsep 9.1
+            {
+              type: 'theory',
+              title: 'Konsep 9.1: Integrasi Supabase di Netlify & Environment Variables',
+              content: 'Saat kita mempublikasikan aplikasi web (Vue/Vite/React) ke internet menggunakan <strong>Netlify</strong>, kode kita biasanya disimpan di GitHub. Agar kredensial proyek mudah dikelola di server produksi, kita menyimpannya di menu <strong>Site Configuration &gt; Environment Variables</strong> pada dashboard Netlify (atau mengaktifkan <strong>Supabase Extension</strong> resmi di Netlify).<br><br>Pada proyek modern berbasis Vite/Vue, variabel lingkungan wajib diawali dengan <code>VITE_</code> dan diakses di kode JavaScript menggunakan <code>import.meta.env.VITE_SUPABASE_URL</code> serta <code>import.meta.env.VITE_SUPABASE_ANON_KEY</code>.',
+              syntaxAnatomy: [
+                { syntax: 'VITE_SUPABASE_URL', role: 'Nama Variabel URL di Netlify', desc: 'Menyimpan URL proyek Supabase pada pengaturan Environment Variables Netlify.' },
+                { syntax: 'VITE_SUPABASE_ANON_KEY', role: 'Nama Variabel Key di Netlify', desc: 'Menyimpan kunci publik anon key Supabase di dashboard Netlify.' },
+                { syntax: 'import.meta.env.VITE_SUPABASE_URL', role: 'Akses Variabel di Kode JS', desc: 'Membaca nilai variabel lingkungan saat Netlify melakukan proses build aplikasi.' },
+                { syntax: 'createClient(supabaseUrl, supabaseAnonKey)', role: 'Hubungkan ke Supabase', desc: 'Menginisialisasi koneksi Supabase menggunakan variabel dari Netlify.' }
+              ],
+              codeExample: `// File: src/supabaseClient.js (Dijalankan saat build di Netlify)\nimport { createClient } from '@supabase/supabase-js';\n\nconst supabaseUrl = import.meta.env.VITE_SUPABASE_URL;\nconst supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;\n\nexport const supabase = createClient(supabaseUrl, supabaseAnonKey);`,
+              practicalTip: 'Jika kamu memakai fitur <strong>Supabase Integration</strong> di dashboard Netlify, Netlify akan otomatis menyuntikkan variabel URL dan Anon Key proyek Supabase kamu tanpa perlu menyalinnya secara manual!'
+            },
+            // Latihan 9.1
+            {
+              type: 'fill',
+              title: 'Latihan 9.1: Membaca Environment Variable Supabase di Netlify',
+              content: 'Sesuai Konsep 9.1, kita menggunakan objek <code>import.meta.env.VITE_SUPABASE_URL</code> untuk mengambil alamat URL Supabase yang tersimpan di Environment Variables Netlify.',
+              prompt: 'Lengkapi baris kode pada supabaseClient.js di bawah ini untuk membaca VITE_SUPABASE_URL:',
+              codePrefix: 'const supabaseUrl =',
+              codeSuffix: ';',
+              options: [
+                'import.meta.env.VITE_SUPABASE_URL',
+                'window.sql.SUPABASE_URL',
+                'SELECT.env.VITE_SUPABASE_URL'
+              ],
+              answer: 'import.meta.env.VITE_SUPABASE_URL',
+              explanation: 'Tepat sekali! import.meta.env.VITE_SUPABASE_URL akan mengambil nilai variabel lingkungan yang kamu atur di dashboard Netlify.'
+            },
+            // Konsep 9.2
+            {
+              type: 'theory',
+              title: 'Konsep 9.2: Konfigurasi File netlify.toml & Pengaturan Site URL Auth',
+              content: 'Agar Netlify tahu cara membangun (<em>build</em>) proyek aplikasi kita secara otomatis setiap kali ada perubahan di GitHub, kita menambahkan file bernama <code>netlify.toml</code> di folder utama proyek.<br><br>Selain itu, setelah mendapatkan domain seperti <code>https://aplikasi-sekolah.netlify.app</code>, kita wajib mendaftarkan alamat tersebut pada dashboard Supabase di menu <strong>Authentication &gt; URL Configuration &gt; Site URL</strong> agar fitur login dan keamanan CORS berjalan lancar.',
+              syntaxAnatomy: [
+                { syntax: '[build]', role: 'Header Konfigurasi Build', desc: 'Bagian di dalam file netlify.toml yang mengatur proses kompilasi proyek.' },
+                { syntax: 'command = "npm run build"', role: 'Perintah Build', desc: 'Perintah terminal yang dijalankan oleh server Netlify untuk membungkus aplikasi.' },
+                { syntax: 'publish = "dist"', role: 'Folder Output Publik', desc: 'Folder hasil build yang akan ditayangkan ke pengunjung oleh Netlify.' },
+                { syntax: 'Site URL (Supabase Dashboard)', role: 'Izin Domain Produksi', desc: 'Mengatur https://nama-proyek.netlify.app sebagai domain resmi aplikasi di Supabase.' }
+              ],
+              codeExample: `# File: netlify.toml (Diletakkan di root folder proyek)\n[build]\n  command = "npm run build"\n  publish = "dist"\n\n[[redirects]]\n  from = "/*"\n  to = "/index.html"\n  status = 200`,
+              practicalTip: 'Jika kamu hanya membuat proyek 1 file <code>index.html</code> (menggunakan CDN Vue & Tailwind seperti aplikasi ini), kamu bahkan bisa langsung menarik foldernya ke <strong>app.netlify.com/drop</strong> tanpa perlu proses build!'
+            },
+            // Latihan 9.2
+            {
+              type: 'arrange',
+              title: 'Latihan 9.2: Menyusun Konfigurasi Build di File netlify.toml',
+              content: 'Berdasarkan Konsep 9.2, susun konfigurasi blok <code>[build]</code> pada file <code>netlify.toml</code> yang menentukan perintah build <code>"npm run build"</code> dan folder publikasi <code>"dist"</code>.',
+              prompt: 'Susun blok konfigurasi netlify.toml berikut dengan urutan yang benar:',
+              tokens: [
+                '[build]',
+                'command = "npm run build"',
+                'publish = "dist"'
+              ],
+              distractors: ['SELECT *', 'TABLE = "dist"'],
+              explanation: 'Mantap! Konfigurasi [build] dengan command = "npm run build" dan publish = "dist" memberitahu Netlify cara men-deploy aplikasimu.'
+            },
+            // Konsep 9.3
+            {
+              type: 'theory',
+              title: 'Konsep 9.3: Contoh Implementasi Langsung Aplikasi Web + Supabase di Netlify',
+              content: 'Mari kita bedah contoh implementasi langsung pada aplikasi web yang di-<em>deploy</em> ke Netlify untuk menampilkan dan menambahkan data ke tabel <code>projek_informatika</code>.<br><br>Alur kode implementasinya terdiri dari 3 bagian:<br>1. Memuat SDK <code>@supabase/supabase-js@2</code> dan memanggil <code>createClient(SUPABASE_URL, SUPABASE_ANON_KEY)</code>.<br>2. Membuat fungsi <code>muatProjek()</code> dengan <code>await supabase.from(\'projek_informatika\').select(\'*\')</code>.<br>3. Membuat fungsi <code>tambahProjek()</code> dengan <code>await supabase.from(\'projek_informatika\').insert([projekBaru]).select()</code>.',
+              syntaxAnatomy: [
+                { syntax: 'supabase.createClient(URL, KEY)', role: '1. Inisialisasi Koneksi', desc: 'Menghubungkan halaman web di Netlify dengan proyek Supabase.' },
+                { syntax: "await supabase.from('projek_informatika').select('*')", role: '2. Fungsi Baca Data', desc: 'Mengambil daftar projek saat halaman pertama kali dibuka di browser.' },
+                { syntax: "await supabase.from('projek_informatika').insert([projekBaru]).select()", role: '3. Fungsi Simpan Form', desc: 'Mengirim objek projekBaru dari form HTML di Netlify ke tabel PostgreSQL Supabase.' }
+              ],
+              codeExample: `// Implementasi fungsi kirim form dari website Netlify ke Supabase:\nasync function tambahProjek(judul, kategori) {\n  const projekBaru = { judul_projek: judul, kategori: kategori, bintang: 50 };\n\n  const { data, error } = await supabase\n    .from('projek_informatika')\n    .insert([projekBaru])\n    .select();\n\n  if (!error) {\n    console.log('Berhasil tersimpan di Supabase:', data);\n  }\n}`,
+              practicalTip: 'Kamu juga bisa mencoba simulasi interaktif dan menyalin kode utuhnya secara langsung pada tab <strong>Implementasi Netlify</strong> di aplikasi ini!'
+            },
+            // Latihan 9.3
+            {
+              type: 'arrange',
+              title: 'Latihan 9.3: Menyusun Kode Implementasi Simpan Data ke Supabase',
+              content: 'Gunakan kode implementasi dari Konsep 9.3 untuk menyimpan objek <code>projekBaru</code> ke dalam tabel <code>projek_informatika</code> lalu mengembalikan hasilnya dengan <code>.select()</code>.',
+              prompt: 'Susun blok kode berikut menjadi implementasi penyimpanan data yang utuh:',
+              tokens: [
+                'const { data, error } =',
+                'await supabase',
+                ".from('projek_informatika')",
+                '.insert([projekBaru])',
+                '.select();'
+              ],
+              distractors: ['.netlify()', 'VALUES'],
+              explanation: 'Sempurna! Kamu telah menguasai cara kerja dan implementasi langsung integrasi aplikasi web di Netlify dengan database Supabase.'
+            }
+          ]
         }
       ],
 
@@ -2242,6 +2308,176 @@ createApp({
         error: null,
         explanation: 'Menampilkan seluruh baris dari tabel siswa.'
       },
+
+      // ==================== NETLIFY + SUPABASE LIVE IMPLEMENTATION STATE ====================
+      activeNetlifyTemplate: 'cdn',
+      netlifySim: {
+        supabaseUrl: 'https://sekolah-informatika.supabase.co',
+        supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.anon.public',
+        newJudul: '',
+        newKategori: 'Web App',
+        logs: [
+          {
+            method: 'GET',
+            endpoint: '/rest/v1/projek_informatika?select=*',
+            status: '200 OK',
+            payload: '// Initial Fetch saat halaman https://supalearn-sekolah.netlify.app dibuka\n[\n  { "id": 1, "judul_projek": "Aplikasi Kasir Sekolah", "kategori": "Web App" },\n  { "id": 2, "judul_projek": "Bot Absensi Telegram", "kategori": "Automation" }\n]'
+          }
+        ]
+      },
+      netlifyTemplates: [
+        {
+          id: 'cdn',
+          label: '1. Single-File HTML + Vue (Netlify Drop)',
+          title: 'File index.html Lengkap (Tanpa Install Node.js)',
+          desc: 'Cukup simpan kode ini sebagai index.html, ganti URL & ANON_KEY, lalu drag & drop ke app.netlify.com/drop.',
+          filename: 'index.html',
+          code: `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Projek Siswa — Supabase + Netlify</title>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"><\/script>
+  <!-- 1. Muat SDK Resmi Supabase JS v2 dari CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>
+</head>
+<body class="bg-slate-50 p-6 font-sans">
+  <div id="app" class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow border">
+    <h1 class="text-xl font-bold text-slate-800 mb-4">Daftar Projek Informatika</h1>
+
+    <!-- Form Tambah Projek -->
+    <form @submit.prevent="tambahProjek" class="flex gap-2 mb-6">
+      <input v-model="judulBaru" placeholder="Nama projek..." required class="flex-1 border rounded-xl px-3 py-2 text-sm" />
+      <button type="submit" class="bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-sm">
+        Simpan
+      </button>
+    </form>
+
+    <!-- Daftar Data dari Supabase -->
+    <ul class="space-y-2">
+      <li v-for="item in daftarProjek" :key="item.id" class="p-3 rounded-xl bg-slate-100 text-sm flex justify-between">
+        <span class="font-semibold">{{ item.judul_projek }}</span>
+        <span class="text-emerald-700">{{ item.kategori }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <script>
+    // 2. Inisialisasi Koneksi Supabase Client
+    const SUPABASE_URL = 'https://PROYEK-KAMU.supabase.co';
+    const SUPABASE_ANON_KEY = 'ISI_DENGAN_SUPABASE_ANON_KEY_KAMU';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    Vue.createApp({
+      data() {
+        return {
+          daftarProjek: [],
+          judulBaru: ''
+        };
+      },
+      mounted() {
+        this.muatProjek();
+      },
+      methods: {
+        async muatProjek() {
+          const { data, error } = await supabaseClient
+            .from('projek_informatika')
+            .select('*')
+            .order('id', { ascending: false });
+          if (!error) this.daftarProjek = data;
+        },
+        async tambahProjek() {
+          const { data, error } = await supabaseClient
+            .from('projek_informatika')
+            .insert([{ judul_projek: this.judulBaru, kategori: 'Web App', bintang: 50 }])
+            .select();
+          if (!error) {
+            this.daftarProjek.unshift(data[0]);
+            this.judulBaru = '';
+          }
+        }
+      }
+    }).mount('#app');
+  <\/script>
+</body>
+</html>`
+        },
+        {
+          id: 'vite',
+          label: '2. Proyek Vite + Env Vars + netlify.toml',
+          title: 'Konfigurasi Proyek Modern (GitHub Auto-Deploy ke Netlify)',
+          desc: 'Menggunakan Environment Variables (import.meta.env) agar kunci API aman dan otomatis terbaca saat build di Netlify.',
+          filename: 'src/supabaseClient.js & netlify.toml',
+          code: `// =========================================================
+// 1. File: .env.local (Untuk dijalankan di laptop lokal)
+// Atur juga key yang sama di Netlify > Site Configuration > Environment Variables
+// =========================================================
+VITE_SUPABASE_URL=https://proyek-sekolah.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+
+// =========================================================
+// 2. File: src/supabaseClient.js
+// =========================================================
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+
+// =========================================================
+// 3. File: netlify.toml (Taruh di root proyek GitHub kamu)
+// =========================================================
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200`
+        },
+        {
+          id: 'functions',
+          label: '3. Netlify Serverless Function',
+          title: 'Backend API dengan Netlify Functions + Supabase',
+          desc: 'Jika kamu membutuhkan logika server tersembunyi di Netlify tanpa mengekspos query langsung di browser.',
+          filename: 'netlify/functions/ambil-siswa.js',
+          code: `// File: netlify/functions/ambil-siswa.js
+// Dapat diakses otomatis di: https://nama-web.netlify.app/.netlify/functions/ambil-siswa
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
+export const handler = async (event, context) => {
+  const { data, error } = await supabase
+    .from('siswa')
+    .select('id, nama, kelas, jurusan')
+    .order('skor_coding', { ascending: false });
+
+  if (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
+
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ siswa: data })
+  };
+};`
+        }
+      ],
 
       // ==================== CHEAT SHEET DATA ====================
       cheatSearch: '',
@@ -2309,12 +2545,23 @@ createApp({
           table: 'projek_informatika',
           sql: 'SELECT projek_informatika.judul_projek, siswa.nama FROM projek_informatika INNER JOIN siswa ON projek_informatika.siswa_id = siswa.id;',
           supabase: "const { data, error } = await supabase\n  .from('projek_informatika')\n  .select('judul_projek, kategori, siswa(nama, jurusan)');"
+        },
+        {
+          category: 'Deployment Netlify + Supabase',
+          title: 'Koneksi Supabase dengan Environment Variables di Netlify',
+          desc: 'Membaca VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY yang diatur pada dashboard Netlify.',
+          table: 'projek_informatika',
+          sql: "-- Pastikan RLS & Policy aktif di Supabase:\nALTER TABLE projek_informatika ENABLE ROW LEVEL SECURITY;\nCREATE POLICY \"Baca Publik\" ON projek_informatika FOR SELECT USING (true);",
+          supabase: "import { createClient } from '@supabase/supabase-js';\n\nconst supabase = createClient(\n  import.meta.env.VITE_SUPABASE_URL,\n  import.meta.env.VITE_SUPABASE_ANON_KEY\n);"
         }
       ]
     };
   },
 
   computed: {
+    currentNetlifyTemplateObj() {
+      return this.netlifyTemplates.find(t => t.id === this.activeNetlifyTemplate) || this.netlifyTemplates[0];
+    },
     userLevel() {
       return Math.floor(this.stats.xp / 100) + 1;
     },
@@ -2497,8 +2744,15 @@ createApp({
         },
         {
           id: 'b6',
+          title: 'Deployer Netlify & Supabase',
+          desc: 'Menyelesaikan Bab 9 Integrasi Supabase dengan Netlify',
+          icon: 'ph-fill ph-cloud-arrow-up',
+          unlocked: this.stats.completedModules.includes(9)
+        },
+        {
+          id: 'b7',
           title: 'Lulusan Terbaik SupaLearn',
-          desc: 'Menyelesaikan seluruh 8 Bab kurikulum pembelajaran',
+          desc: 'Menyelesaikan seluruh 9 Bab kurikulum pembelajaran',
           icon: 'ph-fill ph-trophy',
           unlocked: this.stats.completedModules.length === this.modules.length
         }
@@ -3192,6 +3446,36 @@ createApp({
       this.sandboxMode = 'sql';
       this.sandboxCode = item.sql.replace(/\n/g, ' ');
       this.executeSandboxQuery(true);
+    },
+
+    // ==================== NETLIFY + SUPABASE LIVE DEMO ACTIONS ====================
+    submitNetlifyDemoProject() {
+      const judul = this.netlifySim.newJudul.trim();
+      if (!judul) {
+        this.showToast('Masukkan judul projek terlebih dahulu!');
+        return;
+      }
+      const nextId = this.dbTables.projek_informatika.reduce((max, r) => Math.max(max, r.id || 0), 0) + 1;
+      const newRow = {
+        id: nextId,
+        judul_projek: judul,
+        kategori: this.netlifySim.newKategori,
+        bintang: Math.floor(Math.random() * 40) + 50,
+        status: 'Rilis',
+        siswa_id: 1
+      };
+      this.dbTables.projek_informatika.push(newRow);
+
+      this.netlifySim.logs.unshift({
+        method: 'POST',
+        endpoint: '/rest/v1/projek_informatika?select=*',
+        status: '201 Created',
+        payload: `// Request dikirim dari Netlify (${this.netlifySim.supabaseUrl})\n// menggunakan supabase.from('projek_informatika').insert([...]).select()\n` + JSON.stringify(newRow, null, 2)
+      });
+
+      this.netlifySim.newJudul = '';
+      this.playTone('success');
+      this.showToast('Projek berhasil dikirim dari simulasi web Netlify ke tabel Supabase!');
     },
 
     // ==================== LOCAL STORAGE PERSISTENCE ====================
