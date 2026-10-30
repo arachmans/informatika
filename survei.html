@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<!-- Aplikasi demo 7 KAIH — standalone, tanpa backend/database.
+     Data jawaban hanya disimulasikan (console.log), tidak dipersist. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Instrumen Digital Pengisian 7 KAIH // SMAN 1 Sukabumi [DEMO]</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+:root{
+  --card:#F9FAF5;
+  --ink:#2B313D;
+  --sub:#5A667A;
+  --lab:#4F6322;
+  --line:#8E9EB8;
+  --soft:#E4EAF3;
+  --field:#FFFFFF;
+  --mute:#7C899E;
+  --pri:#7892C4;
+  --acc:#A5BD46;
+  --gold:#C5D86D;
+  --err:#E56B6F;
+  --err-bg:#FDF0F0;
+  --claude:#D97757;
+  --claude-dark:#A84E32;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+}
+
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:inherit;-webkit-tap-highlight-color:transparent}
+body{margin:0;height:100%;background:#DCE3EE;color:var(--ink);font-family:'Nunito',system-ui,-apple-system,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button,input{outline:none;-webkit-appearance:none;appearance:none}
+button,.opt,.kcard,.ksub,#cr,#scene,#gate,#mascot-layer,#battle-layer{user-select:none;-webkit-user-select:none}
+
+/* ============================================================
+   BADGE MODE DEMO
+   ============================================================ */
+.demo-badge{
+  position:fixed;top:max(8px,env(safe-area-inset-top,8px));right:8px;
+  z-index:99999;background:#FFD166;border:2px solid var(--ink);
+  padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  font-weight:800;border-radius:3px;box-shadow:2px 2px 0 var(--ink);
+  letter-spacing:.5px;color:var(--ink);pointer-events:none;
+}
+
+/* GATEWAY INITIALIZATION PROTOCOL */
+#gate{
+  position:fixed;inset:0;z-index:999;display:flex;pointer-events:all;transition:visibility .5s;
+}
+#gate.done{pointer-events:none;visibility:hidden}
+.gate-door{
+  flex:1;height:100%;background:#DCE3EE;
+  border:3px solid var(--ink);position:relative;
+  transition:transform .8s cubic-bezier(.77,0,.175,1);
+  background-image:
+    radial-gradient(#8E9EB8 1.5px, transparent 1.5px),
+    repeating-linear-gradient(45deg, rgba(43,49,61,.04) 0, rgba(43,49,61,.04) 10px, transparent 10px, transparent 20px);
+  background-size:16px 16px, auto;
+}
+#gate-left{border-right:2px dashed var(--ink);transform-origin:left center}
+#gate-right{border-left:2px dashed var(--ink);transform-origin:right center}
+#gate.open #gate-left{transform:translateX(-100%)}
+#gate.open #gate-right{transform:translateX(100%)}
+
+#gate-hud{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:1000;width:min(90%,420px);background:var(--card);
+  border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);
+  padding:24px;text-align:center;display:grid;gap:12px;
+  transition:opacity .4s ease,transform .4s ease;
+}
+#gate.open #gate-hud{opacity:0;transform:translate(-50%,-50%) scale(.8);pointer-events:none}
+.g-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  background:#DCE5B7;border:1.5px solid var(--ink);padding:4px 8px;border-radius:3px;
+  display:inline-block;margin:0 auto;letter-spacing:.8px;text-transform:uppercase;
+}
+.g-title{
+  font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:800;color:var(--pri);margin:0;letter-spacing:1px;
+}
+.g-time{
+  font-family:'IBM Plex Mono',monospace;font-size:38px;font-weight:700;color:var(--ink);letter-spacing:2px;
+}
+.g-bar-wrap{
+  height:16px;border:2px solid var(--ink);background:var(--soft);border-radius:3px;padding:1px;overflow:hidden;
+}
+#g-bar{
+  height:100%;width:0%;
+  background:repeating-linear-gradient(90deg, var(--acc) 0 12px, #89A230 12px 14px);
+  transition:width .1s linear;
+}
+.g-status{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--sub);font-weight:600;margin:0;
+}
+
+/* BACKGROUND ATMOSPHERE */
+#scene{
+  position:fixed;inset:0;overflow:hidden;
+  background:
+    radial-gradient(#8E9EB8 1.25px, transparent 1.25px) 0 0 / 16px 16px,
+    linear-gradient(180deg, #D5DFEE 0%, #EAEEF5 55%, #E2E8D5 100%);
+  z-index:0;pointer-events:none;contain:strict;
+}
+#scene::before{
+  content:"";position:absolute;inset:0;
+  background:
+    repeating-linear-gradient(0deg, rgba(43,49,61,.03) 0px, rgba(43,49,61,.03) 1px, transparent 1px, transparent 3px);
+  pointer-events:none;
+}
+#scene.pause *{animation-play-state:paused!important}
+.ground{
+  position:absolute;left:0;right:0;bottom:0;height:6vh;
+  background:#A5BD46;border-top:2px solid #2B313D;
+  background-image:repeating-linear-gradient(90deg, rgba(43,49,61,.18) 0 2px, transparent 2px 14px);
+}
+.tree{position:absolute;aspect-ratio:100/140;transform-origin:50% 100%;will-change:transform;backface-visibility:hidden;animation:sway 8s ease-in-out infinite alternate}
+@keyframes sway{from{transform:translate3d(0,0,0) rotate(-.6deg)}to{transform:translate3d(0,0,0) rotate(.6deg)}}
+.ray{
+  position:absolute;top:-10%;height:120%;width:16vw;
+  background:radial-gradient(circle, #7892C4 2px, transparent 2.5px) 0 0 / 10px 10px;
+  opacity:.35;transform-origin:50% 0;will-change:opacity;animation:pulse 6s ease-in-out infinite alternate;
+}
+@keyframes pulse{from{opacity:.12;transform:translate3d(0,0,0) rotate(-8deg)}to{opacity:.42;transform:translate3d(0,0,0) rotate(-8deg)}}
+.ff{
+  position:absolute;width:22px;height:22px;
+  color:#7892C4;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:22px;line-height:22px;text-align:center;
+  will-change:transform,opacity;backface-visibility:hidden;animation:fly 8s ease-in-out infinite alternate;
+}
+.ff::after{content:"*"}
+@keyframes fly{0%{transform:translate3d(0,0,0) rotate(0deg);opacity:.35}50%{opacity:.95}100%{transform:translate3d(28px,-42px,0) rotate(90deg);opacity:.35}}
+
+/* FLOATING MASCOT */
+#mascot-layer{
+  position:fixed;inset:0;z-index:15;pointer-events:none;
+}
+#mascot-roam{
+  position:fixed;left:0;top:0;width:68px;height:68px;
+  will-change:transform;
+}
+#mascot-float{
+  width:100%;height:100%;position:relative;
+  animation:mascotBob 2.6s ease-in-out infinite alternate;
+  will-change:transform;
+}
+@keyframes mascotBob{
+  0%{transform:translate3d(0,-5px,0)}
+  100%{transform:translate3d(0,5px,0)}
+}
+#mascot-sprite-wrap{
+  width:68px;height:68px;
+  transition:filter .15s ease;
+  filter:drop-shadow(3px 3px 0 rgba(43,49,61,.25));
+}
+#mascot-sprite-wrap.hit-flash{
+  filter:brightness(2) drop-shadow(0 0 10px var(--err));
+}
+.m-svg{
+  width:100%;height:100%;display:block;overflow:visible;
+  shape-rendering:crispEdges;
+}
+.m-wing-l{
+  transform-origin:6px 13px;
+  animation:mFlapL .22s steps(2,end) infinite alternate;
+}
+.m-wing-r{
+  transform-origin:22px 13px;
+  animation:mFlapR .22s steps(2,end) infinite alternate;
+}
+@keyframes mFlapL{from{transform:rotate(-10deg)}to{transform:rotate(12deg)}}
+@keyframes mFlapR{from{transform:rotate(10deg)}to{transform:rotate(-12deg)}}
+
+main{position:relative;z-index:1;min-height:100%;display:grid;place-items:center;padding:92px 20px 24px}
+.scr{display:none;width:100%;justify-items:center}
+.scr.on{display:grid;animation:fade .35s cubic-bezier(.22,1,.36,1) both}
+@keyframes fade{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+
+/* RETRO TECH CARDS */
+.card{
+  position:relative;
+  width:min(100%,480px);
+  background:var(--card);
+  border-radius:6px;
+  border:2px solid var(--ink);
+  padding:42px 24px 26px;
+  box-shadow:6px 6px 0 rgba(43,49,61,.22);
+  display:grid;gap:15px;
+  background-image:
+    linear-gradient(90deg, var(--acc) 0 65%, var(--pri) 65% 100%),
+    radial-gradient(#CBD5E6 1px, transparent 1px);
+  background-size:100% 24px, 12px 12px;
+  background-repeat:no-repeat, repeat;
+  background-position:top left, 0 24px;
+}
+.card::before{
+  content:"[ 7_KAIH // SMANSA_SYSTEM v3.6 ]";
+  position:absolute;top:0;left:0;right:0;height:24px;
+  display:flex;align-items:center;padding:0 10px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#fff;
+  letter-spacing:.6px;border-bottom:2px solid var(--ink);
+  text-shadow:1px 1px 0 var(--ink);
+}
+.card::after{
+  content:"* * *";
+  position:absolute;top:3px;right:10px;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#fff;
+}
+#s-q .card{width:min(100%,780px)}
+
+h1,h2{margin:0}
+h1{
+  text-align:center;font-size:clamp(19px,4.2vw,24px);font-weight:800;
+  color:#3C548C;letter-spacing:.5px;line-height:1.35;
+  font-family:'IBM Plex Mono',monospace;
+}
+.leaf{justify-self:center;width:180px;height:44px;fill:var(--ink)}
+.sub{
+  margin:0;text-align:center;color:var(--ink);
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;
+  background:#DCE5B7;border:1.5px solid var(--ink);padding:6px 10px;border-radius:3px;
+  letter-spacing:.5px;
+}
+label{
+  display:grid;gap:6px;font-weight:700;font-size:12.5px;color:var(--ink);
+  font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.6px;
+}
+input{
+  width:100%;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:18px;
+  padding:12px 14px;border:2px solid var(--ink);border-radius:4px;
+  background:var(--field);color:var(--ink);text-align:center;letter-spacing:2px;
+  box-shadow:inset 2px 2px 0 rgba(120,146,196,.2);
+  transition:border-color .15s,box-shadow .15s;contain:paint
+}
+input:focus{border-color:var(--pri);box-shadow:3px 3px 0 var(--acc)}
+
+.btn{
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;text-transform:uppercase;
+  letter-spacing:1px;padding:12px 22px;border-radius:4px;
+  border:2px solid var(--ink);background:var(--acc);color:var(--ink);
+  box-shadow:4px 4px 0 var(--ink);cursor:pointer;transition:transform .1s,box-shadow .1s,opacity .15s;
+  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn.danger{background:var(--err);color:#FFF}
+.btn.sm{font-size:12px;padding:8px 14px;box-shadow:3px 3px 0 var(--ink)}
+.note{margin:0;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--sub);text-align:center;line-height:1.45}
+
+/* MODAL IDENTITAS SISWA */
+#md{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(43,49,61,.65);padding:20px}
+#md.on{display:grid}
+#md .card{width:min(100%,500px);text-align:center;justify-items:center;animation:fade .25s ease both}
+.warn{
+  width:52px;height:52px;border-radius:4px;border:2px solid var(--ink);
+  background:var(--acc);color:var(--ink);font-family:'IBM Plex Mono',monospace;
+  font-size:32px;font-weight:700;display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink)
+}
+.chip-group{display:grid;gap:8px;width:100%}
+.chip{
+  background:var(--soft);border:1.5px solid var(--ink);padding:10px 14px;
+  border-radius:4px;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;
+  display:flex;justify-content:space-between;align-items:center
+}
+.chip span{color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+.chip b{color:var(--ink);font-size:15px}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;width:100%}
+
+/* MODAL PEMBERITAHUAN & LAPORAN SISTEM */
+#md-err{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:rgba(43,49,61,.72);padding:20px}
+#md-err.on{display:grid}
+#md-err .card{
+  width:min(100%,480px);text-align:center;justify-items:center;animation:fade .25s ease both;
+  background-image:
+    linear-gradient(90deg, var(--err) 0 65%, var(--ink) 65% 100%),
+    radial-gradient(#CBD5E6 1px, transparent 1px);
+}
+#md-err .card::before{content:"[ SYSTEM_ALERT // SECURITY_GATE ]";background:transparent}
+.warn-err{
+  width:52px;height:52px;border-radius:4px;border:2px solid var(--ink);
+  background:var(--err);color:#FFF;font-family:'IBM Plex Mono',monospace;
+  font-size:28px;font-weight:800;display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink)
+}
+.err-box{
+  background:var(--err-bg);border:2px solid var(--ink);padding:14px 16px;border-radius:4px;
+  width:100%;display:grid;gap:8px;box-shadow:inset 2px 2px 0 rgba(229,107,111,.2)
+}
+.err-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  color:#FFF;background:var(--err);padding:3px 8px;border-radius:3px;
+  display:inline-block;margin:0 auto;letter-spacing:1px;text-transform:uppercase;
+}
+.err-msg{
+  font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;
+  color:#2B313D;margin:0;line-height:1.5
+}
+.err-actions{
+  display:flex;flex-direction:column;gap:10px;width:100%;margin-top:4px;
+}
+
+/* MODAL CONFIRMATION DIALOG */
+#md-confirm{position:fixed;inset:0;z-index:30;display:none;place-items:center;background:rgba(43,49,61,.72);padding:20px}
+#md-confirm.on{display:grid}
+#md-confirm .card{
+  width:min(100%,480px);text-align:center;justify-items:center;animation:fade .25s ease both;
+  background-image:
+    linear-gradient(90deg, var(--gold) 0 65%, var(--ink) 65% 100%),
+    radial-gradient(#CBD5E6 1px, transparent 1px);
+}
+#md-confirm .card::before{content:"[ SESSION_CONTROL // CONFIRM_ACTION ]";background:transparent}
+.warn-confirm{
+  width:52px;height:52px;border-radius:4px;border:2px solid var(--ink);
+  background:var(--gold);color:#2B313D;font-family:'IBM Plex Mono',monospace;
+  font-size:32px;font-weight:800;display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink)
+}
+
+/* TAMPILAN PERTANYAAN */
+.top{
+  font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;
+  color:var(--ink);display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:6px
+}
+.top-tag{
+  background:var(--acc);color:#2B313D;padding:3px 8px;border:1.5px solid var(--ink);
+  border-radius:3px;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+}
+.btn-link{
+  background:none;border:none;color:var(--sub);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  cursor:pointer;padding:3px 6px;border-radius:3px;text-decoration:underline;
+  transition:color .15s,background .15s;letter-spacing:.4px;
+}
+.btn-link:hover{color:var(--err);background:rgba(229,107,111,.1)}
+
+.track{height:14px;border-radius:3px;border:2px solid var(--ink);background:var(--soft);overflow:hidden;contain:strict;padding:1px}
+#bar{
+  height:100%;width:0;
+  background:repeating-linear-gradient(90deg, var(--acc) 0 10px, #89A230 10px 12px);
+  transition:width .4s cubic-bezier(.22,1,.36,1);will-change:width
+}
+
+/* DOT GRID INDIKATOR BUTIR TERJAWAB */
+.dot-grid{
+  display:flex;flex-wrap:wrap;gap:4px;
+  padding:8px 2px 10px;
+  border-bottom:1.5px dashed var(--line);
+}
+.dot{
+  width:9px;height:9px;border-radius:2px;
+  border:1.5px solid var(--ink);
+  background:var(--soft);
+  transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.dot.done{background:var(--acc)}
+.dot.current{
+  background:var(--pri);
+  transform:scale(1.15);
+  box-shadow:0 0 0 2px rgba(120,146,196,.35);
+}
+
+/* BADGE WAKTU EVALUASI */
+.time-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#EBF1D8;border:1.5px solid var(--ink);
+  padding:6px 12px;border-radius:4px;font-family:'IBM Plex Mono',monospace;
+  font-size:11.5px;font-weight:700;color:var(--lab);box-shadow:2px 2px 0 rgba(43,49,61,.12);
+  width:fit-content;line-height:1.3;
+}
+.time-badge i{font-style:normal;font-size:13px}
+
+#qt{
+  font-size:clamp(17px,3.6vw,22px);font-weight:800;line-height:1.45;color:var(--ink);
+  text-align:left;background:#FFF;padding:14px 16px;border:2px solid var(--ink);
+  border-radius:4px;box-shadow:3px 3px 0 rgba(43,49,61,.12);
+}
+.opts{display:grid;gap:10px}
+.opt{
+  font:inherit;font-size:15px;font-weight:700;display:flex;align-items:center;gap:12px;
+  text-align:left;padding:12px 14px;border-radius:4px;border:2px solid var(--ink);
+  background:var(--field);color:var(--ink);cursor:pointer;
+  box-shadow:3px 3px 0 rgba(120,146,196,.35);
+  transition:border-color .15s,background-color .15s,transform .1s
+}
+@media (hover:hover){.opt:hover{background:#F0F4FA;border-color:var(--pri)}}
+.opt i{
+  flex:none;width:38px;height:34px;border-radius:3px;border:1.5px solid var(--ink);
+  background:var(--soft);color:var(--ink);display:grid;place-items:center;
+  font-family:'IBM Plex Mono',monospace;font-style:normal;font-weight:800;font-size:13px;letter-spacing:.5px
+}
+.opt.sel{background:#E8F0C8;border-color:var(--ink);box-shadow:3px 3px 0 var(--ink);font-weight:800}
+.opt.sel i{background:var(--acc);color:#2B313D}
+.opt.prev-choice{border-style:dashed;border-color:var(--pri);background:#F4F7FC}
+
+.q-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;padding-top:6px;border-top:1.5px dashed var(--line);
+}
+.q-in{animation:qin .32s cubic-bezier(.22,1,.36,1) both;will-change:transform,opacity}
+.q-out{animation:qout .24s cubic-bezier(.4,0,1,1) both;will-change:transform,opacity}
+.q-morph{animation:qMorph .65s cubic-bezier(.5,0,.2,1) forwards;pointer-events:none}
+@keyframes qin{0%{opacity:0;transform:translate3d(32px,0,0)}100%{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes qout{0%{opacity:1;transform:translate3d(0,0,0)}100%{opacity:0;transform:translate3d(-32px,0,0)}}
+@keyframes qMorph{
+  0%{transform:scale(1) rotate(0deg);filter:none;opacity:1}
+  40%{transform:scale(1.04) rotate(-1.5deg);background:var(--claude);filter:hue-rotate(15deg)}
+  100%{transform:scale(0.12) translateY(-180px) rotate(8deg);opacity:0}
+}
+
+/* ============================================================
+   BOSS BATTLE
+   ============================================================ */
+#battle-layer{
+  position:fixed;inset:0;z-index:18;display:none;pointer-events:none;overflow:hidden;
+}
+#battle-layer.on{display:block;pointer-events:auto}
+
+#boss-hud{
+  position:fixed;
+  top:max(14px, env(safe-area-inset-top, 14px));
+  left:0;
+  right:0;
+  margin:0 auto;
+  width:min(calc(100% - 32px), 520px);
+  background:var(--card);
+  border:3px solid var(--ink);
+  box-shadow:6px 6px 0 var(--ink);
+  border-radius:5px;
+  padding:10px 14px;
+  z-index:22;
+  display:grid;
+  gap:6px;
+  box-sizing:border-box;
+  animation:bossFade .35s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes bossFade{
+  from{opacity:0;transform:translate3d(0,-8px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+.boss-head{
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-weight:800;
+}
+.boss-name{
+  font-size:15px;color:var(--ink);letter-spacing:1px;
+  display:flex;align-items:center;gap:8px;
+}
+.boss-name::before{
+  content:"☠";display:inline-grid;place-items:center;
+  width:22px;height:22px;background:var(--claude);color:#FFF;
+  border:1.5px solid var(--ink);border-radius:3px;font-size:13px;
+}
+.boss-hp-txt{
+  font-size:12px;color:var(--err);background:#FFF0F0;
+  border:1.5px solid var(--ink);padding:2px 7px;border-radius:3px;
+}
+.boss-bar-outer{
+  height:18px;border:2.5px solid var(--ink);background:#2B313D;
+  border-radius:3px;padding:2px;overflow:hidden;position:relative;
+}
+#boss-hp-fill{
+  height:100%;width:100%;
+  background:repeating-linear-gradient(90deg, var(--err) 0 14px, #C94A4E 14px 16px);
+  transition:width .18s cubic-bezier(.22,1,.36,1);
+}
+.boss-hint{
+  margin:0;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  color:var(--sub);
+  text-align:center;
+  font-weight:700;
+  line-height:1.35;
+}
+.boss-hint.warn{color:var(--err)}
+
+#monster-wrap{
+  position:fixed;left:0;top:0;width:116px;height:96px;
+  will-change:transform;z-index:19;pointer-events:none;
+  filter:drop-shadow(5px 5px 0 rgba(43,49,61,.32));
+}
+#monster-wrap.hit{
+  filter:brightness(2.2) contrast(1.5) drop-shadow(0 0 12px #FFF);
+}
+#monster-svg{
+  width:100%;height:100%;overflow:visible;shape-rendering:crispEdges;
+}
+.c-leg-a{animation:cLeg .28s steps(2,end) infinite alternate}
+.c-leg-b{animation:cLeg .28s steps(2,end) infinite alternate-reverse}
+.c-claw{animation:cClaw .45s steps(2,end) infinite alternate}
+@keyframes cLeg{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+@keyframes cClaw{from{transform:translateY(1px)}to{transform:translateY(-3px)}}
+
+#battle-canvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:20;pointer-events:none;
+}
+
+/* ============================================================
+   BATTLE CONTROLS — joystick | ultimate | joystick
+   ============================================================ */
+#battle-controls{
+  position:fixed;
+  left:0;right:0;
+  bottom:max(22px, env(safe-area-inset-bottom, 22px));
+  z-index:25;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:8px;
+  padding:0 max(12px, 3vw);
+  pointer-events:none;
+  box-sizing:border-box;
+}
+#battle-controls > *{pointer-events:auto}
+
+.joy-zone{
+  width:132px;
+  height:132px;
+  position:relative;
+  display:grid;
+  place-items:center;
+  touch-action:none;
+  cursor:grab;
+  flex:0 0 auto;
+}
+.joy-zone:active{cursor:grabbing}
+
+.joy-base{
+  width:116px;height:116px;border-radius:50%;
+  background:rgba(249,250,245,.82);
+  border:3px solid var(--ink);
+  box-shadow:4px 4px 0 rgba(43,49,61,.35), inset 0 0 0 2px var(--soft);
+  position:relative;display:grid;place-items:center;
+}
+#joy-shoot .joy-base{background:rgba(253,240,240,.85)}
+.joy-ring{
+  width:72px;height:72px;border-radius:50%;
+  border:1.5px dashed var(--line);pointer-events:none;
+}
+.joy-stick{
+  position:absolute;width:48px;height:48px;border-radius:50%;
+  background:var(--acc);border:2.5px solid var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  display:grid;place-items:center;
+  font-family:'IBM Plex Mono',monospace;font-weight:800;font-size:15px;color:var(--ink);
+  pointer-events:none;will-change:transform;
+}
+#joy-shoot .joy-stick{background:var(--claude);color:#FFF}
+.joy-label{
+  position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+  background:var(--card);border:1.5px solid var(--ink);border-radius:3px;
+  padding:2px 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  font-weight:800;color:var(--ink);white-space:nowrap;
+  box-shadow:2px 2px 0 var(--ink);pointer-events:none;letter-spacing:.6px;
+}
+
+/* ============================================================
+   TOMBOL ULTIMATE (JURUS PAMUNGKAS)
+   ============================================================ */
+#ultimate-zone{
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  align-self:flex-end;
+  pointer-events:none;
+}
+#ultimate-zone > *{pointer-events:auto}
+
+.ultimate-btn{
+  position:relative;
+  width:96px;height:96px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 25%, #FFE08A 0%, #FFD166 30%, #D97757 100%);
+  border:3px solid var(--ink);
+  box-shadow:5px 5px 0 var(--ink), inset 0 -3px 0 rgba(0,0,0,.15);
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:1px;
+  font-family:'IBM Plex Mono',monospace;
+  font-weight:800;
+  color:var(--ink);
+  letter-spacing:.6px;
+  transition:transform .1s, box-shadow .1s, filter .15s;
+  animation:ultAttention 1.2s ease-in-out 3;
+  overflow:hidden;
+}
+.ultimate-btn::before{
+  content:"";
+  position:absolute;
+  inset:-5px;
+  border-radius:50%;
+  border:2.5px dashed var(--gold);
+  opacity:.55;
+  animation:ultRing 6s linear infinite;
+  pointer-events:none;
+}
+.ultimate-btn::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, transparent 40%, rgba(255,255,255,.35) 100%);
+  pointer-events:none;
+}
+@keyframes ultRing{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes ultAttention{
+  0%,100%{
+    box-shadow:5px 5px 0 var(--ink), inset 0 -3px 0 rgba(0,0,0,.15), 0 0 0 0 rgba(255,209,102,.7);
+    filter:brightness(1);
+  }
+  50%{
+    box-shadow:5px 5px 0 var(--ink), inset 0 -3px 0 rgba(0,0,0,.15), 0 0 0 14px rgba(255,209,102,0);
+    filter:brightness(1.2);
+  }
+}
+.ultimate-btn:hover{filter:brightness(1.15)}
+.ultimate-btn:active{
+  transform:translate(3px,3px);
+  box-shadow:2px 2px 0 var(--ink), inset 0 -2px 0 rgba(0,0,0,.15);
+}
+.ultimate-btn:focus-visible{
+  outline:3px solid var(--pri);
+  outline-offset:4px;
+}
+.ultimate-btn:disabled{
+  filter:grayscale(.7) opacity(.55);
+  cursor:not-allowed;
+  animation:none;
+}
+.ultimate-btn .ult-icon{
+  font-size:26px;
+  line-height:1;
+  filter:drop-shadow(1.5px 1.5px 0 rgba(43,49,61,.35));
+  position:relative;
+  z-index:1;
+}
+.ultimate-btn .ult-text{
+  font-size:9px;
+  letter-spacing:.7px;
+  text-align:center;
+  line-height:1.1;
+  padding:0 4px;
+  position:relative;
+  z-index:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.4);
+}
+.ult-hint{
+  margin:0;
+  background:var(--card);
+  border:1.5px solid var(--ink);
+  border-radius:3px;
+  padding:3px 8px;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:9.5px;
+  font-weight:800;
+  color:var(--ink);
+  box-shadow:2px 2px 0 var(--ink);
+  letter-spacing:.2px;
+  text-align:center;
+  max-width:160px;
+  line-height:1.25;
+  pointer-events:none;
+}
+
+/* RESPONSIVE */
+@media (max-width:500px){
+  .joy-zone{width:112px;height:112px}
+  .joy-base{width:96px;height:96px}
+  .joy-ring{width:58px;height:58px}
+  .joy-stick{width:40px;height:40px;font-size:13px}
+  .ultimate-btn{width:84px;height:84px}
+  .ultimate-btn .ult-icon{font-size:22px}
+  .ultimate-btn .ult-text{font-size:8px}
+  .ult-hint{font-size:8.5px;max-width:120px;padding:2px 6px}
+}
+@media (max-width:380px){
+  #battle-controls{padding:0 8px;gap:6px}
+  .joy-zone{width:100px;height:100px}
+  .joy-base{width:86px;height:86px}
+  .joy-ring{width:52px;height:52px}
+  .joy-stick{width:36px;height:36px;font-size:12px}
+  .ultimate-btn{width:76px;height:76px}
+  .ultimate-btn .ult-icon{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ultimate-btn,
+  .ultimate-btn::before{animation:none !important}
+}
+
+/* DRONE PENGANTAR */
+#cr{position:fixed;left:50%;top:50%;width:260px;height:340px;margin:-255px 0 0 -130px;z-index:4;display:none;pointer-events:none;will-change:transform}
+#cr>*{position:absolute;will-change:transform,opacity;backface-visibility:hidden}
+#bird{left:20px;top:-8px;width:220px;height:125px;opacity:0;overflow:visible}
+#straps{left:0;top:100px;width:260px;height:74px;opacity:0}
+#env{left:0;top:170px;width:260px;height:170px;opacity:0;overflow:visible}
+.wing{transform-origin:52px 38px;will-change:transform;animation:flap .09s linear infinite alternate}
+.wing.back{transform-origin:168px 38px;animation:flapB .09s linear infinite alternate}
+@keyframes flap{from{transform:scaleX(1) rotate(-3deg)}to{transform:scaleX(.2) rotate(3deg)}}
+@keyframes flapB{from{transform:scaleX(.2) rotate(3deg)}to{transform:scaleX(1) rotate(-3deg)}}
+#flap{transform-origin:130px 1.5px;will-change:transform}
+
+/* SELESAI */
+#s-end{position:fixed;inset:0;z-index:2;pointer-events:none}
+#s-end.on{animation:none;pointer-events:auto}
+.disc{
+  position:fixed;left:50%;top:50%;width:var(--dd);height:var(--dd);
+  margin:calc(var(--dd)/-2) 0 0 calc(var(--dd)/-2);
+  border-radius:50%;
+  background:radial-gradient(#CBD5E6 1.5px, transparent 1.5px) 0 0/10px 10px, #F9FAF5;
+  border:3px solid var(--ink);
+  box-shadow:0 0 0 6px var(--acc), 0 0 0 8px var(--ink), 8px 8px 0 rgba(43,49,61,.28);
+  display:grid;place-items:center;
+  font-family:'IBM Plex Mono',monospace;font-size:clamp(20px,5.2vw,30px);font-weight:700;
+  color:var(--ink);transform:translate3d(0,0,0) scale(.28);opacity:0;
+  will-change:transform,opacity;transition:transform .65s cubic-bezier(.2,1.25,.3,1),opacity .3s ease
+}
+.disc.on{transform:translate3d(0,0,0) scale(1);opacity:1}
+.disc span{opacity:0;transform:translate3d(0,44px,0) scale(.6);transition:opacity .5s,transform .5s cubic-bezier(.2,.9,.3,1.4)}
+.disc.fin span{opacity:1;transform:translate3d(0,44px,0) scale(1)}
+
+#logo-box{position:fixed;left:50%;top:50%;width:clamp(78px,19vmin,106px);height:clamp(78px,19vmin,106px);margin:calc(clamp(78px,19vmin,106px)/-2 - 22px) 0 0 calc(clamp(78px,19vmin,106px)/-2);z-index:4;display:grid;place-items:center;transform:translate3d(0,0,0) scale(.2);opacity:0;will-change:transform,opacity;transition:transform .65s cubic-bezier(.22,1.35,.36,1),opacity .35s ease;pointer-events:none}
+#logo-box.fin{transform:translate3d(0,0,0) scale(1);opacity:1}
+#logo-png{width:100%;height:100%;object-fit:contain;display:none}
+#logo-png.loaded{display:block}
+#logo-ph{
+  width:100%;height:100%;border-radius:50%;
+  display:grid;place-items:center;
+}
+#logo-ph svg{
+  width:100%;height:100%;overflow:visible;
+  will-change:transform;
+  animation:smileBounce 2.4s ease-in-out infinite alternate;
+}
+@keyframes smileBounce{
+  0%{transform:translate3d(0,0,0) scale(1) rotate(-3deg)}
+  100%{transform:translate3d(0,-5px,0) scale(1.05) rotate(3deg)}
+}
+#logo-png.loaded+#logo-ph{display:none}
+
+#sparks{position:fixed;left:50%;top:50%;width:0;height:0;z-index:3;pointer-events:none;overflow:visible}
+.spk{position:absolute;left:-10px;top:-10px;width:20px;height:20px;will-change:transform,opacity;backface-visibility:hidden}
+.spk-dot{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border:1.5px solid var(--ink);background:var(--acc);will-change:transform,opacity}
+
+.thx{
+  position:fixed;left:50%;transform:translateX(-50%);
+  top:calc(50% + var(--dd)/2 + 18px);margin:0;padding:8px 18px;
+  background:var(--acc);border:2.5px solid var(--ink);box-shadow:4px 4px 0 var(--ink);
+  text-align:center;color:var(--ink);font-family:'IBM Plex Mono',monospace;
+  font-weight:800;font-size:clamp(13px,3.5vw,16px);opacity:0;transition:opacity .5s .2s;white-space:nowrap;
+  border-radius:4px;letter-spacing:.5px;
+}
+.thx.fin{opacity:1}
+
+.end-actions{
+  position:fixed;left:50%;transform:translateX(-50%);
+  top:calc(50% + var(--dd)/2 + 74px);
+  opacity:0;pointer-events:none;
+  transition:opacity .5s .35s;
+  z-index:10;display:flex;justify-content:center;
+}
+.end-actions.fin{opacity:1;pointer-events:auto}
+.end-actions .btn{
+  font-size:13.5px;padding:11px 22px;background:var(--card);
+  box-shadow:4px 4px 0 var(--ink);white-space:nowrap;
+}
+.end-actions .btn:hover,.end-actions .btn:active{background:var(--acc)}
+
+@media (prefers-reduced-motion:reduce){.tree,.ray,.ff,.wing,#mascot-float,.m-wing-l,.m-wing-r{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- BADGE MODE DEMO -->
+<div class="demo-badge">MODE DEMO · TANPA DATABASE</div>
+
+<!-- GATEWAY INITIALIZATION PROTOCOL -->
+<div id="gate" aria-live="polite">
+  <div class="gate-door" id="gate-left"></div>
+  <div class="gate-door" id="gate-right"></div>
+  <div id="gate-hud">
+    <span class="g-tag">[ GATEWAY PROTOCOL v3.6 ]</span>
+    <h2 class="g-title">SYSTEM INITIALIZATION</h2>
+    <div class="g-time" id="g-timer">05.00s</div>
+    <div class="g-bar-wrap"><div id="g-bar"></div></div>
+    <p class="g-status" id="g-stat">&gt; Connecting to Secure Server Gateway...</p>
+  </div>
+</div>
+
+<!-- FLOATING PIXEL MASCOT -->
+<div id="mascot-layer" aria-hidden="true">
+  <div id="mascot-roam">
+    <div id="mascot-float">
+      <div id="mascot-sprite-wrap">
+        <svg id="mascot-happy" class="m-svg" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4h1v1H2zM1 5h3v1H1zM2 6h1v1H2zM25 3h1v1h-1zM24 4h3v1h-3zM25 5h1v1h-1z" fill="#FFD166"/>
+          <path d="M13 1h2v2h-2z" fill="#FFD166"/>
+          <path d="M12 1h1v2h-1zM15 1h1v2h-1zM13 0h2v1h-2z" fill="#2B313D"/>
+          <path d="M13 3h2v2h-2z" fill="#2B313D"/>
+          <g class="m-wing-l">
+            <path d="M1 10h4v1H1zM0 11h1v4H0zM1 15h3v1H1zM4 16h2v1H4zM5 11h1v5H5z" fill="#2B313D"/>
+            <path d="M1 11h4v4H1zM4 15h1v1H4z" fill="#F9FAF5"/>
+            <path d="M2 12h2v2H2z" fill="#A5BD46"/>
+          </g>
+          <g class="m-wing-r">
+            <path d="M23 10h4v1h-4zM27 11h1v4h-1zM24 15h3v1h-3zM22 16h2v1h-2zM22 11h1v5h-1z" fill="#2B313D"/>
+            <path d="M23 11h4v4h-4z" fill="#F9FAF5"/>
+            <path d="M24 12h2v2h-2z" fill="#A5BD46"/>
+          </g>
+          <path d="M7 4h3v1H7zM6 5h1v2H6zM10 5h1v1h-1zM18 4h3v1h-3zM21 5h1v2h-1zM17 5h1v1h-1z" fill="#2B313D"/>
+          <path d="M7 5h3v2H7zM18 5h3v2h-3z" fill="#A5BD46"/>
+          <path d="M10 5h8v1h-8zM7 6h3v1H7zM18 6h3v1h-3zM6 7h1v2H6zM21 7h1v2h-1zM5 9h1v10H5zM22 9h1v10h-1zM6 19h1v2H6zM21 19h1v2h-1zM7 21h2v1H7zM19 21h2v1h-2zM9 22h10v1H9z" fill="#2B313D"/>
+          <path d="M7 7h14v2H7z" fill="#A5BD46"/>
+          <path d="M8 7h4v1H8z" fill="#C5D86D"/>
+          <path d="M6 9h16v1H6z" fill="#2B313D"/>
+          <path d="M6 10h16v9H6zM7 19h14v2H7zM9 21h10v1H9z" fill="#F9FAF5"/>
+          <path d="M7 19h14v1H7zM9 20h10v1H9z" fill="#E4EAF3"/>
+          <path d="M8 11h12v7H8z" fill="#2B313D"/>
+          <path d="M9 12h10v5H9z" fill="#EBF1D8"/>
+          <path d="M10 14h1v1h-1zM11 13h1v1h-1zM12 14h1v1h-1zM15 14h1v1h-1zM16 13h1v1h-1zM17 14h1v1h-1z" fill="#2B313D"/>
+          <path d="M9 15h2v1H9zM17 15h2v1h-2z" fill="#E56B6F"/>
+          <path d="M13 15h2v1h-2z" fill="#2B313D"/>
+          <path d="M12 19h4v2h-4z" fill="#A5BD46"/>
+          <path d="M13 19h2v1h-2z" fill="#FFD166"/>
+          <path d="M9 23h3v2H9zM16 23h3v2h-3z" fill="#2B313D"/>
+          <path d="M10 23h1v1h-1zM17 23h1v1h-1z" fill="#7892C4"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOSS ARENA -->
+<div id="battle-layer">
+  <!-- BOSS HUD -->
+  <div id="boss-hud">
+    <div class="boss-head">
+      <span class="boss-name">Database Enemy</span>
+      <span class="boss-hp-txt" id="boss-hp-label">100 / 100 HP</span>
+    </div>
+    <div class="boss-bar-outer">
+      <div id="boss-hp-fill"></div>
+    </div>
+    <p class="boss-hint" id="boss-hint">Kalahkan Database Enemy, atau gunakan ULTIMATE untuk menang instan.</p>
+  </div>
+
+  <!-- CLAUDE CODE PIXEL MONSTER -->
+  <div id="monster-wrap">
+    <svg id="monster-svg" viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg">
+      <path d="M5 1h14v1H5zM4 2h1v2H4zM19 2h1v2h-1zM3 4h1v3H3zM20 4h1v3h-1zM1 7h2v4H1zM21 7h2v4h-2zM3 11h1v3H3zM20 11h1v3h-1zM4 14h16v1H4z" fill="#2B313D"/>
+      <g class="c-claw">
+        <path d="M1 8h2v2H1zM21 8h2v2h-2z" fill="#D97757"/>
+        <path d="M0 7h1v4H0zM23 7h1v4h-1z" fill="#2B313D"/>
+      </g>
+      <path d="M5 2h14v12H5zM4 4h1v10H4zM19 4h1v10h-1z" fill="#D97757"/>
+      <path d="M6 2h12v1H6zM5 3h2v1H5z" fill="#F29E82"/>
+      <path d="M5 13h14v1H5z" fill="#A84E32"/>
+      <path d="M7 6h2v4H7zM15 6h2v4h-2z" fill="#2B313D"/>
+      <path d="M7 6h1v1H7zM15 6h1v1h-1z" fill="#FFFFFF"/>
+      <path d="M6 5h3v1H6zM15 5h3v1h-3z" fill="#2B313D"/>
+      <g class="c-leg-a">
+        <path d="M5 15h2v3H5zM11 15h2v3h-2zM17 15h2v3h-2z" fill="#D97757"/>
+        <path d="M4 15h1v3H4zM7 15h1v3H7zM5 18h2v1H5zM10 15h1v3h-1zM13 15h1v3h-1zM11 18h2v1h-2zM16 15h1v3h-1zM19 15h1v3h-1zM17 18h2v1h-2z" fill="#2B313D"/>
+      </g>
+      <g class="c-leg-b">
+        <path d="M8 15h2v3H8zM14 15h2v3h-2z" fill="#A84E32"/>
+        <path d="M8 18h2v1H8zM14 18h2v1h-2z" fill="#2B313D"/>
+      </g>
+    </svg>
+  </div>
+
+  <canvas id="battle-canvas"></canvas>
+
+  <!-- BATTLE CONTROLS: joystick kiri — ultimate — joystick kanan -->
+  <div id="battle-controls">
+    <div class="joy-zone" id="joy-move">
+      <span class="joy-label">MOVE JOYSTICK</span>
+      <div class="joy-base">
+        <div class="joy-ring"></div>
+        <div class="joy-stick" id="stick-move">✚</div>
+      </div>
+    </div>
+
+    <div id="ultimate-zone">
+      <button type="button" id="btn-ultimate" class="ultimate-btn"
+              aria-label="Jurus Pamungkas — kalahkan boss instan"
+              title="Jurus Pamungkas">
+        <span class="ult-icon" aria-hidden="true">⚡</span>
+        <span class="ult-text">ULTIMATE</span>
+      </button>
+      <p class="ult-hint">Tekan tombol ULTIMATE untuk menyelesaikan permainan</p>
+    </div>
+
+    <div class="joy-zone" id="joy-shoot">
+      <span class="joy-label">AIM &amp; SHOOT</span>
+      <div class="joy-base">
+        <div class="joy-ring"></div>
+        <div class="joy-stick" id="stick-shoot">⌖</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="scene"><div class="ground"></div><div id="forest"></div></div>
+<main>
+<!-- 1. SCREEN REGISTRASI IDENTITAS -->
+<section class="scr on" id="s-reg">
+<form class="card" id="card" autocomplete="off">
+<svg class="leaf" viewBox="0 0 180 44" aria-hidden="true">
+  <g fill="#2B313D">
+    <rect x="4" y="4" width="3" height="28"/><rect x="10" y="4" width="1.5" height="28"/><rect x="14" y="4" width="4" height="28"/><rect x="21" y="4" width="1.5" height="28"/><rect x="25" y="4" width="2" height="28"/><rect x="30" y="4" width="5" height="28"/><rect x="38" y="4" width="1.5" height="28"/><rect x="42" y="4" width="3" height="28"/><rect x="48" y="2" width="2" height="28"/><rect x="53" y="4" width="4" height="28"/><rect x="60" y="4" width="1.5" height="28"/><rect x="64" y="4" width="3" height="28"/><rect x="70" y="4" width="5" height="28"/><rect x="78" y="4" width="2" height="28"/><rect x="83" y="4" width="1.5" height="28"/><rect x="87" y="4" width="4" height="28"/><rect x="94" y="4" width="2" height="28"/><rect x="99" y="4" width="3" height="28"/><rect x="105" y="4" width="1.5" height="28"/><rect x="109" y="4" width="4" height="28"/>
+    <text x="58" y="41" text-anchor="middle" font-family="monospace" font-size="7.5" font-weight="700">[7_KAIH/SMAN1_SIK]</text>
+  </g>
+  <rect x="122" y="4" width="24" height="24" fill="#A5BD46" stroke="#2B313D" stroke-width="1.5"/>
+  <rect x="150" y="4" width="24" height="24" fill="#7892C4" stroke="#2B313D" stroke-width="1.5"/>
+  <path d="M168 10L156 22M156 22H166M156 22V12" stroke="#FFF" stroke-width="2.5" stroke-linecap="square"/>
+  <text x="134" y="21" text-anchor="middle" font-family="monospace" font-size="18" font-weight="700" fill="#2B313D">*</text>
+</svg>
+<h1>Instrumen Digital Pengisian 7 KAIH</h1>
+<p class="sub">[ 7 KEBIASAAN ANAK INDONESIA HEBAT ]</p>
+<label>Nomor Induk Siswa Nasional (NISN)
+  <input id="nisn-in" type="text" inputmode="numeric" placeholder="Masukkan 10 Digit NISN" maxlength="16" autofocus>
+</label>
+<button class="btn" id="go" disabled>Verifikasi Identitas ↗</button>
+<p class="note" id="reg-note">* Seluruh data tanggapan dienkripsi secara aman <br> dan <b>tidak akan</b> memengaruhi nilaimu</p>
+</form>
+</section>
+
+<!-- 2. SCREEN KUESIONER 35 BUTIR -->
+<section class="scr" id="s-q">
+<div class="card" id="qc">
+<div class="top" id="qn">
+  <span class="top-tag" id="q-cat">KATEGORI</span>
+  <span id="q-idx">// BUTIR 1 DARI 35</span>
+  <button type="button" id="btn-cancel-q" class="btn-link">Ganti Pengguna? ↺</button>
+</div>
+<div class="track"><div id="bar"></div></div>
+<div class="time-badge">
+  <i>⏱</i> <b>Pada 3 Hari Terakhirmu</b> (Hari Sekolah, PJJ, atau Hari Libur)
+</div>
+<h2 id="qt"></h2>
+<div class="opts" id="opts"></div>
+<div class="q-footer">
+  <button type="button" class="btn ghost sm" id="btn-prev-q" disabled>← Butir Sebelumnya</button>
+  <p class="note" style="text-align:right;flex:1">* Pilih jawaban yang paling menggambarkan rutinitas Anda.</p>
+</div>
+</div>
+</section>
+
+<!-- 3. SCREEN SELESAI -->
+<section class="scr" id="s-end">
+<div id="fin"></div>
+<div id="sparks" aria-hidden="true"></div>
+<div class="disc" id="dc"><span>Selesai</span></div>
+<div id="logo-box" aria-hidden="true">
+  <img id="logo-png" src="" alt="Logo">
+  <div id="logo-ph">
+    <svg viewBox="0 0 100 100" aria-label="Simbol Sukses">
+      <circle cx="50" cy="50" r="45" fill="#FFD166" stroke="#2B313D" stroke-width="5"/>
+      <path d="M 22 32 A 34 34 0 0 1 78 24" fill="none" stroke="#FFF5CC" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="34" cy="41" rx="5.5" ry="7.5" fill="#2B313D"/>
+      <circle cx="32" cy="38" r="2" fill="#FFF"/>
+      <ellipse cx="66" cy="41" rx="5.5" ry="7.5" fill="#2B313D"/>
+      <circle cx="64" cy="38" r="2" fill="#FFF"/>
+      <ellipse cx="22" cy="54" rx="7" ry="4" fill="#E56B6F" opacity=".65"/>
+      <ellipse cx="78" cy="54" rx="7" ry="4" fill="#E56B6F" opacity=".65"/>
+      <path d="M 28 56 Q 50 78 72 56" fill="none" stroke="#2B313D" stroke-width="5.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+<p class="thx" id="tx">Jawaban Anda Terkirim!</p>
+<div class="end-actions" id="end-act">
+  <button type="button" class="btn" id="btn-reset-nisn">Kembali ke Halaman Utama ↺</button>
+</div>
+</section>
+</main>
+
+<!-- MODAL VERIFIKASI IDENTITAS SISWA -->
+<div id="md">
+<div class="card" role="alertdialog" aria-modal="true">
+<div class="warn" aria-hidden="true">i</div>
+<h1 id="mh" style="font-size:21px">Konfirmasi Identitas Siswa</h1>
+<p class="sub" id="md-sub">Pastikan data berikut sesuai dengan identitas Anda sebelum mengisi kuesioner!.</p>
+<div class="chip-group">
+  <div class="chip"><span>NISN</span><b id="md-nisn">-</b></div>
+  <div class="chip"><span>Nama Lengkap</span><b id="md-nama">-</b></div>
+  <div class="chip"><span>Kelas</span><b id="md-kelas">-</b></div>
+</div>
+<div class="row">
+  <button type="button" class="btn ghost" id="no">Bukan Saya</button>
+  <button type="button" class="btn" id="yes" disabled>Lanjutkan (2)</button>
+</div>
+<p class="note" id="md-note">Tombol konfirmasi aktif otomatis setelah 2 detik.</p>
+</div>
+</div>
+
+<!-- MODAL PEMBERITAHUAN RETRO -->
+<div id="md-err">
+<div class="card" role="alertdialog" aria-modal="true">
+<div class="warn-err" aria-hidden="true">✕</div>
+<h1 style="font-size:21px;color:var(--err)" id="err-title">Pemberitahuan Sistem</h1>
+<p class="sub" style="background:#FDE8E8;border-color:var(--ink)" id="err-code">[ STATUS // ALERT ]</p>
+<div class="err-box">
+  <span class="err-badge" id="err-badge">NOTIFICATION</span>
+  <p class="err-msg" id="err-msg-body">-</p>
+</div>
+<div class="err-actions">
+  <button type="button" class="btn" id="err-ok">Tutup Pemberitahuan ↺</button>
+</div>
+<p class="note" id="err-note">* Pastikan nomor NISN dan koneksi internet stabil.</p>
+</div>
+</div>
+
+<!-- MODAL KONFIRMASI PEMBATALAN SESI -->
+<div id="md-confirm">
+<div class="card" role="dialog" aria-modal="true">
+<div class="warn-confirm" aria-hidden="true">?</div>
+<h1 style="font-size:21px">Batalkan Sesi Pengisian?</h1>
+<p class="sub" style="background:#FAF3D0;color:#2B313D">[ SESSION_CONTROL // CONFIRM_SWITCH ]</p>
+<div class="err-box" style="background:#FFF9E6;border-color:var(--ink);box-shadow:inset 2px 2px 0 rgba(197,216,109,.2)">
+  <span class="err-badge" style="background:#8E701E">PERINGATAN SESI</span>
+  <p class="err-msg" style="color:#2B313D">Apakah Anda yakin ingin mengganti identitas siswa? Seluruh tanggapan pada sesi ini akan dibuang.</p>
+</div>
+<div class="row">
+  <button type="button" class="btn ghost" id="confirm-no">Lanjutkan Pengisian</button>
+  <button type="button" class="btn danger" id="confirm-yes">Ya, Ganti Pengguna</button>
+</div>
+<p class="note">* Perangkat akan kembali bersih ke layar verifikasi NISN.</p>
+</div>
+</div>
+
+<!-- DRONE PENGANTAR SURAT -->
+<div id="cr" aria-hidden="true">
+<svg id="bird" viewBox="0 0 220 125">
+  <line x1="95" y1="52" x2="85" y2="24" stroke="#2B313D" stroke-width="2.5"/>
+  <circle cx="85" cy="22" r="4" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+  <line x1="125" y1="52" x2="135" y2="28" stroke="#2B313D" stroke-width="2.5"/>
+  <circle cx="135" cy="26" r="3.5" fill="#7892C4" stroke="#2B313D" stroke-width="2"/>
+  <path d="M44 48 L88 64 L88 74 L44 56 Z" fill="#E4EAF3" stroke="#2B313D" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M176 48 L132 64 L132 74 L176 56 Z" fill="#E4EAF3" stroke="#2B313D" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M88 86 L84 106 M132 86 L136 106" stroke="#2B313D" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="78" y="102" width="12" height="6" rx="2" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+  <rect x="130" y="102" width="12" height="6" rx="2" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+  <rect x="42" y="40" width="20" height="16" rx="3" fill="#7892C4" stroke="#2B313D" stroke-width="2.5"/>
+  <rect x="49" y="33" width="6" height="8" fill="#2B313D"/>
+  <rect x="158" y="40" width="20" height="16" rx="3" fill="#7892C4" stroke="#2B313D" stroke-width="2.5"/>
+  <rect x="165" y="33" width="6" height="8" fill="#2B313D"/>
+  <g class="wing">
+    <rect x="14" y="30" width="76" height="5" rx="2.5" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+    <circle cx="52" cy="32.5" r="4.5" fill="#F9FAF5" stroke="#2B313D" stroke-width="2"/>
+  </g>
+  <g class="wing back">
+    <rect x="130" y="30" width="76" height="5" rx="2.5" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+    <circle cx="168" cy="32.5" r="4.5" fill="#F9FAF5" stroke="#2B313D" stroke-width="2"/>
+  </g>
+  <rect x="74" y="50" width="72" height="38" rx="8" fill="#F9FAF5" stroke="#2B313D" stroke-width="2.5"/>
+  <rect x="74" y="50" width="72" height="12" rx="4" fill="#A5BD46" stroke="#2B313D" stroke-width="2.5"/>
+  <rect x="82" y="67" width="2" height="14" fill="#2B313D"/>
+  <rect x="86" y="67" width="4" height="14" fill="#2B313D"/>
+  <rect x="92" y="67" width="1.5" height="14" fill="#2B313D"/>
+  <circle cx="110" cy="74" r="9" fill="#2B313D"/>
+  <circle cx="110" cy="74" r="5.5" fill="#7892C4"/>
+  <circle cx="112" cy="72" r="2" fill="#FFF"/>
+  <text x="132" y="79" text-anchor="middle" font-family="monospace" font-size="14" font-weight="700" fill="#7892C4">*</text>
+</svg>
+<svg id="straps" viewBox="0 0 260 74">
+  <path d="M94 0L88 68M166 0L172 68" stroke="#2B313D" stroke-width="2.5" stroke-dasharray="5 3" stroke-linecap="round"/>
+  <rect x="83" y="64" width="10" height="8" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+  <rect x="167" y="64" width="10" height="8" fill="#A5BD46" stroke="#2B313D" stroke-width="2"/>
+</svg>
+<svg id="env" viewBox="0 0 260 170">
+  <rect x="1.5" y="1.5" width="257" height="167" rx="6" fill="#F9FAF5" stroke="#2B313D" stroke-width="3"/>
+  <rect x="10" y="112" width="240" height="48" fill="#E4EAF3" stroke="#2B313D" stroke-width="1.5"/>
+  <path id="flap" d="M1.5 1.5L130 96L258.5 1.5Z" fill="#DCE5B7" stroke="#2B313D" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="114" y="80" width="32" height="32" rx="4" fill="#7892C4" stroke="#2B313D" stroke-width="2.5"/>
+  <text x="130" y="103" text-anchor="middle" font-family="monospace" font-size="24" font-weight="700" fill="#FFF">*</text>
+  <text id="mt" x="130" y="134" text-anchor="middle" font-family="monospace" font-size="15" font-weight="700" fill="#2B313D"></text>
+  <text id="mk" x="130" y="153" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="#4F6322"></text>
+</svg>
+</div>
+
+<script>
+/* ============================================================
+   MODE DEMO — TANPA DATABASE / TANPA BACKEND
+   Data hanya disimulasikan; tidak ada fetch() ke server.
+   ============================================================ */
+const NAMA_DEMO = [
+  'Ahmad Fauzi', 'Budi Santoso', 'Citra Dewi', 'Dewi Lestari',
+  'Eko Prasetyo', 'Fitri Handayani', 'Gunawan Saputra', 'Hana Permata',
+  'Irfan Maulana', 'Joko Susilo', 'Kartika Sari', 'Lukman Hakim',
+  'Maya Anggraini', 'Nanda Pratama', 'Oki Setiawan', 'Putri Ramadhani'
+];
+const KELAS_DEMO = ['X-1', 'X-2', 'X-3', 'X-4', 'XI-1', 'XI-2', 'XI-3', 'XII-1', 'XII-2', 'XII-3'];
+
+function hashNisn(nisn) {
+  return String(nisn).split('').reduce((s, c) => s + (parseInt(c, 10) || 0), 0);
+}
+function fakeDelay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function callSupabaseRPC(fnName, params) {
+  if (fnName === 'verifikasi_siswa') {
+    await fakeDelay(600 + Math.random() * 400);
+    const nisn = String(params.p_nisn || '');
+    const h = hashNisn(nisn);
+    return {
+      success: true,
+      nisn: nisn,
+      nama: NAMA_DEMO[h % NAMA_DEMO.length],
+      kelas: KELAS_DEMO[h % KELAS_DEMO.length],
+      sudah_mengisi: false
+    };
+  }
+
+  if (fnName === 'submit_survei') {
+    await fakeDelay(800 + Math.random() * 500);
+    console.log('%c[DEMO] Data "terkirim" (tidak disimpan):', 'color:#A84E32;font-weight:bold', params);
+    return { success: true };
+  }
+
+  throw new Error('Unknown RPC: ' + fnName);
+}
+
+// Helper DOM
+const $ = s => document.querySelector(s);
+const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// escape HTML untuk semua nilai dinamis
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+// STATE RUNTIME MEMORY
+let currentSiswa = null;
+let ans = [];
+let historyChoices = [];
+let lock = false, tm;
+
+// STATE BATTLE
+let pendingScoreData = null;
+let battleStartTime = 0;
+let battleFinishing = false;
+let battleTimeout = null;
+let battleHintTimer = null;
+const BATTLE_MAX_DURATION = 60000; // auto-finish 60 detik (fallback aksesibilitas)
+
+// MODAL PEMBERITAHUAN
+function showCustomAlert(title, code, badge, msg, note) {
+  $('#err-title').textContent = title;
+  $('#err-code').textContent = code;
+  $('#err-badge').textContent = badge;
+  $('#err-msg-body').innerHTML = msg;
+  $('#err-note').textContent = note || '* Pastikan data dimasukkan dengan teliti serta koneksi internet stabil.';
+  $('#md-err').classList.add('on');
+}
+
+$('#err-ok').onclick = () => {
+  $('#md-err').classList.remove('on');
+  if ($('#s-reg').classList.contains('on')) {
+    nisnIn.focus();
+  }
+};
+
+// GATEWAY LOADER (5 DETIK)
+function runGateLoader() {
+  const startTime = Date.now();
+  const duration = 5000;
+  const bar = $('#g-bar'), timer = $('#g-timer'), gate = $('#gate');
+
+  const intv = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    const remain = Math.max(0, (duration - elapsed) / 1000).toFixed(2);
+
+    bar.style.width = (progress * 100) + '%';
+    timer.textContent = (remain < 10 ? '0' : '') + remain + 's';
+
+    if (progress >= 1) {
+      clearInterval(intv);
+      timer.textContent = "00.00s";
+      $('#g-stat').textContent = "> SYSTEM READY. ACCESS GRANTED.";
+      setTimeout(() => {
+        gate.classList.add('open');
+        setTimeout(() => gate.classList.add('done'), 800);
+      }, 400);
+    }
+  }, 30);
+}
+
+/* ============================================================
+   OPSI & DATA 35 BUTIR
+   ============================================================ */
+const OPTS = [
+  { code: 'SL', label: 'Selalu' },
+  { code: 'SR', label: 'Sering' },
+  { code: 'KD', label: 'Kadang-Kadang' },
+  { code: 'TP', label: 'Tidak Pernah' }
+];
+
+const Q = [
+  { no: 1, cat: "Bangun Pagi", pos: true, text: "Saya bangun tidur antara pukul 04.00 hingga 06.00 pagi." },
+  { no: 2, cat: "Bangun Pagi", pos: false, text: "Saya bangun melewati pukul 06.00 pagi sehingga terburu-buru mengenakan pakaian atau bersiap." },
+  { no: 3, cat: "Bangun Pagi", pos: true, text: "Saya memiliki sisa waktu luang untuk sarapan atau bersantai sejenak sebelum berangkat ke sekolah/memulai aktivitas." },
+  { no: 4, cat: "Bangun Pagi", pos: false, text: "Saya mematikan alarm yang berbunyi dan kembali memejamkan mata hingga waktu mepet." },
+  { no: 5, cat: "Bangun Pagi", pos: true, text: "Saya mengawali aktivitas belajar atau kegiatan pagi dengan mata terbuka lebar dan tubuh yang bugar." },
+  { no: 6, cat: "Beribadah", pos: true, text: "Dalam tiga hari terakhir, saya melaksanakan ibadah sesuai waktu yang telah ditentukan." },
+  { no: 7, cat: "Beribadah", pos: false, text: "Saya menunda pelaksanaan ibadah hingga batas waktunya hampir habis atau terlewat karena asyik melakukan hal lain." },
+  { no: 8, cat: "Beribadah", pos: true, text: "Saya duduk sejenak untuk berdoa atau berzikir dengan tenang setelah selesai ritual ibadah utama." },
+  { no: 9, cat: "Beribadah", pos: false, text: "Saya menyelesaikan gerakan atau bacaan ibadah secepat mungkin agar bisa segera kembali beraktivitas." },
+  { no: 10, cat: "Beribadah", pos: true, text: "Saya mengikuti kegiatan keagamaan tambahan (seperti tadarus, kajian, atau perenungan) bersama teman atau keluarga." },
+  { no: 11, cat: "Berolahraga", pos: true, text: "Saya melakukan gerakan olahraga atau peregangan tubuh minimal 15 menit di luar jam sekolah." },
+  { no: 12, cat: "Berolahraga", pos: false, text: "Saya menghabiskan waktu lebih dari dua jam berturut-turut untuk rebahan atau duduk sambil menatap layar." },
+  { no: 13, cat: "Berolahraga", pos: true, text: "Saya meletakkan gawai saya di ruangan lain untuk berjalan kaki atau bergerak aktif di sekitar rumah." },
+  { no: 14, cat: "Berolahraga", pos: false, text: "Saya memilih diam di tempat tidur saat ada kesempatan atau ajakan untuk melakukan aktivitas fisik." },
+  { no: 15, cat: "Berolahraga", pos: true, text: "Saya melakukan aktivitas fisik seperti berlari, bersepeda, berjalan cepat, atau senam hingga tubuh berkeringat." },
+  { no: 16, cat: "Makan Sehat dan Bergizi", pos: true, text: "Saya menyantap sayuran hijau atau buah-buahan segar sebagai bagian dari menu makan siang saya." },
+  { no: 17, cat: "Makan Sehat dan Bergizi", pos: false, text: "Saya memilih mi instan atau makanan ringan kemasan sebagai pengganti makanan pokok saat lapar." },
+  { no: 18, cat: "Makan Sehat dan Bergizi", pos: true, text: "Saya meminum air putih sebanyak 6 hingga 8 gelas dalam satu hari penuh." },
+  { no: 19, cat: "Makan Sehat dan Bergizi", pos: false, text: "Saya membeli dan menghabiskan minuman manis kemasan, boba, atau minuman bersoda saat sedang haus." },
+  { no: 20, cat: "Makan Sehat dan Bergizi", pos: true, text: "Saya membaca komposisi gizi atau batas gula pada kemasan sebelum memutuskan untuk mengonsumsi sebuah camilan." },
+  { no: 21, cat: "Gemar Belajar", pos: true, text: "Saya mencari artikel, video edukasi, atau buku tambahan untuk menjawab pertanyaan yang terlintas di pikiran saya." },
+  { no: 22, cat: "Gemar Belajar", pos: false, text: "Saya membuka buku pelajaran khusus pada malam hari hanya karena esoknya ada jadwal ulangan atau pengumpulan tugas." },
+  { no: 23, cat: "Gemar Belajar", pos: true, text: "Saya menulis ulang catatan pelajaran, membaca ulang materi, atau berlatih soal secara mandiri di rumah tanpa disuruh." },
+  { no: 24, cat: "Gemar Belajar", pos: false, text: "Saya memindahkan jawaban tugas dari internet atau milik teman langsung ke buku saya tanpa membacanya secara utuh." },
+  { no: 25, cat: "Gemar Belajar", pos: true, text: "Saya menggunakan waktu mengakses internet untuk mencari tutorial atau materi yang menambah keterampilan baru." },
+  { no: 26, cat: "Bermasyarakat", pos: true, text: "Saya ikut serta menyapu, membersihkan fasilitas umum, atau merapikan lingkungan bersama warga atau teman sekitar." },
+  { no: 27, cat: "Bermasyarakat", pos: false, text: "Saya mendiamkan teman yang sedang kebingungan memahami materi pelajaran atau saat menyelesaikan tugas kelompok." },
+  { no: 28, cat: "Bermasyarakat", pos: true, text: "Saya mendekati dan mendengarkan keluh kesah teman yang sedang tampak sedih atau memiliki masalah." },
+  { no: 29, cat: "Bermasyarakat", pos: false, text: "Saya memilih diam di dalam kamar saat keluarga atau warga sekitar sedang berkumpul dan membersihkan lingkungan." },
+  { no: 30, cat: "Bermasyarakat", pos: true, text: "Saya hadir tepat waktu dan mengerjakan bagian tugas saya dalam kepanitiaan, ekstrakurikuler, atau kerja kelompok." },
+  { no: 31, cat: "Tidur Cepat", pos: true, text: "Saya memejamkan mata dan mulai tidur sebelum pukul 22.00 malam." },
+  { no: 32, cat: "Tidur Cepat", pos: false, text: "Saya masih menatap layar gawai, menonton, atau bermain gim melewati pukul 23.00 malam." },
+  { no: 33, cat: "Tidur Cepat", pos: true, text: "Saya terbangun di pagi hari secara alami atau pada dering alarm pertama tanpa merasa pusing atau lelah." },
+  { no: 34, cat: "Tidur Cepat", pos: false, text: "Saya membawa gawai ke atas tempat tidur dan terus menggulir layar (scrolling) hingga larut malam." },
+  { no: 35, cat: "Tidur Cepat", pos: true, text: "Saya mematikan lampu kamar dan menjauhkan gawai dari jangkauan tangan setidaknya satu jam sebelum tidur." }
+];
+
+/* POSISI MASKOT */
+const mascotRoam = $('#mascot-roam');
+const mascotSpriteWrap = $('#mascot-sprite-wrap');
+const MASCOT_SIZE = 68;
+let inBattleMode = false;
+
+function setIdleMascotPosition() {
+  if (inBattleMode) return;
+  const vw = window.innerWidth;
+  const cardMax = Math.min(vw - 24, 780);
+  const stationaryX = Math.max(14, Math.round((vw - cardMax) / 2));
+  const stationaryY = 14;
+  mascotRoam.style.transition = 'transform 0.4s ease';
+  mascotRoam.style.transform = `translate3d(${stationaryX}px, ${stationaryY}px, 0)`;
+}
+
+setIdleMascotPosition();
+window.addEventListener('resize', setIdleMascotPosition);
+
+/* SKOR */
+function calculateEvaluationScores(answers) {
+  let totalScore = 0;
+  const categoryScores = {
+    "Bangun Pagi": 0,
+    "Beribadah": 0,
+    "Berolahraga": 0,
+    "Makan Sehat dan Bergizi": 0,
+    "Gemar Belajar": 0,
+    "Bermasyarakat": 0,
+    "Tidur Cepat": 0
+  };
+
+  answers.forEach((optIdx, i) => {
+    const q = Q[i];
+    const itemScore = q.pos ? (3 - optIdx) : optIdx;
+    categoryScores[q.cat] += itemScore;
+    totalScore += itemScore;
+  });
+
+  return { totalScore, maxScore: 105, categoryScores };
+}
+
+/* LATAR BACKGROUND */
+const P='M47 0H53V140H47ZM18 22H82V27H18ZM24 46H76V51H24ZM30 70H70V74H30ZM20 22V14H24V22ZM76 22V14H80V22ZM28 46V38H32V46ZM68 46V38H72V46ZM34 70L47 51L50 53L37 72ZM66 70L53 51L50 53L63 72Z',rnd=i=>(Math.sin(i*97.13)+1)/2;
+let k=0,h=`<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.32" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+  <circle cx="280" cy="420" r="90" fill="none" stroke="#5A667A" stroke-width="2"/>
+  <circle cx="280" cy="420" r="55" fill="none" stroke="#5A667A" stroke-width="1.5"/>
+  <circle cx="280" cy="420" r="24" fill="none" stroke="#5A667A" stroke-width="1.5"/>
+  <path d="M0 320 Q 450 480 1000 220 M0 350 Q 450 520 1000 255 M0 620 Q 520 740 1000 540" fill="none" stroke="#5A667A" stroke-width="2"/>
+</svg>`;
+[[7,.25,'#7892C4',28,12,-2],[5,.45,'#5A667A',42,16,-4],[4,.7,'#2B313D',56,18,-6]].forEach(([n,o,c,hh,v,b])=>{for(let i=0;i<n;i++){const ht=hh+rnd(k++)*v;h+=`<svg class="tree" viewBox="0 0 100 140" preserveAspectRatio="none" style="left:${(i+rnd(k++)*.7)*100/n-4}%;bottom:${b}vh;height:${ht}vh;color:${c};opacity:${o};animation-duration:${5.5+rnd(k++)*3.5}s;animation-delay:-${rnd(k++)*5}s"><path fill="currentColor" d="${P}"/></svg>`}});
+for(let i=0;i<3;i++)h+=`<div class="ray" style="left:${10+i*32}%;animation-delay:-${i*2}s"></div>`;
+for(let i=0;i<9;i++)h+=`<div class="ff" style="left:${rnd(i+60)*94}%;top:${14+rnd(i+90)*65}%;animation-duration:${6+rnd(i)*6}s;animation-delay:-${rnd(i+9)*6}s"></div>`;
+$('#forest').innerHTML=h;
+
+const show = id => document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id));
+
+/* VERIFIKASI NISN */
+const nisnIn = $('#nisn-in'), go = $('#go'), sc = $('#scene');
+
+nisnIn.oninput = () => {
+  const cleaned = nisnIn.value.replace(/\D/g, '');
+  if (cleaned !== nisnIn.value) nisnIn.value = cleaned;
+  go.disabled = cleaned.length < 4;
+};
+nisnIn.addEventListener('focus', () => sc.classList.add('pause'));
+nisnIn.addEventListener('blur', () => sc.classList.remove('pause'));
+
+$('#card').onsubmit = async e => {
+  e.preventDefault();
+  if(go.disabled) return;
+  const inputVal = nisnIn.value.trim();
+
+  if (!/^\d{4,16}$/.test(inputVal)) {
+    showCustomAlert(
+      'Format NISN Tidak Valid',
+      '[ ERROR // 400_INVALID_FORMAT ]',
+      'VALIDASI GAGAL',
+      'NISN hanya boleh berisi angka (4–16 digit).',
+      '* Periksa kembali nomor NISN Anda tanpa spasi atau tanda baca.'
+    );
+    return;
+  }
+
+  go.disabled = true;
+  const prevText = go.textContent;
+  go.textContent = 'Memverifikasi...';
+
+  try {
+    const rawData = await callSupabaseRPC('verifikasi_siswa', { p_nisn: inputVal });
+    const data = Array.isArray(rawData) ? rawData[0] : rawData;
+
+    if(!data || !data.success) {
+      showCustomAlert(
+        'Akses Ditolak',
+        '[ ERROR // 404_NISN_NOT_FOUND ]',
+        'DATA TIDAK TERDAFTAR',
+        `Nomor Induk Siswa Nasional (NISN) <span style="background:#FFF;padding:2px 6px;border:1.5px solid var(--ink);border-radius:3px;font-weight:800">${escapeHtml(inputVal)}</span> tidak tercatat dalam database.`,
+        '* Pastikan Anda memasukkan nomor NISN dengan benar.'
+      );
+      return;
+    }
+
+    const found = {
+      nisn: data.nisn,
+      nama: data.nama,
+      kelas: data.kelas
+    };
+
+    if(data.sudah_mengisi) {
+      showCustomAlert(
+        'Akses Ditolak',
+        '[ STATUS // 409_ALREADY_SUBMITTED ]',
+        'SURVEI SUDAH PERNAH DIISI',
+        `Halo <b>${escapeHtml(found.nama)}</b> (${escapeHtml(found.kelas)}), NISN Anda telah tercatat menyelesaikan pengisian evaluasi 7 KAIH sebelumnya.`,
+        '* Data pengisian tersimpan secara permanen di database.'
+      );
+      return;
+    }
+
+    currentSiswa = found;
+    ans = [];
+    historyChoices = [];
+
+    $('#md-nisn').textContent = found.nisn;
+    $('#md-nama').textContent = found.nama;
+    $('#md-kelas').textContent = found.kelas;
+    $('#md-sub').textContent = 'Pastikan kesesuaian data identitas Anda sebelum memulai pengisian instrumen.';
+
+    const y = $('#yes');
+    let n = 2;
+    y.disabled = true;
+    y.textContent = `Lanjutkan (${n})`;
+    $('#md').classList.add('on');
+
+    clearInterval(tm);
+    tm = setInterval(() => {
+      n--;
+      if(n > 0) {
+        y.textContent = `Lanjutkan (${n})`;
+      } else {
+        clearInterval(tm);
+        y.disabled = false;
+        y.textContent = 'Mulai Pengisian ↗';
+      }
+    }, 1000);
+
+  } catch (err) {
+    showCustomAlert(
+      'Gangguan Koneksi',
+      '[ ERROR // GATEWAY_TIMEOUT ]',
+      'JARINGAN TERPUTUS',
+      `Gagal menyinkronkan data: <b>${escapeHtml(err.message || 'Network Error')}</b>`,
+      '* Coba beberapa saat lagi.'
+    );
+  } finally {
+    go.disabled = false;
+    go.textContent = prevText;
+  }
+};
+
+$('#no').onclick = () => {
+  clearInterval(tm);
+  $('#md').classList.remove('on');
+  nisnIn.focus();
+  nisnIn.select();
+};
+
+$('#yes').onclick = async () => {
+  $('#yes').disabled = true;
+  $('#md').classList.remove('on');
+  ans = [];
+  historyChoices = [];
+
+  await mail();
+  show('s-q');
+  ask();
+};
+
+/* ANIMASI DRONE */
+async function mail(){
+ if(rm) return;
+ const cr=$('#cr'),env=$('#env'),flap=$('#flap'),bird=$('#bird'),straps=$('#straps');
+ sc.classList.add('pause');
+ const A=(e,kf,o)=>e.animate(kf,{fill:'both',easing:'ease-in-out',...o}).finished;
+ $('#mt').textContent=(currentSiswa.nama||'').slice(0,22);
+ $('#mk').textContent='Kelas '+(currentSiswa.kelas||'');
+ env.style.opacity='0';bird.style.opacity='0';straps.style.opacity='0';flap.style.transform='scaleY(-1)';
+ cr.style.display='block';
+ await Promise.all([
+  A($('#card'),[{transform:'translate3d(0,0,0) scale(1)',opacity:1},{transform:'translate3d(0,0,0) scale(.3)',opacity:0}],{duration:580}),
+  A(env,[{transform:'translate3d(0,0,0) scale(2.2)',opacity:0},{transform:'translate3d(0,0,0) scale(1)',opacity:1}],{duration:580,delay:180})
+ ]);
+ await A(flap,[{transform:'scaleY(-1)'},{transform:'scaleY(1)'}],{duration:380});
+ await Promise.all([
+  A(bird,[{transform:'translate3d(-100vw,-35vh,0)',opacity:0},{transform:'translate3d(0,0,0)',opacity:1}],{duration:780,easing:'cubic-bezier(.22,1,.36,1)'}),
+  A(straps,[{opacity:0},{opacity:1}],{duration:280,delay:560})
+ ]);
+ await A(cr,[{transform:'translate3d(0,0,0)'},{transform:'translate3d(0,-140vh,0)'}],{duration:1500,easing:'cubic-bezier(.55,0,.85,.5)'});
+ cr.style.display='none';
+ sc.classList.remove('pause');
+}
+
+/* RENDER SOAL + DOT-GRID */
+const btnPrevQ = $('#btn-prev-q');
+
+function renderDotGrid() {
+  const grid = $('#dot-grid');
+  if (!grid) return;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < Q.length; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    if (i < ans.length) d.classList.add('done');
+    else if (i === ans.length) d.classList.add('current');
+    d.title = `Butir ${i + 1}${i < ans.length ? ' — terjawab' : ''}`;
+    frag.append(d);
+  }
+  grid.replaceChildren(frag);
+}
+
+function ask(){
+ const i = ans.length, q = Q[i], qc = $('#qc'), box = $('#opts');
+
+ $('#q-cat').textContent = q.cat.toUpperCase();
+ $('#q-idx').textContent = `// BUTIR ${i + 1} DARI ${Q.length}`;
+ $('#bar').style.width = (i / Q.length * 100) + '%';
+ renderDotGrid();
+ $('#qt').textContent = q.text;
+ btnPrevQ.disabled = (i === 0);
+
+ const prevSelected = historyChoices[i];
+ const frag = document.createDocumentFragment();
+ OPTS.forEach((opt, j) => {
+   const b = document.createElement('button');
+   b.type = 'button';
+   b.className = 'opt' + (prevSelected === j ? ' prev-choice' : '');
+   b.innerHTML = `<i>${opt.code}</i><span>${opt.label}</span>`;
+   b.onclick = () => pick(j, b);
+   frag.append(b);
+ });
+ box.replaceChildren(frag);
+ qc.classList.remove('q-out', 'q-in', 'q-morph');
+ requestAnimationFrame(() => qc.classList.add('q-in'));
+}
+
+btnPrevQ.onclick = () => {
+  if (lock || ans.length === 0) return;
+  lock = true;
+  ans.pop();
+  const qc = $('#qc');
+  qc.classList.remove('q-in');
+  qc.classList.add('q-out');
+  setTimeout(() => {
+    lock = false;
+    ask();
+  }, 220);
+};
+
+function pick(j, b){
+ if(lock) return;
+ lock = true;
+ b.classList.add('sel');
+ btnPrevQ.disabled = true;
+
+ const currentQIndex = ans.length;
+ historyChoices[currentQIndex] = j;
+ ans.push(j);
+
+ $('#bar').style.width = (ans.length / Q.length * 100) + '%';
+ renderDotGrid();
+
+ if (ans.length >= Q.length) {
+   setTimeout(() => {
+     startDatabaseEnemyBattle();
+   }, 280);
+ } else {
+   setTimeout(() => {
+     $('#qc').classList.remove('q-in');
+     $('#qc').classList.add('q-out');
+     setTimeout(() => {
+       lock = false;
+       ask();
+     }, 240);
+   }, 320);
+ }
+}
+
+/* SUBMIT (demo) */
+async function submitToSupabase(scoreData) {
+  const p = scoreData.categoryScores;
+  const payload = {
+    p_nisn: currentSiswa.nisn,
+    p_total_skor: scoreData.totalScore,
+    p_bangun_pagi: p["Bangun Pagi"],
+    p_beribadah: p["Beribadah"],
+    p_berolahraga: p["Berolahraga"],
+    p_makan_sehat: p["Makan Sehat dan Bergizi"],
+    p_gemar_belajar: p["Gemar Belajar"],
+    p_bermasyarakat: p["Bermasyarakat"],
+    p_tidur_cepat: p["Tidur Cepat"],
+    p_jawaban: ans.map(idx => OPTS[idx].label)
+  };
+
+  try {
+    const res = await callSupabaseRPC('submit_survei', payload);
+    if (!res || typeof res !== 'object') {
+      throw new Error('Respons peladen tidak valid.');
+    }
+    if (res.success === false) {
+      throw new Error(res.message || 'Peladen menolak proses penyimpanan data.');
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err };
+  }
+}
+
+/* ============================================================
+   BOSS BATTLE
+   ============================================================ */
+const battleLayer = $('#battle-layer');
+const battleCanvas = $('#battle-canvas');
+const bCtx = battleCanvas.getContext('2d');
+const monsterWrap = $('#monster-wrap');
+const bossHpFill = $('#boss-hp-fill');
+const bossHpLabel = $('#boss-hp-label');
+const bossHintEl = $('#boss-hint');
+const stickMove = $('#stick-move');
+const stickShoot = $('#stick-shoot');
+const joyMoveZone = $('#joy-move');
+const joyShootZone = $('#joy-shoot');
+const btnUltimate = $('#btn-ultimate');
+
+let battleRAF = null;
+let bossState = null;
+
+function resizeBattleCanvas() {
+  battleCanvas.width = window.innerWidth;
+  battleCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeBattleCanvas);
+
+function setupVirtualJoystick(zoneEl, stickEl, onChange) {
+  let activePointerId = null;
+  const maxRadius = 36;
+
+  function updateFromEvent(e) {
+    const rect = zoneEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let dx = e.clientX - cx;
+    let dy = e.clientY - cy;
+    const dist = Math.hypot(dx, dy);
+    if (dist > maxRadius) {
+      dx = (dx / dist) * maxRadius;
+      dy = (dy / dist) * maxRadius;
+    }
+    stickEl.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    onChange({
+      active: dist > 4,
+      nx: dx / maxRadius,
+      ny: dy / maxRadius,
+      angle: Math.atan2(dy, dx)
+    });
+  }
+
+  function resetStick() {
+    activePointerId = null;
+    stickEl.style.transform = 'translate3d(0px, 0px, 0)';
+    onChange({ active: false, nx: 0, ny: 0, angle: -Math.PI / 2 });
+  }
+
+  zoneEl.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    activePointerId = e.pointerId;
+    zoneEl.setPointerCapture(e.pointerId);
+    updateFromEvent(e);
+  });
+  zoneEl.addEventListener('pointermove', e => {
+    if (e.pointerId !== activePointerId) return;
+    updateFromEvent(e);
+  });
+  zoneEl.addEventListener('pointerup', e => {
+    if (e.pointerId !== activePointerId) return;
+    resetStick();
+  });
+  zoneEl.addEventListener('pointercancel', e => {
+    if (e.pointerId !== activePointerId) return;
+    resetStick();
+  });
+}
+
+const moveInput = { active: false, nx: 0, ny: 0, angle: -Math.PI / 2 };
+const shootInput = { active: false, nx: 0, ny: 0, angle: -Math.PI / 2 };
+const keyState = {};
+
+setupVirtualJoystick(joyMoveZone, stickMove, state => Object.assign(moveInput, state));
+setupVirtualJoystick(joyShootZone, stickShoot, state => Object.assign(shootInput, state));
+
+window.addEventListener('keydown', e => { keyState[e.code] = true; });
+window.addEventListener('keyup', e => { keyState[e.code] = false; });
+
+function updateBossHpUI(hp) {
+  const safeHp = Math.max(0, hp);
+  bossHpFill.style.width = `${safeHp}%`;
+  bossHpLabel.textContent = `${safeHp} / 100 HP`;
+}
+
+/* ============================================================
+   JURUS PAMUNGKAS — bos langsung kalah + explosion + submit
+   ============================================================ */
+function triggerUltimate() {
+  if (!inBattleMode || battleFinishing || !bossState) return;
+  if (bossState.defeated) return;
+
+  btnUltimate.disabled = true;
+  bossState.hp = 0;
+  bossState.defeated = true;
+  bossState.bossBullets = [];
+  bossState.playerBullets = [];
+  updateBossHpUI(0);
+  monsterWrap.style.opacity = '0';
+
+  const bCenterX = bossState.bossX + bossState.bossW / 2;
+  const bCenterY = bossState.bossY + bossState.bossH / 2;
+  spawnBossExplosion(bCenterX, bCenterY);
+
+  setTimeout(() => finishBossBattle(), 2800);
+}
+
+btnUltimate.addEventListener('click', triggerUltimate);
+
+function startDatabaseEnemyBattle() {
+  const qc = $('#qc');
+  const scoreData = calculateEvaluationScores(ans);
+
+  pendingScoreData = scoreData;
+  battleStartTime = Date.now();
+  battleFinishing = false;
+
+  if (battleTimeout) { clearTimeout(battleTimeout); battleTimeout = null; }
+  if (battleHintTimer) { clearInterval(battleHintTimer); battleHintTimer = null; }
+
+  battleTimeout = setTimeout(() => {
+    if (inBattleMode && !battleFinishing) {
+      finishBossBattle();
+    }
+  }, BATTLE_MAX_DURATION);
+
+  battleHintTimer = setInterval(() => {
+    if (!inBattleMode) {
+      clearInterval(battleHintTimer);
+      battleHintTimer = null;
+      return;
+    }
+    const elapsed = Date.now() - battleStartTime;
+    const remaining = Math.max(0, Math.ceil((BATTLE_MAX_DURATION - elapsed) / 1000));
+    if (remaining <= 20 && bossHintEl) {
+      bossHintEl.classList.add('warn');
+      bossHintEl.textContent = `⚠ Auto-finish dalam ${remaining}s — tekan ⚡ ULTIMATE sekarang!`;
+    }
+  }, 1000);
+
+  if (bossHintEl) {
+    bossHintEl.classList.remove('warn');
+    bossHintEl.textContent = 'Kalahkan Database Enemy, atau gunakan ULTIMATE untuk menang instan.';
+  }
+  btnUltimate.disabled = false;
+
+  qc.classList.remove('q-in');
+  qc.classList.add('q-morph');
+
+  setTimeout(() => {
+    show('s-end');
+    inBattleMode = true;
+    resizeBattleCanvas();
+
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    bossState = {
+      hp: 100,
+      maxHp: 100,
+      defeated: false,
+      time: 0,
+      bossX: vw / 2 - 58,
+      bossY: Math.max(105, vh * 0.19),
+      bossW: 116,
+      bossH: 96,
+      playerX: vw / 2 - MASCOT_SIZE / 2,
+      playerY: Math.min(vh - 150, vh * 0.72),
+      playerSpeed: 5.2,
+      lastPlayerShot: 0,
+      lastBossShot: performance.now() + 500,
+      playerBullets: [],
+      bossBullets: [],
+      particles: [],
+      floatingTexts: []
+    };
+
+    updateBossHpUI(100);
+    monsterWrap.style.opacity = '1';
+    monsterWrap.style.transform = `translate3d(${bossState.bossX}px, ${bossState.bossY}px, 0) scale(1)`;
+    mascotRoam.style.transition = 'none';
+    mascotRoam.style.transform = `translate3d(${bossState.playerX}px, ${bossState.playerY}px, 0)`;
+
+    battleLayer.classList.add('on');
+    cancelAnimationFrame(battleRAF);
+    battleRAF = requestAnimationFrame(runBattleLoop);
+  }, 620);
+}
+
+function generateTextTargetPoints(text) {
+  const vw = battleCanvas.width;
+  const vh = battleCanvas.height;
+  const off = document.createElement('canvas');
+  off.width = vw;
+  off.height = vh;
+  const oCtx = off.getContext('2d');
+
+  oCtx.fillStyle = '#000';
+  oCtx.textAlign = 'center';
+  oCtx.textBaseline = 'middle';
+
+  const centerY = Math.round(vh * 0.42);
+  if (vw < 560) {
+    const fSize = Math.max(24, Math.min(38, Math.floor(vw * 0.082)));
+    oCtx.font = `900 ${fSize}px "IBM Plex Mono", monospace`;
+    oCtx.fillText('Jawaban Anda', vw / 2, centerY - fSize * 0.65);
+    oCtx.fillText('Terkirim!', vw / 2, centerY + fSize * 0.65);
+  } else {
+    const fSize = Math.max(28, Math.min(48, Math.floor(vw * 0.045)));
+    oCtx.font = `900 ${fSize}px "IBM Plex Mono", monospace`;
+    oCtx.fillText(text, vw / 2, centerY);
+  }
+
+  const imgData = oCtx.getImageData(0, 0, vw, vh).data;
+  const points = [];
+  const step = vw < 560 ? 3 : 4;
+
+  for (let y = 0; y < vh; y += step) {
+    for (let x = 0; x < vw; x += step) {
+      if (imgData[(y * vw + x) * 4 + 3] > 128) {
+        points.push({ x, y });
+      }
+    }
+  }
+  return { points, step };
+}
+
+function spawnBossExplosion(cx, cy) {
+  const colors = ['#A5BD46', '#FFD166', '#D97757', '#C5D86D', '#F9FAF5'];
+  const { points, step } = generateTextTargetPoints('Jawaban Anda Terkirim!');
+
+  points.forEach((pt, idx) => {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 3 + Math.random() * 14;
+    bossState.particles.push({
+      x: cx + (Math.random() - 0.5) * 44,
+      y: cy + (Math.random() - 0.5) * 44,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      tx: pt.x, ty: pt.y,
+      isText: true, age: 0,
+      scatterFrames: 22 + Math.floor(Math.random() * 14),
+      size: step,
+      color: colors[idx % colors.length],
+      alpha: 1, decay: 0
+    });
+  });
+
+  for (let i = 0; i < 45; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2.5 + Math.random() * 9.5;
+    bossState.particles.push({
+      x: cx + (Math.random() - 0.5) * 50,
+      y: cy + (Math.random() - 0.5) * 50,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1.5,
+      isText: false,
+      size: 6 + Math.floor(Math.random() * 8),
+      color: colors[i % colors.length],
+      alpha: 1, decay: 0.018 + Math.random() * 0.015
+    });
+  }
+}
+
+function runBattleLoop(now) {
+  if (!inBattleMode || !bossState) return;
+  const vw = battleCanvas.width;
+  const vh = battleCanvas.height;
+  bCtx.clearRect(0, 0, vw, vh);
+
+  bossState.time += 0.032;
+
+  if (!bossState.defeated) {
+    const roamRadiusX = Math.min(vw * 0.32, 220);
+    bossState.bossX = (vw / 2 - bossState.bossW / 2) + Math.sin(bossState.time * 1.15) * roamRadiusX;
+    bossState.bossY = Math.max(102, vh * 0.18) + Math.cos(bossState.time * 2.1) * 18;
+    monsterWrap.style.transform = `translate3d(${Math.round(bossState.bossX)}px, ${Math.round(bossState.bossY)}px, 0)`;
+
+    let mvX = moveInput.nx;
+    let mvY = moveInput.ny;
+    if (keyState['KeyA'] || keyState['ArrowLeft']) mvX -= 1;
+    if (keyState['KeyD'] || keyState['ArrowRight']) mvX += 1;
+    if (keyState['KeyW'] || keyState['ArrowUp']) mvY -= 1;
+    if (keyState['KeyS'] || keyState['ArrowDown']) mvY += 1;
+
+    bossState.playerX = Math.max(12, Math.min(vw - MASCOT_SIZE - 12, bossState.playerX + mvX * bossState.playerSpeed));
+    bossState.playerY = Math.max(96, Math.min(vh - MASCOT_SIZE - 24, bossState.playerY + mvY * bossState.playerSpeed));
+    mascotRoam.style.transform = `translate3d(${Math.round(bossState.playerX)}px, ${Math.round(bossState.playerY)}px, 0)`;
+
+    const pCenterX = bossState.playerX + MASCOT_SIZE / 2;
+    const pCenterY = bossState.playerY + MASCOT_SIZE / 2;
+    const bCenterX = bossState.bossX + bossState.bossW / 2;
+    const bCenterY = bossState.bossY + bossState.bossH / 2;
+
+    const isShooting = shootInput.active || keyState['Space'];
+    const aimAngle = shootInput.active
+      ? shootInput.angle
+      : Math.atan2(bCenterY - pCenterY, bCenterX - pCenterX);
+
+    if (shootInput.active) {
+      bCtx.save();
+      bCtx.strokeStyle = 'rgba(165, 189, 70, 0.55)';
+      bCtx.lineWidth = 2;
+      bCtx.setLineDash([6, 6]);
+      bCtx.beginPath();
+      bCtx.moveTo(pCenterX, pCenterY);
+      bCtx.lineTo(pCenterX + Math.cos(aimAngle) * 180, pCenterY + Math.sin(aimAngle) * 180);
+      bCtx.stroke();
+      bCtx.restore();
+    }
+
+    if (isShooting && now - bossState.lastPlayerShot > 240) {
+      bossState.lastPlayerShot = now;
+      const spd = 10.5;
+      bossState.playerBullets.push({
+        x: pCenterX, y: pCenterY - 6,
+        vx: Math.cos(aimAngle) * spd,
+        vy: Math.sin(aimAngle) * spd
+      });
+    }
+
+    if (now - bossState.lastBossShot > 1050) {
+      bossState.lastBossShot = now;
+      const baseAngle = Math.atan2(pCenterY - bCenterY, pCenterX - bCenterX);
+      [baseAngle, baseAngle - 0.28, baseAngle + 0.28].forEach(ang => {
+        bossState.bossBullets.push({
+          x: bCenterX, y: bCenterY + 24,
+          vx: Math.cos(ang) * 4.6,
+          vy: Math.sin(ang) * 4.6
+        });
+      });
+    }
+
+    for (let i = bossState.playerBullets.length - 1; i >= 0; i--) {
+      const pb = bossState.playerBullets[i];
+      pb.x += pb.vx;
+      pb.y += pb.vy;
+
+      bCtx.fillStyle = '#2B313D';
+      bCtx.fillRect(pb.x - 6, pb.y - 6, 12, 12);
+      bCtx.fillStyle = '#A5BD46';
+      bCtx.fillRect(pb.x - 4, pb.y - 4, 8, 8);
+
+      if (
+        pb.x > bossState.bossX + 8 &&
+        pb.x < bossState.bossX + bossState.bossW - 8 &&
+        pb.y > bossState.bossY + 6 &&
+        pb.y < bossState.bossY + bossState.bossH - 6
+      ) {
+        bossState.playerBullets.splice(i, 1);
+        bossState.hp = Math.max(0, bossState.hp - 10);
+        updateBossHpUI(bossState.hp);
+
+        monsterWrap.classList.add('hit');
+        setTimeout(() => monsterWrap.classList.remove('hit'), 90);
+
+        for (let s = 0; s < 8; s++) {
+          bossState.particles.push({
+            x: pb.x, y: pb.y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            isText: false, size: 5,
+            color: s % 2 ? '#FFD166' : '#D97757',
+            alpha: 1, decay: 0.05
+          });
+        }
+        bossState.floatingTexts.push({
+          x: pb.x, y: pb.y - 10, text: '-10', color: '#E56B6F', alpha: 1
+        });
+
+        if (bossState.hp <= 0) {
+          bossState.defeated = true;
+          bossState.bossBullets = [];
+          bossState.playerBullets = [];
+          monsterWrap.style.opacity = '0';
+          btnUltimate.disabled = true;
+          spawnBossExplosion(bCenterX, bCenterY);
+          setTimeout(() => finishBossBattle(), 2800);
+          break;
+        }
+        continue;
+      }
+
+      if (pb.x < -30 || pb.x > vw + 30 || pb.y < -30 || pb.y > vh + 30) {
+        bossState.playerBullets.splice(i, 1);
+      }
+    }
+
+    for (let i = bossState.bossBullets.length - 1; i >= 0; i--) {
+      const bb = bossState.bossBullets[i];
+      bb.x += bb.vx;
+      bb.y += bb.vy;
+
+      bCtx.fillStyle = '#2B313D';
+      bCtx.fillRect(bb.x - 7, bb.y - 7, 14, 14);
+      bCtx.fillStyle = '#E56B6F';
+      bCtx.fillRect(bb.x - 5, bb.y - 5, 10, 10);
+      bCtx.fillStyle = '#FFD166';
+      bCtx.fillRect(bb.x - 2, bb.y - 2, 4, 4);
+
+      if (Math.hypot(bb.x - pCenterX, bb.y - pCenterY) < 24) {
+        bossState.bossBullets.splice(i, 1);
+        mascotSpriteWrap.classList.add('hit-flash');
+        setTimeout(() => mascotSpriteWrap.classList.remove('hit-flash'), 180);
+
+        bossState.playerX = Math.max(12, Math.min(vw - MASCOT_SIZE - 12, bossState.playerX + bb.vx * 3.2));
+        bossState.playerY = Math.max(96, Math.min(vh - MASCOT_SIZE - 24, bossState.playerY + bb.vy * 3.2));
+        bossState.floatingTexts.push({
+          x: pCenterX, y: pCenterY - 16, text: 'DODGE!', color: '#2B313D', alpha: 1
+        });
+        continue;
+      }
+
+      if (bb.x < -30 || bb.x > vw + 30 || bb.y < -30 || bb.y > vh + 30) {
+        bossState.bossBullets.splice(i, 1);
+      }
+    }
+  }
+
+  for (let i = bossState.particles.length - 1; i >= 0; i--) {
+    const pt = bossState.particles[i];
+    if (pt.isText) {
+      pt.age++;
+      if (pt.age < pt.scatterFrames) {
+        pt.x += pt.vx; pt.y += pt.vy;
+        pt.vx *= 0.9; pt.vy *= 0.9;
+      } else {
+        pt.x += (pt.tx - pt.x) * 0.16;
+        pt.y += (pt.ty - pt.y) * 0.16;
+      }
+    } else {
+      pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.12;
+      pt.alpha -= pt.decay;
+      if (pt.alpha <= 0) { bossState.particles.splice(i, 1); continue; }
+    }
+
+    bCtx.save();
+    bCtx.globalAlpha = Math.max(0, pt.alpha);
+    bCtx.fillStyle = '#2B313D';
+    bCtx.fillRect(pt.x - pt.size / 2 - 1, pt.y - pt.size / 2 - 1, pt.size + 2, pt.size + 2);
+    bCtx.fillStyle = pt.color;
+    bCtx.fillRect(pt.x - pt.size / 2, pt.y - pt.size / 2, pt.size, pt.size);
+    bCtx.restore();
+  }
+
+  for (let i = bossState.floatingTexts.length - 1; i >= 0; i--) {
+    const ft = bossState.floatingTexts[i];
+    ft.y -= 1.2; ft.alpha -= 0.03;
+    if (ft.alpha <= 0) { bossState.floatingTexts.splice(i, 1); continue; }
+    bCtx.save();
+    bCtx.globalAlpha = Math.max(0, ft.alpha);
+    bCtx.font = '800 14px "IBM Plex Mono", monospace';
+    bCtx.fillStyle = ft.color;
+    bCtx.textAlign = 'center';
+    bCtx.fillText(ft.text, ft.x, ft.y);
+    bCtx.restore();
+  }
+
+  battleRAF = requestAnimationFrame(runBattleLoop);
+}
+
+async function finishBossBattle() {
+  if (battleFinishing) return;
+  battleFinishing = true;
+
+  if (battleTimeout) { clearTimeout(battleTimeout); battleTimeout = null; }
+  if (battleHintTimer) { clearInterval(battleHintTimer); battleHintTimer = null; }
+
+  cancelAnimationFrame(battleRAF);
+  battleRAF = null;
+  battleLayer.classList.remove('on');
+  inBattleMode = false;
+  setIdleMascotPosition();
+  btnUltimate.disabled = true;
+
+  if (bossHintEl) {
+    bossHintEl.classList.remove('warn');
+    bossHintEl.textContent = 'Kalahkan Database Enemy, atau gunakan ULTIMATE untuk menang instan.';
+  }
+
+  if (!pendingScoreData) {
+    bossState = null;
+    battleFinishing = false;
+    showCustomAlert(
+      'Kesalahan Sistem',
+      '[ ERROR // 500_NO_SCORE_DATA ]',
+      'DATA JAWABAN HILANG',
+      'Data jawaban tidak ditemukan untuk dikirimkan.',
+      '* Silakan mulai ulang pengisian.'
+    );
+    resetToReg();
+    return;
+  }
+
+  const result = await submitToSupabase(pendingScoreData);
+
+  if (result && result.ok) {
+    pendingScoreData = null;
+    bossState = null;
+    battleFinishing = false;
+    lock = false;
+    $('#tx').textContent = 'Jawaban Anda Terkirim!';
+    end();
+  } else {
+    bossState = null;
+    battleFinishing = false;
+    ans.pop();
+    lock = false;
+    show('s-q');
+    ask();
+    showCustomAlert(
+      'Gagal Menyimpan Data',
+      '[ ERROR // SUBMIT_SURVEI_FAILED ]',
+      'TRANSMISI TERPUTUS',
+      `Data instrumen gagal dikirimkan: <b>${escapeHtml(result && result.error ? result.error.message : 'Timeout Response')}</b>`,
+      '* Periksa koneksi internet, kemudian pilih kembali jawaban pada butir ke-35.'
+    );
+  }
+}
+
+/* SPARKS */
+function burstSparks(dd){
+ if(rm)return;
+ const box=$('#sparks'),frag=document.createDocumentFragment(),rad=dd/2;
+ const cols=['#A5BD46','#7892C4','#2B313D','#C5D86D','#FFFFFF'];
+ for(let i=0;i<24;i++){
+  const a=(i*360/24+(i%2)*7)*Math.PI/180;
+  const r0=rad*.55,r1=rad*(1.08+(i%3)*.18);
+  const x0=Math.cos(a)*r0,y0=Math.sin(a)*r0,x1=Math.cos(a)*r1,y1=Math.sin(a)*r1;
+  const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('viewBox','0 0 20 20');s.setAttribute('class','spk');
+  s.innerHTML=`<path d="M10 0L12.6 7.4L20 10L12.6 12.6L10 20L7.4 12.6L0 10L7.4 7.4Z" fill="${cols[i%cols.length]}"/>`;
+  frag.append(s);
+  s.animate([
+   {transform:`translate3d(${x0}px,${y0}px,0) scale(0) rotate(0deg)`,opacity:1},
+   {transform:`translate3d(${(x0+x1)*.55}px,${(y0+y1)*.55}px,0) scale(${1+.3*(i%2)}) rotate(60deg)`,opacity:1,offset:.45},
+   {transform:`translate3d(${x1}px,${y1}px,0) scale(0) rotate(140deg)`,opacity:0}
+  ],{duration:750+(i%4)*140,delay:(i%5)*40,easing:'cubic-bezier(.16,1,.3,1)',fill:'both'});
+ }
+ for(let i=0;i<10;i++){
+  const a=(i*36+18)*Math.PI/180,r=rad*(.88+(i%2)*.18);
+  const x=Math.cos(a)*r,y=Math.sin(a)*r;
+  const d=document.createElement('div');d.className='spk-dot';
+  frag.append(d);
+  d.animate([
+   {transform:`translate3d(${x}px,${y}px,0) scale(.3)`,opacity:.2},
+   {transform:`translate3d(${x}px,${y-8}px,0) scale(1.2)`,opacity:1},
+   {transform:`translate3d(${x}px,${y}px,0) scale(.3)`,opacity:.2}
+  ],{duration:1600+(i%3)*400,delay:200+i*120,iterations:Infinity,easing:'ease-in-out'});
+ }
+ box.replaceChildren(frag);
+}
+
+/* LAYAR AKHIR */
+function end(){
+ show('s-end');
+ const R=Math.max(115,Math.min(190,Math.min(innerWidth,innerHeight)*.3)),dc=$('#dc'),tx=$('#tx'),lg=$('#logo-box'),act=$('#end-act');
+ const dd=Math.round(Math.max(195,R*1.55));
+ document.documentElement.style.setProperty('--dd',dd+'px');
+
+ dc.classList.add('on','fin');
+ lg.classList.add('fin');
+ tx.classList.add('fin');
+ act.classList.add('fin');
+ burstSparks(dd);
+ sc.classList.remove('pause');
+}
+
+/* RESET */
+function resetToReg() {
+  currentSiswa = null;
+  ans = [];
+  historyChoices = [];
+  lock = false;
+  inBattleMode = false;
+  battleFinishing = false;
+  pendingScoreData = null;
+  bossState = null;
+
+  cancelAnimationFrame(battleRAF);
+  battleRAF = null;
+  if (battleTimeout) { clearTimeout(battleTimeout); battleTimeout = null; }
+  if (battleHintTimer) { clearInterval(battleHintTimer); battleHintTimer = null; }
+  battleLayer.classList.remove('on');
+  btnUltimate.disabled = false;
+  clearInterval(tm);
+
+  setIdleMascotPosition();
+
+  if (bossHintEl) {
+    bossHintEl.classList.remove('warn');
+    bossHintEl.textContent = 'Kalahkan Database Enemy, atau gunakan ULTIMATE untuk menang instan.';
+  }
+
+  nisnIn.value = '';
+  go.disabled = true;
+  go.textContent = 'Verifikasi Identitas ↗';
+  $('#yes').disabled = true;
+
+  $('#md').classList.remove('on');
+  $('#md-err').classList.remove('on');
+  $('#md-confirm').classList.remove('on');
+
+  $('#card').getAnimations().forEach(a => a.cancel());
+  $('#card').style.transform = '';
+  $('#card').style.opacity = '';
+  $('#qc').classList.remove('q-morph', 'q-out', 'q-in');
+
+  const dc = $('#dc'), tx = $('#tx'), lg = $('#logo-box'), act = $('#end-act');
+  dc.classList.remove('on', 'fin');
+  lg.classList.remove('fin');
+  tx.classList.remove('fin');
+  act.classList.remove('fin');
+  $('#sparks').replaceChildren();
+  $('#fin').replaceChildren();
+  sc.classList.remove('pause');
+
+  show('s-reg');
+  nisnIn.focus();
+}
+
+$('#btn-reset-nisn').onclick = resetToReg;
+
+$('#btn-cancel-q').onclick = () => {
+  $('#md-confirm').classList.add('on');
+};
+
+$('#confirm-no').onclick = () => {
+  $('#md-confirm').classList.remove('on');
+};
+
+$('#confirm-yes').onclick = () => {
+  $('#md-confirm').classList.remove('on');
+  resetToReg();
+};
+
+runGateLoader();
+</script>
+</body>
+</html>
