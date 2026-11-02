@@ -1,0 +1,3141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PastelBlock — Editor Visual HTML & CSS</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka & Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Blockly -->
+  <script src="https://unpkg.com/blockly@10.4.3/blockly.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fredoka', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            pastel: {
+              bg: '#FFFBF7',
+              pink: '#FFD6E0',
+              pinkDark: '#FF8FA3',
+              peach: '#FFE3D3',
+              peachDark: '#FF9E6D',
+              butter: '#FFF1C1',
+              butterDark: '#F4B942',
+              mint: '#D4F5E9',
+              mintDark: '#4CC39A',
+              sky: '#D8EEFF',
+              skyDark: '#56A8F5',
+              lavender: '#EAD9FF',
+              lavenderDark: '#9D6BFF',
+              lilac: '#F6E6FF',
+              coral: '#FFC6C6',
+              ink: '#2D3142',
+              muted: '#6E7485',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: #FFFBF7;
+      color: #2D3142;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Custom Scrollbar for Top Nav & Modals */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .pastel-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .pastel-scroll::-webkit-scrollbar-track {
+      background: #FFF5ED;
+      border-radius: 9999px;
+    }
+    .pastel-scroll::-webkit-scrollbar-thumb {
+      background: #FFD6E0;
+      border-radius: 9999px;
+    }
+    .pastel-scroll::-webkit-scrollbar-thumb:hover {
+      background: #FF8FA3;
+    }
+
+    /* Tactile Pastel Card Shadow */
+    .pastel-shadow {
+      box-shadow: 0 3px 0px rgba(45, 49, 66, 0.12);
+    }
+    .pastel-shadow-sm {
+      box-shadow: 0 2px 0px rgba(45, 49, 66, 0.1);
+    }
+    .pastel-shadow-lg {
+      box-shadow: 0 8px 24px -4px rgba(45, 49, 66, 0.14), 0 4px 0px rgba(45, 49, 66, 0.1);
+    }
+
+    /* Blockly Workspace Overrides for Pastel Look */
+    #blocklyDiv {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .blocklySvg {
+      background-color: #FFFBF7 !important;
+    }
+    .blocklyMainBackground {
+      stroke: none !important;
+    }
+    .blocklyText {
+      fill: #2D3142 !important;
+    }
+    .blocklyEditableText > rect {
+      fill: rgba(255, 255, 255, 0.92) !important;
+      rx: 6px !important;
+      ry: 6px !important;
+    }
+    .blocklyEditableText > text {
+      fill: #2D3142 !important;
+    }
+    .blocklyDropdownText {
+      fill: #2D3142 !important;
+    }
+    .blocklyWidgetDiv .blocklyMenu {
+      border-radius: 14px !important;
+      border: 2px solid #2D3142 !important;
+      box-shadow: 0 8px 20px rgba(45, 49, 66, 0.15) !important;
+      background: #FFFBF7 !important;
+      padding: 6px !important;
+    }
+    .blocklySelected > .blocklyPath {
+      stroke: #2D3142 !important;
+      stroke-width: 3px !important;
+    }
+    .blocklyTrash {
+      opacity: 0.85 !important;
+    }
+
+    /* Code syntax highlight colors */
+    .tok-tag { color: #D9466F; font-weight: 600; }
+    .tok-attr { color: #7C3AED; font-weight: 500; }
+    .tok-str { color: #0D9488; }
+    .tok-comment { color: #94A3B8; font-style: italic; }
+    .tok-css-prop { color: #2563EB; }
+    .tok-css-val { color: #D97706; }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.94) translateY(8px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="flex flex-col h-[100dvh] w-full overflow-hidden select-none bg-pastel-bg">
+
+  <!-- =========================================================
+       TOP HEADER & CATEGORY POP-UP NAVIGATION BAR
+       ========================================================= -->
+  <header class="w-full bg-[#FFF6EE] border-b-2 border-[#EEDCCF] z-30 shrink-0">
+    <!-- Top Brand & Status Row -->
+    <div class="flex items-center justify-between px-3 py-2 sm:px-5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-pastel-pink border-2 border-pastel-ink pastel-shadow-sm flex items-center justify-center shrink-0">
+          <i class="ph-fill ph-puzzle-piece text-lg text-pastel-ink"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-display font-bold text-base sm:text-lg leading-tight text-pastel-ink">PastelBlock</h1>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-pastel-mint border border-pastel-ink/20 text-pastel-ink">Sandbox</span>
+          </div>
+          <p class="text-[11px] text-pastel-muted hidden sm:block">Editor Visual HTML & CSS dengan Google Blockly</p>
+        </div>
+      </div>
+
+      <!-- Right Action Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Search All Blocks Button -->
+        <button onclick="openBlockPicker('all', true)"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white hover:bg-pastel-butter/60 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-semibold text-pastel-ink active:translate-y-0.5 transition">
+          <i class="ph-bold ph-magnifying-glass text-sm text-pastel-pinkDark"></i>
+          <span class="hidden xs:inline">Cari Blok</span>
+        </button>
+
+        <!-- Template Cepat Button -->
+        <button onclick="openTemplateModal()"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-pastel-lavender hover:bg-pastel-lavender/80 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-semibold text-pastel-ink active:translate-y-0.5 transition">
+          <i class="ph-fill ph-sparkle text-sm text-purple-700"></i>
+          <span>Template</span>
+        </button>
+
+        <!-- Block Count Badge -->
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pastel-sky/70 border border-pastel-ink/20 text-xs font-semibold text-pastel-ink">
+          <i class="ph-bold ph-cube text-pastel-skyDark"></i>
+          <span id="blockCountBadge">0 Blok</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Selector Bar (Visible on Workspace Page, or triggers switch + modal from any page) -->
+    <div id="categoryTopBar" class="px-2.5 pb-2.5 pt-0.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <span class="text-[11px] font-bold text-pastel-muted pl-1 pr-1 shrink-0 flex items-center gap-1">
+        <i class="ph-bold ph-plus-circle text-pastel-pinkDark"></i> Pilih Blok:
+      </span>
+
+      <button onclick="openBlockPicker('struktur')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFD6E0] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>🏗️</span>
+        <span>Struktur</span>
+      </button>
+
+      <button onclick="openBlockPicker('teks')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFE3D3] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>✍️</span>
+        <span>Teks</span>
+      </button>
+
+      <button onclick="openBlockPicker('layout')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF1C1] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>📦</span>
+        <span>Layout & Box</span>
+      </button>
+
+      <button onclick="openBlockPicker('daftar_tabel')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#D4F5E9] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>📋</span>
+        <span>Daftar & Tabel</span>
+      </button>
+
+      <button onclick="openBlockPicker('media')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#D8EEFF] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>🖼️</span>
+        <span>Media & Link</span>
+      </button>
+
+      <button onclick="openBlockPicker('formulir')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#EAD9FF] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>📝</span>
+        <span>Formulir</span>
+      </button>
+
+      <button onclick="openBlockPicker('css')"
+        class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFC6C6] hover:brightness-95 border-2 border-pastel-ink/80 pastel-shadow-sm text-xs font-bold text-pastel-ink active:translate-y-0.5 transition">
+        <span>🎨</span>
+        <span>CSS & Style</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       MAIN MULTI-PAGE VIEW CONTAINER (3 SEPARATE PAGES)
+       ========================================================= -->
+  <main class="relative flex-1 w-full overflow-hidden">
+
+    <!-- -------------------------------------------------------
+         HALAMAN 1: WORKSPACE BLOK (FULLSCREEN BLOCKLY)
+         ------------------------------------------------------- -->
+    <section id="page-workspace" class="w-full h-full relative flex flex-col">
+      <!-- Blockly Fullscreen Canvas -->
+      <div id="blocklyDiv" class="flex-1 w-full h-full"></div>
+
+      <!-- Selected Block Context Pill (Top Left Floating Indicator) -->
+      <div id="selectedBlockIndicator" class="hidden absolute top-3 left-3 z-20 max-w-[75vw] sm:max-w-xs bg-white/95 backdrop-blur border-2 border-pastel-ink rounded-2xl px-3 py-1.5 pastel-shadow-sm flex items-center gap-2 text-xs">
+        <span class="w-2.5 h-2.5 rounded-full bg-pastel-mintDark animate-pulse shrink-0"></span>
+        <span class="truncate font-semibold text-pastel-ink" id="selectedBlockText">Blok terpilih</span>
+        <button onclick="duplicateSelectedBlock()" title="Duplikat Blok" class="ml-1 px-1.5 py-0.5 rounded-lg bg-pastel-sky hover:bg-pastel-sky/80 text-pastel-ink font-bold text-[11px] shrink-0">
+          Duplikat
+        </button>
+        <button onclick="deleteSelectedBlock()" title="Hapus Blok" class="px-1.5 py-0.5 rounded-lg bg-pastel-coral hover:bg-pastel-coral/80 text-pastel-ink font-bold text-[11px] shrink-0">
+          Hapus
+        </button>
+      </div>
+
+      <!-- Floating Quick Controls (Bottom Left of Workspace) -->
+      <div class="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-white/95 backdrop-blur px-2 py-1.5 rounded-2xl border-2 border-pastel-ink/80 pastel-shadow">
+        <button onclick="workspaceUndo()" title="Undo (Urungkan)" class="w-8 h-8 rounded-xl bg-pastel-butter/70 hover:bg-pastel-butter flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-arrow-counter-clockwise text-base"></i>
+        </button>
+        <button onclick="workspaceRedo()" title="Redo (Ulangi)" class="w-8 h-8 rounded-xl bg-pastel-butter/70 hover:bg-pastel-butter flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-arrow-clockwise text-base"></i>
+        </button>
+        <div class="w-[1.5px] h-5 bg-pastel-ink/15 mx-0.5"></div>
+        <button onclick="centerWorkspace()" title="Pusatkan & Rapikan Tampilan" class="w-8 h-8 rounded-xl bg-pastel-sky/70 hover:bg-pastel-sky flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-corners-out text-base"></i>
+        </button>
+        <button onclick="zoomWorkspace(1)" title="Perbesar" class="w-8 h-8 rounded-xl bg-pastel-mint/70 hover:bg-pastel-mint hidden sm:flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-magnifying-glass-plus text-base"></i>
+        </button>
+        <button onclick="zoomWorkspace(-1)" title="Perkecil" class="w-8 h-8 rounded-xl bg-pastel-mint/70 hover:bg-pastel-mint hidden sm:flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-magnifying-glass-minus text-base"></i>
+        </button>
+        <div class="w-[1.5px] h-5 bg-pastel-ink/15 mx-0.5"></div>
+        <button onclick="openClearConfirmModal()" title="Bersihkan Semua Blok" class="w-8 h-8 rounded-xl bg-pastel-coral/70 hover:bg-pastel-coral flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-trash text-base"></i>
+        </button>
+      </div>
+
+      <!-- Floating Add Block FAB (Bottom Right of Workspace for One-Thumb Mobile Access) -->
+      <button onclick="openBlockPicker('all', false)"
+        class="absolute bottom-3 right-3 z-20 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-pastel-pink hover:bg-pastel-pink/90 border-2 border-pastel-ink pastel-shadow font-display font-bold text-sm text-pastel-ink active:translate-y-0.5 transition">
+        <i class="ph-bold ph-plus-circle text-lg"></i>
+        <span>Tambah Blok</span>
+      </button>
+    </section>
+
+    <!-- -------------------------------------------------------
+         HALAMAN 2: HASIL KODE HTML & CSS (SEPARATE PAGE)
+         ------------------------------------------------------- -->
+    <section id="page-code" class="hidden w-full h-full flex-col bg-[#FFF9F4] overflow-hidden">
+      <!-- Code Page Subheader -->
+      <div class="px-4 py-3 bg-white border-b-2 border-[#EEDCCF] flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-pastel-butter border-2 border-pastel-ink flex items-center justify-center">
+            <i class="ph-bold ph-code text-lg text-pastel-ink"></i>
+          </div>
+          <div>
+            <h2 class="font-display font-bold text-sm sm:text-base text-pastel-ink">Hasil Kode HTML & CSS</h2>
+            <p id="codeStatsText" class="text-xs text-pastel-muted">0 baris • 0 karakter</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Copy Code Button -->
+          <button onclick="copyGeneratedCode()"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-pastel-mint hover:brightness-95 border-2 border-pastel-ink pastel-shadow-sm font-bold text-xs sm:text-sm text-pastel-ink active:translate-y-0.5 transition">
+            <i class="ph-bold ph-copy text-base"></i>
+            <span>Salin Kode</span>
+          </button>
+
+          <!-- Download .html Button -->
+          <button onclick="downloadHtmlFile()"
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-pastel-sky hover:brightness-95 border-2 border-pastel-ink pastel-shadow-sm font-bold text-xs sm:text-sm text-pastel-ink active:translate-y-0.5 transition">
+            <i class="ph-bold ph-download-simple text-base"></i>
+            <span class="hidden sm:inline">Unduh .html</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Viewer Box with Line Numbers -->
+      <div class="flex-1 w-full overflow-auto p-3 sm:p-5 pastel-scroll select-text">
+        <div class="max-w-5xl mx-auto bg-white rounded-2xl border-2 border-pastel-ink pastel-shadow overflow-hidden">
+          <!-- Mock Window Header -->
+          <div class="px-4 py-2.5 bg-[#FFF3E6] border-b-2 border-[#EEDCCF] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-[#FF8FA3] border border-pastel-ink/40"></span>
+              <span class="w-3 h-3 rounded-full bg-[#F4B942] border border-pastel-ink/40"></span>
+              <span class="w-3 h-3 rounded-full bg-[#4CC39A] border border-pastel-ink/40"></span>
+              <span class="ml-2 font-mono text-xs font-semibold text-pastel-ink">index.html</span>
+            </div>
+            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-pastel-peach text-pastel-ink">Otomatis Diperbarui</span>
+          </div>
+
+          <!-- Code Table -->
+          <div class="flex font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto pastel-scroll">
+            <div id="codeLineNumbers" class="py-4 px-3 bg-[#FFFBF7] border-r border-[#EEDCCF] text-right text-pastel-muted select-none shrink-0">
+              1
+            </div>
+            <pre id="codeDisplayArea" class="py-4 px-4 m-0 flex-1 overflow-x-auto text-pastel-ink whitespace-pre"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden textarea for reliable clipboard copy in iframes -->
+      <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+    </section>
+
+    <!-- -------------------------------------------------------
+         HALAMAN 3: LIVE PREVIEW (SEPARATE PAGE)
+         ------------------------------------------------------- -->
+    <section id="page-preview" class="hidden w-full h-full flex-col bg-[#F5EFEA] overflow-hidden">
+      <!-- Live Preview Toolbar -->
+      <div class="px-3 sm:px-5 py-2.5 bg-white border-b-2 border-[#EEDCCF] flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-pastel-mint border-2 border-pastel-ink flex items-center justify-center">
+            <i class="ph-bold ph-globe text-base text-pastel-ink"></i>
+          </div>
+          <div>
+            <h2 class="font-display font-bold text-sm text-pastel-ink leading-tight">Live Preview Hasil Web</h2>
+            <p class="text-[11px] text-pastel-muted hidden sm:block">Tampilan interaktif dari blok HTML & CSS yang kamu susun</p>
+          </div>
+        </div>
+
+        <!-- Viewport Frame Switcher & Refresh -->
+        <div class="flex items-center gap-1.5">
+          <div class="flex items-center bg-[#FFF5ED] p-1 rounded-xl border border-[#EEDCCF]">
+            <button onclick="setPreviewViewport('full')" id="vp-full"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold bg-pastel-pink text-pastel-ink border border-pastel-ink/30 transition flex items-center gap-1">
+              <i class="ph-bold ph-Corners-out"></i>
+              <span class="hidden xs:inline">Penuh</span>
+            </button>
+            <button onclick="setPreviewViewport('mobile')" id="vp-mobile"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold text-pastel-muted hover:text-pastel-ink transition flex items-center gap-1">
+              <i class="ph-bold ph-device-mobile"></i>
+              <span class="hidden xs:inline">HP</span>
+            </button>
+            <button onclick="setPreviewViewport('tablet')" id="vp-tablet"
+              class="px-2.5 py-1 rounded-lg text-xs font-bold text-pastel-muted hover:text-pastel-ink transition flex items-center gap-1">
+              <i class="ph-bold ph-device-tablet"></i>
+              <span class="hidden xs:inline">Tablet</span>
+            </button>
+          </div>
+
+          <button onclick="refreshLivePreview()" title="Muat Ulang Preview"
+            class="px-3 py-1.5 rounded-xl bg-pastel-butter hover:brightness-95 border-2 border-pastel-ink pastel-shadow-sm text-xs font-bold text-pastel-ink flex items-center gap-1 active:translate-y-0.5 transition">
+            <i class="ph-bold ph-arrows-clockwise text-sm"></i>
+            <span class="hidden sm:inline">Segarkan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sandboxed Iframe Wrapper -->
+      <div class="flex-1 w-full h-full min-h-0 overflow-hidden p-2 sm:p-4 flex items-stretch justify-center">
+        <div id="previewFrameWrapper" class="w-full h-full min-h-0 bg-white rounded-2xl border-2 border-pastel-ink pastel-shadow overflow-hidden flex flex-col transition-all duration-300">
+          <!-- Fake Browser URL Bar -->
+          <div class="px-3 py-2 bg-[#FFF6EE] border-b border-[#EEDCCF] flex items-center gap-2 shrink-0">
+            <div class="flex gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-pastel-pinkDark"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-pastel-butterDark"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-pastel-mintDark"></span>
+            </div>
+            <div class="flex-1 bg-white rounded-lg px-3 py-1 text-[11px] font-mono text-pastel-muted border border-[#EEDCCF] truncate flex items-center gap-1.5">
+              <i class="ph-fill ph-lock-key text-pastel-mintDark"></i>
+              <span>pratinjau://pastelblock-sandbox/index.html</span>
+            </div>
+          </div>
+
+          <!-- Iframe -->
+          <iframe id="livePreviewIframe" title="Live Preview HTML" class="w-full h-full flex-1 min-h-0 border-0 bg-white"></iframe>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================
+       BOTTOM NAVIGATION BAR (SWITCH BETWEEN THE 3 PAGES)
+       ========================================================= -->
+  <nav class="w-full bg-[#FFF6EE] border-t-2 border-[#EEDCCF] px-3 py-2 z-30 shrink-0">
+    <div class="max-w-lg mx-auto grid grid-cols-3 gap-2">
+      <!-- Tab 1: Workspace Blok -->
+      <button onclick="switchPage('workspace')" id="nav-btn-workspace"
+        class="flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-pastel-pink border-2 border-pastel-ink pastel-shadow-sm font-display font-bold text-xs sm:text-sm text-pastel-ink transition">
+        <i class="ph-fill ph-puzzle-piece text-lg"></i>
+        <span>1. Workspace</span>
+      </button>
+
+      <!-- Tab 2: Hasil Kode -->
+      <button onclick="switchPage('code')" id="nav-btn-code"
+        class="flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-butter/50 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition">
+        <i class="ph-bold ph-code text-lg"></i>
+        <span>2. Kode HTML</span>
+      </button>
+
+      <!-- Tab 3: Live Preview -->
+      <button onclick="switchPage('preview')" id="nav-btn-preview"
+        class="flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-mint/50 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition">
+        <i class="ph-bold ph-eye text-lg"></i>
+        <span>3. Live Preview</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- =========================================================
+       POP-UP MODAL 1: PILIH BLOK HTML & CSS (TOP BAR PICKER)
+       ========================================================= -->
+  <div id="blockPickerModal" class="hidden fixed inset-0 z-50 bg-pastel-ink/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-3xl max-h-[88dvh] bg-[#FFFBF7] rounded-t-3xl sm:rounded-3xl border-t-2 sm:border-2 border-pastel-ink pastel-shadow-lg flex flex-col overflow-hidden animate-pop">
+      <!-- Modal Header -->
+      <div class="px-4 py-3.5 bg-[#FFF3E6] border-b-2 border-[#EEDCCF] flex items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-pastel-pink border-2 border-pastel-ink flex items-center justify-center">
+            <i class="ph-fill ph-squares-four text-lg text-pastel-ink"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-base text-pastel-ink leading-tight">Pilih Blok HTML & CSS</h3>
+            <p class="text-xs text-pastel-muted">Ketuk blok untuk langsung menambahkannya ke Workspace</p>
+          </div>
+        </div>
+        <button onclick="closeBlockPicker()" class="w-9 h-9 rounded-xl bg-white hover:bg-pastel-coral border-2 border-pastel-ink flex items-center justify-center text-pastel-ink active:scale-95 transition">
+          <i class="ph-bold ph-x text-base"></i>
+        </button>
+      </div>
+
+      <!-- Search & Smart Placement Mode Bar -->
+      <div class="p-3 bg-white border-b border-[#EEDCCF] flex flex-col sm:flex-row gap-2 shrink-0">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-pastel-muted"></i>
+          <input id="blockSearchInput" type="text" oninput="renderBlockPickerCards()"
+            placeholder="Cari tag atau fungsi (misal: div, h1, tabel, form, warna, flex)..."
+            class="w-full pl-9 pr-8 py-2 rounded-xl bg-[#FFFBF7] border-2 border-[#E5D4C5] focus:border-pastel-ink focus:outline-none text-xs sm:text-sm font-medium text-pastel-ink" />
+          <button onclick="clearBlockSearch()" id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-pastel-muted hover:text-pastel-ink">
+            <i class="ph-bold ph-x-circle text-base"></i>
+          </button>
+        </div>
+
+        <!-- Placement Mode Selector -->
+        <div class="flex items-center gap-1.5 bg-[#FFF6EE] px-2.5 py-1.5 rounded-xl border border-[#EEDCCF] shrink-0">
+          <span class="text-[11px] font-bold text-pastel-muted">Taruh:</span>
+          <select id="insertModeSelect" class="bg-transparent text-xs font-bold text-pastel-ink focus:outline-none cursor-pointer">
+            <option value="smart">Otomatis Cerdas</option>
+            <option value="inside">Di Dalam Blok Terpilih</option>
+            <option value="after">Di Bawah Blok Terpilih</option>
+            <option value="free">Bebas di Tengah Layar</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills inside Modal -->
+      <div id="modalCategoryTabs" class="px-3 py-2 bg-[#FFF8F1] border-b border-[#EEDCCF] flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Block Cards Grid -->
+      <div id="blockCardsContainer" class="flex-1 overflow-y-auto p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 pastel-scroll">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       POP-UP MODAL 2: TEMPLATE CEPAT (STARTER PRESETS)
+       ========================================================= -->
+  <div id="templateModal" class="hidden fixed inset-0 z-50 bg-pastel-ink/40 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full sm:max-w-xl max-h-[85dvh] bg-[#FFFBF7] rounded-t-3xl sm:rounded-3xl border-t-2 sm:border-2 border-pastel-ink pastel-shadow-lg flex flex-col overflow-hidden animate-pop">
+      <div class="px-4 py-3.5 bg-pastel-lavender/60 border-b-2 border-[#EEDCCF] flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-pastel-lavender border-2 border-pastel-ink flex items-center justify-center">
+            <i class="ph-fill ph-sparkle text-lg text-pastel-ink"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-base text-pastel-ink">Template Cepat Siap Pakai</h3>
+            <p class="text-xs text-pastel-muted">Muat susunan blok contoh untuk dimodifikasi bebas</p>
+          </div>
+        </div>
+        <button onclick="closeTemplateModal()" class="w-9 h-9 rounded-xl bg-white hover:bg-pastel-coral border-2 border-pastel-ink flex items-center justify-center text-pastel-ink">
+          <i class="ph-bold ph-x text-base"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-2.5 pastel-scroll">
+        <button onclick="loadPresetTemplate('profile')" class="w-full text-left p-3.5 rounded-2xl bg-pastel-pink/50 hover:bg-pastel-pink/80 border-2 border-pastel-ink pastel-shadow-sm flex items-start gap-3 transition">
+          <span class="text-2xl">🌸</span>
+          <div class="flex-1">
+            <div class="font-display font-bold text-sm text-pastel-ink">Kartu Profil Pastel (Rekomendasi)</div>
+            <p class="text-xs text-pastel-muted mt-0.5">Lengkap dengan blok CSS &lt;style&gt;, gambar avatar, judul, paragraf bio, lencana hobi, dan tombol interaktif.</p>
+          </div>
+        </button>
+
+        <button onclick="loadPresetTemplate('form')" class="w-full text-left p-3.5 rounded-2xl bg-pastel-lavender/50 hover:bg-pastel-lavender/80 border-2 border-pastel-ink pastel-shadow-sm flex items-start gap-3 transition">
+          <span class="text-2xl">📝</span>
+          <div class="flex-1">
+            <div class="font-display font-bold text-sm text-pastel-ink">Formulir Kontak & Pendaftaran</div>
+            <p class="text-xs text-pastel-muted mt-0.5">Contoh lengkap elemen &lt;form&gt;, &lt;label&gt;, &lt;input&gt;, &lt;select&gt;, &lt;textarea&gt;, dan tombol kirim.</p>
+          </div>
+        </button>
+
+        <button onclick="loadPresetTemplate('schedule')" class="w-full text-left p-3.5 rounded-2xl bg-pastel-mint/50 hover:bg-pastel-mint/80 border-2 border-pastel-ink pastel-shadow-sm flex items-start gap-3 transition">
+          <span class="text-2xl">📅</span>
+          <div class="flex-1">
+            <div class="font-display font-bold text-sm text-pastel-ink">Tabel Jadwal & Daftar Belajar</div>
+            <p class="text-xs text-pastel-muted mt-0.5">Susunan blok &lt;table&gt;, &lt;tr&gt;, &lt;th&gt;, &lt;td&gt; serta daftar &lt;ul&gt; dan &lt;li&gt; dengan warna pastel.</p>
+          </div>
+        </button>
+
+        <button onclick="loadPresetTemplate('basic')" class="w-full text-left p-3.5 rounded-2xl bg-pastel-butter/60 hover:bg-pastel-butter/90 border-2 border-pastel-ink pastel-shadow-sm flex items-start gap-3 transition">
+          <span class="text-2xl">📄</span>
+          <div class="flex-1">
+            <div class="font-display font-bold text-sm text-pastel-ink">Kerangka Dasar HTML Bersih</div>
+            <p class="text-xs text-pastel-muted mt-0.5">Hanya blok &lt;!DOCTYPE html&gt;, &lt;title&gt;, &lt;style&gt;, dan satu judul &lt;h1&gt; untuk mulai berkreasi dari awal.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       POP-UP MODAL 3: KONFIRMASI BERSIHKAN WORKSPACE
+       ========================================================= -->
+  <div id="clearConfirmModal" class="hidden fixed inset-0 z-50 bg-pastel-ink/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-[#FFFBF7] rounded-3xl border-2 border-pastel-ink pastel-shadow-lg p-5 text-center animate-pop">
+      <div class="w-12 h-12 rounded-2xl bg-pastel-coral border-2 border-pastel-ink mx-auto flex items-center justify-center mb-3">
+        <i class="ph-bold ph-trash text-2xl text-pastel-ink"></i>
+      </div>
+      <h3 class="font-display font-bold text-lg text-pastel-ink">Bersihkan Workspace?</h3>
+      <p class="text-xs text-pastel-muted mt-1 mb-4">Semua blok yang sedang disusun akan dihapus dari kanvas. Kamu tetap bisa menekan tombol Undo jika berubah pikiran.</p>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button onclick="closeClearConfirmModal()" class="py-2.5 rounded-xl bg-white hover:bg-gray-100 border-2 border-pastel-ink font-bold text-xs text-pastel-ink">
+          Batal
+        </button>
+        <button onclick="confirmClearWorkspace()" class="py-2.5 rounded-xl bg-pastel-coral hover:brightness-95 border-2 border-pastel-ink pastel-shadow-sm font-bold text-xs text-pastel-ink">
+          Ya, Bersihkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       TOAST NOTIFICATION
+       ========================================================= -->
+  <div id="toastNotification" class="pointer-events-none fixed top-16 left-1/2 -translate-x-1/2 z-50 opacity-0 -translate-y-2 transition-all duration-200">
+    <div class="px-4 py-2.5 rounded-2xl bg-pastel-ink text-white pastel-shadow flex items-center gap-2 text-xs sm:text-sm font-semibold">
+      <i id="toastIcon" class="ph-fill ph-check-circle text-pastel-mint text-lg"></i>
+      <span id="toastMessage">Berhasil!</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       JAVASCRIPT: BLOCKLY DEFINITIONS, GENERATOR & UI LOGIC
+       ========================================================= -->
+  <script>
+    // Global state
+    let workspace = null;
+    let currentActivePage = 'workspace';
+    let currentPickerCategory = 'all';
+    let selectedBlockId = null;
+    let latestGeneratedHtml = '';
+    let toastTimeout = null;
+
+    // Safe HTML bracket constants to prevent HTML preview parser from splitting <script>
+    const LT = '<';
+    const GT = '>';
+
+    function createColorField(defaultHex) {
+      if (typeof Blockly !== 'undefined' && Blockly.FieldColour) {
+        return new Blockly.FieldColour(defaultHex);
+      }
+      return new Blockly.FieldTextInput(defaultHex);
+    }
+
+    // Pastel Palette for Blockly Categories
+    const BLOCK_COLORS = {
+      struktur: '#FF9AA2',     // Pastel Rose Pink
+      teks: '#FFB7B2',         // Pastel Peach Coral
+      layout: '#F6C667',       // Pastel Honey Butter
+      daftar_tabel: '#88D8B0', // Pastel Mint Green
+      media: '#85C1E9',        // Pastel Sky Blue
+      formulir: '#C39BD3',     // Pastel Lavender
+      css: '#F1948A'           // Pastel Salmon Pink
+    };
+
+    // Catalog of all blocks for the Top Navigation Pop-up Modal
+    const BLOCK_CATALOG = [
+      // 1. STRUKTUR
+      {
+        type: 'html_document',
+        category: 'struktur',
+        title: `${LT}!DOCTYPE html${GT} Dokumen Utama`,
+        tagBadge: `${LT}html${GT} ${LT}head${GT} ${LT}body${GT}`,
+        color: '#FFD6E0',
+        desc: `Kerangka utama halaman web yang menampung bagian ${LT}head${GT} dan ${LT}body${GT}.`
+      },
+      {
+        type: 'html_title',
+        category: 'struktur',
+        title: `Judul Tab Halaman (${LT}title${GT})`,
+        tagBadge: `${LT}title${GT}`,
+        color: '#FFD6E0',
+        desc: `Menentukan judul halaman web pada tab browser (ditaruh di dalam ${LT}head${GT}).`
+      },
+      {
+        type: 'html_style_tag',
+        category: 'struktur',
+        title: `Wadah CSS Internal (${LT}style${GT})`,
+        tagBadge: `${LT}style${GT} ... ${LT}/style${GT}`,
+        color: '#FFD6E0',
+        desc: `Tempat menaruh blok-blok Aturan Selector CSS di dalam ${LT}head${GT} atau ${LT}body${GT}.`
+      },
+      {
+        type: 'html_meta_charset',
+        category: 'struktur',
+        title: 'Meta UTF-8 & Viewport Responsif',
+        tagBadge: `${LT}meta${GT}`,
+        color: '#FFD6E0',
+        desc: 'Mengatur karakter UTF-8 dan agar tampilan web otomatis pas di layar HP.'
+      },
+      {
+        type: 'html_comment',
+        category: 'struktur',
+        title: 'Komentar Catatan HTML',
+        tagBadge: `${LT}!-- ... --${GT}`,
+        color: '#FFD6E0',
+        desc: 'Catatan di dalam kode HTML yang tidak akan tampil di layar pengunjung.'
+      },
+
+      // 2. TEKS
+      {
+        type: 'html_heading',
+        category: 'teks',
+        title: 'Judul Heading (<h1> - <h6>)',
+        tagBadge: '<h1>..<h6>',
+        color: '#FFE3D3',
+        desc: 'Teks judul utama atau subjudul dengan pilihan ukuran H1 sampai H6.'
+      },
+      {
+        type: 'html_paragraph',
+        category: 'teks',
+        title: 'Paragraf Teks (<p>)',
+        tagBadge: '<p>',
+        color: '#FFE3D3',
+        desc: 'Menampilkan paragraf teks lengkap dengan opsi class dan inline style.'
+      },
+      {
+        type: 'html_paragraph_container',
+        category: 'teks',
+        title: 'Paragraf Kontainer (<p> Bersarang)',
+        tagBadge: '<p> ... </p>',
+        color: '#FFE3D3',
+        desc: 'Paragraf yang bisa diisi gabungan teks tebal, miring, warna, atau tautan.'
+      },
+      {
+        type: 'html_text_inline',
+        category: 'teks',
+        title: 'Format Teks (Tebal / Miring / Stabilo)',
+        tagBadge: '<strong> <em> <mark> <span>',
+        color: '#FFE3D3',
+        desc: 'Teks dengan gaya khusus seperti tebal, miring, garis bawah, stabilo, atau kode.'
+      },
+      {
+        type: 'html_raw_text',
+        category: 'teks',
+        title: 'Teks Bebas Murni',
+        tagBadge: '"Teks..."',
+        color: '#FFE3D3',
+        desc: 'Baris teks biasa tanpa tag pembungkus, bisa dimasukkan ke elemen mana saja.'
+      },
+      {
+        type: 'html_blockquote',
+        category: 'teks',
+        title: 'Kutipan / Highlight (<blockquote>)',
+        tagBadge: '<blockquote>',
+        color: '#FFE3D3',
+        desc: 'Menampilkan kotak kutipan kata mutiara atau catatan penting.'
+      },
+      {
+        type: 'html_br_hr',
+        category: 'teks',
+        title: 'Baris Baru (<br>) / Garis (<hr>)',
+        tagBadge: '<br> / <hr>',
+        color: '#FFE3D3',
+        desc: 'Membuat pindah baris baru atau garis lurus pemisah antar bagian.'
+      },
+
+      // 3. LAYOUT & BOX
+      {
+        type: 'html_container',
+        category: 'layout',
+        title: 'Kontainer Semantik & Div',
+        tagBadge: '<div> <section> <header> <nav>',
+        color: '#FFF1C1',
+        desc: 'Wadah pembungkus elemen (div, section, header, footer, main, article, nav).'
+      },
+      {
+        type: 'html_card',
+        category: 'layout',
+        title: 'Kotak Kartu Pastel (Card Box)',
+        tagBadge: '<div class="card">',
+        color: '#FFF1C1',
+        desc: 'Wadah kotak siap pakai dengan pilihan warna latar, sudut membulat, dan padding.'
+      },
+      {
+        type: 'html_flex_box',
+        category: 'layout',
+        title: 'Kontainer Flexbox Mudah',
+        tagBadge: '<div style="display:flex">',
+        color: '#FFF1C1',
+        desc: 'Mengatur elemen di dalamnya berjajar ke samping (row) atau ke bawah (column).'
+      },
+
+      // 4. DAFTAR & TABEL
+      {
+        type: 'html_list',
+        category: 'daftar_tabel',
+        title: 'Wadah Daftar (<ul> / <ol>)',
+        tagBadge: '<ul> / <ol>',
+        color: '#D4F5E9',
+        desc: 'Membuat daftar poin (bullet) atau daftar berurut angka (numbered list).'
+      },
+      {
+        type: 'html_list_item',
+        category: 'daftar_tabel',
+        title: 'Item Daftar (<li>)',
+        tagBadge: '<li>',
+        color: '#D4F5E9',
+        desc: 'Isi baris item yang ditaruh di dalam blok daftar <ul> atau <ol>.'
+      },
+      {
+        type: 'html_table',
+        category: 'daftar_tabel',
+        title: 'Wadah Tabel (<table>)',
+        tagBadge: '<table>',
+        color: '#D4F5E9',
+        desc: 'Tabel data yang menampung baris <tr> atau bagian <thead> / <tbody>.'
+      },
+      {
+        type: 'html_table_section',
+        category: 'daftar_tabel',
+        title: 'Bagian Tabel (<thead> / <tbody>)',
+        tagBadge: '<thead> <tbody>',
+        color: '#D4F5E9',
+        desc: 'Mengelompokkan baris kepala tabel (thead) dan isi tabel (tbody).'
+      },
+      {
+        type: 'html_table_row',
+        category: 'daftar_tabel',
+        title: 'Baris Tabel (<tr>)',
+        tagBadge: '<tr>',
+        color: '#D4F5E9',
+        desc: 'Membuat satu baris mendatar di dalam tabel untuk diisi sel <th> atau <td>.'
+      },
+      {
+        type: 'html_table_cell',
+        category: 'daftar_tabel',
+        title: 'Sel Data / Header (<th> / <td>)',
+        tagBadge: '<th> / <td>',
+        color: '#D4F5E9',
+        desc: 'Kotak sel di dalam baris tabel (pilih <th> untuk judul kolom, <td> untuk isi).'
+      },
+
+      // 5. MEDIA & LINK
+      {
+        type: 'html_link',
+        category: 'media',
+        title: 'Tautan Link (<a href>)',
+        tagBadge: '<a>',
+        color: '#D8EEFF',
+        desc: 'Teks tautan yang bisa diklik menuju alamat URL atau halaman lain.'
+      },
+      {
+        type: 'html_image',
+        category: 'media',
+        title: 'Gambar Visual (<img>)',
+        tagBadge: '<img>',
+        color: '#D8EEFF',
+        desc: 'Menampilkan gambar dari URL lengkap dengan ukuran lebar dan radius sudut.'
+      },
+      {
+        type: 'html_button',
+        category: 'media',
+        title: 'Tombol Interaktif (<button>)',
+        tagBadge: '<button>',
+        color: '#D8EEFF',
+        desc: 'Tombol yang dapat memunculkan pesan pop-up interaktif saat diklik di Preview.'
+      },
+      {
+        type: 'html_badge',
+        category: 'media',
+        title: 'Lencana / Badge Pastel',
+        tagBadge: '<span class="badge">',
+        color: '#D8EEFF',
+        desc: 'Label kapsul warna-warni untuk kategori, status, atau tag keahlian.'
+      },
+      {
+        type: 'html_details',
+        category: 'media',
+        title: 'Akordion Buka-Tutup (<details>)',
+        tagBadge: '<details> <summary>',
+        color: '#D8EEFF',
+        desc: 'Kotak interaktif yang bisa dibuka-tutup saat judulnya diklik.'
+      },
+      {
+        type: 'html_audio_video',
+        category: 'media',
+        title: 'Pemutar Video / Audio',
+        tagBadge: '<video> / <audio>',
+        color: '#D8EEFF',
+        desc: 'Menampilkan pemutar media video atau musik dengan tombol kontrol.'
+      },
+      {
+        type: 'html_iframe',
+        category: 'media',
+        title: 'Sematan Web (<iframe>)',
+        tagBadge: '<iframe>',
+        color: '#D8EEFF',
+        desc: 'Menampilkan bingkai halaman web eksternal di dalam halaman.'
+      },
+
+      // 6. FORMULIR
+      {
+        type: 'html_form',
+        category: 'formulir',
+        title: 'Wadah Formulir (<form>)',
+        tagBadge: '<form>',
+        color: '#EAD9FF',
+        desc: 'Kontainer pembungkus kolom-kolom input formulir.'
+      },
+      {
+        type: 'html_label',
+        category: 'formulir',
+        title: 'Label Input (<label>)',
+        tagBadge: '<label>',
+        color: '#EAD9FF',
+        desc: 'Judul keterangan di atas kolom isian formulir.'
+      },
+      {
+        type: 'html_input',
+        category: 'formulir',
+        title: 'Kolom Input (<input>)',
+        tagBadge: '<input>',
+        color: '#EAD9FF',
+        desc: 'Isian teks, email, password, angka, tanggal, warna, atau checkbox.'
+      },
+      {
+        type: 'html_textarea',
+        category: 'formulir',
+        title: 'Kolom Pesan Panjang (<textarea>)',
+        tagBadge: '<textarea>',
+        color: '#EAD9FF',
+        desc: 'Kotak isian teks multi-baris untuk alamat, komentar, atau pesan.'
+      },
+      {
+        type: 'html_select',
+        category: 'formulir',
+        title: 'Menu Dropdown (<select>)',
+        tagBadge: '<select>',
+        color: '#EAD9FF',
+        desc: 'Menu pilihan tarik-turun yang diisi dengan blok-blok <option>.'
+      },
+      {
+        type: 'html_option',
+        category: 'formulir',
+        title: 'Pilihan Dropdown (<option>)',
+        tagBadge: '<option>',
+        color: '#EAD9FF',
+        desc: 'Item pilihan untuk dimasukkan ke dalam blok <select>.'
+      },
+
+      // 7. CSS & STYLE
+      {
+        type: 'css_rule',
+        category: 'css',
+        title: 'Aturan Selector CSS ({ ... })',
+        tagBadge: 'selector { ... }',
+        color: '#FFC6C6',
+        desc: 'Menentukan target elemen (misal: body, .kartu, h1, button) untuk diberi gaya CSS.'
+      },
+      {
+        type: 'css_color',
+        category: 'css',
+        title: 'Warna Teks & Background CSS',
+        tagBadge: 'color & background',
+        color: '#FFC6C6',
+        desc: 'Mengatur warna tulisan (color) dan warna latar belakang (background-color).'
+      },
+      {
+        type: 'css_gradient',
+        category: 'css',
+        title: 'Gradasi Latar (Linear Gradient)',
+        tagBadge: 'linear-gradient()',
+        color: '#FFC6C6',
+        desc: 'Membuat latar belakang perpaduan dua warna pastel yang halus.'
+      },
+      {
+        type: 'css_typography',
+        category: 'css',
+        title: 'Tipografi & Perataan Teks CSS',
+        tagBadge: 'font-size & text-align',
+        color: '#FFC6C6',
+        desc: 'Mengatur jenis huruf, ukuran px, ketebalan, dan rata kiri/tengah/kanan.'
+      },
+      {
+        type: 'css_spacing',
+        category: 'css',
+        title: 'Ukuran & Jarak (Padding / Margin)',
+        tagBadge: 'padding, margin, width',
+        color: '#FFC6C6',
+        desc: 'Mengatur ruang dalam (padding), jarak luar (margin), dan lebar elemen.'
+      },
+      {
+        type: 'css_border',
+        category: 'css',
+        title: 'Garis Tepi, Radius & Bayangan',
+        tagBadge: 'border & radius & shadow',
+        color: '#FFC6C6',
+        desc: 'Mengatur bingkai garis tepi, kelengkungan sudut (border-radius), dan bayangan.'
+      },
+      {
+        type: 'css_flex',
+        category: 'css',
+        title: 'Tata Letak Flexbox CSS',
+        tagBadge: 'display: flex & gap',
+        color: '#FFC6C6',
+        desc: 'Mengatur penyusunan elemen menggunakan Flexbox beserta jarak antar elemen (gap).'
+      },
+      {
+        type: 'css_custom',
+        category: 'css',
+        title: 'Properti CSS Kustom Bebas',
+        tagBadge: 'properti: nilai;',
+        color: '#FFC6C6',
+        desc: 'Menulis properti dan nilai CSS apa saja secara bebas.'
+      }
+    ];
+
+    const CATEGORY_META = [
+      { id: 'all', label: 'Semua', emoji: '✨', bg: '#FFF1C1' },
+      { id: 'struktur', label: 'Struktur', emoji: '🏗️', bg: '#FFD6E0' },
+      { id: 'teks', label: 'Teks', emoji: '✍️', bg: '#FFE3D3' },
+      { id: 'layout', label: 'Layout', emoji: '📦', bg: '#FFF1C1' },
+      { id: 'daftar_tabel', label: 'Daftar & Tabel', emoji: '📋', bg: '#D4F5E9' },
+      { id: 'media', label: 'Media & Link', emoji: '🖼️', bg: '#D8EEFF' },
+      { id: 'formulir', label: 'Formulir', emoji: '📝', bg: '#EAD9FF' },
+      { id: 'css', label: 'CSS & Style', emoji: '🎨', bg: '#FFC6C6' }
+    ];
+
+    // =========================================================
+    // 1. DEFINE ALL CUSTOM HTML & CSS BLOCKS IN BLOCKLY
+    // =========================================================
+    function createTagDropdown(options, closeFieldName) {
+      return new Blockly.FieldDropdown(options, function(newVal) {
+        const srcBlock = this.getSourceBlock();
+        if (srcBlock && srcBlock.getField(closeFieldName)) {
+          srcBlock.setFieldValue(`${LT}/${newVal}${GT}`, closeFieldName);
+        }
+        return newVal;
+      });
+    }
+
+    function registerCustomBlocks() {
+      // --- KATEGORI 1: STRUKTUR ---
+      Blockly.Blocks['html_document'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}!DOCTYPE html${GT}`);
+          this.appendDummyInput()
+              .appendField(`${LT}html lang=`)
+              .appendField(new Blockly.FieldTextInput('id'), 'LANG')
+              .appendField(GT);
+          this.appendDummyInput()
+              .appendField(`${LT}head${GT}`);
+          this.appendStatementInput('HEAD')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/head${GT}`);
+          this.appendDummyInput()
+              .appendField(`${LT}body${GT}`);
+          this.appendStatementInput('BODY')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/body${GT}`);
+          this.appendDummyInput()
+              .appendField(`${LT}/html${GT}`);
+          this.setColour(BLOCK_COLORS.struktur);
+          this.setTooltip('Kerangka utama dokumen HTML');
+        }
+      };
+
+      Blockly.Blocks['html_title'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}title${GT}`)
+              .appendField(new Blockly.FieldTextInput('Website Pastelku'), 'TEXT')
+              .appendField(`${LT}/title${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_style_tag'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}style${GT}`);
+          this.appendStatementInput('RULES')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/style${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_meta_charset'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}meta charset="UTF-8"${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_comment'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}!--`)
+              .appendField(new Blockly.FieldTextInput('Catatan HTML'), 'TEXT')
+              .appendField(`--${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      // --- KATEGORI 2: TEKS ---
+      Blockly.Blocks['html_heading'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}h1${GT}`, 'h1'],
+                [`${LT}h2${GT}`, 'h2'],
+                [`${LT}h3${GT}`, 'h3'],
+                [`${LT}h4${GT}`, 'h4'],
+                [`${LT}h5${GT}`, 'h5'],
+                [`${LT}h6${GT}`, 'h6']
+              ], 'CLOSE_TAG'), 'LEVEL')
+              .appendField(new Blockly.FieldTextInput('Halo Dunia Pastel!'), 'TEXT')
+              .appendField(`${LT}/h1${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_paragraph'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}p${GT}`)
+              .appendField(new Blockly.FieldTextInput('Ini adalah paragraf teks.'), 'TEXT')
+              .appendField(`${LT}/p${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_paragraph_container'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}p${GT}`);
+          this.appendStatementInput('CHILDREN')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/p${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_text_inline'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}strong${GT}`, 'strong'],
+                [`${LT}em${GT}`, 'em'],
+                [`${LT}u${GT}`, 'u'],
+                [`${LT}mark${GT}`, 'mark'],
+                [`${LT}span${GT}`, 'span'],
+                [`${LT}small${GT}`, 'small'],
+                [`${LT}code${GT}`, 'code']
+              ], 'CLOSE_TAG'), 'TAG')
+              .appendField(new Blockly.FieldTextInput('Teks Penting'), 'TEXT')
+              .appendField(`${LT}/strong${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_raw_text'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('Tulis teks di sini...'), 'TEXT');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_blockquote'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}blockquote${GT}`)
+              .appendField(new Blockly.FieldTextInput('Tetap semangat belajar koding!'), 'TEXT')
+              .appendField(`${LT}/blockquote${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_br_hr'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldDropdown([
+                [`${LT}hr${GT}`, 'hr'],
+                [`${LT}br${GT}`, 'br']
+              ]), 'TYPE');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      // --- KATEGORI 3: LAYOUT & BOX ---
+      Blockly.Blocks['html_container'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}div${GT}`, 'div'],
+                [`${LT}section${GT}`, 'section'],
+                [`${LT}header${GT}`, 'header'],
+                [`${LT}footer${GT}`, 'footer'],
+                [`${LT}nav${GT}`, 'nav'],
+                [`${LT}main${GT}`, 'main'],
+                [`${LT}article${GT}`, 'article'],
+                [`${LT}aside${GT}`, 'aside']
+              ], 'CLOSE_TAG'), 'TAG')
+              .appendField('class=')
+              .appendField(new Blockly.FieldTextInput('kartu'), 'CLASS');
+          this.appendStatementInput('CHILDREN')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/div${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.layout);
+        }
+      };
+
+      Blockly.Blocks['html_card'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}div class=`)
+              .appendField(new Blockly.FieldTextInput('kartu-pastel'), 'CLASS')
+              .appendField('bg:')
+              .appendField(createColorField('#FFF5F7'), 'BG')
+              .appendField(GT);
+          this.appendDummyInput()
+              .appendField('radius:')
+              .appendField(new Blockly.FieldNumber(20, 0, 60), 'RADIUS')
+              .appendField('padding:')
+              .appendField(new Blockly.FieldNumber(20, 0, 80), 'PAD');
+          this.appendStatementInput('CHILDREN')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/div${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.layout);
+        }
+      };
+
+      Blockly.Blocks['html_flex_box'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}div flex`)
+              .appendField(new Blockly.FieldDropdown([
+                ['row', 'row'],
+                ['column', 'column'],
+                ['wrap', 'row_wrap']
+              ]), 'DIR')
+              .appendField('gap:')
+              .appendField(new Blockly.FieldNumber(10, 0, 60), 'GAP')
+              .appendField(GT);
+          this.appendStatementInput('CHILDREN')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/div${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.layout);
+        }
+      };
+
+      // --- KATEGORI 4: DAFTAR & TABEL ---
+      Blockly.Blocks['html_list'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}ul${GT}`, 'ul'],
+                [`${LT}ol${GT}`, 'ol']
+              ], 'CLOSE_TAG'), 'TYPE');
+          this.appendStatementInput('ITEMS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/ul${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_list_item'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}li${GT}`)
+              .appendField(new Blockly.FieldTextInput('Item daftar'), 'TEXT')
+              .appendField(`${LT}/li${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}table${GT}`);
+          this.appendStatementInput('ROWS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/table${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table_section'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}thead${GT}`, 'thead'],
+                [`${LT}tbody${GT}`, 'tbody']
+              ], 'CLOSE_TAG'), 'TAG');
+          this.appendStatementInput('ROWS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/thead${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table_row'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}tr${GT}`);
+          this.appendStatementInput('CELLS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/tr${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table_cell'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}td${GT}`, 'td'],
+                [`${LT}th${GT}`, 'th']
+              ], 'CLOSE_TAG'), 'TAG')
+              .appendField(new Blockly.FieldTextInput('Data Sel'), 'TEXT')
+              .appendField(`${LT}/td${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      // --- KATEGORI 5: MEDIA & LINK ---
+      Blockly.Blocks['html_link'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}a href=`)
+              .appendField(new Blockly.FieldTextInput('https://www.google.com'), 'HREF')
+              .appendField(GT);
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('Kunjungi Tautan'), 'TEXT')
+              .appendField(`${LT}/a${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_image'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}img src=`)
+              .appendField(new Blockly.FieldTextInput('https://placehold.co/320x200/FFD6E0/2D3142?text=Pastel+Studio'), 'SRC');
+          this.appendDummyInput()
+              .appendField('width=')
+              .appendField(new Blockly.FieldTextInput('180'), 'WIDTH')
+              .appendField('alt=')
+              .appendField(new Blockly.FieldTextInput('Gambar'), 'ALT')
+              .appendField(GT);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_button'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}button${GT}`)
+              .appendField(new Blockly.FieldTextInput('Klik Sapa Aku! 👋'), 'TEXT')
+              .appendField(`${LT}/button${GT}`);
+          this.appendDummyInput()
+              .appendField('bg:')
+              .appendField(createColorField('#FFD6E0'), 'BG')
+              .appendField('pesan:')
+              .appendField(new Blockly.FieldTextInput('Halo! Terima kasih 🌸'), 'ALERT');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_badge'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}span${GT}`)
+              .appendField(new Blockly.FieldTextInput('✨ HTML Kreatif'), 'TEXT')
+              .appendField(createColorField('#D4F5E9'), 'BG')
+              .appendField(`${LT}/span${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_details'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}details${GT}`)
+              .appendField(new Blockly.FieldTextInput('Klik info ✨'), 'SUMMARY');
+          this.appendStatementInput('CHILDREN')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/details${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_audio_video'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}video${GT}`, 'video'],
+                [`${LT}audio${GT}`, 'audio']
+              ], 'CLOSE_TAG'), 'TYPE')
+              .appendField('src=')
+              .appendField(new Blockly.FieldTextInput('https://www.w3schools.com/html/mov_bbb.mp4'), 'SRC')
+              .appendField(`${LT}/video${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_iframe'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}iframe src=`)
+              .appendField(new Blockly.FieldTextInput('https://example.com'), 'SRC')
+              .appendField('h=')
+              .appendField(new Blockly.FieldNumber(220, 80, 800), 'HEIGHT')
+              .appendField(`${GT}${LT}/iframe${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      // --- KATEGORI 6: FORMULIR ---
+      Blockly.Blocks['html_form'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}form${GT}`);
+          this.appendStatementInput('FIELDS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/form${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_label'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}label${GT}`)
+              .appendField(new Blockly.FieldTextInput('Nama Lengkap:'), 'TEXT')
+              .appendField(`${LT}/label${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_input'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}input type=`)
+              .appendField(new Blockly.FieldDropdown([
+                ['text', 'text'],
+                ['email', 'email'],
+                ['password', 'password'],
+                ['number', 'number'],
+                ['date', 'date'],
+                ['color', 'color'],
+                ['checkbox', 'checkbox'],
+                ['radio', 'radio']
+              ]), 'TYPE')
+              .appendField(new Blockly.FieldTextInput('Ketik di sini...'), 'PLACEHOLDER')
+              .appendField(GT);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_textarea'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}textarea${GT}`)
+              .appendField(new Blockly.FieldTextInput('Tulis pesanmu di sini...'), 'PLACEHOLDER')
+              .appendField(`${LT}/textarea${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_select'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}select${GT}`);
+          this.appendStatementInput('OPTIONS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField(`${LT}/select${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_option'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}option${GT}`)
+              .appendField(new Blockly.FieldTextInput('Pilihan Pertama'), 'TEXT')
+              .appendField(`${LT}/option${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      // --- KATEGORI 7: CSS & STYLE ---
+      Blockly.Blocks['css_rule'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('body'), 'SELECTOR')
+              .appendField('{');
+          this.appendStatementInput('DECLARATIONS')
+              .setCheck(null);
+          this.appendDummyInput()
+              .appendField('}');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_color'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('color:')
+              .appendField(createColorField('#2D3142'), 'COLOR')
+              .appendField(';');
+          this.appendDummyInput()
+              .appendField('background-color:')
+              .appendField(createColorField('#FFF5F7'), 'BG')
+              .appendField(';');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_gradient'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('linear-gradient(')
+              .appendField(new Blockly.FieldDropdown([
+                ['135deg', '135deg'],
+                ['180deg', '180deg'],
+                ['90deg', '90deg']
+              ]), 'DEG')
+              .appendField(createColorField('#FFD6E0'), 'C1')
+              .appendField(createColorField('#D8EEFF'), 'C2')
+              .appendField(');');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_typography'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('font-family:')
+              .appendField(new Blockly.FieldDropdown([
+                ['sans-serif', "'Segoe UI', system-ui, sans-serif"],
+                ['serif', 'Georgia, serif'],
+                ['monospace', 'monospace'],
+                ['cursive', "'Comic Sans MS', cursive, sans-serif"]
+              ]), 'FONT')
+              .appendField(';');
+          this.appendDummyInput()
+              .appendField('font-size:')
+              .appendField(new Blockly.FieldNumber(16, 8, 96), 'SIZE')
+              .appendField('px; align:')
+              .appendField(new Blockly.FieldDropdown([
+                ['center', 'center'],
+                ['left', 'left'],
+                ['right', 'right'],
+                ['justify', 'justify']
+              ]), 'ALIGN');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_spacing'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('padding:')
+              .appendField(new Blockly.FieldTextInput('20px'), 'PADDING')
+              .appendField('; margin:')
+              .appendField(new Blockly.FieldTextInput('16px auto'), 'MARGIN');
+          this.appendDummyInput()
+              .appendField('max-width:')
+              .appendField(new Blockly.FieldTextInput('480px'), 'MAX_WIDTH')
+              .appendField(';');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_border'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('border:')
+              .appendField(new Blockly.FieldNumber(2, 0, 20), 'WIDTH')
+              .appendField('px')
+              .appendField(new Blockly.FieldDropdown([
+                ['solid', 'solid'],
+                ['dashed', 'dashed'],
+                ['dotted', 'dotted']
+              ]), 'STYLE')
+              .appendField(createColorField('#2D3142'), 'COLOR');
+          this.appendDummyInput()
+              .appendField('radius:')
+              .appendField(new Blockly.FieldNumber(20, 0, 100), 'RADIUS')
+              .appendField('px; shadow:')
+              .appendField(new Blockly.FieldDropdown([
+                ['soft', '0 8px 20px rgba(0,0,0,0.08)'],
+                ['solid', '0 4px 0px #2D3142'],
+                ['none', 'none']
+              ]), 'SHADOW');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_flex'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('display: flex; dir:')
+              .appendField(new Blockly.FieldDropdown([
+                ['row', 'row'],
+                ['column', 'column']
+              ]), 'DIR');
+          this.appendDummyInput()
+              .appendField('justify:')
+              .appendField(new Blockly.FieldDropdown([
+                ['center', 'center'],
+                ['space-between', 'space-between'],
+                ['flex-start', 'flex-start']
+              ]), 'JUSTIFY')
+              .appendField('gap:')
+              .appendField(new Blockly.FieldNumber(12, 0, 60), 'GAP')
+              .appendField('px;');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_custom'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('transition'), 'PROP')
+              .appendField(':')
+              .appendField(new Blockly.FieldTextInput('all 0.2s ease'), 'VAL')
+              .appendField(';');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+    }
+
+    // =========================================================
+    // 2. HTML & CSS CODE GENERATOR (RECURSIVE AST TREE WALKER)
+    // =========================================================
+    function indentStr(level) {
+      return '  '.repeat(Math.max(0, level));
+    }
+
+    function statementChainToCode(firstBlock, indentLevel) {
+      let result = '';
+      let current = firstBlock;
+      while (current) {
+        const piece = singleBlockToCode(current, indentLevel);
+        if (piece) {
+          result += piece + '\n';
+        }
+        current = current.getNextBlock();
+      }
+      return result;
+    }
+
+    function buildAttrs(attrMap) {
+      let out = '';
+      for (const [key, val] of Object.entries(attrMap)) {
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          out += ` ${key}="${String(val).trim().replace(/"/g, "'")}"`;
+        }
+      }
+      return out;
+    }
+
+    function singleBlockToCode(block, level = 0) {
+      if (!block || block.isInsertionMarker()) return '';
+      const pad = indentStr(level);
+
+      switch (block.type) {
+        // --- STRUKTUR ---
+        case 'html_document': {
+          const lang = block.getFieldValue('LANG') || 'id';
+          const headCode = statementChainToCode(block.getInputTargetBlock('HEAD'), level + 2);
+          const bodyCode = statementChainToCode(block.getInputTargetBlock('BODY'), level + 2);
+          return (
+            `${pad}${LT}!DOCTYPE html${GT}\n` +
+            `${pad}${LT}html lang="${lang}"${GT}\n` +
+            `${pad}  ${LT}head${GT}\n` +
+            (headCode || `${pad}    ${LT}meta charset="UTF-8"${GT}\n`) +
+            `${pad}  ${LT}/head${GT}\n` +
+            `${pad}  ${LT}body${GT}\n` +
+            (bodyCode || `${pad}    ${LT}!-- Tambahkan blok di dalam body --${GT}\n`) +
+            `${pad}  ${LT}/body${GT}\n` +
+            `${pad}${LT}/html${GT}`
+          );
+        }
+
+        case 'html_title': {
+          const text = block.getFieldValue('TEXT') || 'Website Pastel';
+          return `${pad}${LT}title${GT}${text}${LT}/title${GT}`;
+        }
+
+        case 'html_meta_charset': {
+          return (
+            `${pad}${LT}meta charset="UTF-8"${GT}\n` +
+            `${pad}${LT}meta name="viewport" content="width=device-width, initial-scale=1.0"${GT}`
+          );
+        }
+
+        case 'html_style_tag': {
+          const rules = statementChainToCode(block.getInputTargetBlock('RULES'), level + 1);
+          return `${pad}${LT}style${GT}\n${rules}${pad}${LT}/style${GT}`;
+        }
+
+        case 'html_comment': {
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}${LT}!-- ${text} --${GT}`;
+        }
+
+        // --- TEKS ---
+        case 'html_heading': {
+          const tag = block.getFieldValue('LEVEL') || 'h1';
+          const text = block.getFieldValue('TEXT') || '';
+          const attrs = buildAttrs({
+            class: block.getFieldValue('CLASS'),
+            style: block.getFieldValue('STYLE')
+          });
+          return `${pad}<${tag}${attrs}>${text}</${tag}>`;
+        }
+
+        case 'html_paragraph': {
+          const text = block.getFieldValue('TEXT') || '';
+          const attrs = buildAttrs({
+            class: block.getFieldValue('CLASS'),
+            style: block.getFieldValue('STYLE')
+          });
+          return `${pad}<p${attrs}>${text}</p>`;
+        }
+
+        case 'html_paragraph_container': {
+          const attrs = buildAttrs({ style: block.getFieldValue('STYLE') });
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<p${attrs}>\n${children}${pad}</p>`;
+        }
+
+        case 'html_text_inline': {
+          const tag = block.getFieldValue('TAG') || 'strong';
+          const text = block.getFieldValue('TEXT') || '';
+          const attrs = buildAttrs({ style: block.getFieldValue('STYLE') });
+          return `${pad}<${tag}${attrs}>${text}</${tag}>`;
+        }
+
+        case 'html_raw_text': {
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}${text}`;
+        }
+
+        case 'html_blockquote': {
+          const text = block.getFieldValue('TEXT') || '';
+          const styleVal = block.getFieldValue('STYLE') || 'background:#FFF1C1; border-left:4px solid #F4B942; padding:12px; border-radius:8px; margin:10px 0;';
+          const attrs = buildAttrs({ style: styleVal });
+          return `${pad}<blockquote${attrs}>${text}</blockquote>`;
+        }
+
+        case 'html_br_hr': {
+          const type = block.getFieldValue('TYPE') || 'hr';
+          const styleVal = block.getFieldValue('STYLE') || 'border:0; border-top:2px dashed #FFD6E0; margin:16px 0;';
+          if (type === 'br') return `${pad}<br>`;
+          const attrs = buildAttrs({ style: styleVal });
+          return `${pad}<hr${attrs}>`;
+        }
+
+        // --- LAYOUT & BOX ---
+        case 'html_container': {
+          const tag = block.getFieldValue('TAG') || 'div';
+          const attrs = buildAttrs({
+            id: block.getFieldValue('ID'),
+            class: block.getFieldValue('CLASS'),
+            style: block.getFieldValue('STYLE')
+          });
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<${tag}${attrs}>\n${children}${pad}</${tag}>`;
+        }
+
+        case 'html_card': {
+          const bg = block.getFieldValue('BG') || '#FFF5F7';
+          const radius = block.getFieldValue('RADIUS') || 20;
+          const padPx = block.getFieldValue('PAD') || 20;
+          const cls = block.getFieldValue('CLASS') || 'kartu-pastel';
+          const styleStr = `background-color:${bg}; border-radius:${radius}px; padding:${padPx}px; border:2px solid #2D3142; box-shadow:0 4px 0px rgba(45,49,66,0.12);`;
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<div class="${cls}" style="${styleStr}">\n${children}${pad}</div>`;
+        }
+
+        case 'html_flex_box': {
+          const dirRaw = block.getFieldValue('DIR') || 'row';
+          const dir = dirRaw === 'row_wrap' ? 'row; flex-wrap:wrap' : dirRaw;
+          const justify = block.getFieldValue('JUSTIFY') || 'center';
+          const gap = block.getFieldValue('GAP') || 10;
+          const styleStr = `display:flex; flex-direction:${dir}; justify-content:${justify}; align-items:center; gap:${gap}px;`;
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<div style="${styleStr}">\n${children}${pad}</div>`;
+        }
+
+        // --- DAFTAR & TABEL ---
+        case 'html_list': {
+          const tag = block.getFieldValue('TYPE') || 'ul';
+          const styleVal = block.getFieldValue('STYLE') || 'padding-left:20px; text-align:left;';
+          const attrs = buildAttrs({ style: styleVal });
+          const items = statementChainToCode(block.getInputTargetBlock('ITEMS'), level + 1);
+          return `${pad}<${tag}${attrs}>\n${items}${pad}</${tag}>`;
+        }
+
+        case 'html_list_item': {
+          const text = block.getFieldValue('TEXT') || '';
+          const styleVal = block.getFieldValue('STYLE') || 'margin-bottom:6px;';
+          const attrs = buildAttrs({ style: styleVal });
+          return `${pad}<li${attrs}>${text}</li>`;
+        }
+
+        case 'html_table': {
+          const styleVal = block.getFieldValue('STYLE') || 'width:100%; border-collapse:collapse; margin:12px 0;';
+          const attrs = buildAttrs({ style: styleVal });
+          const rows = statementChainToCode(block.getInputTargetBlock('ROWS'), level + 1);
+          return `${pad}<table${attrs}>\n${rows}${pad}</table>`;
+        }
+
+        case 'html_table_section': {
+          const tag = block.getFieldValue('TAG') || 'thead';
+          const rows = statementChainToCode(block.getInputTargetBlock('ROWS'), level + 1);
+          return `${pad}<${tag}>\n${rows}${pad}</${tag}>`;
+        }
+
+        case 'html_table_row': {
+          const attrs = buildAttrs({ style: block.getFieldValue('STYLE') });
+          const cells = statementChainToCode(block.getInputTargetBlock('CELLS'), level + 1);
+          return `${pad}<tr${attrs}>\n${cells}${pad}</tr>`;
+        }
+
+        case 'html_table_cell': {
+          const tag = block.getFieldValue('TAG') || 'td';
+          const text = block.getFieldValue('TEXT') || '';
+          const defaultStyle = tag === 'th'
+            ? 'border:1px solid #E2D5C8; padding:10px; background:#FFD6E0;'
+            : 'border:1px solid #E2D5C8; padding:10px;';
+          const attrs = buildAttrs({ style: block.getFieldValue('STYLE') || defaultStyle });
+          return `${pad}<${tag}${attrs}>${text}</${tag}>`;
+        }
+
+        // --- MEDIA & LINK ---
+        case 'html_link': {
+          const href = block.getFieldValue('HREF') || '#';
+          const text = block.getFieldValue('TEXT') || 'Tautan';
+          const target = block.getFieldValue('TARGET') || '_blank';
+          const attrs = buildAttrs({
+            href,
+            target,
+            style: block.getFieldValue('STYLE') || 'color:#E05378; font-weight:bold; text-decoration:underline;'
+          });
+          return `${pad}<a${attrs}>${text}</a>`;
+        }
+
+        case 'html_image': {
+          const attrs = buildAttrs({
+            src: block.getFieldValue('SRC'),
+            alt: block.getFieldValue('ALT'),
+            width: block.getFieldValue('WIDTH'),
+            style: block.getFieldValue('STYLE') || 'border-radius:16px; max-width:100%; height:auto;'
+          });
+          return `${pad}<img${attrs}>`;
+        }
+
+        case 'html_button': {
+          const text = block.getFieldValue('TEXT') || 'Tombol';
+          const alertMsg = (block.getFieldValue('ALERT') || '').replace(/'/g, "\\'");
+          const bg = block.getFieldValue('BG') || '#FFD6E0';
+          const extraStyle = block.getFieldValue('STYLE') || 'padding:10px 20px; border-radius:12px; border:2px solid #2D3142; font-weight:bold; cursor:pointer;';
+          const fullStyle = `background-color:${bg}; ${extraStyle}`.trim();
+          const onclickAttr = alertMsg
+            ? `this.setAttribute('data-clicked','1'); const b=document.createElement('div'); b.textContent='${alertMsg}'; b.style='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#2D3142;color:#fff;padding:10px 18px;border-radius:99px;font-family:sans-serif;font-size:13px;z-index:9999;box-shadow:0 6px 16px rgba(0,0,0,0.2);'; document.body.appendChild(b); setTimeout(()=>b.remove(),2600);`
+            : '';
+          const attrs = buildAttrs({
+            type: 'button',
+            style: fullStyle,
+            onclick: onclickAttr
+          });
+          return `${pad}<button${attrs}>${text}</button>`;
+        }
+
+        case 'html_badge': {
+          const text = block.getFieldValue('TEXT') || 'Badge';
+          const bg = block.getFieldValue('BG') || '#D4F5E9';
+          const styleStr = `display:inline-block; background-color:${bg}; color:#2D3142; padding:5px 12px; border-radius:999px; font-size:12px; font-weight:bold; border:1.5px solid #2D3142; margin:3px;`;
+          return `${pad}<span style="${styleStr}">${text}</span>`;
+        }
+
+        case 'html_details': {
+          const summary = block.getFieldValue('SUMMARY') || 'Info Detail';
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return (
+            `${pad}<details style="background:#FFF8F0; border:2px solid #2D3142; border-radius:14px; padding:10px 14px; margin:10px 0;">\n` +
+            `${pad}  <summary style="font-weight:bold; cursor:pointer;">${summary}</summary>\n` +
+            `${children}` +
+            `${pad}</details>`
+          );
+        }
+
+        case 'html_audio_video': {
+          const type = block.getFieldValue('TYPE') || 'video';
+          const src = block.getFieldValue('SRC') || '';
+          return `${pad}<${type} controls src="${src}" style="max-width:100%; border-radius:12px;"></${type}>`;
+        }
+
+        case 'html_iframe': {
+          const src = block.getFieldValue('SRC') || 'https://example.com';
+          const height = block.getFieldValue('HEIGHT') || 220;
+          return `${pad}<iframe src="${src}" width="100%" height="${height}" style="border:2px solid #2D3142; border-radius:14px;"></iframe>`;
+        }
+
+        // --- FORMULIR ---
+        case 'html_form': {
+          const attrs = buildAttrs({
+            onsubmit: 'event.preventDefault();',
+            style: block.getFieldValue('STYLE') || 'display:flex; flex-direction:column; gap:10px; text-align:left;'
+          });
+          const fields = statementChainToCode(block.getInputTargetBlock('FIELDS'), level + 1);
+          return `${pad}<form${attrs}>\n${fields}${pad}</form>`;
+        }
+
+        case 'html_label': {
+          const text = block.getFieldValue('TEXT') || 'Label';
+          const attrs = buildAttrs({ style: block.getFieldValue('STYLE') || 'font-weight:bold; font-size:14px;' });
+          return `${pad}<label${attrs}>${text}</label>`;
+        }
+
+        case 'html_input': {
+          const attrs = buildAttrs({
+            type: block.getFieldValue('TYPE') || 'text',
+            placeholder: block.getFieldValue('PLACEHOLDER'),
+            style: block.getFieldValue('STYLE') || 'padding:10px 12px; border:2px solid #D8C7B8; border-radius:10px; width:100%; box-sizing:border-box;'
+          });
+          return `${pad}<input${attrs}>`;
+        }
+
+        case 'html_textarea': {
+          const attrs = buildAttrs({
+            rows: block.getFieldValue('ROWS') || 3,
+            placeholder: block.getFieldValue('PLACEHOLDER'),
+            style: block.getFieldValue('STYLE') || 'padding:10px 12px; border:2px solid #D8C7B8; border-radius:10px; width:100%; box-sizing:border-box;'
+          });
+          return `${pad}<textarea${attrs}></textarea>`;
+        }
+
+        case 'html_select': {
+          const attrs = buildAttrs({ style: block.getFieldValue('STYLE') || 'padding:10px 12px; border:2px solid #D8C7B8; border-radius:10px; width:100%; background:#fff;' });
+          const options = statementChainToCode(block.getInputTargetBlock('OPTIONS'), level + 1);
+          return `${pad}<select${attrs}>\n${options}${pad}</select>`;
+        }
+
+        case 'html_option': {
+          const text = block.getFieldValue('TEXT') || 'Opsi';
+          const val = block.getFieldValue('VAL') || '';
+          return `${pad}<option value="${val}">${text}</option>`;
+        }
+
+        // --- CSS & STYLE ---
+        case 'css_rule': {
+          const selector = block.getFieldValue('SELECTOR') || 'body';
+          const decls = statementChainToCode(block.getInputTargetBlock('DECLARATIONS'), level + 1);
+          return `${pad}${selector} {\n${decls}${pad}}`;
+        }
+
+        case 'css_color': {
+          const color = block.getFieldValue('COLOR') || '#2D3142';
+          const bg = block.getFieldValue('BG') || '#FFF5F7';
+          return (
+            `${pad}color: ${color};\n` +
+            `${pad}background-color: ${bg};`
+          );
+        }
+
+        case 'css_gradient': {
+          const deg = block.getFieldValue('DEG') || '135deg';
+          const c1 = block.getFieldValue('C1') || '#FFD6E0';
+          const c2 = block.getFieldValue('C2') || '#D8EEFF';
+          return `${pad}background: linear-gradient(${deg}, ${c1}, ${c2});`;
+        }
+
+        case 'css_typography': {
+          const font = block.getFieldValue('FONT') || 'sans-serif';
+          const size = block.getFieldValue('SIZE') || 16;
+          const align = block.getFieldValue('ALIGN') || 'center';
+          const weight = block.getFieldValue('WEIGHT') || 'normal';
+          return (
+            `${pad}font-family: ${font};\n` +
+            `${pad}font-size: ${size}px;\n` +
+            `${pad}text-align: ${align};\n` +
+            `${pad}font-weight: ${weight};`
+          );
+        }
+
+        case 'css_spacing': {
+          const padding = block.getFieldValue('PADDING') || '20px';
+          const margin = block.getFieldValue('MARGIN') || '0 auto';
+          const width = block.getFieldValue('WIDTH') || '100%';
+          const maxWidth = block.getFieldValue('MAX_WIDTH') || '480px';
+          return (
+            `${pad}padding: ${padding};\n` +
+            `${pad}margin: ${margin};\n` +
+            `${pad}width: ${width};\n` +
+            `${pad}max-width: ${maxWidth};\n` +
+            `${pad}box-sizing: border-box;`
+          );
+        }
+
+        case 'css_border': {
+          const w = block.getFieldValue('WIDTH') ?? 2;
+          const s = block.getFieldValue('STYLE') || 'solid';
+          const c = block.getFieldValue('COLOR') || '#2D3142';
+          const r = block.getFieldValue('RADIUS') ?? 20;
+          const sh = block.getFieldValue('SHADOW') || 'none';
+          return (
+            `${pad}border: ${w}px ${s} ${c};\n` +
+            `${pad}border-radius: ${r}px;\n` +
+            `${pad}box-shadow: ${sh};`
+          );
+        }
+
+        case 'css_flex': {
+          const dir = block.getFieldValue('DIR') || 'row';
+          const justify = block.getFieldValue('JUSTIFY') || 'center';
+          const gap = block.getFieldValue('GAP') ?? 12;
+          return (
+            `${pad}display: flex;\n` +
+            `${pad}flex-direction: ${dir};\n` +
+            `${pad}justify-content: ${justify};\n` +
+            `${pad}align-items: center;\n` +
+            `${pad}gap: ${gap}px;`
+          );
+        }
+
+        case 'css_custom': {
+          const prop = block.getFieldValue('PROP') || 'opacity';
+          const val = block.getFieldValue('VAL') || '1';
+          return `${pad}${prop}: ${val};`;
+        }
+
+        default:
+          return '';
+      }
+    }
+
+    function generateFullWorkspaceHtml() {
+      if (!workspace) return '';
+      const topBlocks = workspace.getTopBlocks(true);
+      if (topBlocks.length === 0) {
+        return `${LT}!-- Workspace masih kosong. Ketuk kategori di bagian atas untuk memilih blok! --${GT}`;
+      }
+
+      let combined = '';
+      for (const topBlock of topBlocks) {
+        const chunk = statementChainToCode(topBlock, 0).trim();
+        if (chunk) {
+          combined += (combined ? '\n\n' : '') + chunk;
+        }
+      }
+      return combined;
+    }
+
+    // =========================================================
+    // 3. INITIALIZE FULLSCREEN BLOCKLY WORKSPACE
+    // =========================================================
+    function initBlocklyWorkspace() {
+      registerCustomBlocks();
+
+      const blocklyDiv = document.getElementById('blocklyDiv');
+      workspace = Blockly.inject(blocklyDiv, {
+        scrollbars: true,
+        trashcan: true,
+        sounds: false,
+        zoom: {
+          controls: false,
+          wheel: true,
+          startScale: window.innerWidth < 640 ? 0.86 : 0.95,
+          maxScale: 2.0,
+          minScale: 0.4,
+          scaleSpeed: 1.15,
+          pinch: true
+        },
+        grid: {
+          spacing: 24,
+          length: 3,
+          colour: '#EEDCCF',
+          snap: true
+        },
+        move: {
+          scrollbars: {
+            horizontal: true,
+            vertical: true
+          },
+          drag: true,
+          wheel: true
+        }
+      });
+
+      // Listen for workspace changes & block selection
+      workspace.addChangeListener((event) => {
+        if (event.type === Blockly.Events.SELECTED) {
+          selectedBlockId = event.newElementId || null;
+          updateSelectedBlockUI();
+        }
+        if (
+          event.type === Blockly.Events.BLOCK_CREATE ||
+          event.type === Blockly.Events.BLOCK_DELETE ||
+          event.type === Blockly.Events.BLOCK_CHANGE ||
+          event.type === Blockly.Events.BLOCK_MOVE ||
+          event.type === Blockly.Events.FINISHED_LOADING
+        ) {
+          updateGeneratedOutputs();
+        }
+      });
+
+      // Resize observer for crisp fullscreen canvas
+      window.addEventListener('resize', () => {
+        if (workspace && currentActivePage === 'workspace') {
+          Blockly.svgResize(workspace);
+        }
+      });
+
+      // Load default welcoming starter template
+      loadPresetTemplate('profile', true);
+    }
+
+    // =========================================================
+    // 4. UPDATE CODE VIEW, STATS & LIVE PREVIEW
+    // =========================================================
+    function syntaxHighlightHtml(rawCode) {
+      const escaped = rawCode
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      return escaped
+        // HTML comments
+        .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="tok-comment">$1</span>')
+        // HTML tags and attributes
+        .replace(/(&lt;\/?[a-zA-Z0-9!-]+)([^&]*?)(&gt;)/g, (match, openTag, attrs, closeTag) => {
+          const coloredAttrs = attrs.replace(
+            /([a-zA-Z-]+)=("[^"]*"|'[^']*')/g,
+            '<span class="tok-attr">$1</span>=<span class="tok-str">$2</span>'
+          );
+          return `<span class="tok-tag">${openTag}</span>${coloredAttrs}<span class="tok-tag">${closeTag}</span>`;
+        });
+    }
+
+    function updateGeneratedOutputs() {
+      if (!workspace) return;
+      const allBlocks = workspace.getAllBlocks(false);
+      const countEl = document.getElementById('blockCountBadge');
+      if (countEl) {
+        countEl.textContent = `${allBlocks.length} Blok`;
+      }
+
+      latestGeneratedHtml = generateFullWorkspaceHtml();
+
+      // Update Line Numbers & Code Display
+      const lines = latestGeneratedHtml.split('\n');
+      const lineNumEl = document.getElementById('codeLineNumbers');
+      const codeAreaEl = document.getElementById('codeDisplayArea');
+      const statsEl = document.getElementById('codeStatsText');
+
+      if (lineNumEl && codeAreaEl) {
+        lineNumEl.innerHTML = lines.map((_, i) => i + 1).join('<br>');
+        codeAreaEl.innerHTML = syntaxHighlightHtml(latestGeneratedHtml);
+      }
+      if (statsEl) {
+        statsEl.textContent = `${lines.length} baris • ${latestGeneratedHtml.length} karakter`;
+      }
+
+      // Always keep Live Preview synced in real-time
+      refreshLivePreview();
+    }
+
+    function buildPreviewHtmlDocument(rawHtml) {
+      const trimmed = (rawHtml || '').trim();
+      if (/<!doctype\s+html/i.test(trimmed) || /<html[\s>]/i.test(trimmed)) {
+        return trimmed;
+      }
+      return [
+        `${LT}!DOCTYPE html${GT}`,
+        `${LT}html lang="id"${GT}`,
+        `${LT}head${GT}`,
+        `  ${LT}meta charset="UTF-8"${GT}`,
+        `  ${LT}meta name="viewport" content="width=device-width, initial-scale=1.0"${GT}`,
+        `  ${LT}style${GT}body { font-family: system-ui, -apple-system, sans-serif; margin: 16px; color: #2D3142; }${LT}/style${GT}`,
+        `${LT}/head${GT}`,
+        `${LT}body${GT}`,
+        trimmed,
+        `${LT}/body${GT}`,
+        `${LT}/html${GT}`
+      ].join('\n');
+    }
+
+    function writeHtmlToPreviewIframe(iframe, htmlContent) {
+      if (!iframe) return;
+      try {
+        const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+        if (doc) {
+          doc.open();
+          doc.write(htmlContent);
+          doc.close();
+          return;
+        }
+      } catch (e) {
+        // Fallback to srcdoc if direct document write is restricted
+      }
+      iframe.srcdoc = htmlContent;
+    }
+
+    function refreshLivePreview() {
+      const iframe = document.getElementById('livePreviewIframe');
+      if (!iframe) return;
+
+      const allBlocks = workspace ? workspace.getAllBlocks(false) : [];
+      if (allBlocks.length === 0) {
+        const emptyHtml = [
+          `${LT}!DOCTYPE html${GT}`,
+          `${LT}html lang="id"${GT}`,
+          `${LT}head${GT}`,
+          `${LT}meta charset="UTF-8"${GT}`,
+          `${LT}style${GT}`,
+          'body { margin:0; height:100vh; display:flex; align-items:center; justify-content:center; font-family:system-ui,sans-serif; background:#FFFBF7; color:#2D3142; text-align:center; padding:24px; }',
+          '.empty-box { background:#FFF3E6; border:2px dashed #FF8FA3; padding:28px; border-radius:24px; max-width:360px; }',
+          `${LT}/style${GT}`,
+          `${LT}/head${GT}`,
+          `${LT}body${GT}`,
+          `${LT}div class="empty-box"${GT}`,
+          `${LT}div style="font-size:38px;margin-bottom:8px;"${GT}🧩${LT}/div${GT}`,
+          `${LT}h3 style="margin:0 0 6px 0;"${GT}Workspace Masih Kosong${LT}/h3${GT}`,
+          `${LT}p style="margin:0;font-size:14px;color:#6E7485;"${GT}Kembali ke halaman ${LT}b${GT}1. Workspace${LT}/b${GT} lalu pilih blok dari menu atas untuk mulai membuat halaman web!${LT}/p${GT}`,
+          `${LT}/div${GT}`,
+          `${LT}/body${GT}`,
+          `${LT}/html${GT}`
+        ].join('\n');
+        writeHtmlToPreviewIframe(iframe, emptyHtml);
+        return;
+      }
+
+      const fullPreviewHtml = buildPreviewHtmlDocument(latestGeneratedHtml || generateFullWorkspaceHtml());
+      writeHtmlToPreviewIframe(iframe, fullPreviewHtml);
+    }
+
+    // =========================================================
+    // 5. PAGE NAVIGATION (WORKSPACE / CODE / PREVIEW)
+    // =========================================================
+    function switchPage(pageName) {
+      // Commit any active Blockly text input or dropdown before switching pages
+      if (typeof Blockly !== 'undefined') {
+        if (Blockly.WidgetDiv && typeof Blockly.WidgetDiv.hide === 'function') {
+          Blockly.WidgetDiv.hide();
+        }
+        if (Blockly.DropDownDiv && typeof Blockly.DropDownDiv.hideWithoutAnimation === 'function') {
+          Blockly.DropDownDiv.hideWithoutAnimation();
+        }
+      }
+
+      currentActivePage = pageName;
+
+      const pages = {
+        workspace: document.getElementById('page-workspace'),
+        code: document.getElementById('page-code'),
+        preview: document.getElementById('page-preview')
+      };
+
+      const buttons = {
+        workspace: document.getElementById('nav-btn-workspace'),
+        code: document.getElementById('nav-btn-code'),
+        preview: document.getElementById('nav-btn-preview')
+      };
+
+      const activeColors = {
+        workspace: 'bg-pastel-pink',
+        code: 'bg-pastel-butter',
+        preview: 'bg-pastel-mint'
+      };
+
+      for (const key of Object.keys(pages)) {
+        if (key === pageName) {
+          pages[key].classList.remove('hidden');
+          pages[key].classList.add('flex');
+          buttons[key].className = `flex items-center justify-center gap-2 py-2 px-3 rounded-2xl ${activeColors[key]} border-2 border-pastel-ink pastel-shadow-sm font-display font-bold text-xs sm:text-sm text-pastel-ink transition`;
+        } else {
+          pages[key].classList.add('hidden');
+          pages[key].classList.remove('flex');
+          buttons[key].className = `flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-butter/40 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition`;
+        }
+      }
+
+      if (pageName === 'workspace' && workspace) {
+        setTimeout(() => Blockly.svgResize(workspace), 40);
+      } else if (pageName === 'code') {
+        updateGeneratedOutputs();
+      } else if (pageName === 'preview') {
+        updateGeneratedOutputs();
+        requestAnimationFrame(() => {
+          refreshLivePreview();
+        });
+      }
+    }
+
+    function refreshLivePreview() {
+      const iframe = document.getElementById('livePreviewIframe');
+      if (!iframe) return;
+
+      const allBlocks = workspace ? workspace.getAllBlocks(false) : [];
+      if (allBlocks.length === 0) {
+        iframe.srcdoc = [
+          `${LT}!DOCTYPE html${GT}`,
+          `${LT}html lang="id"${GT}`,
+          `${LT}head${GT}`,
+          `${LT}meta charset="UTF-8"${GT}`,
+          `${LT}style${GT}`,
+          'body { margin:0; height:100vh; display:flex; align-items:center; justify-content:center; font-family:system-ui,sans-serif; background:#FFFBF7; color:#2D3142; text-align:center; padding:24px; }',
+          '.empty-box { background:#FFF3E6; border:2px dashed #FF8FA3; padding:28px; border-radius:24px; max-width:360px; }',
+          `${LT}/style${GT}`,
+          `${LT}/head${GT}`,
+          `${LT}body${GT}`,
+          `${LT}div class="empty-box"${GT}`,
+          `${LT}div style="font-size:38px;margin-bottom:8px;"${GT}🧩${LT}/div${GT}`,
+          `${LT}h3 style="margin:0 0 6px 0;"${GT}Workspace Masih Kosong${LT}/h3${GT}`,
+          `${LT}p style="margin:0;font-size:14px;color:#6E7485;"${GT}Kembali ke halaman ${LT}b${GT}1. Workspace${LT}/b${GT} lalu pilih blok dari menu atas untuk mulai membuat halaman web!${LT}/p${GT}`,
+          `${LT}/div${GT}`,
+          `${LT}/body${GT}`,
+          `${LT}/html${GT}`
+        ].join('\n');
+        return;
+      }
+
+      iframe.srcdoc = latestGeneratedHtml;
+    }
+
+    // =========================================================
+    // 5. PAGE NAVIGATION (WORKSPACE / CODE / PREVIEW)
+    // =========================================================
+    function switchPage(pageName) {
+      currentActivePage = pageName;
+
+      const pages = {
+        workspace: document.getElementById('page-workspace'),
+        code: document.getElementById('page-code'),
+        preview: document.getElementById('page-preview')
+      };
+
+      const buttons = {
+        workspace: document.getElementById('nav-btn-workspace'),
+        code: document.getElementById('nav-btn-code'),
+        preview: document.getElementById('nav-btn-preview')
+      };
+
+      const activeColors = {
+        workspace: 'bg-pastel-pink',
+        code: 'bg-pastel-butter',
+        preview: 'bg-pastel-mint'
+      };
+
+      for (const key of Object.keys(pages)) {
+        if (key === pageName) {
+          pages[key].classList.remove('hidden');
+          pages[key].classList.add('flex');
+          buttons[key].className = `flex items-center justify-center gap-2 py-2 px-3 rounded-2xl ${activeColors[key]} border-2 border-pastel-ink pastel-shadow-sm font-display font-bold text-xs sm:text-sm text-pastel-ink transition`;
+        } else {
+          pages[key].classList.add('hidden');
+          pages[key].classList.remove('flex');
+          buttons[key].className = `flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-butter/40 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition`;
+        }
+      }
+
+      if (pageName === 'workspace' && workspace) {
+        setTimeout(() => Blockly.svgResize(workspace), 40);
+      } else if (pageName === 'code') {
+        updateGeneratedOutputs();
+      } else if (pageName === 'preview') {
+        updateGeneratedOutputs();
+        refreshLivePreview();
+      }
+    }
+
+    function setPreviewViewport(size) {
+      const wrapper = document.getElementById('previewFrameWrapper');
+      const btns = {
+        full: document.getElementById('vp-full'),
+        mobile: document.getElementById('vp-mobile'),
+        tablet: document.getElementById('vp-tablet')
+      };
+
+      for (const [k, btn] of Object.entries(btns)) {
+        if (k === size) {
+          btn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-pastel-pink text-pastel-ink border border-pastel-ink/30 transition flex items-center gap-1';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold text-pastel-muted hover:text-pastel-ink transition flex items-center gap-1';
+        }
+      }
+
+      if (size === 'mobile') {
+        wrapper.style.maxWidth = '375px';
+      } else if (size === 'tablet') {
+        wrapper.style.maxWidth = '768px';
+      } else {
+        wrapper.style.maxWidth = '100%';
+      }
+    }
+
+    // =========================================================
+    // 6. POP-UP BLOCK PICKER LOGIC & SMART BLOCK INSERTION
+    // =========================================================
+    function openBlockPicker(category = 'all', focusSearch = false) {
+      // Ensure we are on the Workspace page so the user sees the block added
+      if (currentActivePage !== 'workspace') {
+        switchPage('workspace');
+      }
+
+      currentPickerCategory = category;
+      const modal = document.getElementById('blockPickerModal');
+      modal.classList.remove('hidden');
+
+      renderModalCategoryTabs();
+      renderBlockPickerCards();
+
+      if (focusSearch) {
+        setTimeout(() => {
+          document.getElementById('blockSearchInput').focus();
+        }, 80);
+      }
+    }
+
+    function closeBlockPicker() {
+      document.getElementById('blockPickerModal').classList.add('hidden');
+    }
+
+    function clearBlockSearch() {
+      const input = document.getElementById('blockSearchInput');
+      input.value = '';
+      renderBlockPickerCards();
+      input.focus();
+    }
+
+    function renderModalCategoryTabs() {
+      const container = document.getElementById('modalCategoryTabs');
+      container.innerHTML = CATEGORY_META.map(cat => {
+        const isActive = cat.id === currentPickerCategory;
+        return `
+          <button onclick="selectModalCategory('${cat.id}')"
+            style="background-color: ${isActive ? cat.bg : '#FFFFFF'}"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 ${isActive ? 'border-pastel-ink pastel-shadow-sm font-bold' : 'border-[#E5D4C5] font-semibold opacity-80 hover:opacity-100'} text-xs text-pastel-ink transition">
+            <span>${cat.emoji}</span>
+            <span>${cat.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectModalCategory(catId) {
+      currentPickerCategory = catId;
+      renderModalCategoryTabs();
+      renderBlockPickerCards();
+    }
+
+    function renderBlockPickerCards() {
+      const searchInput = document.getElementById('blockSearchInput');
+      const query = (searchInput.value || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', query.length === 0);
+      }
+
+      const filtered = BLOCK_CATALOG.filter(item => {
+        const matchesCat = currentPickerCategory === 'all' || item.category === currentPickerCategory;
+        const matchesQuery = !query ||
+          item.title.toLowerCase().includes(query) ||
+          item.tagBadge.toLowerCase().includes(query) ||
+          item.desc.toLowerCase().includes(query) ||
+          item.type.toLowerCase().includes(query);
+        return matchesCat && matchesQuery;
+      });
+
+      const container = document.getElementById('blockCardsContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-10 text-center">
+            <div class="text-3xl mb-2">🔍</div>
+            <p class="font-display font-bold text-sm text-pastel-ink">Blok tidak ditemukan</p>
+            <p class="text-xs text-pastel-muted mt-1">Coba kata kunci lain atau pilih tab kategori "Semua".</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const escapedBadge = item.tagBadge.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapedTitle = item.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <div onclick="spawnBlockFromPicker('${item.type}')"
+            class="cursor-pointer group p-3.5 rounded-2xl bg-white hover:bg-[#FFF8F2] border-2 border-pastel-ink/85 hover:border-pastel-ink pastel-shadow-sm flex flex-col justify-between gap-2.5 active:translate-y-0.5 transition">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span style="background-color: ${item.color}"
+                  class="px-2.5 py-0.5 rounded-lg border border-pastel-ink/40 font-mono text-[11px] font-bold text-pastel-ink">
+                  ${escapedBadge}
+                </span>
+                <span class="w-7 h-7 rounded-lg bg-pastel-pink/60 group-hover:bg-pastel-pink border border-pastel-ink flex items-center justify-center text-pastel-ink transition">
+                  <i class="ph-bold ph-plus text-xs"></i>
+                </span>
+              </div>
+              <h4 class="font-display font-bold text-sm text-pastel-ink">${escapedTitle}</h4>
+              <p class="text-xs text-pastel-muted mt-0.5 leading-snug">${item.desc}</p>
+            </div>
+            <div class="pt-1 border-t border-[#F3E6DA] flex items-center justify-between text-[11px] font-bold text-pastel-ink">
+              <span>Ketuk untuk tambah ke Workspace</span>
+              <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getFirstStatementInputName(block) {
+      if (!block || !block.inputList) return null;
+      const preferredOrder = ['BODY', 'CHILDREN', 'ITEMS', 'ROWS', 'CELLS', 'FIELDS', 'OPTIONS', 'DECLARATIONS', 'RULES', 'HEAD'];
+      for (const name of preferredOrder) {
+        const inp = block.getInput(name);
+        if (inp && inp.connection) return name;
+      }
+      return null;
+    }
+
+    function appendToStatementInput(parentBlock, inputName, newBlock) {
+      if (!parentBlock || !newBlock || !newBlock.previousConnection) return false;
+      const input = parentBlock.getInput(inputName);
+      if (!input || !input.connection) return false;
+
+      const firstChild = parentBlock.getInputTargetBlock(inputName);
+      if (!firstChild) {
+        input.connection.connect(newBlock.previousConnection);
+        return true;
+      }
+
+      // Walk to the last block in that statement chain
+      let lastChild = firstChild;
+      while (lastChild.getNextBlock()) {
+        lastChild = lastChild.getNextBlock();
+      }
+      if (lastChild.nextConnection) {
+        lastChild.nextConnection.connect(newBlock.previousConnection);
+        return true;
+      }
+      return false;
+    }
+
+    function spawnBlockFromPicker(blockType) {
+      if (!workspace) return;
+
+      const mode = document.getElementById('insertModeSelect')?.value || 'smart';
+      const newBlock = workspace.newBlock(blockType);
+      newBlock.initSvg();
+      newBlock.render();
+
+      let connected = false;
+      const selectedBlock = selectedBlockId ? workspace.getBlockById(selectedBlockId) : null;
+      const isCssProperty = blockType.startsWith('css_') && blockType !== 'css_rule';
+
+      // 1. Try explicit or smart connection to selected block
+      if (selectedBlock && mode !== 'free' && newBlock.previousConnection) {
+        if (mode === 'inside') {
+          const stmtName = getFirstStatementInputName(selectedBlock);
+          if (stmtName) {
+            connected = appendToStatementInput(selectedBlock, stmtName, newBlock);
+          }
+        } else if (mode === 'after') {
+          if (selectedBlock.nextConnection) {
+            selectedBlock.nextConnection.connect(newBlock.previousConnection);
+            connected = true;
+          }
+        } else if (mode === 'smart') {
+          // Smart routing:
+          // - If new block is a CSS property and selected is css_rule -> put inside DECLARATIONS
+          if (isCssProperty && selectedBlock.type === 'css_rule') {
+            connected = appendToStatementInput(selectedBlock, 'DECLARATIONS', newBlock);
+          }
+          // - If new block is css_rule and selected is html_style_tag -> put inside RULES
+          else if (blockType === 'css_rule' && selectedBlock.type === 'html_style_tag') {
+            connected = appendToStatementInput(selectedBlock, 'RULES', newBlock);
+          }
+          // - If selected block is a container (div, card, form, list, table, tr, document), place inside it
+          else if (getFirstStatementInputName(selectedBlock)) {
+            const targetInput = (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') && selectedBlock.getInput('HEAD')
+              ? 'HEAD'
+              : getFirstStatementInputName(selectedBlock);
+            connected = appendToStatementInput(selectedBlock, targetInput, newBlock);
+          }
+          // - Otherwise attach right below the selected block
+          else if (selectedBlock.nextConnection) {
+            selectedBlock.nextConnection.connect(newBlock.previousConnection);
+            connected = true;
+          }
+        }
+      }
+
+      // 2. If no block was selected and mode is smart, try placing inside main html_document if one exists
+      if (!connected && mode === 'smart' && newBlock.previousConnection) {
+        const topBlocks = workspace.getTopBlocks(true);
+        const docBlock = topBlocks.find(b => b.type === 'html_document');
+        if (docBlock) {
+          if (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') {
+            connected = appendToStatementInput(docBlock, 'HEAD', newBlock);
+          } else if (blockType === 'css_rule') {
+            const styleBlock = workspace.getAllBlocks(false).find(b => b.type === 'html_style_tag');
+            if (styleBlock) {
+              connected = appendToStatementInput(styleBlock, 'RULES', newBlock);
+            }
+          } else if (isCssProperty) {
+            const cssRules = workspace.getAllBlocks(false).filter(b => b.type === 'css_rule');
+            if (cssRules.length > 0) {
+              connected = appendToStatementInput(cssRules[cssRules.length - 1], 'DECLARATIONS', newBlock);
+            }
+          } else {
+            connected = appendToStatementInput(docBlock, 'BODY', newBlock);
+          }
+        }
+      }
+
+      // 3. Fallback: position cleanly near current viewport center
+      if (!connected) {
+        const metrics = workspace.getMetrics();
+        const scale = workspace.scale || 1;
+        const viewCenterX = (metrics.viewLeft + metrics.viewWidth * 0.25) / scale;
+        const viewCenterY = (metrics.viewTop + metrics.viewHeight * 0.25) / scale;
+        const jitter = Math.floor(Math.random() * 24);
+        newBlock.moveBy(viewCenterX + jitter, viewCenterY + jitter);
+      }
+
+      // Select & center on the newly spawned block
+      newBlock.select();
+      selectedBlockId = newBlock.id;
+      updateSelectedBlockUI();
+      workspace.centerOnBlock(newBlock.id);
+
+      closeBlockPicker();
+      showToast('Blok ditambahkan ke Workspace!');
+    }
+
+    // =========================================================
+    // 7. WORKSPACE CONTROLS (UNDO, REDO, DUPLICATE, DELETE, CLEAR)
+    // =========================================================
+    function updateSelectedBlockUI() {
+      const pill = document.getElementById('selectedBlockIndicator');
+      const label = document.getElementById('selectedBlockText');
+      if (!workspace || !selectedBlockId) {
+        pill.classList.add('hidden');
+        return;
+      }
+      const block = workspace.getBlockById(selectedBlockId);
+      if (!block) {
+        pill.classList.add('hidden');
+        return;
+      }
+      const meta = BLOCK_CATALOG.find(b => b.type === block.type);
+      label.textContent = meta ? meta.title : block.type;
+      pill.classList.remove('hidden');
+    }
+
+    function workspaceUndo() {
+      if (workspace) workspace.undo(false);
+    }
+
+    function workspaceRedo() {
+      if (workspace) workspace.undo(true);
+    }
+
+    function centerWorkspace() {
+      if (!workspace) return;
+      workspace.zoomToFit();
+      workspace.setScale(Math.min(workspace.scale, window.innerWidth < 640 ? 0.88 : 0.98));
+      workspace.scrollCenter();
+    }
+
+    function zoomWorkspace(dir) {
+      if (!workspace) return;
+      workspace.zoomCenter(dir);
+    }
+
+    function deleteSelectedBlock() {
+      if (!workspace || !selectedBlockId) return;
+      const block = workspace.getBlockById(selectedBlockId);
+      if (block && block.isDeletable()) {
+        block.dispose(true);
+        selectedBlockId = null;
+        updateSelectedBlockUI();
+        showToast('Blok dihapus');
+      }
+    }
+
+    function duplicateSelectedBlock() {
+      if (!workspace || !selectedBlockId) return;
+      const block = workspace.getBlockById(selectedBlockId);
+      if (!block) return;
+
+      let newBlock = null;
+      if (Blockly.serialization && Blockly.serialization.blocks) {
+        const state = Blockly.serialization.blocks.save(block, { addCoordinates: true });
+        if (state) {
+          delete state.next;
+          state.x = (state.x || 20) + 28;
+          state.y = (state.y || 20) + 28;
+          newBlock = Blockly.serialization.blocks.append(state, workspace);
+        }
+      } else if (Blockly.Xml) {
+        const xmlDom = Blockly.Xml.blockToDom(block, true);
+        const nextNodes = xmlDom.getElementsByTagName('next');
+        if (nextNodes.length > 0 && nextNodes[0].parentNode === xmlDom) {
+          xmlDom.removeChild(nextNodes[0]);
+        }
+        newBlock = Blockly.Xml.domToBlock(xmlDom, workspace);
+        const xy = block.getRelativeToSurfaceXY();
+        newBlock.moveBy(xy.x + 28, xy.y + 28);
+      }
+
+      if (newBlock) {
+        newBlock.select();
+        selectedBlockId = newBlock.id;
+        updateSelectedBlockUI();
+        showToast('Blok berhasil diduplikat!');
+      }
+    }
+
+    function openClearConfirmModal() {
+      document.getElementById('clearConfirmModal').classList.remove('hidden');
+    }
+
+    function closeClearConfirmModal() {
+      document.getElementById('clearConfirmModal').classList.add('hidden');
+    }
+
+    function confirmClearWorkspace() {
+      if (workspace) {
+        workspace.clear();
+        selectedBlockId = null;
+        updateSelectedBlockUI();
+        updateGeneratedOutputs();
+      }
+      closeClearConfirmModal();
+      showToast('Workspace berhasil dibersihkan');
+    }
+
+    // =========================================================
+    // 8. COPY CODE & DOWNLOAD HTML FILE
+    // =========================================================
+    function copyGeneratedCode() {
+      updateGeneratedOutputs();
+      const hiddenArea = document.getElementById('hiddenClipboardArea');
+      hiddenArea.value = latestGeneratedHtml;
+      hiddenArea.select();
+      hiddenArea.setSelectionRange(0, 999999);
+
+      try {
+        document.execCommand('copy');
+        showToast('Kode HTML berhasil disalin ke Clipboard!');
+      } catch (err) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(latestGeneratedHtml);
+          showToast('Kode HTML berhasil disalin!');
+        }
+      }
+    }
+
+    function downloadHtmlFile() {
+      updateGeneratedOutputs();
+      const blob = new Blob([latestGeneratedHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pastelblock-karya.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('File pastelblock-karya.html diunduh!');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const text = document.getElementById('toastMessage');
+      text.textContent = msg;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    }
+
+    // =========================================================
+    // 9. PRESET TEMPLATES BUILDER
+    // =========================================================
+    function openTemplateModal() {
+      document.getElementById('templateModal').classList.remove('hidden');
+    }
+
+    function closeTemplateModal() {
+      document.getElementById('templateModal').classList.add('hidden');
+    }
+
+    function createBlockWithFields(type, fields = {}) {
+      const b = workspace.newBlock(type);
+      for (const [k, v] of Object.entries(fields)) {
+        if (b.getField(k)) {
+          b.setFieldValue(String(v), k);
+        }
+      }
+      if (b.getField('CLOSE_TAG')) {
+        const tagVal = fields.LEVEL || fields.TAG || fields.TYPE;
+        if (tagVal) {
+          b.setFieldValue(`${LT}/${tagVal}${GT}`, 'CLOSE_TAG');
+        }
+      }
+      b.initSvg();
+      b.render();
+      return b;
+    }
+
+    function chainBlocks(blockArray) {
+      for (let i = 0; i < blockArray.length - 1; i++) {
+        if (blockArray[i].nextConnection && blockArray[i + 1].previousConnection) {
+          blockArray[i].nextConnection.connect(blockArray[i + 1].previousConnection);
+        }
+      }
+      return blockArray[0];
+    }
+
+    function loadPresetTemplate(templateId, isInitial = false) {
+      if (!workspace) return;
+      Blockly.Events.disable();
+      try {
+        workspace.clear();
+
+        if (templateId === 'profile') {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+
+          // HEAD
+          const meta = createBlockWithFields('html_meta_charset');
+          const title = createBlockWithFields('html_title', { TEXT: 'Kartu Profil Pastelku' });
+          const styleTag = createBlockWithFields('html_style_tag');
+
+          const bodyRule = createBlockWithFields('css_rule', { SELECTOR: 'body' });
+          const bodyGrad = createBlockWithFields('css_gradient', { DEG: '135deg', C1: '#FFF0F5', C2: '#E8F6FF' });
+          const bodyTypo = createBlockWithFields('css_typography', {
+            FONT: "'Segoe UI', system-ui, sans-serif",
+            SIZE: 15,
+            ALIGN: 'center',
+            WEIGHT: 'normal'
+          });
+          const bodySpace = createBlockWithFields('css_spacing', {
+            PADDING: '24px 16px',
+            MARGIN: '0 auto',
+            WIDTH: '100%',
+            MAX_WIDTH: '440px'
+          });
+          chainBlocks([bodyGrad, bodyTypo, bodySpace]);
+          bodyRule.getInput('DECLARATIONS').connection.connect(bodyGrad.previousConnection);
+          styleTag.getInput('RULES').connection.connect(bodyRule.previousConnection);
+
+          chainBlocks([meta, title, styleTag]);
+          doc.getInput('HEAD').connection.connect(meta.previousConnection);
+
+          // BODY
+          const card = createBlockWithFields('html_card', {
+            BG: '#FFFFFF',
+            RADIUS: 24,
+            PAD: 24,
+            CLASS: 'kartu-profil'
+          });
+
+          const img = createBlockWithFields('html_image', {
+            SRC: 'https://placehold.co/180x180/FFD6E0/2D3142?text=🌸+Halo!',
+            ALT: 'Foto Profil',
+            WIDTH: '110',
+            STYLE: 'border-radius:999px; border:3px solid #2D3142; margin-bottom:8px;'
+          });
+          const heading = createBlockWithFields('html_heading', {
+            LEVEL: 'h1',
+            TEXT: 'Kreator Pastel Studio ✨',
+            CLASS: '',
+            STYLE: 'margin:8px 0 4px 0; font-size:22px; color:#2D3142;'
+          });
+          const bio = createBlockWithFields('html_paragraph', {
+            TEXT: 'Selamat datang di ruang kreasi HTML & CSS! Kamu bisa menggeser blok atau menambah blok baru dari menu atas.',
+            CLASS: '',
+            STYLE: 'color:#5E6472; line-height:1.5; margin-bottom:14px;'
+          });
+
+          const badge1 = createBlockWithFields('html_badge', { TEXT: '🎨 Desain Web', BG: '#FFD6E0' });
+          const badge2 = createBlockWithFields('html_badge', { TEXT: '🧩 Google Blockly', BG: '#D4F5E9' });
+          const badge3 = createBlockWithFields('html_badge', { TEXT: '📱 Mobile Friendly', BG: '#FFF1C1' });
+
+          const hr = createBlockWithFields('html_br_hr', {
+            TYPE: 'hr',
+            STYLE: 'border:0; border-top:2px dashed #FFD6E0; margin:16px 0;'
+          });
+
+          const btn = createBlockWithFields('html_button', {
+            TEXT: 'Sapa Aku Sekarang! 👋',
+            ALERT: 'Yeay! Tombol HTML buatanmu berfungsi dengan baik! 🎉',
+            BG: '#FFD6E0',
+            STYLE: 'padding:10px 20px; border-radius:14px; border:2px solid #2D3142; font-weight:bold; cursor:pointer;'
+          });
+
+          chainBlocks([img, heading, bio, badge1, badge2, badge3, hr, btn]);
+          card.getInput('CHILDREN').connection.connect(img.previousConnection);
+          doc.getInput('BODY').connection.connect(card.previousConnection);
+
+          doc.moveBy(24, 20);
+        } else if (templateId === 'form') {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+          const title = createBlockWithFields('html_title', { TEXT: 'Formulir Kontak Pastel' });
+          doc.getInput('HEAD').connection.connect(title.previousConnection);
+
+          const card = createBlockWithFields('html_card', {
+            BG: '#FFF9F5',
+            RADIUS: 22,
+            PAD: 24,
+            CLASS: 'kartu-form'
+          });
+          const h2 = createBlockWithFields('html_heading', {
+            LEVEL: 'h2',
+            TEXT: '📝 Formulir Buku Tamu',
+            STYLE: 'margin-top:0; color:#2D3142;'
+          });
+          const form = createBlockWithFields('html_form', {
+            STYLE: 'display:flex; flex-direction:column; gap:10px; text-align:left;'
+          });
+          const lbl1 = createBlockWithFields('html_label', { TEXT: 'Nama Panggilan:' });
+          const inp1 = createBlockWithFields('html_input', { TYPE: 'text', PLACEHOLDER: 'Masukkan namamu...' });
+          const lbl2 = createBlockWithFields('html_label', { TEXT: 'Topik Favorit:' });
+          const sel = createBlockWithFields('html_select');
+          const opt1 = createBlockWithFields('html_option', { TEXT: 'Belajar HTML & CSS', VAL: 'html' });
+          const opt2 = createBlockWithFields('html_option', { TEXT: 'Desain UI Pastel', VAL: 'ui' });
+          chainBlocks([opt1, opt2]);
+          sel.getInput('OPTIONS').connection.connect(opt1.previousConnection);
+
+          const lbl3 = createBlockWithFields('html_label', { TEXT: 'Pesan Singkat:' });
+          const txt = createBlockWithFields('html_textarea', { ROWS: 3, PLACEHOLDER: 'Tulis kesan dan pesanmu...' });
+          const btn = createBlockWithFields('html_button', {
+            TEXT: 'Kirim Pesan 🚀',
+            ALERT: 'Terima kasih! Pesan formulirmu sudah terkirim!',
+            BG: '#D4F5E9'
+          });
+
+          chainBlocks([lbl1, inp1, lbl2, sel, lbl3, txt, btn]);
+          form.getInput('FIELDS').connection.connect(lbl1.previousConnection);
+          chainBlocks([h2, form]);
+          card.getInput('CHILDREN').connection.connect(h2.previousConnection);
+          doc.getInput('BODY').connection.connect(card.previousConnection);
+          doc.moveBy(24, 20);
+        } else if (templateId === 'schedule') {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+          const title = createBlockWithFields('html_title', { TEXT: 'Jadwal & Target Belajar' });
+          doc.getInput('HEAD').connection.connect(title.previousConnection);
+
+          const card = createBlockWithFields('html_card', {
+            BG: '#FFFFFF',
+            RADIUS: 20,
+            PAD: 20,
+            CLASS: 'kartu-jadwal'
+          });
+          const h2 = createBlockWithFields('html_heading', {
+            LEVEL: 'h2',
+            TEXT: '📅 Jadwal Belajar Web Mingguan',
+            STYLE: 'margin-top:0; font-size:20px;'
+          });
+
+          const table = createBlockWithFields('html_table');
+          const trHead = createBlockWithFields('html_table_row', { STYLE: 'background:#FFD6E0;' });
+          const th1 = createBlockWithFields('html_table_cell', { TAG: 'th', TEXT: 'Hari' });
+          const th2 = createBlockWithFields('html_table_cell', { TAG: 'th', TEXT: 'Materi Fokus' });
+          chainBlocks([th1, th2]);
+          trHead.getInput('CELLS').connection.connect(th1.previousConnection);
+
+          const tr1 = createBlockWithFields('html_table_row', { STYLE: 'background:#FFFBF7;' });
+          const td1 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'Senin' });
+          const td2 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'Struktur Dasar & Teks HTML' });
+          chainBlocks([td1, td2]);
+          tr1.getInput('CELLS').connection.connect(td1.previousConnection);
+
+          const tr2 = createBlockWithFields('html_table_row', { STYLE: 'background:#F4FBF8;' });
+          const td3 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'Rabu' });
+          const td4 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'Warna & Layout CSS Pastel' });
+          chainBlocks([td3, td4]);
+          tr2.getInput('CELLS').connection.connect(td3.previousConnection);
+
+          chainBlocks([trHead, tr1, tr2]);
+          table.getInput('ROWS').connection.connect(trHead.previousConnection);
+
+          const list = createBlockWithFields('html_list', { TYPE: 'ul' });
+          const li1 = createBlockWithFields('html_list_item', { TEXT: 'Latihan menyusun blok tabel & daftar' });
+          const li2 = createBlockWithFields('html_list_item', { TEXT: 'Mencoba salin kode ke file .html' });
+          chainBlocks([li1, li2]);
+          list.getInput('ITEMS').connection.connect(li1.previousConnection);
+
+          chainBlocks([h2, table, list]);
+          card.getInput('CHILDREN').connection.connect(h2.previousConnection);
+          doc.getInput('BODY').connection.connect(card.previousConnection);
+          doc.moveBy(24, 20);
+        } else {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+          const title = createBlockWithFields('html_title', { TEXT: 'Proyek Baru' });
+          const h1 = createBlockWithFields('html_heading', { LEVEL: 'h1', TEXT: 'Halaman Web Baruku ✨' });
+          doc.getInput('HEAD').connection.connect(title.previousConnection);
+          doc.getInput('BODY').connection.connect(h1.previousConnection);
+          doc.moveBy(24, 24);
+        }
+      } finally {
+        Blockly.Events.enable();
+      }
+
+      updateGeneratedOutputs();
+      closeTemplateModal();
+      if (!isInitial) {
+        switchPage('workspace');
+        showToast('Template berhasil dimuat ke Workspace!');
+      }
+    }
+
+    // Expose all interactive handlers to global window object
+    window.openBlockPicker = openBlockPicker;
+    window.closeBlockPicker = closeBlockPicker;
+    window.clearBlockSearch = clearBlockSearch;
+    window.selectModalCategory = selectModalCategory;
+    window.renderBlockPickerCards = renderBlockPickerCards;
+    window.spawnBlockFromPicker = spawnBlockFromPicker;
+    window.openTemplateModal = openTemplateModal;
+    window.closeTemplateModal = closeTemplateModal;
+    window.loadPresetTemplate = loadPresetTemplate;
+    window.switchPage = switchPage;
+    window.setPreviewViewport = setPreviewViewport;
+    window.refreshLivePreview = refreshLivePreview;
+    window.copyGeneratedCode = copyGeneratedCode;
+    window.downloadHtmlFile = downloadHtmlFile;
+    window.workspaceUndo = workspaceUndo;
+    window.workspaceRedo = workspaceRedo;
+    window.centerWorkspace = centerWorkspace;
+    window.zoomWorkspace = zoomWorkspace;
+    window.duplicateSelectedBlock = duplicateSelectedBlock;
+    window.deleteSelectedBlock = deleteSelectedBlock;
+    window.openClearConfirmModal = openClearConfirmModal;
+    window.closeClearConfirmModal = closeClearConfirmModal;
+    window.confirmClearWorkspace = confirmClearWorkspace;
+
+    // Start app on window load
+    window.addEventListener('DOMContentLoaded', function() {
+      initBlocklyWorkspace();
+    });
+  </script>
+</body>
+</html>
