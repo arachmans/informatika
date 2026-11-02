@@ -345,28 +345,12 @@
         </div>
       </div>
 
-      <!-- Code Viewer Box with Line Numbers -->
-      <div class="flex-1 w-full overflow-auto p-3 sm:p-5 pastel-scroll select-text">
-        <div class="max-w-5xl mx-auto bg-white rounded-2xl border-2 border-pastel-ink pastel-shadow overflow-hidden">
-          <!-- Mock Window Header -->
-          <div class="px-4 py-2.5 bg-[#FFF3E6] border-b-2 border-[#EEDCCF] flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-[#FF8FA3] border border-pastel-ink/40"></span>
-              <span class="w-3 h-3 rounded-full bg-[#F4B942] border border-pastel-ink/40"></span>
-              <span class="w-3 h-3 rounded-full bg-[#4CC39A] border border-pastel-ink/40"></span>
-              <span class="ml-2 font-mono text-xs font-semibold text-pastel-ink">index.html</span>
-            </div>
-            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-pastel-peach text-pastel-ink">Otomatis Diperbarui</span>
-          </div>
-
-          <!-- Code Table -->
-          <div class="flex font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto pastel-scroll">
-            <div id="codeLineNumbers" class="py-4 px-3 bg-[#FFFBF7] border-r border-[#EEDCCF] text-right text-pastel-muted select-none shrink-0">
-              1
-            </div>
-            <pre id="codeDisplayArea" class="py-4 px-4 m-0 flex-1 overflow-x-auto text-pastel-ink whitespace-pre"></pre>
-          </div>
+      <!-- Fullscreen Code Viewer Directly Below Header (No Frame) -->
+      <div class="flex-1 w-full h-full min-h-0 overflow-auto bg-white flex font-mono text-xs sm:text-sm leading-relaxed pastel-scroll select-text">
+        <div id="codeLineNumbers" class="py-4 px-3 bg-[#FFFBF7] border-r border-[#EEDCCF] text-right text-pastel-muted select-none shrink-0 min-h-full">
+          1
         </div>
+        <pre id="codeDisplayArea" class="py-4 px-4 m-0 flex-1 overflow-x-auto text-pastel-ink whitespace-pre min-h-full"></pre>
       </div>
 
       <!-- Hidden textarea for reliable clipboard copy in iframes -->
@@ -376,95 +360,62 @@
     <!-- -------------------------------------------------------
          HALAMAN 3: LIVE PREVIEW (SEPARATE PAGE)
          ------------------------------------------------------- -->
-    <section id="page-preview" class="hidden w-full h-full flex-col bg-[#F5EFEA] overflow-hidden">
+    <section id="page-preview" class="hidden w-full h-full flex-col bg-white overflow-hidden">
       <!-- Live Preview Toolbar -->
-      <div class="px-3 sm:px-5 py-2.5 bg-white border-b-2 border-[#EEDCCF] flex flex-wrap items-center justify-between gap-2 shrink-0">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-pastel-mint border-2 border-pastel-ink flex items-center justify-center">
-            <i class="ph-bold ph-globe text-base text-pastel-ink"></i>
+      <div class="px-4 py-3 bg-white border-b-2 border-[#EEDCCF] flex items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-pastel-mint border-2 border-pastel-ink flex items-center justify-center">
+            <i class="ph-bold ph-globe text-lg text-pastel-ink"></i>
           </div>
           <div>
-            <h2 class="font-display font-bold text-sm text-pastel-ink leading-tight">Live Preview Hasil Web</h2>
-            <p class="text-[11px] text-pastel-muted hidden sm:block">Tampilan interaktif dari blok HTML & CSS yang kamu susun</p>
+            <h2 class="font-display font-bold text-sm sm:text-base text-pastel-ink leading-tight">Live Preview Hasil Web</h2>
+            <p class="text-xs text-pastel-muted">Tampilan langsung dari blok HTML & CSS</p>
           </div>
         </div>
 
-        <!-- Viewport Frame Switcher & Refresh -->
-        <div class="flex items-center gap-1.5">
-          <div class="flex items-center bg-[#FFF5ED] p-1 rounded-xl border border-[#EEDCCF]">
-            <button onclick="setPreviewViewport('full')" id="vp-full"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold bg-pastel-pink text-pastel-ink border border-pastel-ink/30 transition flex items-center gap-1">
-              <i class="ph-bold ph-Corners-out"></i>
-              <span class="hidden xs:inline">Penuh</span>
-            </button>
-            <button onclick="setPreviewViewport('mobile')" id="vp-mobile"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold text-pastel-muted hover:text-pastel-ink transition flex items-center gap-1">
-              <i class="ph-bold ph-device-mobile"></i>
-              <span class="hidden xs:inline">HP</span>
-            </button>
-            <button onclick="setPreviewViewport('tablet')" id="vp-tablet"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold text-pastel-muted hover:text-pastel-ink transition flex items-center gap-1">
-              <i class="ph-bold ph-device-tablet"></i>
-              <span class="hidden xs:inline">Tablet</span>
-            </button>
-          </div>
-
-          <button onclick="refreshLivePreview()" title="Muat Ulang Preview"
-            class="px-3 py-1.5 rounded-xl bg-pastel-butter hover:brightness-95 border-2 border-pastel-ink pastel-shadow-sm text-xs font-bold text-pastel-ink flex items-center gap-1 active:translate-y-0.5 transition">
-            <i class="ph-bold ph-arrows-clockwise text-sm"></i>
-            <span class="hidden sm:inline">Segarkan</span>
-          </button>
-        </div>
+        <button onclick="refreshLivePreview()" title="Muat Ulang Preview"
+          class="px-3.5 py-2 rounded-xl bg-pastel-butter hover:brightness-95 border-2 border-pastel-ink pastel-shadow-sm text-xs sm:text-sm font-bold text-pastel-ink flex items-center gap-1.5 active:translate-y-0.5 transition">
+          <i class="ph-bold ph-arrows-clockwise text-base"></i>
+          <span>Segarkan</span>
+        </button>
       </div>
 
-      <!-- Sandboxed Iframe Wrapper -->
-      <div class="flex-1 w-full h-full min-h-0 overflow-hidden p-2 sm:p-4 flex items-stretch justify-center">
-        <div id="previewFrameWrapper" class="w-full h-full min-h-0 bg-white rounded-2xl border-2 border-pastel-ink pastel-shadow overflow-hidden flex flex-col transition-all duration-300">
-          <!-- Fake Browser URL Bar -->
-          <div class="px-3 py-2 bg-[#FFF6EE] border-b border-[#EEDCCF] flex items-center gap-2 shrink-0">
-            <div class="flex gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-pastel-pinkDark"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-pastel-butterDark"></span>
-              <span class="w-2.5 h-2.5 rounded-full bg-pastel-mintDark"></span>
-            </div>
-            <div class="flex-1 bg-white rounded-lg px-3 py-1 text-[11px] font-mono text-pastel-muted border border-[#EEDCCF] truncate flex items-center gap-1.5">
-              <i class="ph-fill ph-lock-key text-pastel-mintDark"></i>
-              <span>pratinjau://pastelblock-sandbox/index.html</span>
-            </div>
-          </div>
-
-          <!-- Iframe -->
-          <iframe id="livePreviewIframe" title="Live Preview HTML" class="w-full h-full flex-1 min-h-0 border-0 bg-white"></iframe>
-        </div>
-      </div>
+      <!-- Direct Fullscreen Iframe Without Frame -->
+      <iframe id="livePreviewIframe" title="Live Preview HTML" class="flex-1 w-full h-full min-h-0 border-0 bg-white block"></iframe>
     </section>
 
   </main>
 
   <!-- =========================================================
-       BOTTOM NAVIGATION BAR (SWITCH BETWEEN THE 3 PAGES)
+       BOTTOM NAVIGATION BAR (MOBILE APP STYLE)
        ========================================================= -->
-  <nav class="w-full bg-[#FFF6EE] border-t-2 border-[#EEDCCF] px-3 py-2 z-30 shrink-0">
-    <div class="max-w-lg mx-auto grid grid-cols-3 gap-2">
-      <!-- Tab 1: Workspace Blok -->
+  <nav class="w-full bg-white/95 backdrop-blur-md border-t-2 border-[#EEDCCF] px-3 py-1.5 z-30 shrink-0 shadow-[0_-4px_16px_rgba(45,49,66,0.05)]">
+    <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
+      <!-- Tab: Workspace -->
       <button onclick="switchPage('workspace')" id="nav-btn-workspace"
-        class="flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-pastel-pink border-2 border-pastel-ink pastel-shadow-sm font-display font-bold text-xs sm:text-sm text-pastel-ink transition">
-        <i class="ph-fill ph-puzzle-piece text-lg"></i>
-        <span>1. Workspace</span>
+        class="group flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all duration-200">
+        <div id="nav-pill-workspace" class="w-14 h-8 rounded-full bg-pastel-pink border-2 border-pastel-ink pastel-shadow-sm flex items-center justify-center transition-all duration-200">
+          <i class="ph-fill ph-puzzle-piece text-lg text-pastel-ink"></i>
+        </div>
+        <span id="nav-txt-workspace" class="text-[11px] font-display font-bold text-pastel-ink mt-1 tracking-tight">Workspace</span>
       </button>
 
-      <!-- Tab 2: Hasil Kode -->
+      <!-- Tab: Kode HTML -->
       <button onclick="switchPage('code')" id="nav-btn-code"
-        class="flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-butter/50 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition">
-        <i class="ph-bold ph-code text-lg"></i>
-        <span>2. Kode HTML</span>
+        class="group flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all duration-200">
+        <div id="nav-pill-code" class="w-14 h-8 rounded-full bg-transparent border-2 border-transparent flex items-center justify-center transition-all duration-200 group-hover:bg-pastel-butter/40">
+          <i class="ph-bold ph-code text-lg text-pastel-muted group-hover:text-pastel-ink"></i>
+        </div>
+        <span id="nav-txt-code" class="text-[11px] font-display font-medium text-pastel-muted mt-1 tracking-tight group-hover:text-pastel-ink">Kode HTML</span>
       </button>
 
-      <!-- Tab 3: Live Preview -->
+      <!-- Tab: Live Preview -->
       <button onclick="switchPage('preview')" id="nav-btn-preview"
-        class="flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-mint/50 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition">
-        <i class="ph-bold ph-eye text-lg"></i>
-        <span>3. Live Preview</span>
+        class="group flex flex-col items-center justify-center py-1 px-2 rounded-2xl transition-all duration-200">
+        <div id="nav-pill-preview" class="w-14 h-8 rounded-full bg-transparent border-2 border-transparent flex items-center justify-center transition-all duration-200 group-hover:bg-pastel-mint/40">
+          <i class="ph-bold ph-eye text-lg text-pastel-muted group-hover:text-pastel-ink"></i>
+        </div>
+        <span id="nav-txt-preview" class="text-[11px] font-display font-medium text-pastel-muted mt-1 tracking-tight group-hover:text-pastel-ink">Live Preview</span>
       </button>
     </div>
   </nav>
@@ -2404,21 +2355,33 @@
           `${LT}div class="empty-box"${GT}`,
           `${LT}div style="font-size:38px;margin-bottom:8px;"${GT}🧩${LT}/div${GT}`,
           `${LT}h3 style="margin:0 0 6px 0;"${GT}Workspace Masih Kosong${LT}/h3${GT}`,
-          `${LT}p style="margin:0;font-size:14px;color:#6E7485;"${GT}Kembali ke halaman ${LT}b${GT}1. Workspace${LT}/b${GT} lalu pilih blok dari menu atas untuk mulai membuat halaman web!${LT}/p${GT}`,
+          `${LT}p style="margin:0;font-size:14px;color:#6E7485;"${GT}Kembali ke tab ${LT}b${GT}Workspace${LT}/b${GT} lalu pilih blok dari menu atas untuk mulai membuat halaman web!${LT}/p${GT}`,
           `${LT}/div${GT}`,
           `${LT}/body${GT}`,
           `${LT}/html${GT}`
         ].join('\n');
+        writeHtmlToPreviewIframe(iframe, emptyHtml);
         return;
       }
 
-      iframe.srcdoc = latestGeneratedHtml;
+      const fullPreviewHtml = buildPreviewHtmlDocument(latestGeneratedHtml || generateFullWorkspaceHtml());
+      writeHtmlToPreviewIframe(iframe, fullPreviewHtml);
     }
 
     // =========================================================
-    // 5. PAGE NAVIGATION (WORKSPACE / CODE / PREVIEW)
+    // 5. PAGE NAVIGATION (MOBILE APP BOTTOM BAR)
     // =========================================================
     function switchPage(pageName) {
+      // Commit any active Blockly text input or dropdown before switching pages
+      if (typeof Blockly !== 'undefined') {
+        if (Blockly.WidgetDiv && typeof Blockly.WidgetDiv.hide === 'function') {
+          Blockly.WidgetDiv.hide();
+        }
+        if (Blockly.DropDownDiv && typeof Blockly.DropDownDiv.hideWithoutAnimation === 'function') {
+          Blockly.DropDownDiv.hideWithoutAnimation();
+        }
+      }
+
       currentActivePage = pageName;
 
       const pages = {
@@ -2427,27 +2390,49 @@
         preview: document.getElementById('page-preview')
       };
 
-      const buttons = {
-        workspace: document.getElementById('nav-btn-workspace'),
-        code: document.getElementById('nav-btn-code'),
-        preview: document.getElementById('nav-btn-preview')
+      const pills = {
+        workspace: document.getElementById('nav-pill-workspace'),
+        code: document.getElementById('nav-pill-code'),
+        preview: document.getElementById('nav-pill-preview')
       };
 
-      const activeColors = {
+      const texts = {
+        workspace: document.getElementById('nav-txt-workspace'),
+        code: document.getElementById('nav-txt-code'),
+        preview: document.getElementById('nav-txt-preview')
+      };
+
+      const activePillColors = {
         workspace: 'bg-pastel-pink',
         code: 'bg-pastel-butter',
         preview: 'bg-pastel-mint'
+      };
+
+      const hoverPillColors = {
+        workspace: 'group-hover:bg-pastel-pink/40',
+        code: 'group-hover:bg-pastel-butter/40',
+        preview: 'group-hover:bg-pastel-mint/40'
+      };
+
+      const icons = {
+        workspace: 'ph-puzzle-piece',
+        code: 'ph-code',
+        preview: 'ph-eye'
       };
 
       for (const key of Object.keys(pages)) {
         if (key === pageName) {
           pages[key].classList.remove('hidden');
           pages[key].classList.add('flex');
-          buttons[key].className = `flex items-center justify-center gap-2 py-2 px-3 rounded-2xl ${activeColors[key]} border-2 border-pastel-ink pastel-shadow-sm font-display font-bold text-xs sm:text-sm text-pastel-ink transition`;
+          pills[key].className = `w-14 h-8 rounded-full ${activePillColors[key]} border-2 border-pastel-ink pastel-shadow-sm flex items-center justify-center transition-all duration-200 scale-105`;
+          pills[key].innerHTML = `<i class="ph-fill ${icons[key]} text-lg text-pastel-ink"></i>`;
+          texts[key].className = 'text-[11px] font-display font-bold text-pastel-ink mt-1 tracking-tight';
         } else {
           pages[key].classList.add('hidden');
           pages[key].classList.remove('flex');
-          buttons[key].className = `flex items-center justify-center gap-2 py-2 px-3 rounded-2xl bg-white hover:bg-pastel-butter/40 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-pastel-muted transition`;
+          pills[key].className = `w-14 h-8 rounded-full bg-transparent border-2 border-transparent flex items-center justify-center transition-all duration-200 ${hoverPillColors[key]}`;
+          pills[key].innerHTML = `<i class="ph-bold ${icons[key]} text-lg text-pastel-muted group-hover:text-pastel-ink"></i>`;
+          texts[key].className = 'text-[11px] font-display font-medium text-pastel-muted mt-1 tracking-tight group-hover:text-pastel-ink';
         }
       }
 
@@ -2457,32 +2442,9 @@
         updateGeneratedOutputs();
       } else if (pageName === 'preview') {
         updateGeneratedOutputs();
-        refreshLivePreview();
-      }
-    }
-
-    function setPreviewViewport(size) {
-      const wrapper = document.getElementById('previewFrameWrapper');
-      const btns = {
-        full: document.getElementById('vp-full'),
-        mobile: document.getElementById('vp-mobile'),
-        tablet: document.getElementById('vp-tablet')
-      };
-
-      for (const [k, btn] of Object.entries(btns)) {
-        if (k === size) {
-          btn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-pastel-pink text-pastel-ink border border-pastel-ink/30 transition flex items-center gap-1';
-        } else {
-          btn.className = 'px-2.5 py-1 rounded-lg text-xs font-bold text-pastel-muted hover:text-pastel-ink transition flex items-center gap-1';
-        }
-      }
-
-      if (size === 'mobile') {
-        wrapper.style.maxWidth = '375px';
-      } else if (size === 'tablet') {
-        wrapper.style.maxWidth = '768px';
-      } else {
-        wrapper.style.maxWidth = '100%';
+        requestAnimationFrame(() => {
+          refreshLivePreview();
+        });
       }
     }
 
@@ -3118,7 +3080,6 @@
     window.closeTemplateModal = closeTemplateModal;
     window.loadPresetTemplate = loadPresetTemplate;
     window.switchPage = switchPage;
-    window.setPreviewViewport = setPreviewViewport;
     window.refreshLivePreview = refreshLivePreview;
     window.copyGeneratedCode = copyGeneratedCode;
     window.downloadHtmlFile = downloadHtmlFile;
