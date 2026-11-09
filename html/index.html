@@ -290,11 +290,32 @@
     .tok-comment { color: #8c857B; font-style: italic; }
 
     @keyframes modalRise {
-      0% { opacity: 0; transform: translateY(10px) scale(0.98); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
+      0% { opacity: 0; transform: translate3d(0, 8px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
     }
     .animate-modal {
-      animation: modalRise 0.18s ease-out forwards;
+      animation: modalRise 0.14s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      will-change: transform, opacity;
+    }
+
+    /* Mobile GPU & Scrolling Optimizations for Pop-up Cards */
+    .block-picker-card {
+      content-visibility: auto;
+      contain-intrinsic-size: 112px;
+      contain: layout style paint;
+    }
+
+    @media (max-width: 767px) {
+      .paper-card {
+        box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+        transition: none;
+      }
+      .paper-card-interactive:hover,
+      .paper-btn-teal:hover,
+      .paper-btn-secondary:hover,
+      .paper-chip:hover {
+        transform: none;
+      }
     }
   </style>
 </head>
@@ -608,8 +629,8 @@
   <!-- =========================================================
        POP-UP MODAL 1: KATALOG BLOK HTML & CSS
        ========================================================= -->
-  <div id="blockPickerModal" class="hidden fixed inset-0 z-50 bg-[#4f535b]/45 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-5">
-    <div class="w-full sm:max-w-3xl max-h-[88dvh] bg-paper-bg rounded-t-2xl sm:rounded-xl border-t-[1.5px] sm:border-[1.5px] border-paper-border shadow-xl flex flex-col overflow-hidden animate-modal">
+  <div id="blockPickerModal" onclick="if(event.target === this) closeBlockPicker()" class="hidden fixed inset-0 z-50 bg-[#4f535b]/60 flex items-end sm:items-center justify-center p-0 sm:p-5">
+    <div class="w-full sm:max-w-3xl max-h-[86dvh] bg-paper-bg rounded-t-2xl sm:rounded-xl border-t-[1.5px] sm:border-[1.5px] border-paper-border shadow-lg flex flex-col overflow-hidden animate-modal">
       <!-- Modal Header -->
       <div class="px-5 py-3.5 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between gap-2 shrink-0">
         <div class="flex items-center gap-2.5">
@@ -627,10 +648,10 @@
       </div>
 
       <!-- Search & Placement Bar -->
-      <div class="p-3.5 bg-paper-card/60 border-b-[1.5px] border-paper-border flex flex-col sm:flex-row gap-2.5 shrink-0">
+      <div class="p-3.5 bg-paper-card border-b-[1.5px] border-paper-border flex flex-col sm:flex-row gap-2.5 shrink-0">
         <div class="relative flex-1">
           <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-paper-muted"></i>
-          <input id="blockSearchInput" type="text" oninput="renderBlockPickerCards()"
+          <input id="blockSearchInput" type="text" oninput="handleBlockSearchInput()"
             placeholder="Cari tag atau properti (misal: div, h1, table, form, flex)..."
             class="w-full pl-9 pr-8 py-2 paper-input text-xs sm:text-sm font-medium" />
           <button onclick="clearBlockSearch()" id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-paper-muted hover:text-paper-ink">
@@ -650,12 +671,12 @@
       </div>
 
       <!-- Category Tabs inside Modal -->
-      <div id="modalCategoryTabs" class="px-4 py-2 bg-paper-sidebar/50 border-b-[1.5px] border-paper-border flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+      <div id="modalCategoryTabs" class="px-4 py-2 bg-paper-sidebar border-b-[1.5px] border-paper-border flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
         <!-- Populated dynamically -->
       </div>
 
-      <!-- Block Cards Grid (Padding 22px per layout spec) -->
-      <div id="blockCardsContainer" class="flex-1 overflow-y-auto p-[22px] grid grid-cols-1 sm:grid-cols-2 gap-3 paper-scroll blueprint-grid">
+      <!-- Block Cards Grid (Padding 22px per layout spec, flat background for smooth mobile scroll) -->
+      <div id="blockCardsContainer" class="flex-1 overflow-y-auto p-[22px] grid grid-cols-1 sm:grid-cols-2 gap-3 paper-scroll bg-paper-bg">
         <!-- Populated dynamically -->
       </div>
     </div>
@@ -664,8 +685,8 @@
   <!-- =========================================================
        POP-UP MODAL 2: ARSIP TEMPLATE CETAK BIRU
        ========================================================= -->
-  <div id="templateModal" class="hidden fixed inset-0 z-50 bg-[#4f535b]/45 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-5">
-    <div class="w-full sm:max-w-xl max-h-[85dvh] bg-paper-bg rounded-t-2xl sm:rounded-xl border-t-[1.5px] sm:border-[1.5px] border-paper-border shadow-xl flex flex-col overflow-hidden animate-modal">
+  <div id="templateModal" onclick="if(event.target === this) closeTemplateModal()" class="hidden fixed inset-0 z-50 bg-[#4f535b]/60 flex items-end sm:items-center justify-center p-0 sm:p-5">
+    <div class="w-full sm:max-w-xl max-h-[85dvh] bg-paper-bg rounded-t-2xl sm:rounded-xl border-t-[1.5px] sm:border-[1.5px] border-paper-border shadow-lg flex flex-col overflow-hidden animate-modal">
       <div class="px-5 py-3.5 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center">
@@ -681,7 +702,7 @@
         </button>
       </div>
 
-      <div class="p-[22px] overflow-y-auto space-y-3 paper-scroll blueprint-grid">
+      <div class="p-[22px] overflow-y-auto space-y-3 paper-scroll bg-paper-bg">
         <button onclick="loadPresetTemplate('profile')" class="paper-focus w-full text-left p-4 paper-card paper-card-interactive flex items-start gap-3.5">
           <span class="paper-chip px-2 py-1 rounded text-xs font-bold text-paper-teal">01</span>
           <div class="flex-1">
@@ -720,7 +741,7 @@
   <!-- =========================================================
        POP-UP MODAL 3: KONFIRMASI BERSIHKAN KANVAS
        ========================================================= -->
-  <div id="clearConfirmModal" class="hidden fixed inset-0 z-50 bg-[#4f535b]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
+  <div id="clearConfirmModal" onclick="if(event.target === this) closeClearConfirmModal()" class="hidden fixed inset-0 z-50 bg-[#4f535b]/60 flex items-center justify-center p-4">
     <div class="w-full max-w-sm paper-card p-6 text-center animate-modal">
       <div class="w-11 h-11 rounded-xl bg-paper-bg border-[1.5px] border-paper-border mx-auto flex items-center justify-center mb-3">
         <i class="ph ph-eraser text-2xl text-paper-ink"></i>
@@ -755,8 +776,11 @@
     let workspace = null;
     let currentActivePage = 'workspace';
     let currentPickerCategory = 'all';
+    let lastRenderedPickerKey = '';
+    let searchRafId = null;
     let selectedBlockId = null;
     let latestGeneratedHtml = '';
+    let isOutputDirty = true;
     let toastTimeout = null;
     let isBlueprintGridVisible = true;
 
@@ -1101,6 +1125,34 @@
       { id: 'formulir', label: 'Formulir', code: '06' },
       { id: 'css', label: 'Gaya CSS', code: '07' }
     ];
+
+    // Precompute escaped strings & search index once for instant mobile pop-up rendering
+    BLOCK_CATALOG.forEach(item => {
+      item.escapedBadge = item.tagBadge.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      item.escapedTitle = item.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      item.searchIndex = `${item.title} ${item.tagBadge} ${item.desc} ${item.type}`.toLowerCase();
+      item.cardHtml = `
+        <div onclick="spawnBlockFromPicker('${item.type}')"
+          class="block-picker-card cursor-pointer group p-4 paper-card paper-card-interactive flex flex-col justify-between gap-2.5">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="paper-chip px-2 py-0.5 rounded text-[11px] font-semibold text-paper-ink">
+                ${item.escapedBadge}
+              </span>
+              <span class="w-7 h-7 rounded-md bg-paper-bg group-hover:bg-paper-teal border-[1.5px] border-paper-border group-hover:border-paper-tealDark flex items-center justify-center text-paper-ink group-hover:text-[#f9f2e5] transition">
+                <i class="ph-bold ph-plus text-xs"></i>
+              </span>
+            </div>
+            <h4 class="font-heading-upper text-sm text-paper-ink">${item.escapedTitle}</h4>
+            <p class="text-xs text-paper-muted mt-1 leading-relaxed">${item.desc}</p>
+          </div>
+          <div class="pt-2 border-t border-paper-border/60 flex items-center justify-between font-mono-code text-[10px] uppercase text-paper-teal font-semibold">
+            <span>Sematkan Modul</span>
+            <i class="ph-bold ph-arrow-right"></i>
+          </div>
+        </div>
+      `;
+    });
 
     // =========================================================
     // 1. DEFINE ALL CUSTOM HTML & CSS BLOCKS IN BLOCKLY
@@ -2202,7 +2254,7 @@
           event.type === Blockly.Events.BLOCK_MOVE ||
           event.type === Blockly.Events.FINISHED_LOADING
         ) {
-          updateGeneratedOutputs();
+          markWorkspaceModified();
         }
       });
 
@@ -2211,6 +2263,10 @@
           Blockly.svgResize(workspace);
         }
       });
+
+      // Pre-build modal tabs & cards in background so first pop-up open is instant
+      renderModalCategoryTabs();
+      renderBlockPickerCards();
 
       loadPresetTemplate('profile', true);
     }
@@ -2235,7 +2291,7 @@
         });
     }
 
-    function updateGeneratedOutputs() {
+    function updateBlockStatsOnly() {
       if (!workspace) return;
       const allBlocks = workspace.getAllBlocks(false);
       const countEl = document.getElementById('blockCountBadge');
@@ -2243,14 +2299,27 @@
         countEl.textContent = `${allBlocks.length} BLOK AKTIF`;
       }
 
-      // Update Progress Bar (scaleX animation)
       const progEl = document.getElementById('densityProgressBar');
       if (progEl) {
         const ratio = Math.min(1, Math.max(0.08, allBlocks.length / 24));
         progEl.style.transform = `scaleX(${ratio})`;
       }
+    }
+
+    function markWorkspaceModified() {
+      isOutputDirty = true;
+      updateBlockStatsOnly();
+      if (currentActivePage !== 'workspace') {
+        updateGeneratedOutputs();
+      }
+    }
+
+    function updateGeneratedOutputs() {
+      if (!workspace) return;
+      updateBlockStatsOnly();
 
       latestGeneratedHtml = generateFullWorkspaceHtml();
+      isOutputDirty = false;
 
       const lines = latestGeneratedHtml.split('\n');
       const lineNumEl = document.getElementById('codeLineNumbers');
@@ -2265,7 +2334,9 @@
         statsEl.textContent = `${lines.length} BARIS • ${latestGeneratedHtml.length} KARAKTER`;
       }
 
-      refreshLivePreview();
+      if (currentActivePage === 'preview') {
+        refreshLivePreview();
+      }
     }
 
     function buildPreviewHtmlDocument(rawHtml) {
@@ -2279,7 +2350,7 @@
         `${LT}head${GT}`,
         `  ${LT}meta charset="UTF-8"${GT}`,
         `  ${LT}meta name="viewport" content="width=device-width, initial-scale=1.0"${GT}`,
-        `  ${LT}style${GT}body { font-family: 'Barlow', system-ui, sans-serif; margin: 22px; background-color: #f6eddd; color: #4f535b; line-height: 1.55; }${LT}/style${GT}`,
+        `  ${LT}style${GT}body { font-family: 'Barlow', system-ui, sans-serif; margin: 22px; background: #f6eddd; color: #4f535b; line-height: 1.55; }${LT}/style${GT}`,
         `${LT}/head${GT}`,
         `${LT}body${GT}`,
         trimmed,
@@ -2298,7 +2369,9 @@
           doc.close();
           return;
         }
-      } catch (e) {}
+      } catch (e) {
+        // Fallback to srcdoc
+      }
       iframe.srcdoc = htmlContent;
     }
 
@@ -2320,8 +2393,8 @@
           `${LT}/head${GT}`,
           `${LT}body${GT}`,
           `${LT}div class="empty-box"${GT}`,
-          `${LT}h3 style="margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.12em; font-size:14px;"${GT}Kertas Kerja Kosong${LT}/h3${GT}`,
-          `${LT}p style="margin:0;font-size:13px;color:#696d74;line-height:1.55;"${GT}Buka tab ${LT}b${GT}Workspace${LT}/b${GT} lalu tambahkan modul blok dari bilah atas untuk merancang halaman web.${LT}/p${GT}`,
+          `${LT}h3 style="margin:0 0 6px 0; text-transform:uppercase; letter-spacing:0.12em;"${GT}Kertas Kerja Kosong${LT}/h3${GT}`,
+          `${LT}p style="margin:0;font-size:13px;color:#696d74;line-height:1.55;"${GT}Kembali ke tab ${LT}b${GT}Workspace${LT}/b${GT} lalu pilih modul blok pada bar atas untuk mulai merancang halaman web.${LT}/p${GT}`,
           `${LT}/div${GT}`,
           `${LT}/body${GT}`,
           `${LT}/html${GT}`
@@ -2335,7 +2408,7 @@
     }
 
     // =========================================================
-    // 5. PAGE NAVIGATION (DESKTOP LEFT SIDEBAR + MOBILE BOTTOM TABS)
+    // 5. PAGE NAVIGATION (SIDEBAR DESKTOP & BOTTOM NAV MOBILE)
     // =========================================================
     function switchPage(pageName) {
       if (typeof Blockly !== 'undefined') {
@@ -2360,7 +2433,6 @@
         code: document.getElementById('side-btn-code'),
         preview: document.getElementById('side-btn-preview')
       };
-
       const sideBars = {
         workspace: document.getElementById('side-bar-workspace'),
         code: document.getElementById('side-bar-code'),
@@ -2372,48 +2444,62 @@
         code: document.getElementById('mob-tab-code'),
         preview: document.getElementById('mob-tab-preview')
       };
-
       const mobIcons = {
-        workspace: { el: document.getElementById('mob-icon-workspace'), name: 'ph-blueprint' },
-        code: { el: document.getElementById('mob-icon-code'), name: 'ph-file-code' },
-        preview: { el: document.getElementById('mob-icon-preview'), name: 'ph-browsers' }
+        workspace: document.getElementById('mob-icon-workspace'),
+        code: document.getElementById('mob-icon-code'),
+        preview: document.getElementById('mob-icon-preview')
+      };
+      const iconNames = {
+        workspace: 'ph-blueprint',
+        code: 'ph-file-code',
+        preview: 'ph-browsers'
       };
 
       for (const key of Object.keys(pages)) {
         const isActive = key === pageName;
-        pages[key].classList.toggle('hidden', !isActive);
-        pages[key].classList.toggle('flex', isActive);
+        if (isActive) {
+          pages[key].classList.remove('hidden');
+          pages[key].classList.add('flex');
 
-        // Desktop Left Sidebar state
-        if (sideBtns[key] && sideBars[key]) {
-          if (isActive) {
+          if (sideBtns[key]) {
             sideBtns[key].className = 'paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-paper-card border-[1.5px] border-paper-teal text-paper-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition';
-            sideBars[key].classList.remove('hidden');
-          } else {
-            sideBtns[key].className = 'paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-transparent hover:bg-paper-card/70 border-[1.5px] border-transparent text-paper-muted hover:text-paper-ink transition';
-            sideBars[key].classList.add('hidden');
           }
-        }
+          if (sideBars[key]) sideBars[key].classList.remove('hidden');
 
-        // Mobile Bottom Nav state (4.5px thick underline)
-        if (mobTabs[key] && mobIcons[key].el) {
-          if (isActive) {
+          if (mobTabs[key]) {
             mobTabs[key].className = 'paper-focus paper-tab paper-tab-active flex flex-col items-center justify-center py-2 text-xs';
-            mobIcons[key].el.className = `ph-fill ${mobIcons[key].name} text-lg text-paper-teal`;
-          } else {
+          }
+          if (mobIcons[key]) {
+            mobIcons[key].className = `ph-fill ${iconNames[key]} text-lg text-paper-teal`;
+          }
+        } else {
+          pages[key].classList.add('hidden');
+          pages[key].classList.remove('flex');
+
+          if (sideBtns[key]) {
+            sideBtns[key].className = 'paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-transparent hover:bg-paper-card/70 border-[1.5px] border-transparent text-paper-muted hover:text-paper-ink transition';
+          }
+          if (sideBars[key]) sideBars[key].classList.add('hidden');
+
+          if (mobTabs[key]) {
             mobTabs[key].className = 'paper-focus paper-tab text-paper-muted flex flex-col items-center justify-center py-2 text-xs';
-            mobIcons[key].el.className = `ph ${mobIcons[key].name} text-lg`;
+          }
+          if (mobIcons[key]) {
+            mobIcons[key].className = `ph ${iconNames[key]} text-lg`;
           }
         }
       }
 
       if (pageName === 'workspace' && workspace) {
-        setTimeout(() => Blockly.svgResize(workspace), 40);
+        requestAnimationFrame(() => Blockly.svgResize(workspace));
       } else if (pageName === 'code') {
-        updateGeneratedOutputs();
+        if (isOutputDirty) updateGeneratedOutputs();
       } else if (pageName === 'preview') {
-        updateGeneratedOutputs();
-        requestAnimationFrame(() => refreshLivePreview());
+        if (isOutputDirty) {
+          updateGeneratedOutputs();
+        } else {
+          refreshLivePreview();
+        }
       }
     }
 
@@ -2425,21 +2511,32 @@
         switchPage('workspace');
       }
 
+      const categoryChanged = currentPickerCategory !== category;
       currentPickerCategory = category;
+
+      if (categoryChanged) {
+        updateModalCategoryTabStyles();
+        renderBlockPickerCards();
+      }
+
       document.getElementById('blockPickerModal').classList.remove('hidden');
 
-      renderModalCategoryTabs();
-      renderBlockPickerCards();
-
       if (focusSearch) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           document.getElementById('blockSearchInput').focus();
-        }, 80);
+        });
       }
     }
 
     function closeBlockPicker() {
       document.getElementById('blockPickerModal').classList.add('hidden');
+    }
+
+    function handleBlockSearchInput() {
+      if (searchRafId) cancelAnimationFrame(searchRafId);
+      searchRafId = requestAnimationFrame(() => {
+        renderBlockPickerCards();
+      });
     }
 
     function clearBlockSearch() {
@@ -2452,38 +2549,51 @@
     function renderModalCategoryTabs() {
       const container = document.getElementById('modalCategoryTabs');
       container.innerHTML = CATEGORY_META.map(cat => {
-        const isActive = cat.id === currentPickerCategory;
         return `
-          <button onclick="selectModalCategory('${cat.id}')"
-            class="paper-focus shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md border-[1.5px] ${isActive ? 'bg-paper-teal border-paper-tealDark text-[#f9f2e5] font-bold' : 'bg-paper-card border-paper-border text-paper-ink hover:border-paper-teal'} font-heading-upper text-xs transition">
+          <button data-cat-id="${cat.id}" onclick="selectModalCategory('${cat.id}')"
+            class="modal-cat-tab paper-focus shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md border-[1.5px] font-heading-upper text-xs transition">
             <span class="font-mono-code text-[10px] opacity-80">[${cat.code}]</span>
             <span>${cat.label}</span>
           </button>
         `;
       }).join('');
+      updateModalCategoryTabStyles();
+    }
+
+    function updateModalCategoryTabStyles() {
+      const buttons = document.querySelectorAll('#modalCategoryTabs .modal-cat-tab');
+      buttons.forEach(btn => {
+        const isActive = btn.getAttribute('data-cat-id') === currentPickerCategory;
+        btn.className = `modal-cat-tab paper-focus shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md border-[1.5px] ${
+          isActive
+            ? 'bg-paper-teal border-paper-tealDark text-[#f9f2e5] font-bold'
+            : 'bg-paper-card border-paper-border text-paper-ink hover:border-paper-teal'
+        } font-heading-upper text-xs transition`;
+      });
     }
 
     function selectModalCategory(catId) {
+      if (currentPickerCategory === catId) return;
       currentPickerCategory = catId;
-      renderModalCategoryTabs();
+      updateModalCategoryTabStyles();
       renderBlockPickerCards();
     }
 
     function renderBlockPickerCards() {
       const searchInput = document.getElementById('blockSearchInput');
-      const query = (searchInput.value || '').trim().toLowerCase();
+      const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
       const clearBtn = document.getElementById('clearSearchBtn');
       if (clearBtn) {
         clearBtn.classList.toggle('hidden', query.length === 0);
       }
 
+      const renderKey = `${currentPickerCategory}::${query}`;
+      if (renderKey === lastRenderedPickerKey) return;
+      lastRenderedPickerKey = renderKey;
+
       const filtered = BLOCK_CATALOG.filter(item => {
         const matchesCat = currentPickerCategory === 'all' || item.category === currentPickerCategory;
-        const matchesQuery = !query ||
-          item.title.toLowerCase().includes(query) ||
-          item.tagBadge.toLowerCase().includes(query) ||
-          item.desc.toLowerCase().includes(query) ||
-          item.type.toLowerCase().includes(query);
+        const matchesQuery = !query || item.searchIndex.includes(query);
         return matchesCat && matchesQuery;
       });
 
@@ -2498,31 +2608,7 @@
         return;
       }
 
-      container.innerHTML = filtered.map(item => {
-        const escapedBadge = item.tagBadge.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const escapedTitle = item.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return `
-          <div onclick="spawnBlockFromPicker('${item.type}')"
-            class="cursor-pointer group p-4 paper-card paper-card-interactive flex flex-col justify-between gap-2.5">
-            <div>
-              <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="paper-chip px-2 py-0.5 rounded text-[11px] font-semibold text-paper-ink">
-                  ${escapedBadge}
-                </span>
-                <span class="w-7 h-7 rounded-md bg-paper-bg group-hover:bg-paper-teal border-[1.5px] border-paper-border group-hover:border-paper-tealDark flex items-center justify-center text-paper-ink group-hover:text-[#f9f2e5] transition">
-                  <i class="ph-bold ph-plus text-xs"></i>
-                </span>
-              </div>
-              <h4 class="font-heading-upper text-sm text-paper-ink">${escapedTitle}</h4>
-              <p class="text-xs text-paper-muted mt-1 leading-relaxed">${item.desc}</p>
-            </div>
-            <div class="pt-2 border-t border-paper-border/60 flex items-center justify-between font-mono-code text-[10px] uppercase text-paper-teal font-semibold">
-              <span>Sematkan Modul</span>
-              <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition"></i>
-            </div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = filtered.map(item => item.cardHtml).join('');
     }
 
     function getFirstStatementInputName(block) {
@@ -2560,80 +2646,92 @@
     function spawnBlockFromPicker(blockType) {
       if (!workspace) return;
 
-      const mode = document.getElementById('insertModeSelect')?.value || 'smart';
-      const newBlock = workspace.newBlock(blockType);
-      newBlock.initSvg();
-      newBlock.render();
-
-      let connected = false;
-      const selectedBlock = selectedBlockId ? workspace.getBlockById(selectedBlockId) : null;
-      const isCssProperty = blockType.startsWith('css_') && blockType !== 'css_rule';
-
-      if (selectedBlock && mode !== 'free' && newBlock.previousConnection) {
-        if (mode === 'inside') {
-          const stmtName = getFirstStatementInputName(selectedBlock);
-          if (stmtName) {
-            connected = appendToStatementInput(selectedBlock, stmtName, newBlock);
-          }
-        } else if (mode === 'after') {
-          if (selectedBlock.nextConnection) {
-            selectedBlock.nextConnection.connect(newBlock.previousConnection);
-            connected = true;
-          }
-        } else if (mode === 'smart') {
-          if (isCssProperty && selectedBlock.type === 'css_rule') {
-            connected = appendToStatementInput(selectedBlock, 'DECLARATIONS', newBlock);
-          } else if (blockType === 'css_rule' && selectedBlock.type === 'html_style_tag') {
-            connected = appendToStatementInput(selectedBlock, 'RULES', newBlock);
-          } else if (getFirstStatementInputName(selectedBlock)) {
-            const targetInput = (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') && selectedBlock.getInput('HEAD')
-              ? 'HEAD'
-              : getFirstStatementInputName(selectedBlock);
-            connected = appendToStatementInput(selectedBlock, targetInput, newBlock);
-          } else if (selectedBlock.nextConnection) {
-            selectedBlock.nextConnection.connect(newBlock.previousConnection);
-            connected = true;
-          }
-        }
-      }
-
-      if (!connected && mode === 'smart' && newBlock.previousConnection) {
-        const topBlocks = workspace.getTopBlocks(true);
-        const docBlock = topBlocks.find(b => b.type === 'html_document');
-        if (docBlock) {
-          if (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') {
-            connected = appendToStatementInput(docBlock, 'HEAD', newBlock);
-          } else if (blockType === 'css_rule') {
-            const styleBlock = workspace.getAllBlocks(false).find(b => b.type === 'html_style_tag');
-            if (styleBlock) {
-              connected = appendToStatementInput(styleBlock, 'RULES', newBlock);
-            }
-          } else if (isCssProperty) {
-            const cssRules = workspace.getAllBlocks(false).filter(b => b.type === 'css_rule');
-            if (cssRules.length > 0) {
-              connected = appendToStatementInput(cssRules[cssRules.length - 1], 'DECLARATIONS', newBlock);
-            }
-          } else {
-            connected = appendToStatementInput(docBlock, 'BODY', newBlock);
-          }
-        }
-      }
-
-      if (!connected) {
-        const metrics = workspace.getMetrics();
-        const scale = workspace.scale || 1;
-        const viewCenterX = (metrics.viewLeft + metrics.viewWidth * 0.25) / scale;
-        const viewCenterY = (metrics.viewTop + metrics.viewHeight * 0.25) / scale;
-        const jitter = Math.floor(Math.random() * 24);
-        newBlock.moveBy(viewCenterX + jitter, viewCenterY + jitter);
-      }
-
-      newBlock.select();
-      selectedBlockId = newBlock.id;
-      updateSelectedBlockUI();
-      workspace.centerOnBlock(newBlock.id);
-
+      // Close modal first so UI feels instant on mobile
       closeBlockPicker();
+
+      const mode = document.getElementById('insertModeSelect')?.value || 'smart';
+      let newBlock = null;
+
+      Blockly.Events.disable();
+      try {
+        newBlock = workspace.newBlock(blockType);
+        newBlock.initSvg();
+        newBlock.render();
+
+        let connected = false;
+        const selectedBlock = selectedBlockId ? workspace.getBlockById(selectedBlockId) : null;
+        const isCssProperty = blockType.startsWith('css_') && blockType !== 'css_rule';
+
+        if (selectedBlock && mode !== 'free' && newBlock.previousConnection) {
+          if (mode === 'inside') {
+            const stmtName = getFirstStatementInputName(selectedBlock);
+            if (stmtName) {
+              connected = appendToStatementInput(selectedBlock, stmtName, newBlock);
+            }
+          } else if (mode === 'after') {
+            if (selectedBlock.nextConnection) {
+              selectedBlock.nextConnection.connect(newBlock.previousConnection);
+              connected = true;
+            }
+          } else if (mode === 'smart') {
+            if (isCssProperty && selectedBlock.type === 'css_rule') {
+              connected = appendToStatementInput(selectedBlock, 'DECLARATIONS', newBlock);
+            } else if (blockType === 'css_rule' && selectedBlock.type === 'html_style_tag') {
+              connected = appendToStatementInput(selectedBlock, 'RULES', newBlock);
+            } else if (getFirstStatementInputName(selectedBlock)) {
+              const targetInput = (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') && selectedBlock.getInput('HEAD')
+                ? 'HEAD'
+                : getFirstStatementInputName(selectedBlock);
+              connected = appendToStatementInput(selectedBlock, targetInput, newBlock);
+            } else if (selectedBlock.nextConnection) {
+              selectedBlock.nextConnection.connect(newBlock.previousConnection);
+              connected = true;
+            }
+          }
+        }
+
+        if (!connected && mode === 'smart' && newBlock.previousConnection) {
+          const topBlocks = workspace.getTopBlocks(true);
+          const docBlock = topBlocks.find(b => b.type === 'html_document');
+          if (docBlock) {
+            if (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') {
+              connected = appendToStatementInput(docBlock, 'HEAD', newBlock);
+            } else if (blockType === 'css_rule') {
+              const styleBlock = workspace.getAllBlocks(false).find(b => b.type === 'html_style_tag');
+              if (styleBlock) {
+                connected = appendToStatementInput(styleBlock, 'RULES', newBlock);
+              }
+            } else if (isCssProperty) {
+              const cssRules = workspace.getAllBlocks(false).filter(b => b.type === 'css_rule');
+              if (cssRules.length > 0) {
+                connected = appendToStatementInput(cssRules[cssRules.length - 1], 'DECLARATIONS', newBlock);
+              }
+            } else {
+              connected = appendToStatementInput(docBlock, 'BODY', newBlock);
+            }
+          }
+        }
+
+        if (!connected) {
+          const metrics = workspace.getMetrics();
+          const scale = workspace.scale || 1;
+          const viewCenterX = (metrics.viewLeft + metrics.viewWidth * 0.25) / scale;
+          const viewCenterY = (metrics.viewTop + metrics.viewHeight * 0.25) / scale;
+          const jitter = Math.floor(Math.random() * 24);
+          newBlock.moveBy(viewCenterX + jitter, viewCenterY + jitter);
+        }
+      } finally {
+        Blockly.Events.enable();
+      }
+
+      if (newBlock) {
+        newBlock.select();
+        selectedBlockId = newBlock.id;
+        updateSelectedBlockUI();
+        workspace.centerOnBlock(newBlock.id);
+      }
+
+      markWorkspaceModified();
       showToast('MODUL BLOK DISEMATKAN');
     }
 
@@ -3007,6 +3105,7 @@
     // Expose handlers globally
     window.openBlockPicker = openBlockPicker;
     window.closeBlockPicker = closeBlockPicker;
+    window.handleBlockSearchInput = handleBlockSearchInput;
     window.clearBlockSearch = clearBlockSearch;
     window.selectModalCategory = selectModalCategory;
     window.renderBlockPickerCards = renderBlockPickerCards;
