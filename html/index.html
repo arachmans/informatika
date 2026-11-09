@@ -397,6 +397,11 @@
                 <div id="densityProgressBar" class="h-full w-full paper-progress-fill" style="transform: scaleX(0.25);"></div>
               </div>
               <span id="blockCountBadge" class="font-mono-code text-[10px] text-paper-muted">0 BLOK AKTIF</span>
+              <span class="text-paper-border">•</span>
+              <span id="saveStatusBadge" class="font-mono-code text-[10px] text-paper-teal flex items-center gap-1">
+                <i class="ph-fill ph-check-circle text-xs"></i>
+                <span class="hidden xs:inline">TERSIMPAN</span>
+              </span>
             </div>
           </div>
         </div>
@@ -776,9 +781,137 @@
     let isOutputDirty = true;
     let toastTimeout = null;
     let isBlueprintGridVisible = true;
+    let isRestoringWorkspace = false;
+    let autoSaveTimer = null;
+
+    const STORAGE_KEY_WORKSPACE = 'layar_kertas_blockly_workspace_v1';
+    const STORAGE_KEY_GRID = 'layar_kertas_blueprint_grid_v1';
 
     const LT = '<';
     const GT = '>';
+
+    // =========================================================
+    // 0. PERSISTENCE ENGINE (LOCALSTORAGE + OPTIONAL CLOUD SYNC)
+    // =========================================================
+    function setSaveStatusUI(stateText, isSaving = false) {
+      const badge = document.getElementById('saveStatusBadge');
+      if (!badge) return;
+      if (isSaving) {
+        badge.innerHTML = `<i class="ph ph-arrows-clockwise animate-spin text-xs"></i><span class="hidden xs:inline">${stateText}</span>`;
+      } else {
+        badge.innerHTML = `<i class="ph-fill ph-check-circle text-xs"></i><span class="hidden xs:inline">${stateText}</span>`;
+      }
+    }
+
+    function serializeCurrentWorkspace() {
+      if (!workspace) return null;
+      try {
+        if (Blockly.serialization && Blockly.serialization.workspaces) {
+          const stateObj = Blockly.serialization.workspaces.save(workspace);
+          return JSON.stringify({ format: 'json', data: stateObj, updatedAt: Date.now() });
+        } else if (Blockly.Xml) {
+          const xmlDom = Blockly.Xml.workspaceToDom(workspace);
+          const xmlText = Blockly.Xml.domToText(xmlDom);
+          return JSON.stringify({ format: 'xml', data: xmlText, updatedAt: Date.now() });
+        }
+      } catch (e) {
+        console.warn('Gagal melakukan serialisasi workspace:', e);
+      }
+      return null;
+    }
+
+    function syncAllDynamicCloseTags() {
+      if (!workspace) return;
+      const allBlocks = workspace.getAllBlocks(false);
+      for (const b of allBlocks) {
+        if (b.getField('CLOSE_TAG')) {
+          const tagVal = b.getFieldValue('LEVEL') || b.getFieldValue('TAG') || b.getFieldValue('TYPE');
+          if (tagVal) {
+            b.setFieldValue(`${LT}/${tagVal}${GT}`, 'CLOSE_TAG');
+          }
+        }
+      }
+    }
+
+    function deserializeIntoWorkspace(rawPayload) {
+      if (!workspace || !rawPayload) return false;
+      try {
+        const parsed = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
+        if (!parsed || !parsed.format) return false;
+
+        isRestoringWorkspace = true;
+        Blockly.Events.disable();
+        try {
+          workspace.clear();
+          if (parsed.format === 'json' && Blockly.serialization && Blockly.serialization.workspaces) {
+            Blockly.serialization.workspaces.load(parsed.data || {}, workspace);
+          } else if (parsed.format === 'xml' && Blockly.Xml) {
+            const dom = Blockly.utils.xml.textToDom(parsed.data);
+            Blockly.Xml.domToWorkspace(dom, workspace);
+          }
+          syncAllDynamicCloseTags();
+        } finally {
+          Blockly.Events.enable();
+          isRestoringWorkspace = false;
+        }
+        return true;
+      } catch (e) {
+        isRestoringWorkspace = false;
+        return false;
+      }
+    }
+
+    function saveWorkspaceStateNow() {
+      if (!workspace || isRestoringWorkspace) return;
+      const serialized = serializeCurrentWorkspace();
+      if (!serialized) return;
+
+      // 1. Save to LocalStorage
+      try {
+        window.localStorage.setItem(STORAGE_KEY_WORKSPACE, serialized);
+      } catch (e) {
+        // Fallback if localStorage is restricted in private iframe
+      }
+
+      // 2. Also trigger optional cloud persistence if initialized
+      if (typeof window.saveWorkspaceToCloud === 'function') {
+        window.saveWorkspaceToCloud(serialized);
+      }
+
+      setSaveStatusUI('TERSIMPAN', false);
+    }
+
+    function scheduleAutoSave() {
+      if (isRestoringWorkspace) return;
+      setSaveStatusUI('MENYIMPAN...', true);
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        saveWorkspaceStateNow();
+      }, 300);
+    }
+
+    function loadSavedWorkspaceFromLocalStorage() {
+      try {
+        // Restore Blueprint Grid preference
+        const savedGrid = window.localStorage.getItem(STORAGE_KEY_GRID);
+        if (savedGrid !== null) {
+          isBlueprintGridVisible = savedGrid === 'true';
+          applyBlueprintGridUI();
+        }
+
+        const savedRaw = window.localStorage.getItem(STORAGE_KEY_WORKSPACE);
+        if (savedRaw) {
+          const restored = deserializeIntoWorkspace(savedRaw);
+          if (restored) {
+            updateGeneratedOutputs();
+            return true;
+          }
+        }
+      } catch (e) {
+        // Ignore storage read errors
+      }
+      return false;
+    }
 
     function createColorField(defaultHex) {
       if (typeof Blockly !== 'undefined' && Blockly.FieldColour) {
@@ -2186,21 +2319,33 @@
     // =========================================================
     // 3. INITIALIZE BLOCKLY WORKSPACE & BLUEPRINT GRID TOGGLE
     // =========================================================
-    function toggleBlueprintGrid() {
-      isBlueprintGridVisible = !isBlueprintGridVisible;
+    function applyBlueprintGridUI() {
       const mainSurface = document.getElementById('mainBlueprintSurface');
       const statusLabel = document.getElementById('gridStatusLabel');
       const sideBtn = document.getElementById('sideGridToggleBtn');
+      if (!mainSurface) return;
 
       if (isBlueprintGridVisible) {
         mainSurface.classList.remove('blueprint-grid-off');
         if (statusLabel) statusLabel.textContent = 'GRID: ON';
         if (sideBtn) sideBtn.classList.add('text-paper-teal');
-        showToast('Grid Blueprint 28×28px Diaktifkan');
       } else {
         mainSurface.classList.add('blueprint-grid-off');
         if (statusLabel) statusLabel.textContent = 'GRID: OFF';
         if (sideBtn) sideBtn.classList.remove('text-paper-teal');
+      }
+    }
+
+    function toggleBlueprintGrid() {
+      isBlueprintGridVisible = !isBlueprintGridVisible;
+      applyBlueprintGridUI();
+      try {
+        window.localStorage.setItem(STORAGE_KEY_GRID, String(isBlueprintGridVisible));
+      } catch (e) {}
+
+      if (isBlueprintGridVisible) {
+        showToast('Grid Blueprint 28×28px Diaktifkan');
+      } else {
         showToast('Grid Blueprint Disembunyikan');
       }
     }
@@ -2317,7 +2462,21 @@
       renderModalCategoryTabs();
       renderBlockPickerCards();
 
-      loadPresetTemplate('profile', true);
+      // Restore previous work from LocalStorage if available; otherwise load starter template
+      const hasSavedWork = loadSavedWorkspaceFromLocalStorage();
+      if (!hasSavedWork) {
+        loadPresetTemplate('profile', true);
+        saveWorkspaceStateNow();
+      } else {
+        setTimeout(() => {
+          showToast('PEKERJAAN TERAKHIR DIPULIHKAN');
+        }, 250);
+      }
+
+      // Ensure any pending edits are saved right before page refresh/unload
+      window.addEventListener('beforeunload', () => {
+        saveWorkspaceStateNow();
+      });
     }
 
     // =========================================================
@@ -2358,6 +2517,7 @@
     function markWorkspaceModified() {
       isOutputDirty = true;
       updateBlockStatsOnly();
+      scheduleAutoSave();
       if (currentActivePage !== 'workspace') {
         updateGeneratedOutputs();
       }
@@ -2906,6 +3066,7 @@
         selectedBlockId = null;
         updateSelectedBlockUI();
         updateGeneratedOutputs();
+        saveWorkspaceStateNow();
       }
       closeClearConfirmModal();
       showToast('KERTAS KERJA DIKOSONGKAN');
@@ -3168,6 +3329,7 @@
       }
 
       updateGeneratedOutputs();
+      saveWorkspaceStateNow();
       closeTemplateModal();
       if (!isInitial) {
         switchPage('workspace');
@@ -3205,6 +3367,53 @@
     window.addEventListener('DOMContentLoaded', function() {
       initBlocklyWorkspace();
     });
+  </script>
+
+  <!-- Optional Cloud Sync Backup (Active automatically when environment config is present) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    (async function initCloudPersistence() {
+      if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
+      try {
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'layar-kertas-studio';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const workDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'workspaces', 'current');
+
+        window.saveWorkspaceToCloud = async (serializedPayload) => {
+          if (!auth.currentUser) return;
+          try {
+            await setDoc(workDocRef, {
+              payload: serializedPayload,
+              updatedAt: Date.now()
+            });
+          } catch (e) {}
+        };
+
+        // If LocalStorage was empty, try restoring from cloud backup
+        if (!window.localStorage.getItem('layar_kertas_blockly_workspace_v1')) {
+          const snap = await getDoc(workDocRef);
+          if (snap.exists() && snap.data()?.payload) {
+            window.localStorage.setItem('layar_kertas_blockly_workspace_v1', snap.data().payload);
+          }
+        }
+      } catch (e) {}
+    })();
   </script>
 </body>
 </html>
