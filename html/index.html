@@ -1,0 +1,3037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Layar Kertas — Studio Arsitektur HTML & CSS</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Barlow, Barlow Semi Condensed & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Google Blockly -->
+  <script src="https://unpkg.com/blockly@10.4.3/blockly.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"Barlow Semi Condensed"', 'sans-serif'],
+            sans: ['Barlow', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            paper: {
+              bg: '#f6eddd',
+              card: '#f9f2e5',
+              sidebar: '#e9dcca',
+              ink: '#4f535b',
+              muted: '#696d74',
+              teal: '#1aa3a1',
+              tealDark: '#137a78',
+              border: '#cec0ad',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg-main: #f6eddd;
+      --bg-card: #f9f2e5;
+      --bg-sidebar: #e9dcca;
+      --text-primary: #4f535b;
+      --text-secondary: #696d74;
+      --accent-teal: #1aa3a1;
+      --accent-teal-dark: #137a78;
+      --border-beige: #cec0ad;
+      --grid-ink: rgba(206, 192, 173, 0.32);
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: 'Barlow', sans-serif;
+      line-height: 1.55;
+    }
+
+    /* Typography System */
+    .font-heading-upper {
+      font-family: 'Barlow Semi Condensed', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-weight: 700;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    /* Blueprint 28x28px Grid Background */
+    .blueprint-grid {
+      background-color: var(--bg-main);
+      background-image:
+        linear-gradient(to right, var(--grid-ink) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-ink) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    .blueprint-grid-off {
+      background-color: var(--bg-main);
+      background-image: none !important;
+    }
+
+    /* Key Components Styling */
+    .paper-sidebar {
+      background: linear-gradient(180deg, #ede1d0 0%, #e4d5c1 100%);
+      border-color: var(--border-beige);
+    }
+
+    .paper-card {
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-beige);
+      border-radius: 12px;
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.85), 0 2px 6px rgba(79, 83, 91, 0.04);
+      transition: background-color 0.15s ease, transform 0.18s ease, border-color 0.15s ease;
+    }
+
+    .paper-card-interactive:hover {
+      transform: translateY(-2px);
+      border-color: #b8a790;
+    }
+
+    .paper-btn-teal {
+      background-color: var(--accent-teal);
+      border: 1.5px solid var(--accent-teal-dark);
+      color: #f9f2e5;
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.28);
+      transition: background-color 0.15s ease, transform 0.18s ease;
+    }
+    .paper-btn-teal:hover {
+      background-color: #16918f;
+      transform: translateY(-2px);
+    }
+    .paper-btn-teal:active {
+      transform: translateY(0px);
+    }
+
+    .paper-btn-secondary {
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-beige);
+      color: var(--text-primary);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.85);
+      transition: background-color 0.15s ease, transform 0.18s ease, border-color 0.15s ease;
+    }
+    .paper-btn-secondary:hover {
+      background-color: #f1e7d6;
+      border-color: #b8a790;
+      transform: translateY(-2px);
+    }
+    .paper-btn-secondary:active {
+      transform: translateY(0px);
+    }
+
+    .paper-chip {
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-beige);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
+      transition: background-color 0.15s ease, transform 0.18s ease, border-color 0.15s ease;
+    }
+    .paper-chip:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-teal);
+    }
+
+    .paper-input {
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-beige);
+      border-radius: 7px;
+      box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    /* Focus Ring Teal 4.5px with 2px gap */
+    .paper-focus:focus-visible,
+    .paper-input:focus {
+      outline: none;
+      border-color: var(--accent-teal);
+      box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 6.5px rgba(26, 163, 161, 0.45);
+    }
+
+    /* Tab Label Underline 4.5px tebal */
+    .paper-tab {
+      font-family: 'Barlow Semi Condensed', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-weight: 700;
+      border-bottom: 4.5px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease, transform 0.18s ease;
+    }
+    .paper-tab-active {
+      color: var(--text-primary);
+      border-bottom-color: var(--accent-teal);
+    }
+
+    /* Progress bar with shine effect */
+    .paper-progress-track {
+      background-color: #e4d6c3;
+      border: 1px solid var(--border-beige);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .paper-progress-fill {
+      background: linear-gradient(90deg, #158a88 0%, #1aa3a1 55%, #4bc4c2 100%);
+      transform-origin: left center;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .paper-progress-fill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      animation: shineSweep 2.4s infinite;
+    }
+    @keyframes shineSweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Scrollbars */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .paper-scroll::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    .paper-scroll::-webkit-scrollbar-track {
+      background: #efe4d2;
+    }
+    .paper-scroll::-webkit-scrollbar-thumb {
+      background: #cec0ad;
+      border-radius: 4px;
+    }
+    .paper-scroll::-webkit-scrollbar-thumb:hover {
+      background: #1aa3a1;
+    }
+
+    /* Blockly Workspace Overrides for Warm Paper Blueprint */
+    #blocklyDiv {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .blocklySvg {
+      background-color: transparent !important;
+    }
+    .blocklyMainBackground {
+      stroke: none !important;
+      fill: transparent !important;
+    }
+    .blocklyText {
+      fill: #4f535b !important;
+    }
+    .blocklyEditableText > rect {
+      fill: #f9f2e5 !important;
+      stroke: #cec0ad !important;
+      stroke-width: 1px !important;
+      rx: 5px !important;
+      ry: 5px !important;
+    }
+    .blocklyEditableText > text {
+      fill: #4f535b !important;
+    }
+    .blocklyDropdownText {
+      fill: #4f535b !important;
+    }
+    .blocklyWidgetDiv .blocklyMenu {
+      border-radius: 10px !important;
+      border: 1.5px solid #cec0ad !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 8px 20px rgba(79, 83, 91, 0.14) !important;
+      background: #f9f2e5 !important;
+      padding: 6px !important;
+    }
+    .blocklySelected > .blocklyPath {
+      stroke: #1aa3a1 !important;
+      stroke-width: 3px !important;
+    }
+    .blocklyPath {
+      stroke: #b9aa95 !important;
+      stroke-width: 1.2px !important;
+    }
+
+    /* Syntax Highlighting in Warm Blueprint Ink Tones */
+    .tok-tag { color: #137a78; font-weight: 600; }
+    .tok-attr { color: #7c5836; font-weight: 500; }
+    .tok-str { color: #1aa3a1; }
+    .tok-comment { color: #8c857B; font-style: italic; }
+
+    @keyframes modalRise {
+      0% { opacity: 0; transform: translateY(10px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-modal {
+      animation: modalRise 0.18s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="flex flex-col md:flex-row h-[100dvh] w-full overflow-hidden select-none bg-paper-bg text-paper-ink">
+
+  <!-- =========================================================
+       LEFT SIDEBAR (72px Fixed on Desktop/Tablet, Hidden on Mobile)
+       ========================================================= -->
+  <aside class="hidden md:flex md:w-[72px] md:h-full paper-sidebar border-r-[1.5px] border-paper-border flex-col items-center justify-between py-4 z-30 shrink-0">
+    <!-- Top Brand Emblem -->
+    <div class="flex flex-col items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-paper-card border-[1.5px] border-paper-border flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]" title="Layar Kertas Studio">
+        <i class="ph ph-compass-tool text-2xl text-paper-ink"></i>
+      </div>
+      <span class="font-mono-code text-[9px] uppercase text-paper-muted tracking-widest">LK-01</span>
+    </div>
+
+    <!-- Center Navigation Icons (Stroke Navy #4f535b + Teal Active Indicator) -->
+    <div class="flex flex-col items-center gap-3 w-full px-2">
+      <button onclick="switchPage('workspace')" id="side-btn-workspace" title="Workspace Blok"
+        class="paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-paper-card border-[1.5px] border-paper-teal text-paper-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition">
+        <span id="side-bar-workspace" class="absolute left-0 top-2.5 bottom-2.5 w-[4px] rounded-r bg-paper-teal"></span>
+        <i class="ph ph-blueprint text-xl text-paper-ink"></i>
+        <span class="font-heading-upper text-[9px]">Blok</span>
+      </button>
+
+      <button onclick="switchPage('code')" id="side-btn-code" title="Kode HTML & CSS"
+        class="paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-transparent hover:bg-paper-card/70 border-[1.5px] border-transparent text-paper-muted hover:text-paper-ink transition">
+        <span id="side-bar-code" class="hidden absolute left-0 top-2.5 bottom-2.5 w-[4px] rounded-r bg-paper-teal"></span>
+        <i class="ph ph-file-code text-xl"></i>
+        <span class="font-heading-upper text-[9px]">Kode</span>
+      </button>
+
+      <button onclick="switchPage('preview')" id="side-btn-preview" title="Live Preview Web"
+        class="paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-transparent hover:bg-paper-card/70 border-[1.5px] border-transparent text-paper-muted hover:text-paper-ink transition">
+        <span id="side-bar-preview" class="hidden absolute left-0 top-2.5 bottom-2.5 w-[4px] rounded-r bg-paper-teal"></span>
+        <i class="ph ph-browsers text-xl"></i>
+        <span class="font-heading-upper text-[9px]">Hasil</span>
+      </button>
+    </div>
+
+    <!-- Bottom Utility Controls (Grid Toggle & Template) -->
+    <div class="flex flex-col items-center gap-2.5">
+      <button onclick="toggleBlueprintGrid()" id="sideGridToggleBtn" title="Toggle Grid Blueprint 28×28px"
+        class="paper-focus w-11 h-11 rounded-xl paper-btn-secondary flex flex-col items-center justify-center text-paper-teal">
+        <i class="ph ph-grid-four text-lg"></i>
+        <span class="font-mono-code text-[8px] uppercase">Grid</span>
+      </button>
+
+      <button onclick="openTemplateModal()" title="Muat Cetakan / Template"
+        class="paper-focus w-11 h-11 rounded-xl paper-btn-secondary flex items-center justify-center text-paper-ink">
+        <i class="ph ph-Note-pencil text-lg"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       MAIN WORKBENCH COLUMN
+       ========================================================= -->
+  <div class="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+
+    <!-- TOP ARCHITECTURAL HEADER & BLOCK CATEGORY BAR -->
+    <header class="w-full bg-paper-card border-b-[1.5px] border-paper-border z-20 shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
+      <!-- Top Bar Row -->
+      <div class="flex items-center justify-between px-3 sm:px-5 py-2.5 gap-2">
+        <div class="flex items-center gap-3 min-w-0">
+          <!-- Mobile Emblem -->
+          <div class="md:hidden w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center shrink-0">
+            <i class="ph ph-compass-tool text-lg text-paper-ink"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 class="font-heading-upper text-sm sm:text-base text-paper-ink truncate">Layar Kertas — Studio HTML</h1>
+              <span class="paper-chip px-2 py-0.5 rounded text-[10px] font-semibold text-paper-teal border-paper-teal/50 hidden sm:inline-block">BLUEPRINT v2.4</span>
+            </div>
+            <!-- Blueprint Density Progress Bar -->
+            <div class="flex items-center gap-2 mt-1">
+              <div class="w-24 sm:w-32 h-1.5 paper-progress-track">
+                <div id="densityProgressBar" class="h-full w-full paper-progress-fill" style="transform: scaleX(0.25);"></div>
+              </div>
+              <span id="blockCountBadge" class="font-mono-code text-[10px] text-paper-muted">0 BLOK AKTIF</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Header Actions -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <!-- Grid Toggle Button (Visible on Mobile & Desktop) -->
+          <button onclick="toggleBlueprintGrid()" id="topGridToggleBtn" title="Tampilkan / Sembunyikan Grid 28×28px"
+            class="paper-focus paper-btn-secondary px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium">
+            <i class="ph ph-grid-four text-base text-paper-teal"></i>
+            <span id="gridStatusLabel" class="font-mono-code text-[11px] hidden sm:inline">GRID: ON</span>
+          </button>
+
+          <!-- Search Blocks -->
+          <button onclick="openBlockPicker('all', true)"
+            class="paper-focus paper-btn-secondary px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium">
+            <i class="ph ph-magnifying-glass text-base text-paper-ink"></i>
+            <span class="hidden sm:inline font-heading-upper text-xs">Cari</span>
+          </button>
+
+          <!-- Template Button -->
+          <button onclick="openTemplateModal()"
+            class="paper-focus paper-btn-secondary px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium">
+            <i class="ph ph-folders text-base text-paper-ink"></i>
+            <span class="font-heading-upper text-xs">Arsip</span>
+          </button>
+
+          <!-- Primary CTA: Add Block -->
+          <button onclick="openBlockPicker('all', false)"
+            class="paper-focus paper-btn-teal px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs">
+            <i class="ph-bold ph-plus text-sm"></i>
+            <span class="font-heading-upper text-xs">Blok Baru</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Chip Selector Bar (Pop-up Triggers) -->
+      <div id="categoryTopBar" class="px-3 sm:px-5 pb-2.5 pt-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar border-t border-paper-border/60">
+        <span class="font-heading-upper text-[11px] text-paper-muted pr-1.5 shrink-0 flex items-center gap-1">
+          <i class="ph ph-stack text-paper-teal"></i> Kategori:
+        </span>
+
+        <button onclick="openBlockPicker('struktur')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#d8b898] border border-paper-ink/40"></span>
+          <span>01. Struktur</span>
+        </button>
+
+        <button onclick="openBlockPicker('teks')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#e2cbb0] border border-paper-ink/40"></span>
+          <span>02. Tipografi</span>
+        </button>
+
+        <button onclick="openBlockPicker('layout')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#d2c4ae] border border-paper-ink/40"></span>
+          <span>03. Kontainer</span>
+        </button>
+
+        <button onclick="openBlockPicker('daftar_tabel')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#c5d1c0] border border-paper-ink/40"></span>
+          <span>04. Tabel & List</span>
+        </button>
+
+        <button onclick="openBlockPicker('media')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#b8cfd0] border border-paper-ink/40"></span>
+          <span>05. Media & Link</span>
+        </button>
+
+        <button onclick="openBlockPicker('formulir')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#d6c5be] border border-paper-ink/40"></span>
+          <span>06. Formulir</span>
+        </button>
+
+        <button onclick="openBlockPicker('css')" class="paper-focus paper-chip shrink-0 px-2.5 py-1 rounded-md text-[11px] text-paper-ink flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[#1aa3a1]"></span>
+          <span>07. Gaya CSS</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         MAIN CONTENT AREA (28x28px Blueprint Grid Toggleable)
+         ========================================================= -->
+    <main id="mainBlueprintSurface" class="relative flex-1 w-full overflow-hidden blueprint-grid">
+
+      <!-- -------------------------------------------------------
+           HALAMAN 1: WORKSPACE BLOK (FULLSCREEN BLOCKLY)
+           ------------------------------------------------------- -->
+      <section id="page-workspace" class="w-full h-full relative flex flex-col">
+        <!-- Blockly Fullscreen Canvas -->
+        <div id="blocklyDiv" class="flex-1 w-full h-full"></div>
+
+        <!-- Selected Block Context Pill (Top Left Floating Card) -->
+        <div id="selectedBlockIndicator" class="hidden absolute top-3 left-3 z-20 max-w-[82vw] sm:max-w-md paper-card px-3 py-1.5 flex items-center gap-2 text-xs">
+          <span class="w-2 h-2 rounded-full bg-paper-teal shrink-0"></span>
+          <span class="truncate font-mono-code text-[11px] text-paper-ink" id="selectedBlockText">Blok terpilih</span>
+          <button onclick="duplicateSelectedBlock()" title="Duplikat Blok" class="paper-focus ml-1 px-2 py-0.5 rounded paper-btn-secondary font-heading-upper text-[10px] text-paper-teal shrink-0">
+            Duplikat
+          </button>
+          <button onclick="deleteSelectedBlock()" title="Hapus Blok" class="paper-focus px-2 py-0.5 rounded paper-btn-secondary font-heading-upper text-[10px] text-paper-ink shrink-0">
+            Hapus
+          </button>
+        </div>
+
+        <!-- Floating Drafting Tools (Bottom Left of Workspace) -->
+        <div class="absolute bottom-3 left-3 z-20 flex items-center gap-1 paper-card px-2 py-1.5">
+          <button onclick="workspaceUndo()" title="Urungkan (Undo)" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary flex items-center justify-center text-paper-ink">
+            <i class="ph ph-arrow-u-up-left text-base"></i>
+          </button>
+          <button onclick="workspaceRedo()" title="Ulangi (Redo)" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary flex items-center justify-center text-paper-ink">
+            <i class="ph ph-arrow-u-up-right text-base"></i>
+          </button>
+          <div class="w-[1.5px] h-5 bg-paper-border mx-0.5"></div>
+          <button onclick="centerWorkspace()" title="Pusatkan Kanvas" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary flex items-center justify-center text-paper-ink">
+            <i class="ph ph-corners-out text-base"></i>
+          </button>
+          <button onclick="zoomWorkspace(1)" title="Perbesar" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary hidden sm:flex items-center justify-center text-paper-ink">
+            <i class="ph ph-magnifying-glass-plus text-base"></i>
+          </button>
+          <button onclick="zoomWorkspace(-1)" title="Perkecil" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary hidden sm:flex items-center justify-center text-paper-ink">
+            <i class="ph ph-magnifying-glass-minus text-base"></i>
+          </button>
+          <div class="w-[1.5px] h-5 bg-paper-border mx-0.5"></div>
+          <button onclick="openClearConfirmModal()" title="Bersihkan Kertas Kerja" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary flex items-center justify-center text-paper-ink hover:text-red-700">
+            <i class="ph ph-trash text-base"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- -------------------------------------------------------
+           HALAMAN 2: HASIL KODE HTML & CSS (FULL DI BAWAH JUDUL)
+           ------------------------------------------------------- -->
+      <section id="page-code" class="hidden w-full h-full flex-col overflow-hidden">
+        <!-- Code Subheader -->
+        <div class="px-4 sm:px-[22px] py-3 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center">
+              <i class="ph ph-file-code text-lg text-paper-ink"></i>
+            </div>
+            <div>
+              <h2 class="font-heading-upper text-sm sm:text-base text-paper-ink leading-tight">Hasil Kode HTML & CSS</h2>
+              <p id="codeStatsText" class="font-mono-code text-[11px] text-paper-muted">0 BARIS • 0 KARAKTER</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Copy Code Button (Icon only on mobile, label on sm+) -->
+            <button onclick="copyGeneratedCode()" title="Salin Kode"
+              class="paper-focus paper-btn-teal px-3 py-2 rounded-lg flex items-center gap-1.5 text-xs font-semibold">
+              <i class="ph-bold ph-copy text-base"></i>
+              <span class="hidden sm:inline font-heading-upper text-xs">Salin Kode</span>
+            </button>
+
+            <!-- Download .html Button -->
+            <button onclick="downloadHtmlFile()" title="Unduh Berkas HTML"
+              class="paper-focus paper-btn-secondary px-3 py-2 rounded-lg flex items-center gap-1.5 text-xs font-semibold">
+              <i class="ph-bold ph-download-simple text-base text-paper-ink"></i>
+              <span class="hidden sm:inline font-heading-upper text-xs">Unduh .html</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Direct Fullscreen Code Viewer Without Extra Frame -->
+        <div class="flex-1 w-full h-full min-h-0 overflow-auto flex font-mono-code text-xs sm:text-sm leading-relaxed paper-scroll select-text bg-paper-card/85">
+          <div id="codeLineNumbers" class="py-4 px-3 bg-paper-sidebar/60 border-r-[1.5px] border-paper-border text-right text-paper-muted select-none shrink-0 min-h-full">
+            1
+          </div>
+          <pre id="codeDisplayArea" class="py-4 px-5 m-0 flex-1 overflow-x-auto text-paper-ink whitespace-pre min-h-full"></pre>
+        </div>
+
+        <!-- Hidden textarea for clipboard copy -->
+        <textarea id="hiddenClipboardArea" class="sr-only" aria-hidden="true"></textarea>
+      </section>
+
+      <!-- -------------------------------------------------------
+           HALAMAN 3: LIVE PREVIEW (FULL DI BAWAH JUDUL)
+           ------------------------------------------------------- -->
+      <section id="page-preview" class="hidden w-full h-full flex-col overflow-hidden">
+        <!-- Live Preview Subheader -->
+        <div class="px-4 sm:px-[22px] py-3 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between gap-2 shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center">
+              <i class="ph ph-browsers text-lg text-paper-ink"></i>
+            </div>
+            <div>
+              <h2 class="font-heading-upper text-sm sm:text-base text-paper-ink leading-tight">Live Preview Hasil Web</h2>
+              <p class="text-xs text-paper-muted">Render langsung dari susunan blok cetak biru</p>
+            </div>
+          </div>
+
+          <button onclick="refreshLivePreview()" title="Muat Ulang Pratinjau"
+            class="paper-focus paper-btn-teal px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5">
+            <i class="ph-bold ph-arrows-clockwise text-base"></i>
+            <span class="font-heading-upper text-xs">Segarkan</span>
+          </button>
+        </div>
+
+        <!-- Direct Fullscreen Iframe Without Outer Frame -->
+        <iframe id="livePreviewIframe" title="Live Preview HTML" class="flex-1 w-full h-full min-h-0 border-0 bg-[#f9f2e5] block"></iframe>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         MOBILE BOTTOM NAVIGATION (Tab Labels with 4.5px Underline)
+         ========================================================= -->
+    <nav class="md:hidden w-full paper-sidebar border-t-[1.5px] border-paper-border px-3 pt-1 z-30 shrink-0">
+      <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
+        <button onclick="switchPage('workspace')" id="mob-tab-workspace"
+          class="paper-focus paper-tab paper-tab-active flex flex-col items-center justify-center py-2 text-xs">
+          <i id="mob-icon-workspace" class="ph-fill ph-blueprint text-lg text-paper-teal"></i>
+          <span class="mt-0.5 text-[11px]">Workspace</span>
+        </button>
+
+        <button onclick="switchPage('code')" id="mob-tab-code"
+          class="paper-focus paper-tab text-paper-muted flex flex-col items-center justify-center py-2 text-xs">
+          <i id="mob-icon-code" class="ph ph-file-code text-lg"></i>
+          <span class="mt-0.5 text-[11px]">Kode HTML</span>
+        </button>
+
+        <button onclick="switchPage('preview')" id="mob-tab-preview"
+          class="paper-focus paper-tab text-paper-muted flex flex-col items-center justify-center py-2 text-xs">
+          <i id="mob-icon-preview" class="ph ph-browsers text-lg"></i>
+          <span class="mt-0.5 text-[11px]">Live Preview</span>
+        </button>
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- =========================================================
+       POP-UP MODAL 1: KATALOG BLOK HTML & CSS
+       ========================================================= -->
+  <div id="blockPickerModal" class="hidden fixed inset-0 z-50 bg-[#4f535b]/45 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-5">
+    <div class="w-full sm:max-w-3xl max-h-[88dvh] bg-paper-bg rounded-t-2xl sm:rounded-xl border-t-[1.5px] sm:border-[1.5px] border-paper-border shadow-xl flex flex-col overflow-hidden animate-modal">
+      <!-- Modal Header -->
+      <div class="px-5 py-3.5 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center">
+            <i class="ph ph-squares-four text-lg text-paper-teal"></i>
+          </div>
+          <div>
+            <h3 class="font-heading-upper text-sm sm:text-base text-paper-ink leading-tight">Indeks Komponen Blok HTML & CSS</h3>
+            <p class="text-xs text-paper-muted">Ketuk modul untuk menyematkannya ke kertas kerja</p>
+          </div>
+        </div>
+        <button onclick="closeBlockPicker()" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary flex items-center justify-center text-paper-ink">
+          <i class="ph-bold ph-x text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Search & Placement Bar -->
+      <div class="p-3.5 bg-paper-card/60 border-b-[1.5px] border-paper-border flex flex-col sm:flex-row gap-2.5 shrink-0">
+        <div class="relative flex-1">
+          <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-paper-muted"></i>
+          <input id="blockSearchInput" type="text" oninput="renderBlockPickerCards()"
+            placeholder="Cari tag atau properti (misal: div, h1, table, form, flex)..."
+            class="w-full pl-9 pr-8 py-2 paper-input text-xs sm:text-sm font-medium" />
+          <button onclick="clearBlockSearch()" id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-paper-muted hover:text-paper-ink">
+            <i class="ph-fill ph-x-circle text-base"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 paper-input px-3 py-1.5 shrink-0">
+          <span class="font-heading-upper text-[10px] text-paper-muted">Posisi:</span>
+          <select id="insertModeSelect" class="bg-transparent font-mono-code text-xs font-semibold text-paper-ink focus:outline-none cursor-pointer">
+            <option value="smart">Otomatis Cerdas</option>
+            <option value="inside">Di Dalam Blok Aktif</option>
+            <option value="after">Di Bawah Blok Aktif</option>
+            <option value="free">Bebas di Kanvas</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Tabs inside Modal -->
+      <div id="modalCategoryTabs" class="px-4 py-2 bg-paper-sidebar/50 border-b-[1.5px] border-paper-border flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Block Cards Grid (Padding 22px per layout spec) -->
+      <div id="blockCardsContainer" class="flex-1 overflow-y-auto p-[22px] grid grid-cols-1 sm:grid-cols-2 gap-3 paper-scroll blueprint-grid">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       POP-UP MODAL 2: ARSIP TEMPLATE CETAK BIRU
+       ========================================================= -->
+  <div id="templateModal" class="hidden fixed inset-0 z-50 bg-[#4f535b]/45 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-5">
+    <div class="w-full sm:max-w-xl max-h-[85dvh] bg-paper-bg rounded-t-2xl sm:rounded-xl border-t-[1.5px] sm:border-[1.5px] border-paper-border shadow-xl flex flex-col overflow-hidden animate-modal">
+      <div class="px-5 py-3.5 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center">
+            <i class="ph ph-folders text-lg text-paper-teal"></i>
+          </div>
+          <div>
+            <h3 class="font-heading-upper text-base text-paper-ink">Arsip Cetakan Siap Pakai</h3>
+            <p class="text-xs text-paper-muted">Pilih struktur awal untuk dimodifikasi di ruang kerja</p>
+          </div>
+        </div>
+        <button onclick="closeTemplateModal()" class="paper-focus w-8 h-8 rounded-lg paper-btn-secondary flex items-center justify-center text-paper-ink">
+          <i class="ph-bold ph-x text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-[22px] overflow-y-auto space-y-3 paper-scroll blueprint-grid">
+        <button onclick="loadPresetTemplate('profile')" class="paper-focus w-full text-left p-4 paper-card paper-card-interactive flex items-start gap-3.5">
+          <span class="paper-chip px-2 py-1 rounded text-xs font-bold text-paper-teal">01</span>
+          <div class="flex-1">
+            <div class="font-heading-upper text-sm text-paper-ink">Lembar Spesifikasi Arsitek (Rekomendasi)</div>
+            <p class="text-xs text-paper-muted mt-1">Lengkap dengan blok &lt;style&gt; kertas hangat, ilustrasi kartu, judul, paragraf catatan, lencana, dan tombol interaktif.</p>
+          </div>
+        </button>
+
+        <button onclick="loadPresetTemplate('form')" class="paper-focus w-full text-left p-4 paper-card paper-card-interactive flex items-start gap-3.5">
+          <span class="paper-chip px-2 py-1 rounded text-xs font-bold text-paper-teal">02</span>
+          <div class="flex-1">
+            <div class="font-heading-upper text-sm text-paper-ink">Formulir Catatan Lapangan</div>
+            <p class="text-xs text-paper-muted mt-1">Susunan lengkap elemen &lt;form&gt;, &lt;label&gt;, &lt;input&gt;, &lt;select&gt;, &lt;textarea&gt;, dan tombol kirim.</p>
+          </div>
+        </button>
+
+        <button onclick="loadPresetTemplate('schedule')" class="paper-focus w-full text-left p-4 paper-card paper-card-interactive flex items-start gap-3.5">
+          <span class="paper-chip px-2 py-1 rounded text-xs font-bold text-paper-teal">03</span>
+          <div class="flex-1">
+            <div class="font-heading-upper text-sm text-paper-ink">Tabel Inventaris & Daftar Komponen</div>
+            <p class="text-xs text-paper-muted mt-1">Contoh penggunaan &lt;table&gt;, &lt;tr&gt;, &lt;th&gt;, &lt;td&gt; serta daftar &lt;ul&gt; dan &lt;li&gt; bergaya kertas kerja.</p>
+          </div>
+        </button>
+
+        <button onclick="loadPresetTemplate('basic')" class="paper-focus w-full text-left p-4 paper-card paper-card-interactive flex items-start gap-3.5">
+          <span class="paper-chip px-2 py-1 rounded text-xs font-bold text-paper-teal">04</span>
+          <div class="flex-1">
+            <div class="font-heading-upper text-sm text-paper-ink">Kertas Kosong Standar (&lt;!DOCTYPE html&gt;)</div>
+            <p class="text-xs text-paper-muted mt-1">Hanya kerangka dasar dokumen HTML bersih dan satu blok judul &lt;h1&gt;.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       POP-UP MODAL 3: KONFIRMASI BERSIHKAN KANVAS
+       ========================================================= -->
+  <div id="clearConfirmModal" class="hidden fixed inset-0 z-50 bg-[#4f535b]/45 backdrop-blur-[1px] flex items-center justify-center p-4">
+    <div class="w-full max-w-sm paper-card p-6 text-center animate-modal">
+      <div class="w-11 h-11 rounded-xl bg-paper-bg border-[1.5px] border-paper-border mx-auto flex items-center justify-center mb-3">
+        <i class="ph ph-eraser text-2xl text-paper-ink"></i>
+      </div>
+      <h3 class="font-heading-upper text-base text-paper-ink">Bersihkan Kertas Kerja?</h3>
+      <p class="text-xs text-paper-muted mt-1.5 mb-5">Seluruh susunan blok pada kanvas akan dikosongkan. Anda tetap dapat menekan tombol Undo setelahnya.</p>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button onclick="closeClearConfirmModal()" class="paper-focus py-2 rounded-lg paper-btn-secondary font-heading-upper text-xs">
+          Batal
+        </button>
+        <button onclick="confirmClearWorkspace()" class="paper-focus py-2 rounded-lg paper-btn-teal font-heading-upper text-xs">
+          Ya, Kosongkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       TOAST NOTIFICATION
+       ========================================================= -->
+  <div id="toastNotification" class="pointer-events-none fixed top-16 left-1/2 -translate-x-1/2 z-50 opacity-0 -translate-y-2 transition-all duration-200">
+    <div class="px-4 py-2 rounded-lg bg-paper-ink text-[#f9f2e5] border-[1.5px] border-paper-border shadow-md flex items-center gap-2 text-xs font-medium">
+      <span class="w-2 h-2 rounded-full bg-paper-teal"></span>
+      <span id="toastMessage" class="font-mono-code text-[11px]">Tersimpan</span>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       JAVASCRIPT: BLOCKLY DEFINITIONS, GENERATOR & UI LOGIC
+       ========================================================= -->
+  <script>
+    let workspace = null;
+    let currentActivePage = 'workspace';
+    let currentPickerCategory = 'all';
+    let selectedBlockId = null;
+    let latestGeneratedHtml = '';
+    let toastTimeout = null;
+    let isBlueprintGridVisible = true;
+
+    const LT = '<';
+    const GT = '>';
+
+    function createColorField(defaultHex) {
+      if (typeof Blockly !== 'undefined' && Blockly.FieldColour) {
+        return new Blockly.FieldColour(defaultHex);
+      }
+      return new Blockly.FieldTextInput(defaultHex);
+    }
+
+    // Warm Vintage Paper & Blueprint Blockly Palette (Organic muted parchment hues + Teal accent)
+    const BLOCK_COLORS = {
+      struktur: '#d8b898',     // Warm Kraft Tan
+      teks: '#dfc9ae',         // Aged Vellum
+      layout: '#d1c2ab',       // Sandstone Paper
+      daftar_tabel: '#bfd0be', // Sage Blueprint
+      media: '#b2CCCE',        // Muted Teal Tint
+      formulir: '#d5c2b8',     // Warm Clay
+      css: '#84c5c4'           // Soft Blueprint Teal
+    };
+
+    const BLOCK_CATALOG = [
+      // 1. STRUKTUR
+      {
+        type: 'html_document',
+        category: 'struktur',
+        title: `${LT}!DOCTYPE html${GT} Dokumen Utama`,
+        tagBadge: `${LT}html${GT} ${LT}head${GT} ${LT}body${GT}`,
+        desc: `Kerangka utama halaman web yang menampung bagian ${LT}head${GT} dan ${LT}body${GT}.`
+      },
+      {
+        type: 'html_title',
+        category: 'struktur',
+        title: `Judul Tab Halaman (${LT}title${GT})`,
+        tagBadge: `${LT}title${GT}`,
+        desc: `Menentukan judul halaman web pada tab browser (di dalam ${LT}head${GT}).`
+      },
+      {
+        type: 'html_style_tag',
+        category: 'struktur',
+        title: `Wadah CSS Internal (${LT}style${GT})`,
+        tagBadge: `${LT}style${GT} ... ${LT}/style${GT}`,
+        desc: `Tempat menaruh blok-blok aturan selector CSS di dalam ${LT}head${GT} atau ${LT}body${GT}.`
+      },
+      {
+        type: 'html_meta_charset',
+        category: 'struktur',
+        title: 'Meta UTF-8 & Viewport Responsif',
+        tagBadge: `${LT}meta${GT}`,
+        desc: 'Mengatur karakter UTF-8 dan agar tampilan web otomatis responsif di layar HP.'
+      },
+      {
+        type: 'html_comment',
+        category: 'struktur',
+        title: 'Komentar Catatan HTML',
+        tagBadge: `${LT}!-- ... --${GT}`,
+        desc: 'Catatan arsip di dalam kode HTML yang tidak ditampilkan di layar.'
+      },
+
+      // 2. TEKS
+      {
+        type: 'html_heading',
+        category: 'teks',
+        title: 'Judul Heading (<h1> - <h6>)',
+        tagBadge: '<h1>..<h6>',
+        desc: 'Teks judul utama atau subjudul dengan pilihan tingkat H1 sampai H6.'
+      },
+      {
+        type: 'html_paragraph',
+        category: 'teks',
+        title: 'Paragraf Teks (<p>)',
+        tagBadge: '<p>',
+        desc: 'Menampilkan paragraf teks catatan.'
+      },
+      {
+        type: 'html_paragraph_container',
+        category: 'teks',
+        title: 'Paragraf Kontainer (<p> Bersarang)',
+        tagBadge: '<p> ... </p>',
+        desc: 'Paragraf yang dapat diisi gabungan teks tebal, miring, atau tautan.'
+      },
+      {
+        type: 'html_text_inline',
+        category: 'teks',
+        title: 'Format Teks Inline',
+        tagBadge: '<strong> <em> <mark> <code>',
+        desc: 'Teks dengan penekanan khusus seperti tebal, miring, stabilo, atau kode.'
+      },
+      {
+        type: 'html_raw_text',
+        category: 'teks',
+        title: 'Teks Bebas Murni',
+        tagBadge: '"Teks..."',
+        desc: 'Baris teks biasa tanpa tag pembungkus.'
+      },
+      {
+        type: 'html_blockquote',
+        category: 'teks',
+        title: 'Kutipan Catatan (<blockquote>)',
+        tagBadge: '<blockquote>',
+        desc: 'Menampilkan blok kutipan atau catatan khusus.'
+      },
+      {
+        type: 'html_br_hr',
+        category: 'teks',
+        title: 'Baris Baru (<br>) / Garis (<hr>)',
+        tagBadge: '<br> / <hr>',
+        desc: 'Membuat pindah baris baru atau garis pemisah horizontal.'
+      },
+
+      // 3. LAYOUT & BOX
+      {
+        type: 'html_container',
+        category: 'layout',
+        title: 'Kontainer Semantik & Div',
+        tagBadge: '<div> <section> <header>',
+        desc: 'Wadah pembungkus elemen (div, section, header, footer, main, article, nav).'
+      },
+      {
+        type: 'html_card',
+        category: 'layout',
+        title: 'Kotak Kartu Kertas (Card Box)',
+        tagBadge: '<div class="card">',
+        desc: 'Wadah kotak kartu dengan pengaturan latar, radius sudut, dan ruang dalam.'
+      },
+      {
+        type: 'html_flex_box',
+        category: 'layout',
+        title: 'Kontainer Flexbox',
+        tagBadge: '<div style="display:flex">',
+        desc: 'Mengatur elemen di dalamnya berjajar mendatar (row) atau menurun (column).'
+      },
+
+      // 4. DAFTAR & TABEL
+      {
+        type: 'html_list',
+        category: 'daftar_tabel',
+        title: 'Wadah Daftar (<ul> / <ol>)',
+        tagBadge: '<ul> / <ol>',
+        desc: 'Membuat daftar poin atau daftar berurut angka.'
+      },
+      {
+        type: 'html_list_item',
+        category: 'daftar_tabel',
+        title: 'Item Daftar (<li>)',
+        tagBadge: '<li>',
+        desc: 'Isi baris item di dalam blok daftar <ul> atau <ol>.'
+      },
+      {
+        type: 'html_table',
+        category: 'daftar_tabel',
+        title: 'Wadah Tabel (<table>)',
+        tagBadge: '<table>',
+        desc: 'Tabel data yang menampung baris <tr> atau bagian <thead> / <tbody>.'
+      },
+      {
+        type: 'html_table_section',
+        category: 'daftar_tabel',
+        title: 'Bagian Tabel (<thead> / <tbody>)',
+        tagBadge: '<thead> <tbody>',
+        desc: 'Mengelompokkan kepala tabel (thead) dan isi tabel (tbody).'
+      },
+      {
+        type: 'html_table_row',
+        category: 'daftar_tabel',
+        title: 'Baris Tabel (<tr>)',
+        tagBadge: '<tr>',
+        desc: 'Membuat satu baris mendatar di dalam tabel.'
+      },
+      {
+        type: 'html_table_cell',
+        category: 'daftar_tabel',
+        title: 'Sel Tabel (<th> / <td>)',
+        tagBadge: '<th> / <td>',
+        desc: 'Kotak sel di dalam baris tabel (<th> untuk judul kolom, <td> untuk data).'
+      },
+
+      // 5. MEDIA & LINK
+      {
+        type: 'html_link',
+        category: 'media',
+        title: 'Tautan Link (<a href>)',
+        tagBadge: '<a>',
+        desc: 'Teks tautan interaktif menuju URL tujuan.'
+      },
+      {
+        type: 'html_image',
+        category: 'media',
+        title: 'Gambar Ilustrasi (<img>)',
+        tagBadge: '<img>',
+        desc: 'Menampilkan gambar dari URL lengkap dengan ukuran lebar.'
+      },
+      {
+        type: 'html_button',
+        category: 'media',
+        title: 'Tombol Aksi (<button>)',
+        tagBadge: '<button>',
+        desc: 'Tombol interaktif yang menampilkan notifikasi pesan saat diklik.'
+      },
+      {
+        type: 'html_badge',
+        category: 'media',
+        title: 'Label Chip / Lencana',
+        tagBadge: '<span class="chip">',
+        desc: 'Label penanda kategori atau kode spesifikasi.'
+      },
+      {
+        type: 'html_details',
+        category: 'media',
+        title: 'Lipatan Catatan (<details>)',
+        tagBadge: '<details> <summary>',
+        desc: 'Panel akordion yang dapat dibuka-tutup saat judulnya diklik.'
+      },
+      {
+        type: 'html_audio_video',
+        category: 'media',
+        title: 'Pemutar Video / Audio',
+        tagBadge: '<video> / <audio>',
+        desc: 'Menampilkan pemutar media video atau audio.'
+      },
+      {
+        type: 'html_iframe',
+        category: 'media',
+        title: 'Sematan Bingkai (<iframe>)',
+        tagBadge: '<iframe>',
+        desc: 'Menampilkan halaman web eksternal di dalam bingkai.'
+      },
+
+      // 6. FORMULIR
+      {
+        type: 'html_form',
+        category: 'formulir',
+        title: 'Wadah Formulir (<form>)',
+        tagBadge: '<form>',
+        desc: 'Kontainer pembungkus elemen-elemen input formulir.'
+      },
+      {
+        type: 'html_label',
+        category: 'formulir',
+        title: 'Label Input (<label>)',
+        tagBadge: '<label>',
+        desc: 'Teks keterangan untuk kolom isian formulir.'
+      },
+      {
+        type: 'html_input',
+        category: 'formulir',
+        title: 'Kolom Input (<input>)',
+        tagBadge: '<input>',
+        desc: 'Isian teks, email, kata sandi, angka, tanggal, warna, atau kotak centang.'
+      },
+      {
+        type: 'html_textarea',
+        category: 'formulir',
+        title: 'Kolom Catatan Panjang (<textarea>)',
+        tagBadge: '<textarea>',
+        desc: 'Kotak isian teks multi-baris.'
+      },
+      {
+        type: 'html_select',
+        category: 'formulir',
+        title: 'Menu Pilihan (<select>)',
+        tagBadge: '<select>',
+        desc: 'Menu tarik-turun yang diisi dengan blok <option>.'
+      },
+      {
+        type: 'html_option',
+        category: 'formulir',
+        title: 'Opsi Pilihan (<option>)',
+        tagBadge: '<option>',
+        desc: 'Item pilihan untuk dimasukkan ke dalam blok <select>.'
+      },
+
+      // 7. CSS & STYLE
+      {
+        type: 'css_rule',
+        category: 'css',
+        title: 'Aturan Selector CSS ({ ... })',
+        tagBadge: 'selector { ... }',
+        desc: 'Menentukan target elemen (body, .kartu, h1) untuk diberi deklarasi CSS.'
+      },
+      {
+        type: 'css_color',
+        category: 'css',
+        title: 'Warna Teks & Latar CSS',
+        tagBadge: 'color & background',
+        desc: 'Mengatur warna tinta teks (color) dan warna kertas latar (background-color).'
+      },
+      {
+        type: 'css_gradient',
+        category: 'css',
+        title: 'Gradasi Warna Latar',
+        tagBadge: 'linear-gradient()',
+        desc: 'Membuat latar belakang perpaduan dua warna secara halus.'
+      },
+      {
+        type: 'css_typography',
+        category: 'css',
+        title: 'Tipografi & Perataan CSS',
+        tagBadge: 'font-size & align',
+        desc: 'Mengatur jenis huruf, ukuran px, dan perataan teks.'
+      },
+      {
+        type: 'css_spacing',
+        category: 'css',
+        title: 'Dimensi & Ruang (Padding / Margin)',
+        tagBadge: 'padding, margin',
+        desc: 'Mengatur ruang dalam (padding), batas luar (margin), dan lebar maksimum.'
+      },
+      {
+        type: 'css_border',
+        category: 'css',
+        title: 'Garis Tepi & Sudut CSS',
+        tagBadge: 'border & radius',
+        desc: 'Mengatur ketebalan garis tepi, kelengkungan sudut, dan bayangan.'
+      },
+      {
+        type: 'css_flex',
+        category: 'css',
+        title: 'Tata Letak Flexbox CSS',
+        tagBadge: 'display: flex',
+        desc: 'Mengatur penyusunan elemen menggunakan Flexbox beserta jarak (gap).'
+      },
+      {
+        type: 'css_custom',
+        category: 'css',
+        title: 'Properti CSS Kustom',
+        tagBadge: 'properti: nilai;',
+        desc: 'Menulis properti dan nilai CSS bebas.'
+      }
+    ];
+
+    const CATEGORY_META = [
+      { id: 'all', label: 'Semua Modul', code: 'ALL' },
+      { id: 'struktur', label: 'Struktur', code: '01' },
+      { id: 'teks', label: 'Tipografi', code: '02' },
+      { id: 'layout', label: 'Kontainer', code: '03' },
+      { id: 'daftar_tabel', label: 'Tabel & List', code: '04' },
+      { id: 'media', label: 'Media & Link', code: '05' },
+      { id: 'formulir', label: 'Formulir', code: '06' },
+      { id: 'css', label: 'Gaya CSS', code: '07' }
+    ];
+
+    // =========================================================
+    // 1. DEFINE ALL CUSTOM HTML & CSS BLOCKS IN BLOCKLY
+    // =========================================================
+    function createTagDropdown(options, closeFieldName) {
+      return new Blockly.FieldDropdown(options, function(newVal) {
+        const srcBlock = this.getSourceBlock();
+        if (srcBlock && srcBlock.getField(closeFieldName)) {
+          srcBlock.setFieldValue(`${LT}/${newVal}${GT}`, closeFieldName);
+        }
+        return newVal;
+      });
+    }
+
+    function registerCustomBlocks() {
+      // --- KATEGORI 1: STRUKTUR ---
+      Blockly.Blocks['html_document'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}!DOCTYPE html${GT}`);
+          this.appendDummyInput()
+              .appendField(`${LT}html lang=`)
+              .appendField(new Blockly.FieldTextInput('id'), 'LANG')
+              .appendField(GT);
+          this.appendDummyInput().appendField(`${LT}head${GT}`);
+          this.appendStatementInput('HEAD').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/head${GT}`);
+          this.appendDummyInput().appendField(`${LT}body${GT}`);
+          this.appendStatementInput('BODY').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/body${GT}`);
+          this.appendDummyInput().appendField(`${LT}/html${GT}`);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_title'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}title${GT}`)
+              .appendField(new Blockly.FieldTextInput('Layar Kertas — Arsip Web'), 'TEXT')
+              .appendField(`${LT}/title${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_style_tag'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}style${GT}`);
+          this.appendStatementInput('RULES').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/style${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_meta_charset'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}meta charset="UTF-8"${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      Blockly.Blocks['html_comment'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}!--`)
+              .appendField(new Blockly.FieldTextInput('Catatan cetak biru'), 'TEXT')
+              .appendField(`--${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.struktur);
+        }
+      };
+
+      // --- KATEGORI 2: TEKS ---
+      Blockly.Blocks['html_heading'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}h1${GT}`, 'h1'],
+                [`${LT}h2${GT}`, 'h2'],
+                [`${LT}h3${GT}`, 'h3'],
+                [`${LT}h4${GT}`, 'h4'],
+                [`${LT}h5${GT}`, 'h5'],
+                [`${LT}h6${GT}`, 'h6']
+              ], 'CLOSE_TAG'), 'LEVEL')
+              .appendField(new Blockly.FieldTextInput('DOKUMEN CETAK BIRU'), 'TEXT')
+              .appendField(`${LT}/h1${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_paragraph'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}p${GT}`)
+              .appendField(new Blockly.FieldTextInput('Catatan spesifikasi teknis halaman web.'), 'TEXT')
+              .appendField(`${LT}/p${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_paragraph_container'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}p${GT}`);
+          this.appendStatementInput('CHILDREN').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/p${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_text_inline'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}strong${GT}`, 'strong'],
+                [`${LT}em${GT}`, 'em'],
+                [`${LT}u${GT}`, 'u'],
+                [`${LT}mark${GT}`, 'mark'],
+                [`${LT}span${GT}`, 'span'],
+                [`${LT}small${GT}`, 'small'],
+                [`${LT}code${GT}`, 'code']
+              ], 'CLOSE_TAG'), 'TAG')
+              .appendField(new Blockly.FieldTextInput('Teks Penting'), 'TEXT')
+              .appendField(`${LT}/strong${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_raw_text'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('Tulis teks di sini...'), 'TEXT');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_blockquote'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}blockquote${GT}`)
+              .appendField(new Blockly.FieldTextInput('Arsitektur yang baik terasa hangat dan fungsional.'), 'TEXT')
+              .appendField(`${LT}/blockquote${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      Blockly.Blocks['html_br_hr'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldDropdown([
+                [`${LT}hr${GT}`, 'hr'],
+                [`${LT}br${GT}`, 'br']
+              ]), 'TYPE');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.teks);
+        }
+      };
+
+      // --- KATEGORI 3: LAYOUT & BOX ---
+      Blockly.Blocks['html_container'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}div${GT}`, 'div'],
+                [`${LT}section${GT}`, 'section'],
+                [`${LT}header${GT}`, 'header'],
+                [`${LT}footer${GT}`, 'footer'],
+                [`${LT}nav${GT}`, 'nav'],
+                [`${LT}main${GT}`, 'main'],
+                [`${LT}article${GT}`, 'article'],
+                [`${LT}aside${GT}`, 'aside']
+              ], 'CLOSE_TAG'), 'TAG')
+              .appendField('class=')
+              .appendField(new Blockly.FieldTextInput('kontainer'), 'CLASS');
+          this.appendStatementInput('CHILDREN').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/div${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.layout);
+        }
+      };
+
+      Blockly.Blocks['html_card'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}div class=`)
+              .appendField(new Blockly.FieldTextInput('kartu-kertas'), 'CLASS')
+              .appendField('bg:')
+              .appendField(createColorField('#f9f2e5'), 'BG')
+              .appendField(GT);
+          this.appendDummyInput()
+              .appendField('radius:')
+              .appendField(new Blockly.FieldNumber(12, 0, 48), 'RADIUS')
+              .appendField('padding:')
+              .appendField(new Blockly.FieldNumber(22, 0, 80), 'PAD');
+          this.appendStatementInput('CHILDREN').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/div${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.layout);
+        }
+      };
+
+      Blockly.Blocks['html_flex_box'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}div flex`)
+              .appendField(new Blockly.FieldDropdown([
+                ['row', 'row'],
+                ['column', 'column'],
+                ['wrap', 'row_wrap']
+              ]), 'DIR')
+              .appendField('gap:')
+              .appendField(new Blockly.FieldNumber(10, 0, 60), 'GAP')
+              .appendField(GT);
+          this.appendStatementInput('CHILDREN').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/div${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.layout);
+        }
+      };
+
+      // --- KATEGORI 4: DAFTAR & TABEL ---
+      Blockly.Blocks['html_list'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}ul${GT}`, 'ul'],
+                [`${LT}ol${GT}`, 'ol']
+              ], 'CLOSE_TAG'), 'TYPE');
+          this.appendStatementInput('ITEMS').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/ul${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_list_item'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}li${GT}`)
+              .appendField(new Blockly.FieldTextInput('Item spesifikasi'), 'TEXT')
+              .appendField(`${LT}/li${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}table${GT}`);
+          this.appendStatementInput('ROWS').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/table${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table_section'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}thead${GT}`, 'thead'],
+                [`${LT}tbody${GT}`, 'tbody']
+              ], 'CLOSE_TAG'), 'TAG');
+          this.appendStatementInput('ROWS').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/thead${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table_row'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}tr${GT}`);
+          this.appendStatementInput('CELLS').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/tr${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      Blockly.Blocks['html_table_cell'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}td${GT}`, 'td'],
+                [`${LT}th${GT}`, 'th']
+              ], 'CLOSE_TAG'), 'TAG')
+              .appendField(new Blockly.FieldTextInput('Data Sel'), 'TEXT')
+              .appendField(`${LT}/td${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.daftar_tabel);
+        }
+      };
+
+      // --- KATEGORI 5: MEDIA & LINK ---
+      Blockly.Blocks['html_link'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}a href=`)
+              .appendField(new Blockly.FieldTextInput('https://example.com'), 'HREF')
+              .appendField(GT);
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('Buka Referensi'), 'TEXT')
+              .appendField(`${LT}/a${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_image'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}img src=`)
+              .appendField(new Blockly.FieldTextInput('https://placehold.co/360x180/e9dcca/4f535b?text=SKETSA+ARSITEKTUR'), 'SRC');
+          this.appendDummyInput()
+              .appendField('width=')
+              .appendField(new Blockly.FieldTextInput('100%'), 'WIDTH')
+              .appendField('alt=')
+              .appendField(new Blockly.FieldTextInput('Sketsa'), 'ALT')
+              .appendField(GT);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_button'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}button${GT}`)
+              .appendField(new Blockly.FieldTextInput('VERIFIKASI CETAK BIRU'), 'TEXT')
+              .appendField(`${LT}/button${GT}`);
+          this.appendDummyInput()
+              .appendField('bg:')
+              .appendField(createColorField('#1aa3a1'), 'BG')
+              .appendField('pesan:')
+              .appendField(new Blockly.FieldTextInput('Dokumen cetak biru terverifikasi.'), 'ALERT');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_badge'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}span${GT}`)
+              .appendField(new Blockly.FieldTextInput('REV-04'), 'TEXT')
+              .appendField(createColorField('#e9dcca'), 'BG')
+              .appendField(`${LT}/span${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_details'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}details${GT}`)
+              .appendField(new Blockly.FieldTextInput('Rincian Teknis'), 'SUMMARY');
+          this.appendStatementInput('CHILDREN').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/details${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_audio_video'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(createTagDropdown([
+                [`${LT}video${GT}`, 'video'],
+                [`${LT}audio${GT}`, 'audio']
+              ], 'CLOSE_TAG'), 'TYPE')
+              .appendField('src=')
+              .appendField(new Blockly.FieldTextInput('https://www.w3schools.com/html/mov_bbb.mp4'), 'SRC')
+              .appendField(`${LT}/video${GT}`, 'CLOSE_TAG');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      Blockly.Blocks['html_iframe'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}iframe src=`)
+              .appendField(new Blockly.FieldTextInput('https://example.com'), 'SRC')
+              .appendField('h=')
+              .appendField(new Blockly.FieldNumber(220, 80, 800), 'HEIGHT')
+              .appendField(`${GT}${LT}/iframe${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.media);
+        }
+      };
+
+      // --- KATEGORI 6: FORMULIR ---
+      Blockly.Blocks['html_form'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}form${GT}`);
+          this.appendStatementInput('FIELDS').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/form${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_label'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}label${GT}`)
+              .appendField(new Blockly.FieldTextInput('Nama Arsitek:'), 'TEXT')
+              .appendField(`${LT}/label${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_input'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}input type=`)
+              .appendField(new Blockly.FieldDropdown([
+                ['text', 'text'],
+                ['email', 'email'],
+                ['password', 'password'],
+                ['number', 'number'],
+                ['date', 'date'],
+                ['color', 'color'],
+                ['checkbox', 'checkbox'],
+                ['radio', 'radio']
+              ]), 'TYPE')
+              .appendField(new Blockly.FieldTextInput('Isi catatan...'), 'PLACEHOLDER')
+              .appendField(GT);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_textarea'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}textarea${GT}`)
+              .appendField(new Blockly.FieldTextInput('Tulis deskripsi lapangan...'), 'PLACEHOLDER')
+              .appendField(`${LT}/textarea${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_select'] = {
+        init: function() {
+          this.appendDummyInput().appendField(`${LT}select${GT}`);
+          this.appendStatementInput('OPTIONS').setCheck(null);
+          this.appendDummyInput().appendField(`${LT}/select${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      Blockly.Blocks['html_option'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(`${LT}option${GT}`)
+              .appendField(new Blockly.FieldTextInput('Opsi Standar'), 'TEXT')
+              .appendField(`${LT}/option${GT}`);
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.formulir);
+        }
+      };
+
+      // --- KATEGORI 7: CSS & STYLE ---
+      Blockly.Blocks['css_rule'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('body'), 'SELECTOR')
+              .appendField('{');
+          this.appendStatementInput('DECLARATIONS').setCheck(null);
+          this.appendDummyInput().appendField('}');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_color'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('color:')
+              .appendField(createColorField('#4f535b'), 'COLOR')
+              .appendField(';');
+          this.appendDummyInput()
+              .appendField('background-color:')
+              .appendField(createColorField('#f6eddd'), 'BG')
+              .appendField(';');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_gradient'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('linear-gradient(')
+              .appendField(new Blockly.FieldDropdown([
+                ['180deg', '180deg'],
+                ['135deg', '135deg'],
+                ['90deg', '90deg']
+              ]), 'DEG')
+              .appendField(createColorField('#f6eddd'), 'C1')
+              .appendField(createColorField('#e9dcca'), 'C2')
+              .appendField(');');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_typography'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('font-family:')
+              .appendField(new Blockly.FieldDropdown([
+                ['Barlow / Sans', "'Barlow', system-ui, sans-serif"],
+                ['Serif Klasik', 'Georgia, serif'],
+                ['JetBrains Mono', "'JetBrains Mono', monospace"]
+              ]), 'FONT')
+              .appendField(';');
+          this.appendDummyInput()
+              .appendField('font-size:')
+              .appendField(new Blockly.FieldNumber(15, 8, 96), 'SIZE')
+              .appendField('px; align:')
+              .appendField(new Blockly.FieldDropdown([
+                ['left', 'left'],
+                ['center', 'center'],
+                ['right', 'right'],
+                ['justify', 'justify']
+              ]), 'ALIGN');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_spacing'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('padding:')
+              .appendField(new Blockly.FieldTextInput('22px'), 'PADDING')
+              .appendField('; margin:')
+              .appendField(new Blockly.FieldTextInput('0 auto'), 'MARGIN');
+          this.appendDummyInput()
+              .appendField('max-width:')
+              .appendField(new Blockly.FieldTextInput('540px'), 'MAX_WIDTH')
+              .appendField(';');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_border'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('border:')
+              .appendField(new Blockly.FieldNumber(1.5, 0, 20, 0.5), 'WIDTH')
+              .appendField('px')
+              .appendField(new Blockly.FieldDropdown([
+                ['solid', 'solid'],
+                ['dashed', 'dashed'],
+                ['dotted', 'dotted']
+              ]), 'STYLE')
+              .appendField(createColorField('#cec0ad'), 'COLOR');
+          this.appendDummyInput()
+              .appendField('radius:')
+              .appendField(new Blockly.FieldNumber(12, 0, 100), 'RADIUS')
+              .appendField('px; shadow:')
+              .appendField(new Blockly.FieldDropdown([
+                ['inset-putih', 'inset 0 1px 0 rgba(255,255,255,0.85)'],
+                ['halus', '0 4px 12px rgba(79,83,91,0.08)'],
+                ['none', 'none']
+              ]), 'SHADOW');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_flex'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField('display: flex; dir:')
+              .appendField(new Blockly.FieldDropdown([
+                ['row', 'row'],
+                ['column', 'column']
+              ]), 'DIR');
+          this.appendDummyInput()
+              .appendField('justify:')
+              .appendField(new Blockly.FieldDropdown([
+                ['flex-start', 'flex-start'],
+                ['center', 'center'],
+                ['space-between', 'space-between']
+              ]), 'JUSTIFY')
+              .appendField('gap:')
+              .appendField(new Blockly.FieldNumber(12, 0, 60), 'GAP')
+              .appendField('px;');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+
+      Blockly.Blocks['css_custom'] = {
+        init: function() {
+          this.appendDummyInput()
+              .appendField(new Blockly.FieldTextInput('letter-spacing'), 'PROP')
+              .appendField(':')
+              .appendField(new Blockly.FieldTextInput('0.05em'), 'VAL')
+              .appendField(';');
+          this.setPreviousStatement(true, null);
+          this.setNextStatement(true, null);
+          this.setColour(BLOCK_COLORS.css);
+        }
+      };
+    }
+
+    // =========================================================
+    // 2. HTML & CSS CODE GENERATOR
+    // =========================================================
+    function indentStr(level) {
+      return '  '.repeat(Math.max(0, level));
+    }
+
+    function statementChainToCode(firstBlock, indentLevel) {
+      let result = '';
+      let current = firstBlock;
+      while (current) {
+        const piece = singleBlockToCode(current, indentLevel);
+        if (piece) {
+          result += piece + '\n';
+        }
+        current = current.getNextBlock();
+      }
+      return result;
+    }
+
+    function buildAttrs(attrMap) {
+      let out = '';
+      for (const [key, val] of Object.entries(attrMap)) {
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          out += ` ${key}="${String(val).trim().replace(/"/g, "'")}"`;
+        }
+      }
+      return out;
+    }
+
+    function singleBlockToCode(block, level = 0) {
+      if (!block || block.isInsertionMarker()) return '';
+      const pad = indentStr(level);
+
+      switch (block.type) {
+        case 'html_document': {
+          const lang = block.getFieldValue('LANG') || 'id';
+          const headCode = statementChainToCode(block.getInputTargetBlock('HEAD'), level + 2);
+          const bodyCode = statementChainToCode(block.getInputTargetBlock('BODY'), level + 2);
+          return (
+            `${pad}${LT}!DOCTYPE html${GT}\n` +
+            `${pad}${LT}html lang="${lang}"${GT}\n` +
+            `${pad}  ${LT}head${GT}\n` +
+            (headCode || `${pad}    ${LT}meta charset="UTF-8"${GT}\n`) +
+            `${pad}  ${LT}/head${GT}\n` +
+            `${pad}  ${LT}body${GT}\n` +
+            (bodyCode || `${pad}    ${LT}!-- Tambahkan blok di dalam body --${GT}\n`) +
+            `${pad}  ${LT}/body${GT}\n` +
+            `${pad}${LT}/html${GT}`
+          );
+        }
+
+        case 'html_title': {
+          const text = block.getFieldValue('TEXT') || 'Layar Kertas';
+          return `${pad}${LT}title${GT}${text}${LT}/title${GT}`;
+        }
+
+        case 'html_meta_charset': {
+          return (
+            `${pad}${LT}meta charset="UTF-8"${GT}\n` +
+            `${pad}${LT}meta name="viewport" content="width=device-width, initial-scale=1.0"${GT}`
+          );
+        }
+
+        case 'html_style_tag': {
+          const rules = statementChainToCode(block.getInputTargetBlock('RULES'), level + 1);
+          return `${pad}${LT}style${GT}\n${rules}${pad}${LT}/style${GT}`;
+        }
+
+        case 'html_comment': {
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}${LT}!-- ${text} --${GT}`;
+        }
+
+        case 'html_heading': {
+          const tag = block.getFieldValue('LEVEL') || 'h1';
+          const text = block.getFieldValue('TEXT') || '';
+          const styleDefault = 'letter-spacing:0.08em; text-transform:uppercase; color:#4f535b; margin:10px 0 6px 0;';
+          return `${pad}<${tag} style="${styleDefault}">${text}</${tag}>`;
+        }
+
+        case 'html_paragraph': {
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}<p style="color:#696d74; line-height:1.6; margin:8px 0;">${text}</p>`;
+        }
+
+        case 'html_paragraph_container': {
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<p>\n${children}${pad}</p>`;
+        }
+
+        case 'html_text_inline': {
+          const tag = block.getFieldValue('TAG') || 'strong';
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}<${tag}>${text}</${tag}>`;
+        }
+
+        case 'html_raw_text': {
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}${text}`;
+        }
+
+        case 'html_blockquote': {
+          const text = block.getFieldValue('TEXT') || '';
+          const styleVal = 'background:#f9f2e5; border-left:4px solid #1aa3a1; border-top:1.5px solid #cec0ad; border-right:1.5px solid #cec0ad; border-bottom:1.5px solid #cec0ad; padding:12px 16px; border-radius:8px; margin:12px 0; color:#4f535b; font-style:italic;';
+          return `${pad}<blockquote style="${styleVal}">${text}</blockquote>`;
+        }
+
+        case 'html_br_hr': {
+          const type = block.getFieldValue('TYPE') || 'hr';
+          if (type === 'br') return `${pad}<br>`;
+          return `${pad}<hr style="border:0; border-top:1.5px dashed #cec0ad; margin:18px 0;">`;
+        }
+
+        case 'html_container': {
+          const tag = block.getFieldValue('TAG') || 'div';
+          const attrs = buildAttrs({ class: block.getFieldValue('CLASS') });
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<${tag}${attrs}>\n${children}${pad}</${tag}>`;
+        }
+
+        case 'html_card': {
+          const bg = block.getFieldValue('BG') || '#f9f2e5';
+          const radius = block.getFieldValue('RADIUS') ?? 12;
+          const padPx = block.getFieldValue('PAD') ?? 22;
+          const cls = block.getFieldValue('CLASS') || 'kartu-kertas';
+          const styleStr = `background-color:${bg}; border-radius:${radius}px; padding:${padPx}px; border:1.5px solid #cec0ad; box-shadow:inset 0 1px 0 rgba(255,255,255,0.85);`;
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<div class="${cls}" style="${styleStr}">\n${children}${pad}</div>`;
+        }
+
+        case 'html_flex_box': {
+          const dirRaw = block.getFieldValue('DIR') || 'row';
+          const dir = dirRaw === 'row_wrap' ? 'row; flex-wrap:wrap' : dirRaw;
+          const gap = block.getFieldValue('GAP') || 10;
+          const styleStr = `display:flex; flex-direction:${dir}; align-items:center; gap:${gap}px;`;
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return `${pad}<div style="${styleStr}">\n${children}${pad}</div>`;
+        }
+
+        case 'html_list': {
+          const tag = block.getFieldValue('TYPE') || 'ul';
+          const items = statementChainToCode(block.getInputTargetBlock('ITEMS'), level + 1);
+          return `${pad}<${tag} style="padding-left:20px; color:#4f535b;">\n${items}${pad}</${tag}>`;
+        }
+
+        case 'html_list_item': {
+          const text = block.getFieldValue('TEXT') || '';
+          return `${pad}<li style="margin-bottom:6px;">${text}</li>`;
+        }
+
+        case 'html_table': {
+          const rows = statementChainToCode(block.getInputTargetBlock('ROWS'), level + 1);
+          return `${pad}<table style="width:100%; border-collapse:collapse; margin:14px 0; font-size:14px;">\n${rows}${pad}</table>`;
+        }
+
+        case 'html_table_section': {
+          const tag = block.getFieldValue('TAG') || 'thead';
+          const rows = statementChainToCode(block.getInputTargetBlock('ROWS'), level + 1);
+          return `${pad}<${tag}>\n${rows}${pad}</${tag}>`;
+        }
+
+        case 'html_table_row': {
+          const cells = statementChainToCode(block.getInputTargetBlock('CELLS'), level + 1);
+          return `${pad}<tr>\n${cells}${pad}</tr>`;
+        }
+
+        case 'html_table_cell': {
+          const tag = block.getFieldValue('TAG') || 'td';
+          const text = block.getFieldValue('TEXT') || '';
+          const defaultStyle = tag === 'th'
+            ? 'border:1.5px solid #cec0ad; padding:10px 12px; background:#e9dcca; color:#4f535b; text-align:left; text-transform:uppercase; letter-spacing:0.08em; font-size:12px;'
+            : 'border:1.5px solid #cec0ad; padding:10px 12px; background:#f9f2e5; color:#4f535b;';
+          return `${pad}<${tag} style="${defaultStyle}">${text}</${tag}>`;
+        }
+
+        case 'html_link': {
+          const href = block.getFieldValue('HREF') || '#';
+          const text = block.getFieldValue('TEXT') || 'Tautan';
+          return `${pad}<a href="${href}" target="_blank" style="color:#1aa3a1; font-weight:600; text-decoration:underline;">${text}</a>`;
+        }
+
+        case 'html_image': {
+          const attrs = buildAttrs({
+            src: block.getFieldValue('SRC'),
+            alt: block.getFieldValue('ALT'),
+            width: block.getFieldValue('WIDTH'),
+            style: 'border-radius:10px; border:1.5px solid #cec0ad; max-width:100%; height:auto; display:block; margin:0 auto 12px auto;'
+          });
+          return `${pad}<img${attrs}>`;
+        }
+
+        case 'html_button': {
+          const text = block.getFieldValue('TEXT') || 'Tombol';
+          const alertMsg = (block.getFieldValue('ALERT') || '').replace(/'/g, "\\'");
+          const bg = block.getFieldValue('BG') || '#1aa3a1';
+          const fullStyle = `background-color:${bg}; color:#f9f2e5; padding:10px 18px; border-radius:8px; border:1.5px solid #137a78; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,0.28);`;
+          const onclickAttr = alertMsg
+            ? `const b=document.createElement('div'); b.textContent='${alertMsg}'; b.style='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#4f535b;color:#f9f2e5;padding:10px 18px;border-radius:8px;border:1.5px solid #cec0ad;font-family:monospace;font-size:12px;z-index:9999;'; document.body.appendChild(b); setTimeout(()=>b.remove(),2600);`
+            : '';
+          const attrs = buildAttrs({
+            type: 'button',
+            style: fullStyle,
+            onclick: onclickAttr
+          });
+          return `${pad}<button${attrs}>${text}</button>`;
+        }
+
+        case 'html_badge': {
+          const text = block.getFieldValue('TEXT') || 'TAG';
+          const bg = block.getFieldValue('BG') || '#e9dcca';
+          const styleStr = `display:inline-block; background-color:${bg}; color:#4f535b; padding:4px 10px; border-radius:6px; font-family:monospace; font-size:11px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; border:1.5px solid #cec0ad; margin:3px;`;
+          return `${pad}<span style="${styleStr}">${text}</span>`;
+        }
+
+        case 'html_details': {
+          const summary = block.getFieldValue('SUMMARY') || 'Rincian';
+          const children = statementChainToCode(block.getInputTargetBlock('CHILDREN'), level + 1);
+          return (
+            `${pad}<details style="background:#f9f2e5; border:1.5px solid #cec0ad; border-radius:10px; padding:10px 14px; margin:10px 0;">\n` +
+            `${pad}  <summary style="font-weight:700; cursor:pointer; color:#4f535b;">${summary}</summary>\n` +
+            `${children}` +
+            `${pad}</details>`
+          );
+        }
+
+        case 'html_audio_video': {
+          const type = block.getFieldValue('TYPE') || 'video';
+          const src = block.getFieldValue('SRC') || '';
+          return `${pad}<${type} controls src="${src}" style="max-width:100%; border-radius:10px; border:1.5px solid #cec0ad;"></${type}>`;
+        }
+
+        case 'html_iframe': {
+          const src = block.getFieldValue('SRC') || 'https://example.com';
+          const height = block.getFieldValue('HEIGHT') || 220;
+          return `${pad}<iframe src="${src}" width="100%" height="${height}" style="border:1.5px solid #cec0ad; border-radius:10px;"></iframe>`;
+        }
+
+        case 'html_form': {
+          const fields = statementChainToCode(block.getInputTargetBlock('FIELDS'), level + 1);
+          return `${pad}<form onsubmit="event.preventDefault();" style="display:flex; flex-direction:column; gap:10px; text-align:left;">\n${fields}${pad}</form>`;
+        }
+
+        case 'html_label': {
+          const text = block.getFieldValue('TEXT') || 'Label';
+          return `${pad}<label style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:#4f535b;">${text}</label>`;
+        }
+
+        case 'html_input': {
+          const attrs = buildAttrs({
+            type: block.getFieldValue('TYPE') || 'text',
+            placeholder: block.getFieldValue('PLACEHOLDER'),
+            style: 'padding:9px 12px; background:#f9f2e5; border:1.5px solid #cec0ad; border-radius:7px; box-shadow:inset 0 1px 2px rgba(255,255,255,0.9); color:#4f535b; width:100%; box-sizing:border-box;'
+          });
+          return `${pad}<input${attrs}>`;
+        }
+
+        case 'html_textarea': {
+          const attrs = buildAttrs({
+            rows: 3,
+            placeholder: block.getFieldValue('PLACEHOLDER'),
+            style: 'padding:9px 12px; background:#f9f2e5; border:1.5px solid #cec0ad; border-radius:7px; box-shadow:inset 0 1px 2px rgba(255,255,255,0.9); color:#4f535b; width:100%; box-sizing:border-box;'
+          });
+          return `${pad}<textarea${attrs}></textarea>`;
+        }
+
+        case 'html_select': {
+          const options = statementChainToCode(block.getInputTargetBlock('OPTIONS'), level + 1);
+          return `${pad}<select style="padding:9px 12px; background:#f9f2e5; border:1.5px solid #cec0ad; border-radius:7px; color:#4f535b; width:100%;">\n${options}${pad}</select>`;
+        }
+
+        case 'html_option': {
+          const text = block.getFieldValue('TEXT') || 'Opsi';
+          return `${pad}<option>${text}</option>`;
+        }
+
+        case 'css_rule': {
+          const selector = block.getFieldValue('SELECTOR') || 'body';
+          const decls = statementChainToCode(block.getInputTargetBlock('DECLARATIONS'), level + 1);
+          return `${pad}${selector} {\n${decls}${pad}}`;
+        }
+
+        case 'css_color': {
+          const color = block.getFieldValue('COLOR') || '#4f535b';
+          const bg = block.getFieldValue('BG') || '#f6eddd';
+          return `${pad}color: ${color};\n${pad}background-color: ${bg};`;
+        }
+
+        case 'css_gradient': {
+          const deg = block.getFieldValue('DEG') || '180deg';
+          const c1 = block.getFieldValue('C1') || '#f6eddd';
+          const c2 = block.getFieldValue('C2') || '#e9dcca';
+          return `${pad}background: linear-gradient(${deg}, ${c1}, ${c2});`;
+        }
+
+        case 'css_typography': {
+          const font = block.getFieldValue('FONT') || 'sans-serif';
+          const size = block.getFieldValue('SIZE') || 15;
+          const align = block.getFieldValue('ALIGN') || 'left';
+          return (
+            `${pad}font-family: ${font};\n` +
+            `${pad}font-size: ${size}px;\n` +
+            `${pad}text-align: ${align};\n` +
+            `${pad}line-height: 1.55;`
+          );
+        }
+
+        case 'css_spacing': {
+          const padding = block.getFieldValue('PADDING') || '22px';
+          const margin = block.getFieldValue('MARGIN') || '0 auto';
+          const maxWidth = block.getFieldValue('MAX_WIDTH') || '540px';
+          return (
+            `${pad}padding: ${padding};\n` +
+            `${pad}margin: ${margin};\n` +
+            `${pad}max-width: ${maxWidth};\n` +
+            `${pad}box-sizing: border-box;`
+          );
+        }
+
+        case 'css_border': {
+          const w = block.getFieldValue('WIDTH') ?? 1.5;
+          const s = block.getFieldValue('STYLE') || 'solid';
+          const c = block.getFieldValue('COLOR') || '#cec0ad';
+          const r = block.getFieldValue('RADIUS') ?? 12;
+          const sh = block.getFieldValue('SHADOW') || 'none';
+          return (
+            `${pad}border: ${w}px ${s} ${c};\n` +
+            `${pad}border-radius: ${r}px;\n` +
+            `${pad}box-shadow: ${sh};`
+          );
+        }
+
+        case 'css_flex': {
+          const dir = block.getFieldValue('DIR') || 'row';
+          const justify = block.getFieldValue('JUSTIFY') || 'flex-start';
+          const gap = block.getFieldValue('GAP') ?? 12;
+          return (
+            `${pad}display: flex;\n` +
+            `${pad}flex-direction: ${dir};\n` +
+            `${pad}justify-content: ${justify};\n` +
+            `${pad}align-items: center;\n` +
+            `${pad}gap: ${gap}px;`
+          );
+        }
+
+        case 'css_custom': {
+          const prop = block.getFieldValue('PROP') || 'letter-spacing';
+          const val = block.getFieldValue('VAL') || '0.05em';
+          return `${pad}${prop}: ${val};`;
+        }
+
+        default:
+          return '';
+      }
+    }
+
+    function generateFullWorkspaceHtml() {
+      if (!workspace) return '';
+      const topBlocks = workspace.getTopBlocks(true);
+      if (topBlocks.length === 0) {
+        return `${LT}!-- Kertas kerja masih kosong. Pilih modul blok pada bar atas. --${GT}`;
+      }
+
+      let combined = '';
+      for (const topBlock of topBlocks) {
+        const chunk = statementChainToCode(topBlock, 0).trim();
+        if (chunk) {
+          combined += (combined ? '\n\n' : '') + chunk;
+        }
+      }
+      return combined;
+    }
+
+    // =========================================================
+    // 3. INITIALIZE BLOCKLY WORKSPACE & BLUEPRINT GRID TOGGLE
+    // =========================================================
+    function toggleBlueprintGrid() {
+      isBlueprintGridVisible = !isBlueprintGridVisible;
+      const mainSurface = document.getElementById('mainBlueprintSurface');
+      const statusLabel = document.getElementById('gridStatusLabel');
+      const sideBtn = document.getElementById('sideGridToggleBtn');
+
+      if (isBlueprintGridVisible) {
+        mainSurface.classList.remove('blueprint-grid-off');
+        if (statusLabel) statusLabel.textContent = 'GRID: ON';
+        if (sideBtn) sideBtn.classList.add('text-paper-teal');
+        showToast('Grid Blueprint 28×28px Diaktifkan');
+      } else {
+        mainSurface.classList.add('blueprint-grid-off');
+        if (statusLabel) statusLabel.textContent = 'GRID: OFF';
+        if (sideBtn) sideBtn.classList.remove('text-paper-teal');
+        showToast('Grid Blueprint Disembunyikan');
+      }
+    }
+
+    function initBlocklyWorkspace() {
+      registerCustomBlocks();
+
+      const blocklyDiv = document.getElementById('blocklyDiv');
+      workspace = Blockly.inject(blocklyDiv, {
+        scrollbars: true,
+        trashcan: true,
+        sounds: false,
+        zoom: {
+          controls: false,
+          wheel: true,
+          startScale: window.innerWidth < 640 ? 0.85 : 0.94,
+          maxScale: 1.8,
+          minScale: 0.45,
+          scaleSpeed: 1.12,
+          pinch: true
+        },
+        grid: {
+          spacing: 28,
+          length: 0, // We use the 28px CSS blueprint grid background so it can be toggled cleanly
+          colour: 'transparent',
+          snap: true
+        },
+        move: {
+          scrollbars: { horizontal: true, vertical: true },
+          drag: true,
+          wheel: true
+        }
+      });
+
+      workspace.addChangeListener((event) => {
+        if (event.type === Blockly.Events.SELECTED) {
+          selectedBlockId = event.newElementId || null;
+          updateSelectedBlockUI();
+        }
+        if (
+          event.type === Blockly.Events.BLOCK_CREATE ||
+          event.type === Blockly.Events.BLOCK_DELETE ||
+          event.type === Blockly.Events.BLOCK_CHANGE ||
+          event.type === Blockly.Events.BLOCK_MOVE ||
+          event.type === Blockly.Events.FINISHED_LOADING
+        ) {
+          updateGeneratedOutputs();
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (workspace && currentActivePage === 'workspace') {
+          Blockly.svgResize(workspace);
+        }
+      });
+
+      loadPresetTemplate('profile', true);
+    }
+
+    // =========================================================
+    // 4. UPDATE CODE VIEW, PROGRESS BAR & LIVE PREVIEW
+    // =========================================================
+    function syntaxHighlightHtml(rawCode) {
+      const escaped = rawCode
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      return escaped
+        .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="tok-comment">$1</span>')
+        .replace(/(&lt;\/?[a-zA-Z0-9!-]+)([^&]*?)(&gt;)/g, (match, openTag, attrs, closeTag) => {
+          const coloredAttrs = attrs.replace(
+            /([a-zA-Z-]+)=("[^"]*"|'[^']*')/g,
+            '<span class="tok-attr">$1</span>=<span class="tok-str">$2</span>'
+          );
+          return `<span class="tok-tag">${openTag}</span>${coloredAttrs}<span class="tok-tag">${closeTag}</span>`;
+        });
+    }
+
+    function updateGeneratedOutputs() {
+      if (!workspace) return;
+      const allBlocks = workspace.getAllBlocks(false);
+      const countEl = document.getElementById('blockCountBadge');
+      if (countEl) {
+        countEl.textContent = `${allBlocks.length} BLOK AKTIF`;
+      }
+
+      // Update Progress Bar (scaleX animation)
+      const progEl = document.getElementById('densityProgressBar');
+      if (progEl) {
+        const ratio = Math.min(1, Math.max(0.08, allBlocks.length / 24));
+        progEl.style.transform = `scaleX(${ratio})`;
+      }
+
+      latestGeneratedHtml = generateFullWorkspaceHtml();
+
+      const lines = latestGeneratedHtml.split('\n');
+      const lineNumEl = document.getElementById('codeLineNumbers');
+      const codeAreaEl = document.getElementById('codeDisplayArea');
+      const statsEl = document.getElementById('codeStatsText');
+
+      if (lineNumEl && codeAreaEl) {
+        lineNumEl.innerHTML = lines.map((_, i) => i + 1).join('<br>');
+        codeAreaEl.innerHTML = syntaxHighlightHtml(latestGeneratedHtml);
+      }
+      if (statsEl) {
+        statsEl.textContent = `${lines.length} BARIS • ${latestGeneratedHtml.length} KARAKTER`;
+      }
+
+      refreshLivePreview();
+    }
+
+    function buildPreviewHtmlDocument(rawHtml) {
+      const trimmed = (rawHtml || '').trim();
+      if (/<!doctype\s+html/i.test(trimmed) || /<html[\s>]/i.test(trimmed)) {
+        return trimmed;
+      }
+      return [
+        `${LT}!DOCTYPE html${GT}`,
+        `${LT}html lang="id"${GT}`,
+        `${LT}head${GT}`,
+        `  ${LT}meta charset="UTF-8"${GT}`,
+        `  ${LT}meta name="viewport" content="width=device-width, initial-scale=1.0"${GT}`,
+        `  ${LT}style${GT}body { font-family: 'Barlow', system-ui, sans-serif; margin: 22px; background-color: #f6eddd; color: #4f535b; line-height: 1.55; }${LT}/style${GT}`,
+        `${LT}/head${GT}`,
+        `${LT}body${GT}`,
+        trimmed,
+        `${LT}/body${GT}`,
+        `${LT}/html${GT}`
+      ].join('\n');
+    }
+
+    function writeHtmlToPreviewIframe(iframe, htmlContent) {
+      if (!iframe) return;
+      try {
+        const doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+        if (doc) {
+          doc.open();
+          doc.write(htmlContent);
+          doc.close();
+          return;
+        }
+      } catch (e) {}
+      iframe.srcdoc = htmlContent;
+    }
+
+    function refreshLivePreview() {
+      const iframe = document.getElementById('livePreviewIframe');
+      if (!iframe) return;
+
+      const allBlocks = workspace ? workspace.getAllBlocks(false) : [];
+      if (allBlocks.length === 0) {
+        const emptyHtml = [
+          `${LT}!DOCTYPE html${GT}`,
+          `${LT}html lang="id"${GT}`,
+          `${LT}head${GT}`,
+          `${LT}meta charset="UTF-8"${GT}`,
+          `${LT}style${GT}`,
+          'body { margin:0; height:100vh; display:flex; align-items:center; justify-content:center; font-family:system-ui,sans-serif; background:#f6eddd; color:#4f535b; text-align:center; padding:22px; }',
+          '.empty-box { background:#f9f2e5; border:1.5px solid #cec0ad; padding:28px; border-radius:12px; max-width:360px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.85); }',
+          `${LT}/style${GT}`,
+          `${LT}/head${GT}`,
+          `${LT}body${GT}`,
+          `${LT}div class="empty-box"${GT}`,
+          `${LT}h3 style="margin:0 0 8px 0; text-transform:uppercase; letter-spacing:0.12em; font-size:14px;"${GT}Kertas Kerja Kosong${LT}/h3${GT}`,
+          `${LT}p style="margin:0;font-size:13px;color:#696d74;line-height:1.55;"${GT}Buka tab ${LT}b${GT}Workspace${LT}/b${GT} lalu tambahkan modul blok dari bilah atas untuk merancang halaman web.${LT}/p${GT}`,
+          `${LT}/div${GT}`,
+          `${LT}/body${GT}`,
+          `${LT}/html${GT}`
+        ].join('\n');
+        writeHtmlToPreviewIframe(iframe, emptyHtml);
+        return;
+      }
+
+      const fullPreviewHtml = buildPreviewHtmlDocument(latestGeneratedHtml || generateFullWorkspaceHtml());
+      writeHtmlToPreviewIframe(iframe, fullPreviewHtml);
+    }
+
+    // =========================================================
+    // 5. PAGE NAVIGATION (DESKTOP LEFT SIDEBAR + MOBILE BOTTOM TABS)
+    // =========================================================
+    function switchPage(pageName) {
+      if (typeof Blockly !== 'undefined') {
+        if (Blockly.WidgetDiv && typeof Blockly.WidgetDiv.hide === 'function') {
+          Blockly.WidgetDiv.hide();
+        }
+        if (Blockly.DropDownDiv && typeof Blockly.DropDownDiv.hideWithoutAnimation === 'function') {
+          Blockly.DropDownDiv.hideWithoutAnimation();
+        }
+      }
+
+      currentActivePage = pageName;
+
+      const pages = {
+        workspace: document.getElementById('page-workspace'),
+        code: document.getElementById('page-code'),
+        preview: document.getElementById('page-preview')
+      };
+
+      const sideBtns = {
+        workspace: document.getElementById('side-btn-workspace'),
+        code: document.getElementById('side-btn-code'),
+        preview: document.getElementById('side-btn-preview')
+      };
+
+      const sideBars = {
+        workspace: document.getElementById('side-bar-workspace'),
+        code: document.getElementById('side-bar-code'),
+        preview: document.getElementById('side-bar-preview')
+      };
+
+      const mobTabs = {
+        workspace: document.getElementById('mob-tab-workspace'),
+        code: document.getElementById('mob-tab-code'),
+        preview: document.getElementById('mob-tab-preview')
+      };
+
+      const mobIcons = {
+        workspace: { el: document.getElementById('mob-icon-workspace'), name: 'ph-blueprint' },
+        code: { el: document.getElementById('mob-icon-code'), name: 'ph-file-code' },
+        preview: { el: document.getElementById('mob-icon-preview'), name: 'ph-browsers' }
+      };
+
+      for (const key of Object.keys(pages)) {
+        const isActive = key === pageName;
+        pages[key].classList.toggle('hidden', !isActive);
+        pages[key].classList.toggle('flex', isActive);
+
+        // Desktop Left Sidebar state
+        if (sideBtns[key] && sideBars[key]) {
+          if (isActive) {
+            sideBtns[key].className = 'paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-paper-card border-[1.5px] border-paper-teal text-paper-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] transition';
+            sideBars[key].classList.remove('hidden');
+          } else {
+            sideBtns[key].className = 'paper-focus relative w-12 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-transparent hover:bg-paper-card/70 border-[1.5px] border-transparent text-paper-muted hover:text-paper-ink transition';
+            sideBars[key].classList.add('hidden');
+          }
+        }
+
+        // Mobile Bottom Nav state (4.5px thick underline)
+        if (mobTabs[key] && mobIcons[key].el) {
+          if (isActive) {
+            mobTabs[key].className = 'paper-focus paper-tab paper-tab-active flex flex-col items-center justify-center py-2 text-xs';
+            mobIcons[key].el.className = `ph-fill ${mobIcons[key].name} text-lg text-paper-teal`;
+          } else {
+            mobTabs[key].className = 'paper-focus paper-tab text-paper-muted flex flex-col items-center justify-center py-2 text-xs';
+            mobIcons[key].el.className = `ph ${mobIcons[key].name} text-lg`;
+          }
+        }
+      }
+
+      if (pageName === 'workspace' && workspace) {
+        setTimeout(() => Blockly.svgResize(workspace), 40);
+      } else if (pageName === 'code') {
+        updateGeneratedOutputs();
+      } else if (pageName === 'preview') {
+        updateGeneratedOutputs();
+        requestAnimationFrame(() => refreshLivePreview());
+      }
+    }
+
+    // =========================================================
+    // 6. POP-UP BLOCK PICKER LOGIC & SMART BLOCK INSERTION
+    // =========================================================
+    function openBlockPicker(category = 'all', focusSearch = false) {
+      if (currentActivePage !== 'workspace') {
+        switchPage('workspace');
+      }
+
+      currentPickerCategory = category;
+      document.getElementById('blockPickerModal').classList.remove('hidden');
+
+      renderModalCategoryTabs();
+      renderBlockPickerCards();
+
+      if (focusSearch) {
+        setTimeout(() => {
+          document.getElementById('blockSearchInput').focus();
+        }, 80);
+      }
+    }
+
+    function closeBlockPicker() {
+      document.getElementById('blockPickerModal').classList.add('hidden');
+    }
+
+    function clearBlockSearch() {
+      const input = document.getElementById('blockSearchInput');
+      input.value = '';
+      renderBlockPickerCards();
+      input.focus();
+    }
+
+    function renderModalCategoryTabs() {
+      const container = document.getElementById('modalCategoryTabs');
+      container.innerHTML = CATEGORY_META.map(cat => {
+        const isActive = cat.id === currentPickerCategory;
+        return `
+          <button onclick="selectModalCategory('${cat.id}')"
+            class="paper-focus shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md border-[1.5px] ${isActive ? 'bg-paper-teal border-paper-tealDark text-[#f9f2e5] font-bold' : 'bg-paper-card border-paper-border text-paper-ink hover:border-paper-teal'} font-heading-upper text-xs transition">
+            <span class="font-mono-code text-[10px] opacity-80">[${cat.code}]</span>
+            <span>${cat.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectModalCategory(catId) {
+      currentPickerCategory = catId;
+      renderModalCategoryTabs();
+      renderBlockPickerCards();
+    }
+
+    function renderBlockPickerCards() {
+      const searchInput = document.getElementById('blockSearchInput');
+      const query = (searchInput.value || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', query.length === 0);
+      }
+
+      const filtered = BLOCK_CATALOG.filter(item => {
+        const matchesCat = currentPickerCategory === 'all' || item.category === currentPickerCategory;
+        const matchesQuery = !query ||
+          item.title.toLowerCase().includes(query) ||
+          item.tagBadge.toLowerCase().includes(query) ||
+          item.desc.toLowerCase().includes(query) ||
+          item.type.toLowerCase().includes(query);
+        return matchesCat && matchesQuery;
+      });
+
+      const container = document.getElementById('blockCardsContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-10 text-center paper-card p-6">
+            <p class="font-heading-upper text-sm text-paper-ink">Modul Tidak Ditemukan</p>
+            <p class="text-xs text-paper-muted mt-1">Gunakan kata kunci lain atau pilih tab "[ALL] Semua Modul".</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => {
+        const escapedBadge = item.tagBadge.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const escapedTitle = item.title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `
+          <div onclick="spawnBlockFromPicker('${item.type}')"
+            class="cursor-pointer group p-4 paper-card paper-card-interactive flex flex-col justify-between gap-2.5">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="paper-chip px-2 py-0.5 rounded text-[11px] font-semibold text-paper-ink">
+                  ${escapedBadge}
+                </span>
+                <span class="w-7 h-7 rounded-md bg-paper-bg group-hover:bg-paper-teal border-[1.5px] border-paper-border group-hover:border-paper-tealDark flex items-center justify-center text-paper-ink group-hover:text-[#f9f2e5] transition">
+                  <i class="ph-bold ph-plus text-xs"></i>
+                </span>
+              </div>
+              <h4 class="font-heading-upper text-sm text-paper-ink">${escapedTitle}</h4>
+              <p class="text-xs text-paper-muted mt-1 leading-relaxed">${item.desc}</p>
+            </div>
+            <div class="pt-2 border-t border-paper-border/60 flex items-center justify-between font-mono-code text-[10px] uppercase text-paper-teal font-semibold">
+              <span>Sematkan Modul</span>
+              <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getFirstStatementInputName(block) {
+      if (!block || !block.inputList) return null;
+      const preferredOrder = ['BODY', 'CHILDREN', 'ITEMS', 'ROWS', 'CELLS', 'FIELDS', 'OPTIONS', 'DECLARATIONS', 'RULES', 'HEAD'];
+      for (const name of preferredOrder) {
+        const inp = block.getInput(name);
+        if (inp && inp.connection) return name;
+      }
+      return null;
+    }
+
+    function appendToStatementInput(parentBlock, inputName, newBlock) {
+      if (!parentBlock || !newBlock || !newBlock.previousConnection) return false;
+      const input = parentBlock.getInput(inputName);
+      if (!input || !input.connection) return false;
+
+      const firstChild = parentBlock.getInputTargetBlock(inputName);
+      if (!firstChild) {
+        input.connection.connect(newBlock.previousConnection);
+        return true;
+      }
+
+      let lastChild = firstChild;
+      while (lastChild.getNextBlock()) {
+        lastChild = lastChild.getNextBlock();
+      }
+      if (lastChild.nextConnection) {
+        lastChild.nextConnection.connect(newBlock.previousConnection);
+        return true;
+      }
+      return false;
+    }
+
+    function spawnBlockFromPicker(blockType) {
+      if (!workspace) return;
+
+      const mode = document.getElementById('insertModeSelect')?.value || 'smart';
+      const newBlock = workspace.newBlock(blockType);
+      newBlock.initSvg();
+      newBlock.render();
+
+      let connected = false;
+      const selectedBlock = selectedBlockId ? workspace.getBlockById(selectedBlockId) : null;
+      const isCssProperty = blockType.startsWith('css_') && blockType !== 'css_rule';
+
+      if (selectedBlock && mode !== 'free' && newBlock.previousConnection) {
+        if (mode === 'inside') {
+          const stmtName = getFirstStatementInputName(selectedBlock);
+          if (stmtName) {
+            connected = appendToStatementInput(selectedBlock, stmtName, newBlock);
+          }
+        } else if (mode === 'after') {
+          if (selectedBlock.nextConnection) {
+            selectedBlock.nextConnection.connect(newBlock.previousConnection);
+            connected = true;
+          }
+        } else if (mode === 'smart') {
+          if (isCssProperty && selectedBlock.type === 'css_rule') {
+            connected = appendToStatementInput(selectedBlock, 'DECLARATIONS', newBlock);
+          } else if (blockType === 'css_rule' && selectedBlock.type === 'html_style_tag') {
+            connected = appendToStatementInput(selectedBlock, 'RULES', newBlock);
+          } else if (getFirstStatementInputName(selectedBlock)) {
+            const targetInput = (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') && selectedBlock.getInput('HEAD')
+              ? 'HEAD'
+              : getFirstStatementInputName(selectedBlock);
+            connected = appendToStatementInput(selectedBlock, targetInput, newBlock);
+          } else if (selectedBlock.nextConnection) {
+            selectedBlock.nextConnection.connect(newBlock.previousConnection);
+            connected = true;
+          }
+        }
+      }
+
+      if (!connected && mode === 'smart' && newBlock.previousConnection) {
+        const topBlocks = workspace.getTopBlocks(true);
+        const docBlock = topBlocks.find(b => b.type === 'html_document');
+        if (docBlock) {
+          if (blockType === 'html_title' || blockType === 'html_meta_charset' || blockType === 'html_style_tag') {
+            connected = appendToStatementInput(docBlock, 'HEAD', newBlock);
+          } else if (blockType === 'css_rule') {
+            const styleBlock = workspace.getAllBlocks(false).find(b => b.type === 'html_style_tag');
+            if (styleBlock) {
+              connected = appendToStatementInput(styleBlock, 'RULES', newBlock);
+            }
+          } else if (isCssProperty) {
+            const cssRules = workspace.getAllBlocks(false).filter(b => b.type === 'css_rule');
+            if (cssRules.length > 0) {
+              connected = appendToStatementInput(cssRules[cssRules.length - 1], 'DECLARATIONS', newBlock);
+            }
+          } else {
+            connected = appendToStatementInput(docBlock, 'BODY', newBlock);
+          }
+        }
+      }
+
+      if (!connected) {
+        const metrics = workspace.getMetrics();
+        const scale = workspace.scale || 1;
+        const viewCenterX = (metrics.viewLeft + metrics.viewWidth * 0.25) / scale;
+        const viewCenterY = (metrics.viewTop + metrics.viewHeight * 0.25) / scale;
+        const jitter = Math.floor(Math.random() * 24);
+        newBlock.moveBy(viewCenterX + jitter, viewCenterY + jitter);
+      }
+
+      newBlock.select();
+      selectedBlockId = newBlock.id;
+      updateSelectedBlockUI();
+      workspace.centerOnBlock(newBlock.id);
+
+      closeBlockPicker();
+      showToast('MODUL BLOK DISEMATKAN');
+    }
+
+    // =========================================================
+    // 7. WORKSPACE CONTROLS
+    // =========================================================
+    function updateSelectedBlockUI() {
+      const pill = document.getElementById('selectedBlockIndicator');
+      const label = document.getElementById('selectedBlockText');
+      if (!workspace || !selectedBlockId) {
+        pill.classList.add('hidden');
+        return;
+      }
+      const block = workspace.getBlockById(selectedBlockId);
+      if (!block) {
+        pill.classList.add('hidden');
+        return;
+      }
+      const meta = BLOCK_CATALOG.find(b => b.type === block.type);
+      label.textContent = meta ? meta.title : block.type;
+      pill.classList.remove('hidden');
+    }
+
+    function workspaceUndo() {
+      if (workspace) workspace.undo(false);
+    }
+
+    function workspaceRedo() {
+      if (workspace) workspace.undo(true);
+    }
+
+    function centerWorkspace() {
+      if (!workspace) return;
+      workspace.zoomToFit();
+      workspace.setScale(Math.min(workspace.scale, window.innerWidth < 640 ? 0.86 : 0.96));
+      workspace.scrollCenter();
+    }
+
+    function zoomWorkspace(dir) {
+      if (!workspace) return;
+      workspace.zoomCenter(dir);
+    }
+
+    function deleteSelectedBlock() {
+      if (!workspace || !selectedBlockId) return;
+      const block = workspace.getBlockById(selectedBlockId);
+      if (block && block.isDeletable()) {
+        block.dispose(true);
+        selectedBlockId = null;
+        updateSelectedBlockUI();
+        showToast('BLOK DIHAPUS');
+      }
+    }
+
+    function duplicateSelectedBlock() {
+      if (!workspace || !selectedBlockId) return;
+      const block = workspace.getBlockById(selectedBlockId);
+      if (!block) return;
+
+      let newBlock = null;
+      if (Blockly.serialization && Blockly.serialization.blocks) {
+        const state = Blockly.serialization.blocks.save(block, { addCoordinates: true });
+        if (state) {
+          delete state.next;
+          state.x = (state.x || 20) + 28;
+          state.y = (state.y || 20) + 28;
+          newBlock = Blockly.serialization.blocks.append(state, workspace);
+        }
+      } else if (Blockly.Xml) {
+        const xmlDom = Blockly.Xml.blockToDom(block, true);
+        const nextNodes = xmlDom.getElementsByTagName('next');
+        if (nextNodes.length > 0 && nextNodes[0].parentNode === xmlDom) {
+          xmlDom.removeChild(nextNodes[0]);
+        }
+        newBlock = Blockly.Xml.domToBlock(xmlDom, workspace);
+        const xy = block.getRelativeToSurfaceXY();
+        newBlock.moveBy(xy.x + 28, xy.y + 28);
+      }
+
+      if (newBlock) {
+        newBlock.select();
+        selectedBlockId = newBlock.id;
+        updateSelectedBlockUI();
+        showToast('BLOK DIDUPLIKAT');
+      }
+    }
+
+    function openClearConfirmModal() {
+      document.getElementById('clearConfirmModal').classList.remove('hidden');
+    }
+
+    function closeClearConfirmModal() {
+      document.getElementById('clearConfirmModal').classList.add('hidden');
+    }
+
+    function confirmClearWorkspace() {
+      if (workspace) {
+        workspace.clear();
+        selectedBlockId = null;
+        updateSelectedBlockUI();
+        updateGeneratedOutputs();
+      }
+      closeClearConfirmModal();
+      showToast('KERTAS KERJA DIKOSONGKAN');
+    }
+
+    // =========================================================
+    // 8. COPY CODE & DOWNLOAD HTML FILE
+    // =========================================================
+    function copyGeneratedCode() {
+      updateGeneratedOutputs();
+      const hiddenArea = document.getElementById('hiddenClipboardArea');
+      hiddenArea.value = latestGeneratedHtml;
+      hiddenArea.select();
+      hiddenArea.setSelectionRange(0, 999999);
+
+      try {
+        document.execCommand('copy');
+        showToast('KODE DISALIN KE CLIPBOARD');
+      } catch (err) {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(latestGeneratedHtml);
+          showToast('KODE DISALIN KE CLIPBOARD');
+        }
+      }
+    }
+
+    function downloadHtmlFile() {
+      updateGeneratedOutputs();
+      const blob = new Blob([latestGeneratedHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'layar-kertas-blueprint.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('BERKAS HTML DIUNDUH');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const text = document.getElementById('toastMessage');
+      text.textContent = msg;
+      toast.classList.remove('opacity-0', '-translate-y-2');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    }
+
+    // =========================================================
+    // 9. PRESET TEMPLATES BUILDER ("LAYAR KERTAS" THEME)
+    // =========================================================
+    function openTemplateModal() {
+      document.getElementById('templateModal').classList.remove('hidden');
+    }
+
+    function closeTemplateModal() {
+      document.getElementById('templateModal').classList.add('hidden');
+    }
+
+    function createBlockWithFields(type, fields = {}) {
+      const b = workspace.newBlock(type);
+      for (const [k, v] of Object.entries(fields)) {
+        if (b.getField(k)) {
+          b.setFieldValue(String(v), k);
+        }
+      }
+      if (b.getField('CLOSE_TAG')) {
+        const tagVal = fields.LEVEL || fields.TAG || fields.TYPE;
+        if (tagVal) {
+          b.setFieldValue(`${LT}/${tagVal}${GT}`, 'CLOSE_TAG');
+        }
+      }
+      b.initSvg();
+      b.render();
+      return b;
+    }
+
+    function chainBlocks(blockArray) {
+      for (let i = 0; i < blockArray.length - 1; i++) {
+        if (blockArray[i].nextConnection && blockArray[i + 1].previousConnection) {
+          blockArray[i].nextConnection.connect(blockArray[i + 1].previousConnection);
+        }
+      }
+      return blockArray[0];
+    }
+
+    function loadPresetTemplate(templateId, isInitial = false) {
+      if (!workspace) return;
+      Blockly.Events.disable();
+      try {
+        workspace.clear();
+
+        if (templateId === 'profile') {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+
+          // HEAD
+          const meta = createBlockWithFields('html_meta_charset');
+          const title = createBlockWithFields('html_title', { TEXT: 'Layar Kertas — Lembar Arsitektur' });
+          const styleTag = createBlockWithFields('html_style_tag');
+
+          const bodyRule = createBlockWithFields('css_rule', { SELECTOR: 'body' });
+          const bodyColor = createBlockWithFields('css_color', { COLOR: '#4f535b', BG: '#f6eddd' });
+          const bodyTypo = createBlockWithFields('css_typography', {
+            FONT: "'Barlow', system-ui, sans-serif",
+            SIZE: 15,
+            ALIGN: 'left'
+          });
+          const bodySpace = createBlockWithFields('css_spacing', {
+            PADDING: '22px',
+            MARGIN: '0 auto',
+            MAX_WIDTH: '520px'
+          });
+          chainBlocks([bodyColor, bodyTypo, bodySpace]);
+          bodyRule.getInput('DECLARATIONS').connection.connect(bodyColor.previousConnection);
+          styleTag.getInput('RULES').connection.connect(bodyRule.previousConnection);
+
+          chainBlocks([meta, title, styleTag]);
+          doc.getInput('HEAD').connection.connect(meta.previousConnection);
+
+          // BODY
+          const card = createBlockWithFields('html_card', {
+            BG: '#f9f2e5',
+            RADIUS: 12,
+            PAD: 22,
+            CLASS: 'kartu-arsitek'
+          });
+
+          const badge1 = createBlockWithFields('html_badge', { TEXT: 'DOKUMEN #LK-01', BG: '#e9dcca' });
+          const badge2 = createBlockWithFields('html_badge', { TEXT: 'SKALA 1:1', BG: '#e9dcca' });
+
+          const heading = createBlockWithFields('html_heading', {
+            LEVEL: 'h1',
+            TEXT: 'STUDIO LAYAR KERTAS'
+          });
+
+          const bio = createBlockWithFields('html_paragraph', {
+            TEXT: 'Catatan kerja visual berbasis Google Blockly. Susun struktur HTML dan aturan CSS layaknya merancang cetak biru arsitektur yang hangat dan presisi.'
+          });
+
+          const quote = createBlockWithFields('html_blockquote', {
+            TEXT: 'Ketuk kategori modul di atas untuk menambah elemen baru, lalu periksa hasilnya pada tab Kode HTML dan Live Preview.'
+          });
+
+          const hr = createBlockWithFields('html_br_hr', { TYPE: 'hr' });
+
+          const btn = createBlockWithFields('html_button', {
+            TEXT: 'UJI INTERAKSI CETAK BIRU',
+            ALERT: 'Sistem Layar Kertas aktif dan berfungsi dengan baik.',
+            BG: '#1aa3a1'
+          });
+
+          chainBlocks([badge1, badge2, heading, bio, quote, hr, btn]);
+          card.getInput('CHILDREN').connection.connect(badge1.previousConnection);
+          doc.getInput('BODY').connection.connect(card.previousConnection);
+
+          doc.moveBy(28, 28);
+        } else if (templateId === 'form') {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+          const title = createBlockWithFields('html_title', { TEXT: 'Formulir Catatan Lapangan' });
+          doc.getInput('HEAD').connection.connect(title.previousConnection);
+
+          const card = createBlockWithFields('html_card', {
+            BG: '#f9f2e5',
+            RADIUS: 12,
+            PAD: 22,
+            CLASS: 'kartu-formulir'
+          });
+          const h2 = createBlockWithFields('html_heading', {
+            LEVEL: 'h2',
+            TEXT: 'FORMULIR INSPEKSI LAPANGAN'
+          });
+          const form = createBlockWithFields('html_form');
+          const lbl1 = createBlockWithFields('html_label', { TEXT: 'Nama Perancang:' });
+          const inp1 = createBlockWithFields('html_input', { TYPE: 'text', PLACEHOLDER: 'Masukkan nama lengkap...' });
+          const lbl2 = createBlockWithFields('html_label', { TEXT: 'Kategori Struktur:' });
+          const sel = createBlockWithFields('html_select');
+          const opt1 = createBlockWithFields('html_option', { TEXT: 'Tata Letak Utama (HTML)' });
+          const opt2 = createBlockWithFields('html_option', { TEXT: 'Spesifikasi Gaya (CSS)' });
+          chainBlocks([opt1, opt2]);
+          sel.getInput('OPTIONS').connection.connect(opt1.previousConnection);
+
+          const lbl3 = createBlockWithFields('html_label', { TEXT: 'Catatan Teknis:' });
+          const txt = createBlockWithFields('html_textarea', { PLACEHOLDER: 'Tuliskan rincian revisi...' });
+          const btn = createBlockWithFields('html_button', {
+            TEXT: 'SIMPAN CATATAN',
+            ALERT: 'Catatan formulir berhasil direkam.',
+            BG: '#1aa3a1'
+          });
+
+          chainBlocks([lbl1, inp1, lbl2, sel, lbl3, txt, btn]);
+          form.getInput('FIELDS').connection.connect(lbl1.previousConnection);
+          chainBlocks([h2, form]);
+          card.getInput('CHILDREN').connection.connect(h2.previousConnection);
+          doc.getInput('BODY').connection.connect(card.previousConnection);
+          doc.moveBy(28, 28);
+        } else if (templateId === 'schedule') {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+          const title = createBlockWithFields('html_title', { TEXT: 'Tabel Inventaris Komponen' });
+          doc.getInput('HEAD').connection.connect(title.previousConnection);
+
+          const card = createBlockWithFields('html_card', {
+            BG: '#f9f2e5',
+            RADIUS: 12,
+            PAD: 22,
+            CLASS: 'kartu-tabel'
+          });
+          const h2 = createBlockWithFields('html_heading', {
+            LEVEL: 'h2',
+            TEXT: 'DAFTAR KOMPONEN CETAK BIRU'
+          });
+
+          const table = createBlockWithFields('html_table');
+          const trHead = createBlockWithFields('html_table_row');
+          const th1 = createBlockWithFields('html_table_cell', { TAG: 'th', TEXT: 'Kode' });
+          const th2 = createBlockWithFields('html_table_cell', { TAG: 'th', TEXT: 'Fungsi Elemen' });
+          chainBlocks([th1, th2]);
+          trHead.getInput('CELLS').connection.connect(th1.previousConnection);
+
+          const tr1 = createBlockWithFields('html_table_row');
+          const td1 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'BLK-01' });
+          const td2 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'Struktur Dokumen & Meta' });
+          chainBlocks([td1, td2]);
+          tr1.getInput('CELLS').connection.connect(td1.previousConnection);
+
+          const tr2 = createBlockWithFields('html_table_row');
+          const td3 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'BLK-02' });
+          const td4 = createBlockWithFields('html_table_cell', { TAG: 'td', TEXT: 'Deklarasi Gaya Kertas CSS' });
+          chainBlocks([td3, td4]);
+          tr2.getInput('CELLS').connection.connect(td3.previousConnection);
+
+          chainBlocks([trHead, tr1, tr2]);
+          table.getInput('ROWS').connection.connect(trHead.previousConnection);
+
+          const list = createBlockWithFields('html_list', { TYPE: 'ul' });
+          const li1 = createBlockWithFields('html_list_item', { TEXT: 'Grid latar 28×28px dapat di-toggle kapan saja' });
+          const li2 = createBlockWithFields('html_list_item', { TEXT: 'Ekspor langsung ke berkas .html mandiri' });
+          chainBlocks([li1, li2]);
+          list.getInput('ITEMS').connection.connect(li1.previousConnection);
+
+          chainBlocks([h2, table, list]);
+          card.getInput('CHILDREN').connection.connect(h2.previousConnection);
+          doc.getInput('BODY').connection.connect(card.previousConnection);
+          doc.moveBy(28, 28);
+        } else {
+          const doc = createBlockWithFields('html_document', { LANG: 'id' });
+          const title = createBlockWithFields('html_title', { TEXT: 'Lembar Kerja Baru' });
+          const h1 = createBlockWithFields('html_heading', { LEVEL: 'h1', TEXT: 'PROYEK CETAK BIRU BARU' });
+          doc.getInput('HEAD').connection.connect(title.previousConnection);
+          doc.getInput('BODY').connection.connect(h1.previousConnection);
+          doc.moveBy(28, 28);
+        }
+      } finally {
+        Blockly.Events.enable();
+      }
+
+      updateGeneratedOutputs();
+      closeTemplateModal();
+      if (!isInitial) {
+        switchPage('workspace');
+        showToast('CETAKAN DIMUAT KE RUANG KERJA');
+      }
+    }
+
+    // Expose handlers globally
+    window.openBlockPicker = openBlockPicker;
+    window.closeBlockPicker = closeBlockPicker;
+    window.clearBlockSearch = clearBlockSearch;
+    window.selectModalCategory = selectModalCategory;
+    window.renderBlockPickerCards = renderBlockPickerCards;
+    window.spawnBlockFromPicker = spawnBlockFromPicker;
+    window.openTemplateModal = openTemplateModal;
+    window.closeTemplateModal = closeTemplateModal;
+    window.loadPresetTemplate = loadPresetTemplate;
+    window.switchPage = switchPage;
+    window.refreshLivePreview = refreshLivePreview;
+    window.copyGeneratedCode = copyGeneratedCode;
+    window.downloadHtmlFile = downloadHtmlFile;
+    window.workspaceUndo = workspaceUndo;
+    window.workspaceRedo = workspaceRedo;
+    window.centerWorkspace = centerWorkspace;
+    window.zoomWorkspace = zoomWorkspace;
+    window.duplicateSelectedBlock = duplicateSelectedBlock;
+    window.deleteSelectedBlock = deleteSelectedBlock;
+    window.openClearConfirmModal = openClearConfirmModal;
+    window.closeClearConfirmModal = closeClearConfirmModal;
+    window.confirmClearWorkspace = confirmClearWorkspace;
+    window.toggleBlueprintGrid = toggleBlueprintGrid;
+
+    window.addEventListener('DOMContentLoaded', function() {
+      initBlocklyWorkspace();
+    });
+  </script>
+</body>
+</html>
