@@ -418,15 +418,15 @@
           </button>
 
           <!-- Template Button -->
-          <button onclick="openTemplateModal()"
+          <button onclick="openTemplateModal()" title="Arsip Cetakan / Template"
             class="paper-focus paper-btn-secondary px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium">
             <i class="ph ph-folders text-base text-paper-ink"></i>
             <span class="hidden sm:inline font-heading-upper text-xs">Arsip</span>
           </button>
 
           <!-- Primary CTA: Add Block -->
-          <button onclick="openBlockPicker('all', false)"
-            class="paper-focus paper-btn-teal px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs">
+          <button onclick="openBlockPicker('all', false)" title="Tambah Blok Baru"
+            class="paper-focus paper-btn-teal px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs">
             <i class="ph-bold ph-plus text-sm"></i>
             <span class="hidden sm:inline font-heading-upper text-xs">Blok Baru</span>
           </button>
@@ -576,21 +576,14 @@
       <section id="page-preview" class="hidden w-full h-full flex-col overflow-hidden">
         <!-- Live Preview Subheader -->
         <div class="px-4 sm:px-[22px] py-3 bg-paper-card border-b-[1.5px] border-paper-border flex items-center justify-between gap-2 shrink-0">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-lg bg-paper-bg border-[1.5px] border-paper-border flex items-center justify-center shrink-0">
               <i class="ph ph-browsers text-lg text-paper-ink"></i>
             </div>
-            <div>
-              <h2 class="font-heading-upper text-sm sm:text-base text-paper-ink leading-tight">Live Preview Hasil Web</h2>
-              <p class="text-xs text-paper-muted">Render langsung dari susunan blok cetak biru</p>
+            <div class="min-w-0">
+              <h2 id="previewDocumentTitle" class="font-heading-upper text-sm sm:text-base text-paper-ink leading-tight truncate">Layar Kertas — Arsip Web</h2>
             </div>
           </div>
-
-          <button onclick="refreshLivePreview()" title="Muat Ulang Pratinjau"
-            class="paper-focus paper-btn-teal px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5">
-            <i class="ph-bold ph-arrows-clockwise text-base"></i>
-            <span class="font-heading-upper text-xs">Segarkan</span>
-          </button>
         </div>
 
         <!-- Direct Fullscreen Iframe Without Outer Frame -->
@@ -2390,9 +2383,31 @@
         statsEl.textContent = `${lines.length} BARIS • ${latestGeneratedHtml.length} KARAKTER`;
       }
 
+      updatePreviewHeaderTitle();
+
       if (currentActivePage === 'preview') {
         refreshLivePreview();
       }
+    }
+
+    function updatePreviewHeaderTitle() {
+      const titleEl = document.getElementById('previewDocumentTitle');
+      if (!titleEl) return;
+
+      let extractedTitle = '';
+      if (workspace) {
+        const titleBlock = workspace.getAllBlocks(false).find(b => b.type === 'html_title');
+        if (titleBlock) {
+          extractedTitle = (titleBlock.getFieldValue('TEXT') || '').trim();
+        }
+      }
+      if (!extractedTitle && latestGeneratedHtml) {
+        const match = latestGeneratedHtml.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        if (match && match[1]) {
+          extractedTitle = match[1].trim();
+        }
+      }
+      titleEl.textContent = extractedTitle || 'Tanpa Judul (<title>)';
     }
 
     function buildPreviewHtmlDocument(rawHtml) {
@@ -2434,6 +2449,8 @@
     function refreshLivePreview() {
       const iframe = document.getElementById('livePreviewIframe');
       if (!iframe) return;
+
+      updatePreviewHeaderTitle();
 
       const allBlocks = workspace ? workspace.getAllBlocks(false) : [];
       if (allBlocks.length === 0) {
