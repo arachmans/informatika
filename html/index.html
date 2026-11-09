@@ -410,11 +410,11 @@
             <span id="gridStatusLabel" class="font-mono-code text-[11px] hidden sm:inline">GRID: ON</span>
           </button>
 
-          <!-- Search Blocks -->
-          <button onclick="openBlockPicker('all', true)"
+          <!-- Fullscreen Button -->
+          <button onclick="toggleAppFullscreen()" id="topFullscreenBtn" title="Mode Layar Penuh (Fullscreen)"
             class="paper-focus paper-btn-secondary px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-medium">
-            <i class="ph ph-magnifying-glass text-base text-paper-ink"></i>
-            <span class="hidden sm:inline font-heading-upper text-xs">Cari</span>
+            <i id="fullscreenIcon" class="ph ph-corners-out text-base text-paper-ink"></i>
+            <span id="fullscreenLabel" class="hidden sm:inline font-heading-upper text-xs">Fullscreen</span>
           </button>
 
           <!-- Template Button -->
@@ -2212,6 +2212,62 @@
       }
     }
 
+    function updateFullscreenButtonUI() {
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const iconEl = document.getElementById('fullscreenIcon');
+      const labelEl = document.getElementById('fullscreenLabel');
+      const btnEl = document.getElementById('topFullscreenBtn');
+
+      if (iconEl) {
+        iconEl.className = isFs
+          ? 'ph ph-corners-in text-base text-paper-teal'
+          : 'ph ph-corners-out text-base text-paper-ink';
+      }
+      if (labelEl) {
+        labelEl.textContent = isFs ? 'Keluar' : 'Fullscreen';
+      }
+      if (btnEl) {
+        btnEl.classList.toggle('border-paper-teal', isFs);
+      }
+      if (workspace && currentActivePage === 'workspace') {
+        setTimeout(() => Blockly.svgResize(workspace), 80);
+      }
+    }
+
+    function toggleAppFullscreen() {
+      const docEl = document.documentElement;
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+      if (!isFs) {
+        const reqFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen;
+        if (reqFs) {
+          Promise.resolve(reqFs.call(docEl))
+            .then(() => {
+              updateFullscreenButtonUI();
+              showToast('MODE LAYAR PENUH AKTIF');
+            })
+            .catch(() => {
+              showToast('LAYAR PENUH DIBATASI OLEH BROWSER');
+            });
+        } else {
+          showToast('LAYAR PENUH TIDAK DIDUKUNG PERANGKAT INI');
+        }
+      } else {
+        const exitFs = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exitFs) {
+          Promise.resolve(exitFs.call(document))
+            .then(() => {
+              updateFullscreenButtonUI();
+              showToast('KELUAR DARI LAYAR PENUH');
+            })
+            .catch(() => {});
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenButtonUI);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButtonUI);
+
     function initBlocklyWorkspace() {
       registerCustomBlocks();
 
@@ -3127,6 +3183,7 @@
     window.closeClearConfirmModal = closeClearConfirmModal;
     window.confirmClearWorkspace = confirmClearWorkspace;
     window.toggleBlueprintGrid = toggleBlueprintGrid;
+    window.toggleAppFullscreen = toggleAppFullscreen;
 
     window.addEventListener('DOMContentLoaded', function() {
       initBlocklyWorkspace();
