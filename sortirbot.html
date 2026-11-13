@@ -844,6 +844,291 @@ while len(antrean) > 0:
             { id: 'PK-509', tujuan: 'Jakarta', berat: 19, warna: 'Hijau', fragile: false },
           ],
         },
+        {
+          id: 6,
+          title: 'Level 6: Tantangan Mandiri — Rentang Berat',
+          subtitle: 'Tulis kode dari nol! Menggabungkan batas bawah & atas dengan and',
+          concepts: ['Mandiri (Tanpa Template)', 'Rentang Angka', 'if / elif / else'],
+          missionBrief:
+            'Mulai Level 6, kamu menulis kode Python dari awal! Sortir paket berdasarkan kategori bobot: Paket ringan (< 8 kg) ke Jalur 1, paket sedang (>= 8 kg DAN <= 15 kg) ke Jalur 2, serta paket kargo berat (> 15 kg) ke Jalur 3.',
+          laneRules: [
+            {
+              lane: 1,
+              title: 'Jalur 1 • Paket Ringan',
+              badge: 'berat < 8',
+              description: 'Semua paket dengan berat di bawah 8 kg',
+              accentHex: '#2563EB',
+            },
+            {
+              lane: 2,
+              title: 'Jalur 2 • Paket Sedang',
+              badge: 'berat >= 8 and berat <= 15',
+              description: 'Paket dengan berat mulai 8 kg sampai 15 kg',
+              accentHex: '#059669',
+            },
+            {
+              lane: 3,
+              title: 'Jalur 3 • Kargo Berat',
+              badge: 'else (berat > 15)',
+              description: 'Paket dengan berat lebih dari 15 kg',
+              accentHex: '#7C3AED',
+            },
+          ],
+          starterCode: ``,
+          solutionCode: `if paket.berat < 8:
+    robot.kirimKeJalur(1)
+elif paket.berat >= 8 and paket.berat <= 15:
+    robot.kirimKeJalur(2)
+else:
+    robot.kirimKeJalur(3)`,
+          hintText:
+            'Mulai dengan menulis if paket.berat < 8: lalu tekan Enter. Untuk Jalur 2, gunakan elif paket.berat >= 8 and paket.berat <= 15:, lalu tutup dengan else: untuk Jalur 3.',
+          evaluateExpectedLane: (pkg) => {
+            if (pkg.berat < 8) return 1;
+            if (pkg.berat >= 8 && pkg.berat <= 15) return 2;
+            return 3;
+          },
+          initialPackages: [
+            { id: 'PK-601', tujuan: 'Jakarta', berat: 5, warna: 'Biru', fragile: false },
+            { id: 'PK-602', tujuan: 'Bandung', berat: 12, warna: 'Hijau', fragile: false },
+            { id: 'PK-603', tujuan: 'Surabaya', berat: 19, warna: 'Merah', fragile: true },
+            { id: 'PK-604', tujuan: 'Semarang', berat: 8, warna: 'Kuning', fragile: false },
+            { id: 'PK-605', tujuan: 'Medan', berat: 15, warna: 'Biru', fragile: true },
+            { id: 'PK-606', tujuan: 'Jakarta', berat: 3, warna: 'Hijau', fragile: false },
+            { id: 'PK-607', tujuan: 'Bandung', berat: 22, warna: 'Merah', fragile: false },
+          ],
+        },
+        {
+          id: 7,
+          title: 'Level 7: Tantangan Mandiri — Seleksi Daftar (in)',
+          subtitle: 'Tulis kode dari nol! Memeriksa keanggotaan list dengan operator in',
+          concepts: ['Mandiri (Tanpa Template)', 'Operator in', 'List [...]'],
+          missionBrief:
+            'Gunakan operator in atau or untuk memeriksa banyak nilai sekaligus! Kirim paket tujuan luar Jawa ("Medan") ATAU yang berlabel warna "Merah" ke Jalur 1. Kirim paket tujuan Jawa Timur/Tengah (paket.tujuan in ["Surabaya", "Semarang"]) yang TIDAK fragile ke Jalur 2. Sisanya ke Jalur 3.',
+          laneRules: [
+            {
+              lane: 1,
+              title: 'Jalur 1 • Medan / Merah',
+              badge: 'Medan or Merah',
+              description: 'tujuan == "Medan" or warna == "Merah"',
+              accentHex: '#2563EB',
+            },
+            {
+              lane: 2,
+              title: 'Jalur 2 • Sby/Smg Non-Fragile',
+              badge: 'in ["Surabaya","Semarang"] & not fragile',
+              description: 'tujuan in ["Surabaya", "Semarang"] and not fragile',
+              accentHex: '#059669',
+            },
+            {
+              lane: 3,
+              title: 'Jalur 3 • Lainnya',
+              badge: 'else (Standar)',
+              description: 'Paket lainnya (Jakarta, Bandung, atau Fragile)',
+              accentHex: '#7C3AED',
+            },
+          ],
+          starterCode: ``,
+          solutionCode: `if paket.tujuan == "Medan" or paket.warna == "Merah":
+    robot.kirimKeJalur(1)
+elif paket.tujuan in ["Surabaya", "Semarang"] and not paket.fragile:
+    robot.kirimKeJalur(2)
+else:
+    robot.kirimKeJalur(3)`,
+          hintText:
+            'Kamu bisa menulis elif paket.tujuan in ["Surabaya", "Semarang"] and not paket.fragile: atau menggunakan (paket.tujuan == "Surabaya" or paket.tujuan == "Semarang") and not paket.fragile:.',
+          evaluateExpectedLane: (pkg) => {
+            if (pkg.tujuan === 'Medan' || pkg.warna === 'Merah') return 1;
+            if ((pkg.tujuan === 'Surabaya' || pkg.tujuan === 'Semarang') && !pkg.fragile) return 2;
+            return 3;
+          },
+          initialPackages: [
+            { id: 'PK-701', tujuan: 'Medan', berat: 10, warna: 'Biru', fragile: false },
+            { id: 'PK-702', tujuan: 'Surabaya', berat: 7, warna: 'Kuning', fragile: false },
+            { id: 'PK-703', tujuan: 'Semarang', berat: 9, warna: 'Hijau', fragile: true },
+            { id: 'PK-704', tujuan: 'Bandung', berat: 6, warna: 'Merah', fragile: false },
+            { id: 'PK-705', tujuan: 'Semarang', berat: 11, warna: 'Biru', fragile: false },
+            { id: 'PK-706', tujuan: 'Jakarta', berat: 8, warna: 'Kuning', fragile: false },
+            { id: 'PK-707', tujuan: 'Surabaya', berat: 14, warna: 'Merah', fragile: false },
+            { id: 'PK-708', tujuan: 'Bandung', berat: 5, warna: 'Hijau', fragile: true },
+          ],
+        },
+        {
+          id: 8,
+          title: 'Level 8: Tantangan Mandiri — Percabangan Bersarang',
+          subtitle: 'Tulis kode dari nol! Kombinasi atribut fragile, berat, warna, & tujuan',
+          concepts: ['Mandiri (Tanpa Template)', 'Logika Majemuk', 'Prioritas Kondisi'],
+          missionBrief:
+            'Hati-hati dengan barang pecah belah berukuran besar! Jika paket berstatus fragile DAN beratnya >= 10 kg, wajib masuk Jalur 1. Jika paket TIDAK fragile DAN (berwarna "Hijau" ATAU tujuan "Jakarta"), arahkan ke Jalur 2. Selain itu kirim ke Jalur 3.',
+          laneRules: [
+            {
+              lane: 1,
+              title: 'Jalur 1 • Fragile Berat',
+              badge: 'fragile and berat >= 10',
+              description: 'paket.fragile == True and paket.berat >= 10',
+              accentHex: '#2563EB',
+            },
+            {
+              lane: 2,
+              title: 'Jalur 2 • Aman (Hijau / Jkt)',
+              badge: 'not fragile & (Hijau/Jakarta)',
+              description: 'not fragile and (warna == "Hijau" or tujuan == "Jakarta")',
+              accentHex: '#059669',
+            },
+            {
+              lane: 3,
+              title: 'Jalur 3 • Reguler / Fragile Kecil',
+              badge: 'else (Lainnya)',
+              description: 'Fragile ringan (< 10kg) atau kota/warna lainnya',
+              accentHex: '#7C3AED',
+            },
+          ],
+          starterCode: ``,
+          solutionCode: `if paket.fragile and paket.berat >= 10:
+    robot.kirimKeJalur(1)
+elif not paket.fragile and (paket.warna == "Hijau" or paket.tujuan == "Jakarta"):
+    robot.kirimKeJalur(2)
+else:
+    robot.kirimKeJalur(3)`,
+          hintText:
+            'Pastikan memakai tanda kurung pada syarat OR di dalam elif: elif not paket.fragile and (paket.warna == "Hijau" or paket.tujuan == "Jakarta"):',
+          evaluateExpectedLane: (pkg) => {
+            if (pkg.fragile && pkg.berat >= 10) return 1;
+            if (!pkg.fragile && (pkg.warna === 'Hijau' || pkg.tujuan === 'Jakarta')) return 2;
+            return 3;
+          },
+          initialPackages: [
+            { id: 'PK-801', tujuan: 'Surabaya', berat: 14, warna: 'Merah', fragile: true },
+            { id: 'PK-802', tujuan: 'Jakarta', berat: 6, warna: 'Biru', fragile: false },
+            { id: 'PK-803', tujuan: 'Bandung', berat: 9, warna: 'Hijau', fragile: false },
+            { id: 'PK-804', tujuan: 'Jakarta', berat: 7, warna: 'Kuning', fragile: true },
+            { id: 'PK-805', tujuan: 'Medan', berat: 10, warna: 'Hijau', fragile: true },
+            { id: 'PK-806', tujuan: 'Semarang', berat: 11, warna: 'Kuning', fragile: false },
+            { id: 'PK-807', tujuan: 'Medan', berat: 15, warna: 'Hijau', fragile: false },
+            { id: 'PK-808', tujuan: 'Bandung', berat: 5, warna: 'Merah', fragile: true },
+          ],
+        },
+        {
+          id: 9,
+          title: 'Level 9: Tantangan Mandiri — Antrean & Dictionary',
+          subtitle: 'Tulis perulangan while Queue FIFO & akses dictionary dari awal!',
+          concepts: ['Mandiri (Tanpa Template)', 'while len(antrean) > 0', 'paket["key"]'],
+          explicitQueueMode: true,
+          missionBrief:
+            'Pada misi ini kamu wajib menulis perulangan while len(antrean) > 0: dan memanggil paket = antrean.ambil() sendiri! Arahkan paket berlabel selain "Biru" (warna != "Biru") yang menuju "Bandung" ke Jalur 1. Arahkan paket dengan berat >= 14 kg ATAU tujuan "Medan" ke Jalur 2. Sisanya ke Jalur 3.',
+          laneRules: [
+            {
+              lane: 1,
+              title: 'Jalur 1 • Bandung Non-Biru',
+              badge: 'Bandung and warna != "Biru"',
+              description: 'tujuan == "Bandung" and warna != "Biru"',
+              accentHex: '#2563EB',
+            },
+            {
+              lane: 2,
+              title: 'Jalur 2 • Kargo >=14kg / Medan',
+              badge: 'berat >= 14 or Medan',
+              description: 'berat >= 14 or tujuan == "Medan"',
+              accentHex: '#059669',
+            },
+            {
+              lane: 3,
+              title: 'Jalur 3 • Antrean Standar',
+              badge: 'else (Lainnya)',
+              description: 'Paket lainnya di dalam antrean',
+              accentHex: '#7C3AED',
+            },
+          ],
+          starterCode: ``,
+          solutionCode: `while len(antrean) > 0:
+    paket = antrean.ambil()
+    if paket["tujuan"] == "Bandung" and paket["warna"] != "Biru":
+        robot.kirimKeJalur(1)
+    elif paket["berat"] >= 14 or paket["tujuan"] == "Medan":
+        robot.kirimKeJalur(2)
+    else:
+        robot.kirimKeJalur(3)`,
+          hintText:
+            'Awali kode dengan while len(antrean) > 0: lalu di baris kedua (indentasi 4 spasi) tulis paket = antrean.ambil(). Setelah itu tulis blok if / elif / else di dalam while tersebut.',
+          evaluateExpectedLane: (pkg) => {
+            if (pkg.tujuan === 'Bandung' && pkg.warna !== 'Biru') return 1;
+            if (pkg.berat >= 14 || pkg.tujuan === 'Medan') return 2;
+            return 3;
+          },
+          initialPackages: [
+            { id: 'PK-901', tujuan: 'Bandung', berat: 8, warna: 'Merah', fragile: false },
+            { id: 'PK-902', tujuan: 'Bandung', berat: 15, warna: 'Biru', fragile: false },
+            { id: 'PK-903', tujuan: 'Medan', berat: 6, warna: 'Hijau', fragile: true },
+            { id: 'PK-904', tujuan: 'Surabaya', berat: 16, warna: 'Kuning', fragile: false },
+            { id: 'PK-905', tujuan: 'Bandung', berat: 5, warna: 'Biru', fragile: false },
+            { id: 'PK-906', tujuan: 'Jakarta', berat: 9, warna: 'Merah', fragile: false },
+            { id: 'PK-907', tujuan: 'Bandung', berat: 11, warna: 'Kuning', fragile: true },
+            { id: 'PK-908', tujuan: 'Semarang', berat: 14, warna: 'Biru', fragile: false },
+          ],
+        },
+        {
+          id: 10,
+          title: 'Level 10: Ujian Akhir — Arsitek Logistik Utama',
+          subtitle: 'Misi Puncak! Kelola Queue FIFO & aturan multi-kondisi dari layar kosong',
+          concepts: ['Ujian Akhir Mandiri', 'Queue + Variabel', 'Logika Kompleks'],
+          explicitQueueMode: true,
+          missionBrief:
+            'Ujian kelulusan SortirBot 3D! Kelola antrean FIFO dengan while len(antrean) > 0: dan paket = antrean.ambil(). Jalur 1 khusus paket Prioritas Tinggi: (warna == "Merah" DAN fragile) ATAU berat >= 20. Jalur 2 khusus Ekspedisi Cepat: tujuan in ["Bandung", "Surabaya"] DAN berat >= 10 DAN TIDAK fragile. Sisanya ke Jalur 3!',
+          laneRules: [
+            {
+              lane: 1,
+              title: 'Jalur 1 • Prioritas Utama',
+              badge: '(Merah & fragile) or berat >= 20',
+              description: '(warna == "Merah" and fragile) or berat >= 20',
+              accentHex: '#2563EB',
+            },
+            {
+              lane: 2,
+              title: 'Jalur 2 • Ekspedisi Bdg/Sby',
+              badge: 'Bdg/Sby & berat>=10 & not fragile',
+              description: 'tujuan in ["Bandung", "Surabaya"] and berat >= 10 and not fragile',
+              accentHex: '#059669',
+            },
+            {
+              lane: 3,
+              title: 'Jalur 3 • Kargo Reguler',
+              badge: 'else (Lainnya)',
+              description: 'Seluruh paket antrean di luar syarat Jalur 1 & 2',
+              accentHex: '#7C3AED',
+            },
+          ],
+          starterCode: ``,
+          solutionCode: `while len(antrean) > 0:
+    paket = antrean.ambil()
+    prioritas = (paket.warna == "Merah" and paket.fragile) or paket.berat >= 20
+    ekspedisi = paket.tujuan in ["Bandung", "Surabaya"] and paket.berat >= 10 and not paket.fragile
+
+    if prioritas:
+        robot.kirimKeJalur(1)
+    elif ekspedisi:
+        robot.kirimKeJalur(2)
+    else:
+        robot.kirimKeJalur(3)`,
+          hintText:
+            'Kamu dapat menyimpan hasil logika ke dalam variabel boolean terlebih dahulu di dalam loop while (misal prioritas = ...), atau langsung menuliskannya pada if dan elif!',
+          evaluateExpectedLane: (pkg) => {
+            if ((pkg.warna === 'Merah' && pkg.fragile) || pkg.berat >= 20) return 1;
+            if ((pkg.tujuan === 'Bandung' || pkg.tujuan === 'Surabaya') && pkg.berat >= 10 && !pkg.fragile) return 2;
+            return 3;
+          },
+          initialPackages: [
+            { id: 'PK-1001', tujuan: 'Jakarta', berat: 7, warna: 'Merah', fragile: true },
+            { id: 'PK-1002', tujuan: 'Bandung', berat: 14, warna: 'Biru', fragile: false },
+            { id: 'PK-1003', tujuan: 'Medan', berat: 22, warna: 'Kuning', fragile: false },
+            { id: 'PK-1004', tujuan: 'Surabaya', berat: 12, warna: 'Hijau', fragile: true },
+            { id: 'PK-1005', tujuan: 'Surabaya', berat: 10, warna: 'Merah', fragile: false },
+            { id: 'PK-1006', tujuan: 'Bandung', berat: 6, warna: 'Hijau', fragile: false },
+            { id: 'PK-1007', tujuan: 'Semarang', berat: 15, warna: 'Biru', fragile: false },
+            { id: 'PK-1008', tujuan: 'Bandung', berat: 20, warna: 'Biru', fragile: true },
+            { id: 'PK-1009', tujuan: 'Surabaya', berat: 16, warna: 'Kuning', fragile: false },
+            { id: 'PK-1010', tujuan: 'Medan', berat: 9, warna: 'Merah', fragile: true },
+          ],
+        },
       ];
 
       function buildLevelQueue(level) {
@@ -3637,6 +3922,11 @@ paket.fragile  # True`}
       // MODULE: PythonEditor.jsx
       // ============================================================================
       const SNIPPETS = [
+        { label: 'while len(antrean) > 0:', insert: 'while len(antrean) > 0:\n    ' },
+        { label: 'paket = antrean.ambil()', insert: 'paket = antrean.ambil()\n    ' },
+        { label: 'if ', insert: 'if ' },
+        { label: 'elif ', insert: 'elif ' },
+        { label: 'else:', insert: 'else:\n    ' },
         { label: 'paket.tujuan', insert: 'paket.tujuan' },
         { label: 'paket.berat', insert: 'paket.berat' },
         { label: 'paket.warna', insert: 'paket.warna' },
@@ -3645,8 +3935,10 @@ paket.fragile  # True`}
         { label: 'and', insert: ' and ' },
         { label: 'or', insert: ' or ' },
         { label: 'not', insert: 'not ' },
+        { label: 'in', insert: ' in ' },
         { label: 'kirimKeJalur(1)', insert: 'robot.kirimKeJalur(1)' },
         { label: 'kirimKeJalur(2)', insert: 'robot.kirimKeJalur(2)' },
+        { label: 'kirimKeJalur(3)', insert: 'robot.kirimKeJalur(3)' },
       ];
 
       function highlightPythonLine(line) {
@@ -3941,11 +4233,12 @@ paket.fragile  # True`}
                   onChange={(e) => onChange(e.target.value)}
                   onScroll={syncScroll}
                   onKeyDown={handleKeyDown}
+                  placeholder="# Tulis kode Python penyortiranmu dari awal di sini..."
                   spellCheck={false}
                   autoCapitalize="off"
                   autoComplete="off"
                   autoCorrect="off"
-                  className="code-input absolute inset-0 h-full w-full resize-none overflow-auto dark-scrollbar bg-transparent py-3 px-3.5 font-mono-code text-[13px] leading-6 text-transparent caret-amber-400 focus:outline-none whitespace-pre"
+                  className="code-input absolute inset-0 h-full w-full resize-none overflow-auto dark-scrollbar bg-transparent py-3 px-3.5 font-mono-code text-[13px] leading-6 text-transparent placeholder:text-slate-600 caret-amber-400 focus:outline-none whitespace-pre"
                 />
               </div>
             </div>
@@ -4311,7 +4604,7 @@ paket.fragile  # True`}
               timestamp: nowTimeStr(),
               type: 'info',
               message:
-                'Sistem SortirBot 3D aktif! Periksa aturan jalur di atas, lengkapi kode Python, lalu klik "Jalankan Kode".',
+                'Sistem SortirBot 3D aktif! Periksa aturan jalur di atas, lengkapi kode Python, lalu klik "Jalankan".',
             },
           ]);
         }, []);
@@ -4951,7 +5244,7 @@ paket.fragile  # True`}
                                 </button>
                               ) : (
                                 <span className="rounded-xl bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-900">
-                                  🏆 Semua 5 Level Lulus!
+                                  🏆 Semua 10 Level Lulus!
                                 </span>
                               )}
                               <button
