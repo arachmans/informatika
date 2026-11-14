@@ -167,7 +167,7 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col overflow-hidden bg-[#f4eee1] text-[#2c221e]">
+<body class="h-[100dvh] max-h-[100dvh] w-screen flex flex-col overflow-hidden bg-[#f4eee1] text-[#2c221e]">
 
     <!-- WELCOME OVERLAY MODAL (Paper Card Style) -->
     <div id="welcome-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/50 backdrop-blur-sm p-4">
@@ -271,8 +271,12 @@
             <!-- Populated by JS -->
         </div>
 
-        <!-- Right Controls: Audio & Reset -->
+        <!-- Right Controls: Fullscreen, Audio & Reset -->
         <div class="flex items-center gap-1.5 md:gap-2">
+            <button id="btn-toggle-fullscreen" class="px-2.5 py-1.5 rounded-xl bg-[#fbf7ef] hover:bg-[#fffdf9] border border-[#c8b79e] text-amber-950 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Layar Penuh (Fullscreen)">
+                <span id="fullscreen-icon">⛶</span>
+                <span id="fullscreen-label" class="hidden sm:inline">Layar Penuh</span>
+            </button>
             <button id="btn-toggle-bgm" class="px-2.5 py-1.5 rounded-xl bg-[#fbf7ef] hover:bg-[#fffdf9] border border-[#c8b79e] text-amber-950 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm">
                 <span id="bgm-icon">🔊</span>
                 <span id="bgm-label" class="hidden sm:inline">Musik: On</span>
@@ -284,17 +288,17 @@
     </header>
 
     <!-- MAIN CONTENT WORKSPACE (Responsive Split Screen: Vertical on Mobile, Horizontal/Split on Desktop) -->
-    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    <main class="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden relative">
 
         <!-- LEFT / TOP PANEL: 3D FIRST-PERSON BARISTA WORKBENCH -->
-        <section class="relative w-full h-[41vh] sm:h-[44vh] lg:h-full lg:w-[54%] xl:w-[56%] bg-[#e9dec9] flex flex-col shrink-0 border-b lg:border-b-0 lg:border-r border-[#cfc0a8] overflow-hidden">
+        <section class="relative w-full h-[33dvh] sm:h-[38dvh] lg:h-full lg:w-[54%] xl:w-[56%] bg-[#e9dec9] flex flex-col shrink-0 border-b lg:border-b-0 lg:border-r border-[#cfc0a8] overflow-hidden">
 
             <!-- Top Overlay inside 3D Viewport: Current Action Banner & Active Cup HUD -->
-            <div class="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-start justify-between pointer-events-none gap-2">
+            <div class="absolute top-2 left-2 right-2 z-20 flex items-start justify-between pointer-events-none gap-2">
                 <!-- Status Action Pill -->
-                <div id="hud-action-banner" class="bg-[#fffdf8]/95 backdrop-blur-md border border-[#c8b69b] px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs text-stone-800 shadow-md">
-                    <span id="hud-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span id="hud-status-text" class="font-semibold">Siap di depan meja bar. Geser kamera atau jalankan kode!</span>
+                <div id="hud-action-banner" class="bg-[#fffdf8]/95 backdrop-blur-md border border-[#c8b69b] px-2.5 py-1 md:px-3 md:py-1.5 rounded-xl flex items-center gap-2 text-[11px] md:text-xs text-stone-800 shadow-md max-w-full">
+                    <span id="hud-status-dot" class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0"></span>
+                    <span id="hud-status-text" class="font-semibold truncate">Siap di depan meja bar. Geser kamera atau jalankan kode!</span>
                 </div>
 
                 <!-- Active Cup Contents Mini-HUD -->
@@ -313,67 +317,72 @@
             </div>
 
             <!-- Bottom Overlay inside 3D Viewport: Camera Panning & Quick Zone Buttons -->
-            <div class="absolute bottom-2.5 left-2.5 right-2.5 z-20 flex flex-col gap-1.5 pointer-events-none">
+            <div class="absolute bottom-1.5 md:bottom-2.5 left-2 right-2 z-20 flex flex-col gap-1 pointer-events-none">
                 <!-- Quick Zone Jump Buttons -->
-                <div class="flex items-center justify-center gap-1.5 overflow-x-auto pointer-events-auto py-0.5">
-                    <button data-zone="1" class="zone-btn px-2.5 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
-                        1️⃣ Zona 1: Storage
+                <div class="flex items-center justify-start sm:justify-center gap-1 overflow-x-auto pointer-events-auto py-0.5 no-scrollbar">
+                    <button data-zone="1" class="zone-btn px-2 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[10px] md:text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
+                        1️⃣ Storage
                     </button>
-                    <button data-zone="2" class="zone-btn px-2.5 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
-                        2️⃣ Zona 2: Grinder
+                    <button data-zone="2" class="zone-btn px-2 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[10px] md:text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
+                        2️⃣ Grinder
                     </button>
-                    <button data-zone="3" class="zone-btn px-2.5 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
-                        3️⃣ Zona 3: Mesin Espresso
+                    <button data-zone="3" class="zone-btn px-2 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[10px] md:text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
+                        3️⃣ Espresso
                     </button>
-                    <button data-zone="4" class="zone-btn px-2.5 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
-                        4️⃣ Zona 4: Workbench
+                    <button data-zone="4" class="zone-btn px-2 py-1 rounded-lg bg-[#fffdf8]/90 hover:bg-amber-100 border border-[#c8b69b] text-[10px] md:text-[11px] font-bold text-stone-800 shrink-0 transition cursor-pointer shadow-sm">
+                        4️⃣ Workbench
                     </button>
                 </div>
 
                 <!-- Left/Right Camera Panning Bar -->
-                <div class="flex items-center justify-between gap-2 pointer-events-auto">
-                    <button id="btn-pan-left" class="px-3 py-1.5 rounded-xl bg-[#fffdf8]/95 hover:bg-amber-100 border border-[#bfa98a] text-stone-900 font-bold text-xs flex items-center gap-1 shadow-md active:scale-95 transition cursor-pointer">
-                        ⬅️ Geser Kiri
+                <div class="flex items-center justify-between gap-1.5 pointer-events-auto">
+                    <button id="btn-pan-left" class="px-2.5 py-1 md:px-3 md:py-1.5 rounded-xl bg-[#fffdf8]/95 hover:bg-amber-100 border border-[#bfa98a] text-stone-900 font-bold text-[11px] md:text-xs flex items-center gap-1 shadow-md active:scale-95 transition cursor-pointer shrink-0">
+                        ⬅️ <span class="hidden xs:inline">Geser</span> Kiri
                     </button>
-                    <div id="camera-zone-indicator" class="px-3 py-1 rounded-full bg-[#fffdf8]/95 border border-[#c8b69b] text-[11px] font-bold text-amber-900 truncate shadow-sm">
+                    <div id="camera-zone-indicator" class="px-2.5 py-0.5 md:px-3 md:py-1 rounded-full bg-[#fffdf8]/95 border border-[#c8b69b] text-[10px] md:text-[11px] font-bold text-amber-900 truncate shadow-sm">
                         Zona 3: Mesin Espresso & Steamer
                     </div>
-                    <button id="btn-pan-right" class="px-3 py-1.5 rounded-xl bg-[#fffdf8]/95 hover:bg-amber-100 border border-[#bfa98a] text-stone-900 font-bold text-xs flex items-center gap-1 shadow-md active:scale-95 transition cursor-pointer">
-                        Geser Kanan ➡️
+                    <button id="btn-pan-right" class="px-2.5 py-1 md:px-3 md:py-1.5 rounded-xl bg-[#fffdf8]/95 hover:bg-amber-100 border border-[#bfa98a] text-stone-900 font-bold text-[11px] md:text-xs flex items-center gap-1 shadow-md active:scale-95 transition cursor-pointer shrink-0">
+                        <span class="hidden xs:inline">Geser</span> Kanan ➡️
                     </button>
                 </div>
             </div>
         </section>
 
         <!-- RIGHT / BOTTOM PANEL: MISSIONS, PYTHON EDITOR & EXECUTION LOG -->
-        <section class="flex-1 flex flex-col h-[59vh] sm:h-[56vh] lg:h-full bg-[#f6f0e3] overflow-hidden">
+        <section class="flex-1 min-h-0 flex flex-col lg:h-full bg-[#f6f0e3] overflow-hidden relative">
 
-            <!-- Mobile Mission Selector Bar -->
-            <div id="mission-selector-mobile" class="flex lg:hidden items-center gap-1.5 px-3 py-1.5 bg-[#e6dac4] border-b border-[#cfc0a8] overflow-x-auto shrink-0">
-                <!-- Populated by JS -->
+            <!-- Mobile Mission Selector Bar + Contoh Kode -->
+            <div class="flex lg:hidden items-center justify-between gap-1.5 px-2.5 py-1 bg-[#e6dac4] border-b border-[#cfc0a8] shrink-0">
+                <div id="mission-selector-mobile" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1">
+                    <!-- Populated by JS -->
+                </div>
+                <button id="btn-load-example-mobile" class="px-2 py-1 rounded-lg bg-sky-100 hover:bg-sky-200/80 border border-sky-300 text-sky-900 text-[10px] font-bold transition cursor-pointer shadow-sm shrink-0">
+                    💡 Contoh
+                </button>
             </div>
 
-            <!-- Tab Navigation Bar -->
-            <div class="px-3 pt-2 bg-[#e8dec9] border-b border-[#cfc0a8] flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-1">
-                    <button data-tab="mission" class="tab-btn px-3.5 py-2 rounded-t-xl text-xs md:text-sm font-bold border-t border-x text-amber-900 bg-[#fbf8f1] border-[#cfc0a8] flex items-center gap-1.5 cursor-pointer">
-                        <span id="tab-mission-icon">📋</span> <span id="tab-mission-label">Misi & Resep</span>
+            <!-- Desktop Tab Navigation Bar (Hidden on Mobile, replaced by Bottom Navigation Bar on Mobile) -->
+            <div class="hidden lg:flex px-3 pt-1.5 bg-[#e8dec9] border-b border-[#cfc0a8] items-center justify-between gap-1 shrink-0">
+                <div class="flex items-center gap-1 min-w-0">
+                    <button data-tab="mission" class="tab-btn px-3.5 py-2 rounded-t-xl text-sm font-bold border-t border-x text-amber-900 bg-[#fbf8f1] border-[#cfc0a8] flex items-center gap-1.5 cursor-pointer truncate">
+                        <span id="tab-mission-icon">📋</span> <span id="tab-mission-label" class="truncate">Misi & Resep</span>
                     </button>
-                    <button data-tab="code" class="tab-btn px-3.5 py-2 rounded-t-xl text-xs md:text-sm font-bold border-t border-x border-transparent text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer">
+                    <button data-tab="code" class="tab-btn px-3.5 py-2 rounded-t-xl text-sm font-bold border-t border-x border-transparent text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer shrink-0">
                         <span>💻</span> <span>Kode Python</span>
                     </button>
-                    <button data-tab="log" class="tab-btn px-3.5 py-2 rounded-t-xl text-xs md:text-sm font-bold border-t border-x border-transparent text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer relative">
-                        <span>🔍</span> <span>Log Output</span>
+                    <button data-tab="log" class="tab-btn px-3.5 py-2 rounded-t-xl text-sm font-bold border-t border-x border-transparent text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer relative shrink-0">
+                        <span>🔍</span> <span>Log</span>
                         <span id="log-badge" class="hidden w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
                     </button>
                 </div>
-                <button id="btn-load-example" class="mb-1.5 px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200/80 border border-sky-300 text-sky-900 text-[11px] font-bold transition cursor-pointer shadow-sm">
-                    💡 Isi Contoh Kode
+                <button id="btn-load-example" class="mb-1 px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200/80 border border-sky-300 text-sky-900 text-xs font-bold transition cursor-pointer shadow-sm shrink-0">
+                    💡 Contoh Kode
                 </button>
             </div>
 
             <!-- TAB CONTENT 1: MISSION GUIDE OR PLAYGROUND RECIPE CATALOG -->
-            <div id="tab-panel-mission" class="flex-1 overflow-y-auto p-3.5 md:p-5 space-y-4 bg-[#fbf8f1]">
+            <div id="tab-panel-mission" class="flex-1 min-h-0 overflow-y-auto p-3 md:p-5 space-y-4 bg-[#fbf8f1]">
 
                 <!-- A. MISSION GUIDE VIEW (SHOWN IN MISSION 1-10) -->
                 <div id="mission-guide-wrapper" class="space-y-4">
@@ -558,93 +567,275 @@
                         </div>
                     </div>
 
-                    <!-- Reference of All Manual Barista Commands -->
-                    <div class="bg-[#eef6f0] border border-emerald-300 rounded-2xl p-4 space-y-2.5 shadow-sm">
-                        <h3 class="text-xs md:text-sm font-extrabold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
-                            <span>🧰</span> <span>Daftar Perintah Manual Meja Barista</span>
-                        </h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] font-mono-code text-stone-800">
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>ambil_cangkir(jenis)</b>: "keramik_kecil" | "keramik_besar" | "gelas_es"</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>ambil_biji_kopi(gram)</b>: Timbang biji kopi (ideal 18g)</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>giling()</b> & <b>tamping()</b>: Giling & padatkan bubuk kopi</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>pasang_portafilter()</b> & <b>ekstrak_espresso(27)</b></div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>tuang_air_panas(ml)</b> & <b>tuang_air_dingin(ml)</b></div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>tambah_es_batu(gram)</b>: Masukkan es batu ke gelas</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>ambil_susu(jenis, ml)</b>: "Fresh Milk" | "Oat Milk" | "Soy Milk"</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>steam_detik()</b> / <b>steam_otomatis(60)</b>: Steam susu</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>pompa_sirup(rasa, ml)</b>: "Vanilla" | "Caramel" | "Hazelnut" | "Gula Aren" | "Cokelat"</div>
-                            <div class="p-2 rounded-lg bg-[#fffdf9] border border-emerald-200"><b>tuang_susu()</b>, <b>tuang_susu_foam()</b>, <b>tuang_espresso()</b>, <b>sajikan(nama)</b></div>
+                    <!-- Reference of All Manual Barista Commands (Organized by Category & Click-to-Insert) -->
+                    <div class="bg-[#eef6f0] border border-emerald-300 rounded-2xl p-4 space-y-3.5 shadow-sm">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">🧰</span>
+                                <div>
+                                    <h3 class="text-xs md:text-sm font-extrabold uppercase tracking-wider text-emerald-950">
+                                        Daftar Perintah Manual Meja Barista
+                                    </h3>
+                                    <p class="text-[11px] text-emerald-800">Panduan sintaks fungsi Python barista — klik tombol <b>+ Pakai</b> untuk menyisipkan ke editor</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4 Kategori Perintah Barista yang Rapi & Nyaman Dibaca -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- Kategori 1: Wadah & Persiapan Bahan -->
+                            <div class="bg-[#fffdf9] border border-emerald-200/90 rounded-xl p-3 space-y-2 shadow-sm">
+                                <div class="flex items-center gap-1.5 text-xs font-extrabold text-amber-900 border-b border-[#e6dac4] pb-1.5">
+                                    <span>🏺</span> <span>1. Wadah, Biji Kopi, Es & Susu</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block break-all">ambil_cangkir(jenis)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Mengambil cangkir/gelas saji baru (maksimal 3 gelas di nampan).</p>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono-code text-[10px]">"keramik_kecil"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono-code text-[10px]">"keramik_besar"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-900 font-mono-code text-[10px]">"gelas_es"</span>
+                                            </div>
+                                        </div>
+                                        <button data-insert-cmd='ambil_cangkir("keramik_besar")' class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">ambil_biji_kopi(gram)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menimbang biji kopi Arabica di timbangan digital (standar: <b class="text-amber-900">18</b> gram).</p>
+                                        </div>
+                                        <button data-insert-cmd="ambil_biji_kopi(18)" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">tambah_es_batu(gram)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Memasukkan es batu kristal ke dalam gelas saji (standar: <b class="text-sky-900">80</b> gram).</p>
+                                        </div>
+                                        <button data-insert-cmd="tambah_es_batu(80)" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">ambil_susu(jenis, ml)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menakar susu dingin (20°C) ke dalam teko susu (standar: <b class="text-amber-900">120</b> atau <b class="text-amber-900">150</b> ml).</p>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <span class="px-1.5 py-0.5 rounded bg-stone-200 text-stone-800 font-mono-code text-[10px]">"Fresh Milk"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono-code text-[10px]">"Oat Milk"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-lime-100 text-lime-900 font-mono-code text-[10px]">"Soy Milk"</span>
+                                            </div>
+                                        </div>
+                                        <button data-insert-cmd='ambil_susu("Fresh Milk", 150)' class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kategori 2: Penggilingan & Ekstraksi Mesin -->
+                            <div class="bg-[#fffdf9] border border-emerald-200/90 rounded-xl p-3 space-y-2 shadow-sm">
+                                <div class="flex items-center gap-1.5 text-xs font-extrabold text-amber-900 border-b border-[#e6dac4] pb-1.5">
+                                    <span>⚙️</span> <span>2. Grinder, Ekstraksi & Air</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">giling() &amp; tamping()</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menggiling halus biji kopi lalu memadatkan bubuk kopi secara rata di portafilter.</p>
+                                        </div>
+                                        <button data-insert-cmd="giling()&#10;tamping()" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">pasang_portafilter()</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Memasang dan mengunci portafilter ke Group Head mesin espresso.</p>
+                                        </div>
+                                        <button data-insert-cmd="pasang_portafilter()" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">ekstrak_espresso(detik)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Mengekstrak 36 ml shot espresso ke gelas takar kecil (ideal: <b class="text-amber-900">27</b> detik).</p>
+                                        </div>
+                                        <button data-insert-cmd="ekstrak_espresso(27)" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">tuang_air_panas(ml) / tuang_air_dingin(ml)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menuang air panas (Long Black) atau air dingin (Iced Americano), standar <b class="text-amber-900">120</b> ml.</p>
+                                        </div>
+                                        <button data-insert-cmd="tuang_air_panas(120)" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kategori 3: Steaming Susu & Sirup Perasa -->
+                            <div class="bg-[#fffdf9] border border-emerald-200/90 rounded-xl p-3 space-y-2 shadow-sm">
+                                <div class="flex items-center gap-1.5 text-xs font-extrabold text-amber-900 border-b border-[#e6dac4] pb-1.5">
+                                    <span>💨</span> <span>3. Steaming Susu &amp; Sirup Perasa</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">steam_otomatis(60)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menguapkan susu di teko susu langsung hingga suhu microfoam ideal (<b class="text-rose-800">60°C</b>).</p>
+                                        </div>
+                                        <button data-insert-cmd="steam_otomatis(60)" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">steam_detik()</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menaikkan suhu susu bertahap <b class="text-rose-800">+10°C</b> per panggilan (cocok di dalam <code class="font-mono-code">while</code> loop).</p>
+                                        </div>
+                                        <button data-insert-cmd="steam_detik()" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">pompa_sirup(rasa, ml)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Memompa sirup perasa ke dalam gelas saji (takaran umum: <b class="text-amber-900">15</b> atau <b class="text-amber-900">20</b> ml).</p>
+                                            <div class="flex flex-wrap gap-1 mt-1">
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono-code text-[10px]">"Vanilla"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-orange-100 text-orange-900 font-mono-code text-[10px]">"Caramel"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-900 font-mono-code text-[10px]">"Hazelnut"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-stone-200 text-stone-800 font-mono-code text-[10px]">"Gula Aren"</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-950 font-mono-code text-[10px]">"Cokelat"</span>
+                                            </div>
+                                        </div>
+                                        <button data-insert-cmd='pompa_sirup("Vanilla", 20)' class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kategori 4: Penuangan Akhir & Penyajian -->
+                            <div class="bg-[#fffdf9] border border-emerald-200/90 rounded-xl p-3 space-y-2 shadow-sm">
+                                <div class="flex items-center gap-1.5 text-xs font-extrabold text-amber-900 border-b border-[#e6dac4] pb-1.5">
+                                    <span>🛎️</span> <span>4. Penuangan ke Gelas &amp; Penyajian</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">tuang_susu()</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menuang susu dingin dari teko susu ke dalam gelas saji (untuk Es Kopi / Iced Latte).</p>
+                                        </div>
+                                        <button data-insert-cmd="tuang_susu()" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">tuang_susu_foam()</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menuang susu hangat yang sudah di-steam (microfoam) sambil melukis Latte Art.</p>
+                                        </div>
+                                        <button data-insert-cmd="tuang_susu_foam()" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">tuang_espresso()</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menuang 36 ml shot espresso dari gelas takar kecil ke dalam cangkir/gelas saji.</p>
+                                        </div>
+                                        <button data-insert-cmd="tuang_espresso()" class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+
+                                    <div class="p-2 rounded-lg bg-[#f9f5eb] border border-[#e2d5be] flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <code class="text-[11px] font-mono-code font-bold text-teal-900 block">sajikan(nama_menu)</code>
+                                            <p class="text-[11px] text-stone-600 mt-0.5">Menaruh minuman yang sudah selesai ke Nampan Penyajian dan membunyikan lonceng.</p>
+                                        </div>
+                                        <button data-insert-cmd='sajikan("Kopi Spesial")' class="btn-manual-cmd shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow-sm">+ Pakai</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- TAB CONTENT 2: PYTHON CODE EDITOR (RULED NOTEBOOK PAPER + SYNTAX HIGHLIGHT) -->
-            <div id="tab-panel-code" class="hidden flex-1 flex flex-col overflow-hidden bg-[#fbf8f1]">
-                <!-- Mini Mission Banner above Editor -->
-                <div class="px-3.5 py-2 bg-[#efe5d2] border-b border-[#cfc0a8] flex items-center justify-between gap-2 shrink-0">
-                    <div class="text-xs truncate">
+            <div id="tab-panel-code" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden bg-[#fbf8f1]">
+                <!-- Top Action Bar above Editor: Mission Info + Reset Kode + Jalankan Kode Python -->
+                <div class="px-2.5 md:px-3 py-1.5 bg-[#efe5d2] border-b border-[#cfc0a8] flex flex-wrap items-center justify-between gap-2 shrink-0">
+                    <div class="text-xs truncate max-w-full sm:max-w-[42%]">
                         <span id="editor-mission-label" class="font-extrabold text-amber-950">Misi 1:</span>
                         <span id="editor-mission-short" class="text-stone-700 ml-1">1x Hot Double Espresso</span>
                     </div>
-                    <button id="btn-reset-code" class="px-2.5 py-1 rounded-lg bg-[#fffdf8] hover:bg-red-50 border border-[#c8b69b] text-[11px] font-bold text-stone-700 hover:text-red-700 shrink-0 transition cursor-pointer">
-                        🔄 Reset Kode
-                    </button>
-                </div>
-
-                <!-- Quick Code Snippet Bar (Mobile-Friendly) -->
-                <div id="dynamic-snippets-bar" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#e6dac4] border-b border-[#cfc0a8] overflow-x-auto shrink-0">
-                    <!-- Populated by JS -->
+                    <div class="flex items-center gap-1.5 ml-auto shrink-0">
+                        <button id="btn-reset-code" class="px-2.5 py-1.5 rounded-xl bg-[#fffdf8] hover:bg-red-50 border border-[#c8b69b] text-[11px] md:text-xs font-bold text-stone-700 hover:text-red-700 shrink-0 transition cursor-pointer shadow-sm">
+                            🔄 Reset Kode
+                        </button>
+                        <button id="btn-run-code" class="btn-glow py-1.5 px-3 md:px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-[11px] md:text-xs shadow-md flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0">
+                            <span>▶️</span>
+                            <span id="btn-run-label">Jalankan Kode Python</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Code Area with Notebook Margin, Line Numbers & Syntax Highlighting -->
-                <div class="relative flex-1 flex overflow-hidden bg-[#fffdf8]">
-                    <div id="line-numbers" class="editor-metrics w-11 px-2 text-right text-stone-500 bg-[#f3ead8] border-r-2 border-red-300/70 select-none overflow-hidden shrink-0">
+                <div class="relative flex-1 min-h-0 flex overflow-hidden bg-[#fffdf8]">
+                    <div id="line-numbers" class="editor-metrics w-10 md:w-11 px-2 text-right text-stone-500 bg-[#f3ead8] border-r-2 border-red-300/70 select-none overflow-hidden shrink-0">
                         <div class="h-[24px] leading-[24px]">1</div>
                     </div>
                     <div id="editor-stage" class="relative flex-1 h-full overflow-hidden ruled-paper-bg">
                         <!-- Subtle Active / Executing Line Highlight -->
                         <div id="editor-active-line" class="pointer-events-none absolute left-0 right-0 h-[24px] bg-amber-400/15 transition-colors duration-150" style="top: 12px;"></div>
                         <!-- Syntax Highlighted Layer -->
-                        <pre id="code-highlight" aria-hidden="true" class="editor-metrics pointer-events-none absolute inset-0 m-0 pl-3.5 pr-6 overflow-hidden text-[#241a14]"></pre>
+                        <pre id="code-highlight" aria-hidden="true" class="editor-metrics pointer-events-none absolute inset-0 m-0 pl-3 md:pl-3.5 pr-6 overflow-hidden text-[#241a14]"></pre>
                         <!-- Interactive Transparent Input Layer -->
                         <textarea id="code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"
-                            class="editor-metrics absolute inset-0 w-full h-full m-0 pl-3.5 pr-6 bg-transparent focus:outline-none resize-none overflow-auto"
+                            class="editor-metrics absolute inset-0 w-full h-full m-0 pl-3 md:pl-3.5 pr-6 bg-transparent focus:outline-none resize-none overflow-auto"
                             placeholder="# Ketik kode Python barista di lembar kertas ini..."></textarea>
                     </div>
                 </div>
 
                 <!-- Inline Feedback Bar -->
-                <div id="editor-inline-feedback" class="hidden items-center justify-between px-3.5 py-1.5 bg-[#f3ead8] border-t border-[#cfc0a8] text-xs shrink-0">
+                <div id="editor-inline-feedback" class="hidden items-center justify-between px-3 py-1 bg-[#f3ead8] border-t border-[#cfc0a8] text-[11px] md:text-xs shrink-0">
                     <span id="editor-feedback-text" class="truncate font-bold text-stone-800"></span>
                 </div>
 
-                <!-- Bottom Action Bar: Run Code & Reset Table -->
-                <div class="p-3 bg-[#ece2d0] border-t border-[#cfc0a8] flex items-center gap-2.5 shrink-0">
-                    <button id="btn-run-code" class="btn-glow flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs md:text-sm shadow-md flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
-                        <span>▶️</span>
-                        <span id="btn-run-label">Jalankan Kode Python</span>
-                    </button>
-                    <button id="btn-reset-table" class="py-2.5 px-3.5 rounded-xl bg-[#fbf7ef] hover:bg-amber-100 border border-[#c8b69b] text-stone-800 font-bold text-xs transition cursor-pointer shadow-sm">
-                        🧹 Bersihkan Meja
-                    </button>
+                <!-- Quick Code Snippet Bar (Ditempatkan di Bawah Code Editor agar Nyaman Dijangkau Jari di HP) -->
+                <div class="bg-[#e6dac4] border-t border-[#cfc0a8] px-2.5 py-1.5 shrink-0">
+                    <div class="flex items-center gap-1.5 overflow-x-auto" id="dynamic-snippets-bar">
+                        <!-- Populated by JS -->
+                    </div>
                 </div>
             </div>
 
             <!-- TAB CONTENT 3: EXECUTION LOG OUTPUT -->
-            <div id="tab-panel-log" class="hidden flex-1 flex flex-col overflow-hidden bg-[#fbf8f1]">
+            <div id="tab-panel-log" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden bg-[#fbf8f1]">
                 <div class="px-3.5 py-2 bg-[#efe5d2] border-b border-[#cfc0a8] flex items-center justify-between shrink-0">
                     <span class="text-xs font-extrabold text-amber-950">🔍 Riwayat Eksekusi Mesin Barista 3D</span>
                     <button id="btn-clear-log" class="px-2.5 py-1 rounded-lg bg-[#fffdf8] hover:bg-stone-200 border border-[#c8b69b] text-[11px] font-bold text-stone-700 cursor-pointer">
                         🗑️ Bersihkan Log
                     </button>
                 </div>
-                <div id="log-container" class="flex-1 overflow-y-auto p-3.5 space-y-2 font-mono-code text-xs">
+                <div id="log-container" class="flex-1 min-h-0 overflow-y-auto p-3.5 space-y-2 font-mono-code text-xs">
                     <div class="p-2.5 rounded-xl border border-[#d6c5aa] bg-[#fffdf8] text-stone-600">
                         Belum ada eksekusi. Buka tab <b>Kode Python</b> lalu klik <b>Jalankan Kode Python</b>.
                     </div>
                 </div>
             </div>
+
+            <!-- MOBILE BOTTOM NAVIGATION BAR (Misi & Resep | Kode Python | Log) -->
+            <nav class="flex lg:hidden items-center justify-around bg-[#ece2d0] border-t-2 border-[#cfc0a8] px-2 py-1 shrink-0 z-30 shadow-inner">
+                <button data-tab="mission" class="mobile-tab-btn flex-1 py-1.5 rounded-xl flex flex-col items-center justify-center gap-0.5 text-amber-950 bg-[#fbf8f1] border border-[#c8b69b] font-extrabold text-[11px] shadow-sm transition cursor-pointer">
+                    <span id="mobile-tab-mission-icon" class="text-sm leading-none">📋</span>
+                    <span id="mobile-tab-mission-label" class="leading-none">Misi & Resep</span>
+                </button>
+                <button data-tab="code" class="mobile-tab-btn flex-1 py-1.5 rounded-xl flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-stone-900 border border-transparent font-bold text-[11px] transition cursor-pointer">
+                    <span class="text-sm leading-none">💻</span>
+                    <span class="leading-none">Kode Python</span>
+                </button>
+                <button data-tab="log" class="mobile-tab-btn flex-1 py-1.5 rounded-xl flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-stone-900 border border-transparent font-bold text-[11px] relative transition cursor-pointer">
+                    <span class="text-sm leading-none">🔍</span>
+                    <span class="leading-none">Log</span>
+                    <span id="mobile-log-badge" class="hidden absolute top-1 right-6 w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                </button>
+            </nav>
         </section>
     </main>
 
@@ -5932,6 +6123,10 @@ resep_hot_cafe_mocha()`
 
         document.getElementById('tab-mission-icon').textContent = '🧪';
         document.getElementById('tab-mission-label').textContent = 'Playground & Buku Resep';
+        const mobIconPg = document.getElementById('mobile-tab-mission-icon');
+        const mobLblPg = document.getElementById('mobile-tab-mission-label');
+        if (mobIconPg) mobIconPg.textContent = '🧪';
+        if (mobLblPg) mobLblPg.textContent = 'Playground';
         document.getElementById('btn-load-example').textContent = '💡 Contoh Kreasi Kopi';
 
         document.getElementById('editor-mission-label').textContent = '🧪 Mode Playground:';
@@ -5975,6 +6170,10 @@ sajikan("Es Kopi Kreasi Barista")`;
 
         document.getElementById('tab-mission-icon').textContent = '📋';
         document.getElementById('tab-mission-label').textContent = 'Misi & Resep';
+        const mobIconMis = document.getElementById('mobile-tab-mission-icon');
+        const mobLblMis = document.getElementById('mobile-tab-mission-label');
+        if (mobIconMis) mobIconMis.textContent = '📋';
+        if (mobLblMis) mobLblMis.textContent = 'Misi & Resep';
         document.getElementById('btn-load-example').textContent = '💡 Isi Contoh Kode';
 
         renderMissionSelectors();
@@ -6069,16 +6268,29 @@ sajikan("Es Kopi Kreasi Barista")`;
         tabs.forEach(t => {
             const panel = document.getElementById(`tab-panel-${t}`);
             const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
+            const mobBtn = document.querySelector(`.mobile-tab-btn[data-tab="${t}"]`);
             if (t === tabName) {
                 panel.classList.remove('hidden');
-                btn.className = 'tab-btn px-3.5 py-2 rounded-t-xl text-xs md:text-sm font-bold border-t border-x text-amber-900 bg-[#fbf8f1] border-[#cfc0a8] flex items-center gap-1.5 cursor-pointer';
+                if (btn) {
+                    btn.className = 'tab-btn px-3.5 py-2 rounded-t-xl text-sm font-bold border-t border-x text-amber-900 bg-[#fbf8f1] border-[#cfc0a8] flex items-center gap-1.5 cursor-pointer truncate';
+                }
+                if (mobBtn) {
+                    mobBtn.className = 'mobile-tab-btn flex-1 py-1.5 rounded-xl flex flex-col items-center justify-center gap-0.5 text-amber-950 bg-[#fbf8f1] border border-[#c8b69b] font-extrabold text-[11px] shadow-sm transition cursor-pointer relative';
+                }
             } else {
                 panel.classList.add('hidden');
-                btn.className = 'tab-btn px-3.5 py-2 rounded-t-xl text-xs md:text-sm font-bold border-t border-x border-transparent text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer';
+                if (btn) {
+                    btn.className = 'tab-btn px-3.5 py-2 rounded-t-xl text-sm font-bold border-t border-x border-transparent text-stone-600 hover:text-stone-900 flex items-center gap-1.5 cursor-pointer shrink-0';
+                }
+                if (mobBtn) {
+                    mobBtn.className = 'mobile-tab-btn flex-1 py-1.5 rounded-xl flex flex-col items-center justify-center gap-0.5 text-stone-600 hover:text-stone-900 border border-transparent font-bold text-[11px] transition cursor-pointer relative';
+                }
             }
         });
         if (tabName === 'log') {
             document.getElementById('log-badge').classList.add('hidden');
+            const mobBadge = document.getElementById('mobile-log-badge');
+            if (mobBadge) mobBadge.classList.add('hidden');
         }
     }
 
@@ -6163,6 +6375,8 @@ sajikan("Es Kopi Kreasi Barista")`;
             setBannerStatus(`❌ ${err.message}`, 'error');
             appendLog(`❌ KESALAHAN: ${err.message}`, 'error');
             document.getElementById('log-badge').classList.remove('hidden');
+            const mobBadge = document.getElementById('mobile-log-badge');
+            if (mobBadge) mobBadge.classList.remove('hidden');
             showInlineFeedback(err.message, true);
             return;
         }
@@ -6229,6 +6443,8 @@ sajikan("Es Kopi Kreasi Barista")`;
             appendLog(`⚠️ BELUM TEPAT (⭐ ${check.stars}/3): ${check.message}`, 'error');
             showInlineFeedback(check.message, true);
             document.getElementById('log-badge').classList.remove('hidden');
+            const mobBadge = document.getElementById('mobile-log-badge');
+            if (mobBadge) mobBadge.classList.remove('hidden');
         } else {
             audio.sfxBell();
             setBannerStatus(`🎉 ${check.message}`, 'ok');
@@ -7391,6 +7607,31 @@ sajikan("Es Kopi Kreasi Barista")`;
             audio.toggleBGM();
         });
 
+        // Toggle Fullscreen Button
+        const fsBtn = document.getElementById('btn-toggle-fullscreen');
+        const updateFullscreenButton = () => {
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            const icon = document.getElementById('fullscreen-icon');
+            const label = document.getElementById('fullscreen-label');
+            if (icon) icon.textContent = isFs ? '🗗' : '⛶';
+            if (label) label.textContent = isFs ? 'Keluar Penuh' : 'Layar Penuh';
+        };
+        if (fsBtn) {
+            fsBtn.addEventListener('click', () => {
+                const docEl = document.documentElement;
+                const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+                if (!isFs) {
+                    if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+                    else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+            });
+            document.addEventListener('fullscreenchange', updateFullscreenButton);
+            document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        }
+
         // Camera Zone Quick Buttons
         document.querySelectorAll('.zone-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -7404,8 +7645,8 @@ sajikan("Es Kopi Kreasi Barista")`;
         document.getElementById('btn-pan-left').addEventListener('click', () => world3D.panBy(-3.2));
         document.getElementById('btn-pan-right').addEventListener('click', () => world3D.panBy(3.2));
 
-        // Tab Switchers
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        // Tab Switchers (Desktop Top Tabs & Mobile Bottom Navigation Bar)
+        document.querySelectorAll('.tab-btn, .mobile-tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 switchTab(btn.getAttribute('data-tab'));
             });
@@ -7425,6 +7666,20 @@ sajikan("Es Kopi Kreasi Barista")`;
             editor.value = `# 🧪 Tulis kreasi resep kopimu atau panggil fungsi resep di bawah ini:\n`;
             updateLineNumbers();
             switchTab('code');
+        });
+
+        // Tombol "+ Pakai" pada Daftar Perintah Manual Meja Barista
+        document.querySelectorAll('.btn-manual-cmd').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const cmdText = btn.getAttribute('data-insert-cmd');
+                if (!cmdText) return;
+                const editor = document.getElementById('code-editor');
+                const cur = editor.value.trimEnd();
+                editor.value = cur ? `${cur}\n${cmdText}\n` : `${cmdText}\n`;
+                updateLineNumbers();
+                switchTab('code');
+                setBannerStatus(`🧰 Perintah ${cmdText.split('\n')[0]} ditambahkan ke editor!`, 'ok');
+            });
         });
 
         // Load Example Code into Editor
@@ -7451,6 +7706,8 @@ sajikan("Es Kopi Kreasi Barista")`;
             setBannerStatus(`💡 Kode solusi Misi ${m.id} telah dimasukkan ke editor. Klik Jalankan Kode!`, 'ok');
         };
         document.getElementById('btn-load-example').addEventListener('click', fillExample);
+        const mobExBtn = document.getElementById('btn-load-example-mobile');
+        if (mobExBtn) mobExBtn.addEventListener('click', fillExample);
         document.getElementById('btn-copy-example-inline').addEventListener('click', fillExample);
 
         // Reset Starter Code for Current Mission or Playground
@@ -7487,14 +7744,6 @@ sajikan("Es Kopi Kreasi Barista")`;
         // Run Python Code Button
         document.getElementById('btn-run-code').addEventListener('click', () => {
             runPythonCode();
-        });
-
-        // Clean Table Button
-        document.getElementById('btn-reset-table').addEventListener('click', () => {
-            if (isExecuting) return;
-            world3D.resetWorkbench();
-            updateCupHUD(null);
-            setBannerStatus('🧹 Meja bar telah dibersihkan. Siap meracik kembali!', 'ok');
         });
 
         // Clear Log
