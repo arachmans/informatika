@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoPython — Belajar Algoritma & Python untuk Remaja</title>
+<meta name="description" content="Kelas interaktif bahasa Indonesia: apa itu algoritma, flowchart, variabel, tipe data, input/output, sampai percabangan if — dengan simulator Python mini.">
+<script>
+/*_Content safety net: konten selalu terlihat walau ada error skrip. */
+document.documentElement.classList.add("js");
+window.addEventListener("error", function () {
+  var els = document.querySelectorAll(".rv");
+  for (var i = 0; i < els.length; i++) els[i].classList.add("in");
+});
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,800;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#070B18; --bg1:#0B1226; --sur:#101A33; --sur2:#152142; --line:#243155; --line2:#31406B;
+  --ink:#EAF0FF; --mut:#9AA6C8; --dim:#6B7699;
+  --blue:#4B8BFF; --blue2:#3E63DD; --cyan:#22D3EE; --yellow:#FFD43B; --amber:#FFB020;
+  --green:#4ADE80; --magenta:#F472B6; --orange:#FB923C; --red:#F87171;
+  --kw:#FF7AB2; --str:#7EE787; --num:#FFA657; --bi:#79C0FF; --cmt:#7D8AB0;
+  --disp:'Space Grotesk',system-ui,sans-serif; --body:'Plus Jakarta Sans',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --nav-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--ink);font:400 16.5px/1.75 var(--body);overflow-x:hidden}
+::selection{background:rgba(255,212,59,.32);color:#fff}
+*{scrollbar-width:thin;scrollbar-color:#3E63DD #0B1226}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#0B1226}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#3E63DD,#22D3EE);border-radius:8px;border:2px solid #0B1226}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#FFD43B,#FB923C)}
+.term-body,.code-input,.flow-wrap{scrollbar-width:thin}
+.term-body::-webkit-scrollbar,.code-input::-webkit-scrollbar,.flow-wrap::-webkit-scrollbar{width:8px;height:8px}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--yellow);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--disp);line-height:1.15;letter-spacing:-.01em}
+b,strong{font-weight:800}
+.mono{font-family:var(--mono)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+main{position:relative;z-index:1}
+section{scroll-margin-top:86px}
+
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#bg .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.42;will-change:transform}
+#bg .b1{width:640px;height:640px;left:-160px;top:-140px;background:radial-gradient(circle,#2743B8 0%,transparent 65%);animation:drift1 26s ease-in-out infinite alternate}
+#bg .b2{width:560px;height:560px;right:-180px;top:26%;background:radial-gradient(circle,#8A2C6B 0%,transparent 65%);animation:drift2 32s ease-in-out infinite alternate}
+#bg .b3{width:520px;height:520px;left:16%;bottom:-220px;background:radial-gradient(circle,#7A5A12 0%,transparent 65%);animation:drift3 38s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate(90px,70px) scale(1.08)}}
+@keyframes drift2{to{transform:translate(-80px,-60px) scale(1.12)}}
+@keyframes drift3{to{transform:translate(70px,-90px) scale(.94)}}
+#bg .gridlay{position:absolute;inset:0;background-image:linear-gradient(rgba(122,140,205,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(122,140,205,.07) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse 90% 80% at 50% 20%,#000 30%,transparent 100%)}
+#grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.055;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+#confetti{position:fixed;inset:0;z-index:300;pointer-events:none}
+
+#navbar{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:100;background:rgba(9,14,30,.82);backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1240px;margin:0 auto;height:100%;padding:0 20px;display:flex;align-items:center;gap:18px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:700 19px var(--disp);white-space:nowrap}
+.logo-tile{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:19px;background:linear-gradient(135deg,#3E63DD,#22D3EE);box-shadow:0 4px 16px rgba(62,99,221,.5)}
+.logo em{font-style:normal;color:var(--yellow)}
+#navLinks{display:flex;gap:2px;margin-left:auto}
+#navLinks a{color:var(--mut);text-decoration:none;font:600 13.5px var(--body);padding:8px 11px;border-radius:9px;position:relative;transition:.2s;white-space:nowrap}
+#navLinks a:hover{color:var(--ink);background:rgba(75,139,255,.12)}
+#navLinks a.act{color:var(--yellow)}
+#navLinks a.act::after{content:"";position:absolute;left:11px;right:11px;bottom:2px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.nav-cta{display:flex;align-items:center;gap:10px}
+#soundBtn{display:flex;align-items:center;gap:7px;background:var(--sur);border:1px solid var(--line2);color:var(--ink);border-radius:999px;padding:7px 13px;font:700 12px var(--mono);transition:.2s}
+#soundBtn:hover{border-color:var(--yellow)}
+#soundBtn .sdot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+#soundBtn.off .sdot{background:var(--red);box-shadow:0 0 8px var(--red)}
+#burger{display:none;background:none;border:1px solid var(--line2);border-radius:9px;width:40px;height:38px;position:relative}
+#burger span{position:absolute;left:9px;right:9px;height:2px;background:var(--ink);border-radius:2px;transition:.25s}
+#burger span:nth-child(1){top:11px}#burger span:nth-child(2){top:18px}#burger span:nth-child(3){top:25px}
+#burger.open span:nth-child(1){top:18px;transform:rotate(45deg)}
+#burger.open span:nth-child(2){opacity:0}
+#burger.open span:nth-child(3){top:18px;transform:rotate(-45deg)}
+#progressBar{position:absolute;left:0;bottom:-3px;height:3px;width:0%;background:linear-gradient(90deg,#3E63DD,#22D3EE,#4ADE80,#FFD43B,#F472B6);border-radius:0 3px 3px 0;box-shadow:0 0 10px rgba(75,139,255,.7)}
+@media(max-width:1023px){
+  #burger{display:block}
+  #navLinks{position:absolute;top:var(--nav-h);left:0;right:0;flex-direction:column;background:rgba(10,16,34,.97);border-bottom:1px solid var(--line);padding:10px 16px 16px;display:none;margin:0}
+  #navLinks.open{display:flex}
+  #navLinks a{padding:13px 12px;font-size:15px;border-bottom:1px solid rgba(36,49,85,.5)}
+  .nav-cta{margin-left:auto}
+}
+
+.panel{background:linear-gradient(180deg,rgba(21,33,66,.55),rgba(14,22,44,.85));border:1px solid var(--line);border-radius:20px;padding:26px;box-shadow:0 14px 44px rgba(3,6,16,.5)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:12px 20px;font:800 14.5px var(--body);color:#06101F;background:linear-gradient(135deg,#4B8BFF,#22D3EE);box-shadow:0 6px 22px rgba(56,120,255,.4);transition:transform .15s,box-shadow .2s,filter .2s;text-decoration:none}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.08);box-shadow:0 10px 28px rgba(56,150,255,.55)}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;filter:none}
+.btn-y{background:linear-gradient(135deg,#FFD43B,#FFB020);box-shadow:0 6px 22px rgba(255,190,40,.35)}
+.btn-y:hover{box-shadow:0 10px 28px rgba(255,190,40,.5)}
+.btn-g{background:linear-gradient(135deg,#34D399,#4ADE80);box-shadow:0 6px 22px rgba(74,222,128,.3)}
+.btn-ghost{background:var(--sur);color:var(--ink);border:1.5px solid var(--line2);box-shadow:none}
+.btn-ghost:hover{border-color:var(--blue);box-shadow:0 6px 18px rgba(56,120,255,.25)}
+.btn-sm{padding:8px 14px;font-size:13px;border-radius:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:rgba(75,139,255,.1);border:1px solid var(--line2);color:var(--mut);border-radius:999px;padding:6px 13px;font:600 12.5px var(--body)}
+.kbd{font:700 11px var(--mono);background:#0A1122;border:1px solid var(--line2);border-bottom-width:2.5px;border-radius:6px;padding:2px 7px;color:var(--mut)}
+.tag{font:700 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:1px solid;color:var(--acc,#4B8BFF);border-color:var(--acc,#4B8BFF);background:rgba(75,139,255,.08)}
+.lvl{padding:104px 0;position:relative;--acc:#4B8BFF;--accsoft:rgba(75,139,255,.14)}
+.lvl::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(900px,90%);height:340px;background:radial-gradient(ellipse at 50% 0%,var(--accsoft),transparent 70%);pointer-events:none}
+.lvl-head{margin-bottom:36px;position:relative}
+.lvl-head h2{font-size:clamp(1.9rem,4vw,2.9rem);margin:14px 0 10px}
+.lvl-head h2 .hl{background:linear-gradient(90deg,var(--acc),var(--acc2,var(--acc)));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{color:var(--mut);max-width:720px;font-size:17px}
+.cols{display:grid;gap:26px}
+.c2{grid-template-columns:1fr 1fr}
+.c2w{grid-template-columns:1.05fr .95fr}
+@media(max-width:960px){.c2,.c2w{grid-template-columns:1fr}}
+.note{border-left:3px solid var(--acc,#4B8BFF);background:rgba(75,139,255,.07);border-radius:0 12px 12px 0;padding:13px 17px;color:var(--mut);font-size:14.5px}
+.note b{color:var(--ink)}
+
+.code-panel{background:#0A1122;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.code-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#0D1630;border-bottom:1px solid var(--line)}
+.dot{width:11px;height:11px;border-radius:50%}
+.dot.r{background:#F87171}.dot.y{background:#FFD43B}.dot.g{background:#4ADE80}
+.code-title{font:700 12px var(--mono);color:var(--dim);margin-left:6px;flex:1}
+.copy-btn{background:none;border:1px solid var(--line2);color:var(--mut);border-radius:8px;padding:4px 10px;font:700 11px var(--mono);transition:.2s}
+.copy-btn:hover{color:var(--yellow);border-color:var(--yellow)}
+pre.code{font:400 13.5px/24px var(--mono);color:#D5DEF5;padding:12px 0;overflow-x:auto;white-space:pre}
+pre.code .cl{display:block;padding:0 16px;border-left:3px solid transparent;transition:background .25s}
+pre.code .cl.hl{background:linear-gradient(90deg,rgba(255,212,59,.16),transparent 80%);border-left-color:var(--yellow)}
+pre.code .cl.err{background:linear-gradient(90deg,rgba(248,113,113,.18),transparent 80%);border-left-color:var(--red)}
+.tk-kw{color:var(--kw);font-weight:700}.tk-str{color:var(--str)}.tk-num{color:var(--num)}.tk-bi{color:var(--bi)}.tk-cmt{color:var(--cmt);font-style:italic}
+
+.term{background:#060B19;border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative}
+.term::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(140,170,255,.028) 0 1px,transparent 1px 3px)}
+.term-head{display:flex;align-items:center;gap:8px;padding:9px 14px;background:#0D1630;border-bottom:1px solid var(--line)}
+.term-title{font:700 12px var(--mono);color:var(--dim);margin-left:6px}
+.term-body{height:250px;overflow-y:auto;padding:13px 16px;font:400 13.5px/1.85 var(--mono);position:relative;z-index:1}
+.t-print{color:#EAF0FF;animation:tIn .25s ease}
+.t-sys{color:#5E6B93;font-style:italic}
+.t-err{color:var(--red)}
+.t-ok{color:var(--green)}
+.t-row{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.t-prompt{color:var(--cyan)}
+.t-echo{color:var(--yellow);font-weight:700}
+.t-field{flex:1;min-width:120px;background:transparent;border:none;border-bottom:1.5px dashed rgba(255,212,59,.6);color:var(--yellow);font:700 13.5px var(--mono);outline:none;padding:2px 4px;caret-color:var(--yellow)}
+@keyframes tIn{from{opacity:0;transform:translateY(5px)}to{opacity:1}}
+
+.js .rv{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1) var(--d,0s),transform .7s cubic-bezier(.2,.7,.2,1) var(--d,0s)}
+.js .rv.in{opacity:1;transform:none}
+
+#toasts{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:9px;align-items:center;width:min(480px,92vw)}
+.toast{display:flex;align-items:center;gap:12px;background:#101A33;border:1px solid var(--line2);border-left:3px solid var(--yellow);border-radius:12px;padding:11px 16px;font:600 13.5px var(--body);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.55);animation:toastIn .3s cubic-bezier(.2,.9,.3,1.3);max-width:100%}
+.toast button{background:var(--yellow);color:#0B1020;border:none;border-radius:8px;padding:5px 12px;font:800 12px var(--body)}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:none}}
+.toast.bye{opacity:0;transform:translateY(10px);transition:.3s}
+
+#hero{min-height:100svh;display:flex;align-items:center;padding:calc(var(--nav-h) + 48px) 0 70px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center;width:100%}
+@media(max-width:960px){.hero-grid{grid-template-columns:1fr}}
+.hero-eyebrow{margin-bottom:20px}
+#hero h1{font-size:clamp(2.5rem,5.6vw,4.4rem);font-weight:700;line-height:1.06}
+.grad-warm{background:linear-gradient(92deg,#FFD43B,#FB923C,#F472B6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-cool{background:linear-gradient(92deg,#4B8BFF,#22D3EE,#4ADE80);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{color:var(--mut);font-size:17.5px;margin:22px 0 30px;max-width:560px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:30px;margin-top:38px;flex-wrap:wrap}
+.hstat b{display:block;font:700 27px var(--disp);color:var(--ink)}
+.hstat span{font:600 12.5px var(--body);color:var(--dim)}
+.hstat b i{font-style:normal;color:var(--yellow)}
+.hero-right{position:relative}
+.hero-term-wrap{perspective:1100px}
+.hero-term{transform-style:preserve-3d;transition:transform .25s ease;box-shadow:0 30px 80px rgba(3,8,24,.7),0 0 0 1px rgba(75,139,255,.25),0 0 60px rgba(62,99,221,.28)}
+#heroCode{min-height:150px;padding:16px;font:400 14px/25px var(--mono);white-space:pre}
+.hero-caret{display:inline-block;width:8px;height:16px;background:var(--yellow);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#heroOut{padding:0 16px 15px;font:700 13.5px/1.9 var(--mono);color:var(--green);min-height:56px}
+#heroOut div{animation:tIn .3s ease}
+.float-sym{position:absolute;font:700 15px var(--mono);padding:7px 13px;border-radius:11px;border:1px solid var(--line2);background:rgba(13,22,48,.9);box-shadow:0 10px 26px rgba(0,0,0,.4);animation:bob 5s ease-in-out infinite;will-change:transform;user-select:none}
+@keyframes bob{0%,100%{margin-top:0}50%{margin-top:-12px}}
+.fs1{top:-26px;left:-14px;color:var(--kw);animation-delay:.2s}
+.fs2{top:34%;right:-26px;color:var(--yellow);animation-delay:1.1s}
+.fs3{bottom:-20px;left:12%;color:var(--cyan);animation-delay:.6s}
+.fs4{bottom:24%;left:-34px;color:var(--green);animation-delay:1.6s}
+.fs5{top:-18px;right:16%;color:var(--orange);animation-delay:2.2s}
+@media(max-width:960px){.fs4{left:-6px}.fs2{right:-6px}}
+.scroll-cue{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:var(--dim);font:600 12px var(--mono);animation:bob 2.4s ease-in-out infinite;text-decoration:none}
+
+#algoritma{--acc:#FFD43B;--acc2:#FB923C;--accsoft:rgba(255,190,40,.1)}
+.def-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+@media(max-width:760px){.def-grid{grid-template-columns:1fr}}
+.def-card{background:rgba(255,212,59,.05);border:1px solid rgba(255,212,59,.22);border-radius:14px;padding:17px}
+.def-card b{display:block;font:700 16px var(--disp);color:var(--yellow);margin-bottom:5px}
+.def-card p{font-size:14px;color:var(--mut)}
+.analogy-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.analogy{background:var(--sur);border:1px solid var(--line2);border-radius:12px;padding:9px 15px;font:600 13.5px var(--body);color:var(--ink)}
+.mission-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.mission-head h3{font-size:21px}
+.mission-badge{font:700 11px var(--mono);color:#0B1020;background:linear-gradient(135deg,#FFD43B,#FB923C);padding:4px 11px;border-radius:999px;letter-spacing:.1em}
+#mieList{list-style:none;display:flex;flex-direction:column;gap:10px;margin:18px 0}
+.step{display:flex;align-items:center;gap:12px;background:var(--sur);border:1.5px solid var(--line2);border-radius:13px;padding:11px 14px;cursor:grab;transition:border-color .2s,background .2s,transform .15s;user-select:none}
+.step:hover{border-color:var(--yellow)}
+.step.dragging{opacity:.45;border-style:dashed;cursor:grabbing}
+.step .grip{color:var(--dim);font-size:15px;letter-spacing:-2px}
+.step .num{font:700 12px var(--mono);background:#0A1122;border:1px solid var(--line2);color:var(--yellow);width:27px;height:27px;border-radius:8px;display:grid;place-items:center;flex:none}
+.step .txt{flex:1;font:600 14.5px var(--body)}
+.step .mv{display:flex;flex-direction:column;gap:3px}
+.step .mv button{background:#0A1122;border:1px solid var(--line2);color:var(--mut);width:26px;height:20px;border-radius:6px;font-size:10px;line-height:1;transition:.15s}
+.step .mv button:hover{color:var(--yellow);border-color:var(--yellow)}
+.step.good{border-color:var(--green);background:rgba(74,222,128,.08)}
+.step.bad{border-color:var(--red);background:rgba(248,113,113,.09);animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.mie-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#mieMsg{margin-top:14px;font:600 14.5px var(--body);min-height:26px}
+#mieMsg.ok{color:var(--green)}#mieMsg.no{color:var(--orange)}
+#mieAttempts{font:700 12px var(--mono);color:var(--dim);margin-left:auto}
+#mieBridge{margin-top:20px;display:none;animation:tIn .5s ease}
+#mieBridge.show{display:block}
+
+#flowchart{--acc:#22D3EE;--acc2:#4B8BFF;--accsoft:rgba(34,211,238,.09)}
+.sym-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:30px}
+@media(max-width:900px){.sym-row{grid-template-columns:repeat(2,1fr)}}
+.sym{background:var(--sur);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.sym svg{display:block;margin:0 auto 8px}
+.sym b{font:700 13.5px var(--disp);display:block}
+.sym span{font:400 12px var(--body);color:var(--dim)}
+.seg{display:inline-flex;background:#0D1630;border:1px solid var(--line2);border-radius:999px;padding:5px;gap:5px}
+.seg button{border:none;background:transparent;color:var(--mut);border-radius:999px;padding:8px 18px;font:800 13.5px var(--body);transition:.2s}
+.seg button.on{background:linear-gradient(135deg,#4B8BFF,#22D3EE);color:#06101F;box-shadow:0 4px 14px rgba(56,140,255,.4)}
+.flow-wrap{overflow-x:auto;padding:6px 2px}
+.flow-svg{display:block;width:100%;height:auto;min-width:430px}
+.flow-svg text{font:600 13px var(--body)}
+.nd{color:#4B8BFF}
+.nd rect,.nd ellipse,.nd polygon{fill:#111B36;stroke:currentColor;stroke-width:1.7;transition:.25s}
+.nd text{fill:#D7DEF5;text-anchor:middle;dominant-baseline:middle}
+.nd-term{color:#4B8BFF}.nd-term rect,.nd-term ellipse{fill:#12234A}
+.nd-proc{color:#4B8BFF}
+.nd-dec{color:#F472B6}.nd-dec polygon{fill:#291531}.nd-dec text{fill:#FFC7E3;font-weight:700}
+.nd-out{color:#4ADE80}.nd-out rect{fill:#10281D}
+.nd.lit rect,.nd.lit ellipse,.nd.lit polygon{stroke-width:2.8;filter:drop-shadow(0 0 8px currentColor)}
+.edge path{fill:none;stroke:#46527C;stroke-width:2;transition:.25s}
+.edge text{font:800 12px var(--body);text-anchor:middle}
+.lbl-ya{fill:#57B87A}.lbl-no{fill:#C97B7B}
+.edge.lit path{stroke:#FFD43B;stroke-width:3;filter:drop-shadow(0 0 5px rgba(255,212,59,.85))}
+.edge.lit text{fill:#FFD43B}
+.flow-dot{fill:#FFD43B;opacity:0;transition:opacity .2s;filter:drop-shadow(0 0 7px #FFD43B)}
+.narr{display:flex;gap:10px;align-items:flex-start;background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.3);border-radius:13px;padding:13px 16px;font:600 14px/1.6 var(--body);color:var(--ink);min-height:64px;margin-top:14px}
+.narr .ic{font-size:17px}
+.sticky-col{position:sticky;top:92px;align-self:start}
+@media(max-width:960px){.sticky-col{position:static}}
+.wx-controls{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.mini-out{margin-top:16px}
+.mini-out .term-body{height:120px}
+
+#variabel{--acc:#4B8BFF;--acc2:#22D3EE;--accsoft:rgba(75,139,255,.1)}
+.var-points{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 26px}
+#varShelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:22px 16px;padding:16px 4px 6px;min-height:130px}
+.vbox{position:relative;background:linear-gradient(180deg,#182647,#101A33);border:1.5px solid var(--line2);border-radius:14px;padding:22px 14px 12px;animation:boxIn .35s cubic-bezier(.2,.9,.3,1.25);transition:border-color .2s}
+.vbox:hover{border-color:var(--yellow)}
+@keyframes boxIn{from{opacity:0;transform:scale(.8) translateY(12px)}to{opacity:1;transform:none}}
+.vbox.flash{animation:vflash .6s}
+@keyframes vflash{0%{box-shadow:0 0 0 0 rgba(255,212,59,.7)}100%{box-shadow:0 0 0 16px rgba(255,212,59,0)}}
+.vtag{position:absolute;top:-13px;left:11px;background:linear-gradient(135deg,#FFD43B,#FFB020);color:#0B1020;font:700 12px var(--mono);padding:3px 9px;border-radius:7px;transform:rotate(-2deg);box-shadow:0 4px 10px rgba(0,0,0,.4);max-width:85%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vval{font:700 19px var(--mono);word-break:break-all;min-height:30px}
+.vmeta{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+.vtype{font:700 10.5px var(--mono);letter-spacing:.08em;padding:3px 9px;border-radius:999px;border:1px solid}
+.vacts{display:flex;gap:5px}
+.vacts button{background:none;border:none;color:var(--dim);font-size:13px;padding:3px;border-radius:6px;transition:.15s}
+.vacts button:hover{color:var(--yellow);transform:scale(1.2)}
+.t-str{color:var(--magenta);border-color:var(--magenta);background:rgba(244,114,182,.09)}
+.t-int{color:var(--orange);border-color:var(--orange);background:rgba(251,146,60,.09)}
+.t-float{color:var(--cyan);border-color:var(--cyan);background:rgba(34,211,238,.09)}
+.t-bool{color:var(--green);border-color:var(--green);background:rgba(74,222,128,.09)}
+.tv-str{color:var(--magenta)}.tv-int{color:var(--orange)}.tv-float{color:var(--cyan)}.tv-bool{color:var(--green)}
+.vempty{grid-column:1/-1;text-align:center;color:var(--dim);font:600 14px var(--body);padding:26px;border:1.5px dashed var(--line2);border-radius:14px}
+.vedit{display:flex;gap:6px;margin-top:2px}
+.vedit input{flex:1;min-width:0;background:#0A1122;border:1px solid var(--yellow);border-radius:8px;color:var(--yellow);font:700 13px var(--mono);padding:6px 8px;outline:none}
+.vedit button{background:var(--yellow);border:none;border-radius:8px;padding:0 9px;font-weight:800;color:#0B1020}
+.var-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;margin-top:22px;align-items:end}
+@media(max-width:640px){.var-form{grid-template-columns:1fr}}
+.field label{display:block;font:700 12px var(--mono);color:var(--mut);margin-bottom:6px;letter-spacing:.06em}
+.field input,.field select{width:100%;background:#0A1122;border:1.5px solid var(--line2);border-radius:11px;color:var(--ink);font:600 14.5px var(--mono);padding:11px 13px;outline:none;transition:.2s}
+.field input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,212,59,.15)}
+.field input.shake{animation:shake .4s;border-color:var(--red)}
+#varTypeHint{font:600 12.5px var(--mono);color:var(--dim);margin-top:10px;min-height:22px}
+#varCount{font:700 12px var(--mono);color:var(--dim)}
+.shelf-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.shelf-head h3{font-size:19px}
+
+#tipedata{--acc:#F472B6;--acc2:#FB923C;--accsoft:rgba(244,114,182,.09)}
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:960px){.type-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.type-grid{grid-template-columns:1fr}}
+.tcard{--c:#F472B6;background:var(--sur);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:16px;padding:20px;transition:transform .2s,box-shadow .2s}
+.tcard:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(0,0,0,.45)}
+.tcard .tic{font-size:27px}
+.tcard h3{font:700 20px var(--mono);color:var(--c);margin:8px 0 2px}
+.tcard .tindo{font:800 13px var(--body);color:var(--ink)}
+.tcard p{font-size:13.5px;color:var(--mut);margin:8px 0 12px}
+.tchip{display:inline-block;font:700 12px var(--mono);background:#0A1122;border:1px solid var(--line2);color:var(--c);border-radius:8px;padding:3px 9px;margin:2px 3px 2px 0}
+.det{display:grid;grid-template-columns:1fr 1.2fr;gap:24px;align-items:stretch;margin-top:28px}
+@media(max-width:860px){.det{grid-template-columns:1fr}}
+#detVerdict{display:flex;gap:16px;align-items:center;border-radius:14px;border:1.5px dashed var(--line2);padding:18px;min-height:118px;transition:.3s}
+#detVerdict.live{border-style:solid}
+#detIcon{font-size:38px}
+#detType{font:700 24px var(--mono)}
+#detWhy{font-size:13.5px;color:var(--mut)}
+#detCode{font:700 12.5px var(--mono);color:var(--bi);margin-top:5px;word-break:break-all}
+
+#io{--acc:#4ADE80;--acc2:#22D3EE;--accsoft:rgba(74,222,128,.08)}
+.io-duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:26px}
+@media(max-width:760px){.io-duo{grid-template-columns:1fr}}
+.io-card{border-radius:16px;padding:20px;border:1px solid var(--line)}
+.io-card.out{background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.3)}
+.io-card.in{background:rgba(34,211,238,.06);border-color:rgba(34,211,238,.3)}
+.io-card h3{font:700 18px var(--mono);margin-bottom:6px}
+.io-card.out h3{color:var(--green)}.io-card.in h3{color:var(--cyan)}
+.io-card p{font-size:14px;color:var(--mut)}
+.io-controls{display:flex;gap:10px;margin:14px 0 0;flex-wrap:wrap}
+
+#percabangan{--acc:#FB923C;--acc2:#F472B6;--accsoft:rgba(251,146,60,.09)}
+.life-row{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 30px}
+.life{background:var(--sur);border:1px solid var(--line2);border-radius:12px;padding:10px 16px;font:600 13.5px var(--body)}
+.life b{color:var(--kw)}
+.oplab{margin-bottom:34px}
+.oplab-head{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:16px}
+.oplab-head .field{width:130px}
+.op-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:960px){.op-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:520px){.op-grid{grid-template-columns:repeat(2,1fr)}}
+.op{background:var(--sur);border:1px solid var(--line);border-radius:13px;padding:13px 10px;text-align:center;transition:.2s}
+.op-sym{font:700 23px var(--disp);color:var(--cyan)}
+.op-indo{font:600 11px var(--body);color:var(--dim);margin-bottom:7px}
+.op-expr{font:700 12px var(--mono);color:var(--mut);margin-bottom:8px}
+.op-res{font:800 12px var(--mono);border-radius:999px;padding:3px 12px;display:inline-block;transition:.2s}
+.op-res.t{color:#0B1020;background:var(--green);box-shadow:0 0 12px rgba(74,222,128,.5)}
+.op-res.f{color:#fff;background:#B84A4A;box-shadow:0 0 12px rgba(248,113,113,.35)}
+.tabbar{display:inline-flex;background:#0D1630;border:1px solid var(--line2);border-radius:999px;padding:5px;gap:5px;flex-wrap:wrap}
+.tab-btn{border:none;background:transparent;color:var(--mut);border-radius:999px;padding:9px 17px;font:700 13px var(--mono);transition:.2s}
+.tab-btn.on{background:linear-gradient(135deg,#FB923C,#F472B6);color:#160B02;box-shadow:0 4px 16px rgba(244,114,182,.4)}
+.slider-row{display:flex;align-items:center;gap:18px;margin:20px 0 8px;flex-wrap:wrap}
+.slider-row label{font:700 13.5px var(--body);color:var(--mut)}
+#nilaiSlider{flex:1;min-width:180px;-webkit-appearance:none;appearance:none;height:8px;border-radius:8px;background:linear-gradient(90deg,#F87171,#FB923C,#FFD43B,#4ADE80);outline:none}
+#nilaiSlider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#FFD43B;border:3px solid #0B1020;box-shadow:0 0 0 2px #FFD43B,0 0 16px rgba(255,212,59,.7);cursor:grab}
+#nilaiSlider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#FFD43B;border:3px solid #0B1020;box-shadow:0 0 0 2px #FFD43B,0 0 16px rgba(255,212,59,.7);cursor:grab}
+#nilaiVal{font:700 30px var(--disp);color:var(--yellow);min-width:58px;text-align:center;text-shadow:0 0 18px rgba(255,212,59,.5)}
+.nilai-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.nilai-chip{background:var(--sur);border:1px solid var(--line2);color:var(--mut);border-radius:999px;padding:5px 14px;font:700 12.5px var(--mono);transition:.15s}
+.nilai-chip:hover{color:var(--yellow);border-color:var(--yellow);transform:translateY(-2px)}
+#gradeBadge{display:flex;align-items:center;gap:14px;background:var(--sur);border:1.5px solid var(--line2);border-radius:16px;padding:14px 20px;margin-bottom:18px;transition:border-color .3s}
+#gradeLetter{font:700 42px var(--disp);line-height:1;min-width:56px;text-align:center}
+#gradeText{font:800 15px var(--body)}
+#gradeSub{font:600 12.5px var(--body);color:var(--dim)}
+.if-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.indent-card{margin-top:18px;border:1px solid rgba(251,146,60,.4);background:rgba(251,146,60,.07);border-radius:14px;padding:16px 18px}
+.indent-card b{color:var(--orange)}
+.indent-card pre{font:400 12.5px/1.8 var(--mono);margin-top:8px;color:#D5DEF5;overflow-x:auto}
+
+#playground{--acc:#4B8BFF;--acc2:#F472B6;--accsoft:rgba(120,110,255,.1)}
+.pg-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.pg-controls select{background:#0A1122;border:1.5px solid var(--line2);color:var(--ink);border-radius:11px;padding:10px 12px;font:700 13px var(--body);outline:none}
+.pg-controls select:focus{border-color:var(--blue)}
+.pg-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:22px;align-items:start}
+@media(max-width:960px){.pg-grid{grid-template-columns:1fr}}
+.editor-shell{background:#0A1122;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.editor{position:relative;display:grid;grid-template-columns:46px 1fr;height:352px}
+.gutter{overflow:hidden;border-right:1px solid #1C2745;background:#0C1428;user-select:none}
+.gutter-in{padding:16px 0;font:400 12.5px/24px var(--mono);color:#4A5578;text-align:right;padding-right:10px;will-change:transform}
+.code-area{position:relative;overflow:hidden}
+.code-under{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.code-inner{position:relative;padding:16px;min-width:100%;width:max-content;will-change:transform}
+#hlPre{font:400 14px/24px var(--mono);color:#D5DEF5;white-space:pre;margin:0}
+#activeLine{position:absolute;left:0;right:0;top:16px;height:24px;background:rgba(75,139,255,.15);border-left:3px solid var(--blue);display:none;transition:top .12s}
+#activeLine.err{background:rgba(248,113,113,.16);border-left-color:var(--red)}
+#codeInput{position:absolute;inset:0;width:100%;height:100%;padding:16px;border:none;resize:none;background:transparent;color:transparent;caret-color:var(--yellow);font:400 14px/24px var(--mono);white-space:pre;overflow:auto;outline:none;tab-size:4;-webkit-text-fill-color:transparent}
+#codeInput::selection{background:rgba(255,212,59,.3)}
+.editor-foot{display:flex;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid #1C2745;background:#0C1428;font:600 12px var(--body);color:var(--dim);flex-wrap:wrap}
+.pg-side{display:flex;flex-direction:column;gap:16px}
+.watch{background:var(--sur);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.watch h4{font:700 12px var(--mono);letter-spacing:.12em;color:var(--mut);text-transform:uppercase;margin-bottom:10px}
+#varWatch{display:flex;gap:8px;flex-wrap:wrap;min-height:34px}
+.vw{font:700 12.5px var(--mono);border:1px solid var(--line2);background:#0A1122;border-radius:9px;padding:5px 10px;animation:tIn .25s}
+.vw.flash{animation:vflash .6s}
+.vw .n{color:var(--yellow)}
+.watch-empty{font:600 12.5px var(--body);color:var(--dim)}
+#pgStatus{display:flex;gap:9px;align-items:flex-start;background:rgba(75,139,255,.08);border:1px solid rgba(75,139,255,.3);border-radius:12px;padding:11px 14px;font:600 13px/1.55 var(--mono);color:var(--ink);min-height:56px}
+#pgStatus.err{border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.08);color:#FFC9C9}
+#pgStatus.ok{border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.07)}
+.challenge{margin-top:26px;border:1.5px solid rgba(255,212,59,.4);background:linear-gradient(135deg,rgba(255,212,59,.07),rgba(244,114,182,.06));border-radius:18px;padding:24px;position:relative;overflow:hidden}
+.challenge h3{font-size:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.challenge p{color:var(--mut);font-size:14.5px;margin:8px 0 16px;max-width:760px}
+#challMsg{font:600 14px var(--body);margin-top:13px;min-height:24px}
+#challMsg.ok{color:var(--green)}#challMsg.no{color:var(--orange)}
+#challBadge{display:none;font:800 12px var(--mono);background:linear-gradient(135deg,#FFD43B,#FB923C);color:#0B1020;padding:5px 13px;border-radius:999px;letter-spacing:.06em}
+#challBadge.show{display:inline-block;animation:boxIn .4s}
+.tips-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+
+footer{border-top:1px solid var(--line);padding:70px 0 46px;position:relative;background:linear-gradient(180deg,transparent,rgba(10,16,34,.8))}
+.recap{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:20px 0 40px}
+.recap .rstep{font:700 13px var(--mono);background:var(--sur);border:1px solid var(--line2);border-radius:999px;padding:7px 15px;color:var(--ink)}
+.recap .rarr{color:var(--yellow);font-weight:800}
+.next-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:44px}
+@media(max-width:860px){.next-grid{grid-template-columns:1fr}}
+.next-card{background:var(--sur);border:1px solid var(--line);border-radius:16px;padding:19px}
+.next-card h4{font:700 16px var(--disp);color:var(--cyan);margin-bottom:6px}
+.next-card p{font-size:13.5px;color:var(--mut);margin-bottom:10px}
+.next-card pre{font:400 12px/1.8 var(--mono);background:#0A1122;border-radius:10px;padding:10px 13px;overflow-x:auto}
+.credit{color:var(--dim);font-size:13.5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:24px}
+@media(max-width:640px){.lvl{padding:76px 0}.panel{padding:20px}.hero-stats{gap:20px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
+  html{scroll-behavior:auto}
+  .js .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<div id="bg" aria-hidden="true">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="gridlay"></div>
+</div>
+<div id="grain" aria-hidden="true"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<nav id="navbar" aria-label="Navigasi utama">
+  <div class="nav-in">
+    <a class="logo" href="#hero"><span class="logo-tile">🐍</span>Algo<em>Python</em></a>
+    <div id="navLinks">
+      <a href="#algoritma">Algoritma</a>
+      <a href="#flowchart">Flowchart</a>
+      <a href="#variabel">Variabel</a>
+      <a href="#tipedata">Tipe Data</a>
+      <a href="#io">Input/Output</a>
+      <a href="#percabangan">If</a>
+      <a href="#playground">Playground</a>
+    </div>
+    <div class="nav-cta">
+      <button id="soundBtn" aria-pressed="true" title="Nyalakan / matikan semua suara">
+        <span class="sdot"></span><span id="soundLbl">SUARA ON</span>
+      </button>
+      <button id="burger" aria-label="Buka menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div id="progressBar"></div>
+</nav>
+
+<main>
+<section id="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="hero-eyebrow rv"><span class="chip">🐍 Kelas interaktif • Bahasa Indonesia • Cocok mulai usia 15</span></div>
+      <h1 class="rv" style="--d:.08s">Algoritma itu <span class="grad-warm">resep.</span><br>Python itu <span class="grad-cool">bahasanya.</span></h1>
+      <p class="hero-sub rv" style="--d:.16s">Game, chat, ojol, sampai FYP yang bikin kamu scroll terus — semuanya jalan karena <b>algoritma</b>: urutan langkah yang jelas. Di sini kamu belajar bikin langkah itu sendiri, dari <b>variabel</b> sampai <b>percabangan if</b>. Santai, visual, dan langsung praktik. Tanpa install apa pun.</p>
+      <div class="hero-ctas rv" style="--d:.24s">
+        <a class="btn btn-y" href="#algoritma">🚀 Mulai dari Level 1</a>
+        <a class="btn btn-ghost" href="#playground">⌨️ Loncat ke Playground</a>
+      </div>
+      <div class="hero-stats rv" style="--d:.32s">
+        <div class="hstat"><b>7 <i>Level</i></b><span>materi bertahap</span></div>
+        <div class="hstat"><b>8 <i>Lab</i></b><span>interaktif, bukan cuma teori</span></div>
+        <div class="hstat"><b>1 <i>🏆</i></b><span>tantangan ngoding</span></div>
+      </div>
+    </div>
+    <div class="hero-right rv" style="--d:.2s">
+      <span class="float-sym fs1" data-depth="0.05">if lapar:</span>
+      <span class="float-sym fs2" data-depth="0.09">x = 15</span>
+      <span class="float-sym fs3" data-depth="0.04">&gt;&gt;&gt; _</span>
+      <span class="float-sym fs4" data-depth="0.07"># resep 🍜</span>
+      <span class="float-sym fs5" data-depth="0.11">True ✔</span>
+      <div class="hero-term-wrap" id="heroTilt">
+        <div class="code-panel hero-term">
+          <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">algoritma_pertamaku.py — diputar otomatis</span></div>
+          <pre id="heroCode" aria-hidden="true"></pre>
+          <div id="heroOut"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a class="scroll-cue" href="#algoritma">▼ scroll untuk mulai</a>
+</section>
+
+<section id="algoritma" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 01</span>
+      <h2>Apa itu <span class="hl">Algoritma?</span></h2>
+      <p class="lead">Sebelum ngoding, kenalan dulu sama cara berpikir komputer. Spoiler: kamu sebenarnya sudah pakai algoritma setiap hari.</p>
+    </div>
+    <div class="cols c2w">
+      <div class="panel rv">
+        <p style="font-size:18px"><b style="color:var(--yellow)">Algoritma</b> adalah <b>urutan langkah-langkah</b> untuk menyelesaikan suatu masalah. Komputer itu powerful tapi polos: dia cuma bisa mengikuti langkah yang <b>kamu</b> tulis, satu per satu, dari atas ke bawah.</p>
+        <div class="def-grid">
+          <div class="def-card"><b>1. Jelas 🎯</b><p>Tiap langkah nggak bikin bingung. "Masak sampai enak" itu nggak jelas. "Aduk 30 detik" itu jelas.</p></div>
+          <div class="def-card"><b>2. Berurutan 🔢</b><p>Urutannya penting! Bumbu dituang <i>setelah</i> mie matang, bukan sebelumnya.</p></div>
+          <div class="def-card"><b>3. Berakhir 🏁</b><p>Ada hasil akhirnya. Algoritma nggak muter-muter selamanya tanpa tujuan.</p></div>
+        </div>
+        <div class="analogy-row">
+          <span class="analogy">🍜 Resep mie instan</span>
+          <span class="analogy">📱 Algoritma FYP yang nebak seleramu</span>
+          <span class="analogy">🛵 Rute tercepat ojol</span>
+          <span class="analogy">🎮 Strategi combo di game</span>
+        </div>
+        <div class="note" style="margin-top:20px">💡 <b>Program</b> = algoritma yang ditulis dalam bahasa yang dimengerti komputer. Bahasa yang kita pakai di sini: <b>Python</b> — salah satu bahasa paling ramah pemula di dunia.</div>
+      </div>
+      <div class="panel rv" style="--d:.12s">
+        <div class="mission-head"><span class="mission-badge">MISI 1</span><h3>Susun Algoritma Mie Instan 🍜</h3></div>
+        <p style="font-size:14px;color:var(--mut)">Langkahnya keacak! <b>Seret kartu</b> (atau pakai tombol ▲▼) sampai urutannya benar, lalu tekan <b>Cek Urutan</b>.</p>
+        <ul id="mieList"></ul>
+        <div class="mie-controls">
+          <button class="btn btn-y btn-sm" id="mieCheck">✅ Cek Urutan</button>
+          <button class="btn btn-ghost btn-sm" id="mieShuffle">🔀 Acak Lagi</button>
+          <button class="btn btn-ghost btn-sm" id="miePeek">👀 Intip yang Benar</button>
+          <span id="mieAttempts">Percobaan: 0</span>
+        </div>
+        <div id="mieMsg" role="status"></div>
+        <div id="mieBridge">
+          <div class="note" style="margin-bottom:12px">🌉 <b>Jembatan ke Python:</b> algoritma yang barusan kamu susun, kalau ditulis jadi program, bentuknya seperti ini. Komputer menjalankannya baris demi baris — persis urutanmu!</div>
+          <div class="code-panel">
+            <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">mie_instan.py</span><button class="copy-btn" data-copy="mieCode">salin</button></div>
+            <pre class="code" id="mieCode"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="flowchart" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 02</span>
+      <h2>Flowchart: <span class="hl">Peta Algoritma</span></h2>
+      <p class="lead">Biar langkah-langkahnya kelihatan, kita gambar sebagai <b>diagram alir</b>. Bentuknya punya arti — seperti rambu lalu lintas untuk logika.</p>
+    </div>
+    <div class="sym-row rv">
+      <div class="sym"><svg width="92" height="38" viewBox="0 0 92 38"><rect x="4" y="4" width="84" height="30" rx="15" fill="#12234A" stroke="#4B8BFF" stroke-width="1.7"/></svg><b>Terminal</b><span>Mulai / Selesai</span></div>
+      <div class="sym"><svg width="92" height="38" viewBox="0 0 92 38"><rect x="4" y="4" width="84" height="30" rx="5" fill="#111B36" stroke="#4B8BFF" stroke-width="1.7"/></svg><b>Proses</b><span>Sebuah aksi / langkah</span></div>
+      <div class="sym"><svg width="92" height="44" viewBox="0 0 92 44"><polygon points="46,3 89,22 46,41 3,22" fill="#291531" stroke="#F472B6" stroke-width="1.7"/></svg><b>Keputusan</b><span>Pertanyaan Ya / Tidak</span></div>
+      <div class="sym"><svg width="92" height="38" viewBox="0 0 92 38"><polygon points="16,4 88,4 76,34 4,34" fill="#0E2733" stroke="#22D3EE" stroke-width="1.7"/></svg><b>Input / Output</b><span>Data masuk / keluar</span></div>
+      <div class="sym"><svg width="92" height="38" viewBox="0 0 92 38"><defs><marker id="symArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#FFD43B"/></marker></defs><path d="M8,19 H74" stroke="#FFD43B" stroke-width="2.4" marker-end="url(#symArr)"/></svg><b>Garis Alir</b><span>Arah jalannya langkah</span></div>
+    </div>
+    <div class="cols c2w">
+      <div class="panel rv">
+        <h3 style="font-size:19px;margin-bottom:12px">Lab 2 — Algoritma "Bawa Payung?" ☔</h3>
+        <div class="wx-controls">
+          <span style="font:700 13.5px var(--body);color:var(--mut)">Cuaca hari ini:</span>
+          <div class="seg" role="group" aria-label="Pilih cuaca">
+            <button id="wxRain" class="on">🌧️ Hujan</button>
+            <button id="wxSun">☀️ Cerah</button>
+          </div>
+          <button class="btn btn-sm" id="wxRun">▶ Jalankan Algoritma</button>
+        </div>
+        <div class="flow-wrap">
+          <svg class="flow-svg" id="weatherSvg" viewBox="0 0 460 530" role="img" aria-label="Flowchart keputusan membawa payung">
+            <defs><marker id="w-arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#7C8DB5"/></marker></defs>
+            <g class="edge" id="w-e0"><path d="M230,60 V84" marker-end="url(#w-arw)"/></g>
+            <g class="edge" id="w-e1"><path d="M230,130 V158" marker-end="url(#w-arw)"/></g>
+            <g class="edge" id="w-eY"><path d="M154,204 H92 V286" marker-end="url(#w-arw)"/><text class="lbl-ya" x="118" y="194">Ya</text></g>
+            <g class="edge" id="w-eN"><path d="M306,204 H368 V286" marker-end="url(#w-arw)"/><text class="lbl-no" x="336" y="194">Tidak</text></g>
+            <g class="edge" id="w-eY2"><path d="M92,334 V372 H230 V392" marker-end="url(#w-arw)"/></g>
+            <g class="edge" id="w-eN2"><path d="M368,334 V372 H230 V392" marker-end="url(#w-arw)"/></g>
+            <g class="edge" id="w-e2"><path d="M230,440 V470" marker-end="url(#w-arw)"/></g>
+            <g class="nd nd-term" id="w-n0"><ellipse cx="230" cy="36" rx="58" ry="24"/><text x="230" y="37">Mulai</text></g>
+            <g class="nd nd-proc" id="w-n1"><rect x="150" y="86" width="160" height="44" rx="9"/><text x="230" y="109">Lihat langit 🌤️</text></g>
+            <g class="nd nd-dec" id="w-d1"><polygon points="230,158 306,204 230,250 154,204"/><text x="230" y="205">Hujan?</text></g>
+            <g class="nd nd-out" id="w-nY"><rect x="22" y="288" width="140" height="46" rx="9"/><text x="92" y="312">Bawa payung ☔</text></g>
+            <g class="nd nd-out" id="w-nN"><rect x="298" y="288" width="140" height="46" rx="9"/><text x="368" y="312">Pakai topi 🧢</text></g>
+            <g class="nd nd-proc" id="w-n2"><rect x="140" y="394" width="180" height="46" rx="9"/><text x="230" y="418">Berangkat sekolah 🎒</text></g>
+            <g class="nd nd-term" id="w-n3"><ellipse cx="230" cy="494" rx="58" ry="24"/><text x="230" y="495">Selesai</text></g>
+            <circle class="flow-dot" r="7" cx="0" cy="0"/>
+          </svg>
+        </div>
+        <div class="narr"><span class="ic">💬</span><span id="wxNarr">Pilih cuaca, lalu tekan ▶ untuk melihat perjalanan algoritmanya.</span></div>
+      </div>
+      <div class="sticky-col rv" style="--d:.12s">
+        <div class="note" style="margin-bottom:16px">👀 Perhatikan bentuk <b style="color:var(--magenta)">belah ketupat</b>: di situlah algoritma <b>memilih jalan</b>. Di Python, pilihan itu ditulis dengan <b>if</b> — kita bedah tuntas di Level 6!</div>
+        <div class="code-panel">
+          <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">payung.py — baris menyala = sedang dijalankan</span><button class="copy-btn" data-copy="wxCode">salin</button></div>
+          <pre class="code" id="wxCode"></pre>
+        </div>
+        <div class="mini-out">
+          <div class="term"><div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">output program</span></div><div class="term-body" id="wxOut" style="height:118px"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="variabel" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 03</span>
+      <h2>Variabel: <span class="hl">Kotak Penyimpan Data</span></h2>
+      <p class="lead">Bayangkan variabel seperti <b>kotak berlabel</b>. Labelnya = <b>nama variabel</b>, isinya = <b>nilai</b>. Komputer ingat semua kotaknya, dan kamu bisa ganti isinya kapan saja.</p>
+    </div>
+    <div class="var-points rv">
+      <span class="chip">🏷️ Nama unik &amp; tanpa spasi — pakai <span class="mono">skor_game</span></span>
+      <span class="chip">🔁 Isi bisa <b>ditimpa</b>: <span class="mono">skor = 10</span> lalu <span class="mono">skor = 99</span></span>
+      <span class="chip">🪄 Python otomatis menebak jenis isinya</span>
+    </div>
+    <div class="cols c2w">
+      <div class="panel rv">
+        <div class="shelf-head"><h3>Lab 3 — Rak Kotak Variabelmu 📦</h3><span id="varCount"></span></div>
+        <div id="varShelf"></div>
+        <div class="var-form">
+          <div class="field"><label for="varName">NAMA KOTAK (label)</label><input id="varName" placeholder="misal: skor_game" maxlength="20" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label for="varValue">ISI KOTAK (nilai)</label><input id="varValue" placeholder='misal: 99, "Rara", True' autocomplete="off" spellcheck="false"></div>
+          <button class="btn btn-y" id="varAdd">📥 Simpan</button>
+        </div>
+        <div id="varTypeHint">Ketik nilai → Python langsung menebak tipenya di sini.</div>
+        <div class="note">🧪 <b>Coba sendiri:</b> klik ✏️ pada kotak <span class="mono">umur</span>, ganti jadi 16. Lalu buat kotak baru bernama <span class="mono">umur</span> lagi — nilai lamanya <b>ditimpa</b>! Tanda <span class="mono">=</span> di Python bukan "sama dengan", tapi <b>"masukkan ke kotak"</b>.</div>
+      </div>
+      <div class="sticky-col rv" style="--d:.12s">
+        <div class="code-panel">
+          <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">kotakku.py — dibuat otomatis dari rakmu</span><button class="copy-btn" data-copy="varCode">salin</button></div>
+          <pre class="code" id="varCode"></pre>
+        </div>
+        <div class="note" style="margin-top:16px">📖 Baca: <span class="mono">nama = "Rara"</span> artinya <i>"ambil kotak berlabel <b>nama</b>, masukkan teks <b>Rara</b>"</i>. Tanda kutip menandakan teks. Angka tanpa kutip = angka sungguhan yang bisa dihitung.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tipedata" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 04</span>
+      <h2>Tipe Data: <span class="hl">Jenis Isi Kotak</span></h2>
+      <p class="lead">Kotak yang sama bisa berisi teks, angka, atau benar/salah. Python menyebutnya <b>tipe data</b> — dan tiap tipe punya "kepribadian" sendiri.</p>
+    </div>
+    <div class="type-grid rv">
+      <div class="tcard" style="--c:#F472B6"><span class="tic">💬</span><h3>str</h3><span class="tindo">Teks (string)</span><p>Selalu pakai tanda kutip. Nama, chat, caption — semua str. Bisa digabung dengan <span class="mono">+</span>.</p><span class="tchip">"Rara"</span><span class="tchip">'seblak level 5'</span><span class="tchip">"17"</span></div>
+      <div class="tcard" style="--c:#FB923C"><span class="tic">🔢</span><h3>int</h3><span class="tindo">Bilangan bulat (integer)</span><p>Angka tanpa koma. Buat menghitung skor, umur, jumlah item. Bebas dijumlah, dikali, dibagi.</p><span class="tchip">15</span><span class="tchip">9999</span><span class="tchip">-3</span></div>
+      <div class="tcard" style="--c:#22D3EE"><span class="tic">📏</span><h3>float</h3><span class="tindo">Bilangan desimal</span><p>Angka dengan titik (bukan koma!). Buat tinggi badan, rating, harga dengan sen.</p><span class="tchip">160.5</span><span class="tchip">4.8</span><span class="tchip">0.75</span></div>
+      <div class="tcard" style="--c:#4ADE80"><span class="tic">✅</span><h3>bool</h3><span class="tindo">Benar / Salah (boolean)</span><p>Cuma dua nilai: <span class="mono">True</span> atau <span class="mono">False</span> (huruf besar!). Senjatanya percabangan if.</p><span class="tchip">True</span><span class="tchip">False</span></div>
+    </div>
+    <div class="det panel rv" style="--d:.1s">
+      <div>
+        <h3 style="font-size:19px;margin-bottom:8px">Lab 4 — Detektif Tipe 🕵️</h3>
+        <p style="font-size:14px;color:var(--mut);margin-bottom:14px">Ketik apa saja, detektif kita langsung menebak tipe datanya — persis seperti fungsi <span class="mono">type()</span> di Python.</p>
+        <div class="field"><label for="detInput">TERSANGKA (nilai)</label><input id="detInput" placeholder='coba: 4.8 atau "halo" atau False' autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div id="detVerdict">
+        <span id="detIcon">🔎</span>
+        <div><div id="detType" style="color:var(--dim)">menunggu petunjuk…</div><div id="detWhy">Ketik sesuatu di sebelah kiri untuk mulai penyelidikan.</div><div id="detCode"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="io" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 05</span>
+      <h2>Input &amp; Output: <span class="hl">Ngobrol sama Komputer</span></h2>
+      <p class="lead">Program jadi seru kalau bisa diajak ngobrol. Dua fungsi ajaib: satu bikin komputer <b>bertanya</b>, satu bikin komputer <b>menjawab</b>.</p>
+    </div>
+    <div class="io-duo rv">
+      <div class="io-card in"><h3>input() ⌨️</h3><p>Komputer <b>bertanya</b> lalu menunggu kamu mengetik. Jawabanmu selalu berupa <b>teks (str)</b> — makanya angka dari input perlu dibungkus <span class="mono">int()</span> kalau mau dihitung.</p></div>
+      <div class="io-card out"><h3>print() 🖨️</h3><p>Komputer <b>menampilkan sesuatu</b> ke layar. Bisa teks, isi variabel, atau hasil hitungan. Pisahkan beberapa hal dengan <b>koma</b>, nanti otomatis dispasi.</p></div>
+    </div>
+    <div class="cols c2w">
+      <div class="panel rv">
+        <h3 style="font-size:19px;margin-bottom:4px">Lab 5 — Terminal Ngobrol 💬</h3>
+        <p style="font-size:14px;color:var(--mut)">Tekan jalankan, lalu <b>ketik jawabanmu langsung di terminal</b> dan tekan Enter. Program di kanan menyala baris demi baris mengikuti percakapan.</p>
+        <div class="term" style="margin-top:14px">
+          <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">python — ngobrol.py</span></div>
+          <div class="term-body" id="ioTerm"></div>
+        </div>
+        <div class="io-controls">
+          <button class="btn btn-g" id="ioRun">▶ Jalankan Program</button>
+          <button class="btn btn-ghost" id="ioReset">↺ Ulang</button>
+        </div>
+        <div class="note" style="margin-top:16px">🧪 Iseng itu bagus: coba isi umur dengan huruf, misalnya <span class="mono">lima</span>. Lihat bagaimana <span class="mono">int()</span> protes — error juga bagian dari belajar!</div>
+      </div>
+      <div class="sticky-col rv" style="--d:.12s">
+        <div class="code-panel">
+          <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">ngobrol.py</span><button class="copy-btn" data-copy="ioCode">salin</button></div>
+          <pre class="code" id="ioCode"></pre>
+        </div>
+        <div class="note" style="margin-top:16px">🔍 <span class="mono">int(umur)</span> = "ubah teks umur jadi angka bulat". Tanpa itu, <span class="mono">"15" + 1</span> akan error — teks dan angka nggak bisa langsung dijumlah!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="percabangan" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 06</span>
+      <h2>Percabangan if: <span class="hl">Komputer Memilih Jalan</span></h2>
+      <p class="lead">Hidup penuh "kalau… maka…". Komputer juga! Dengan <b>if</b>, programmu bisa mengambil keputusan sendiri — bukan cuma jalan lurus terus.</p>
+    </div>
+    <div class="life-row rv">
+      <span class="life"><b>Kalau</b> hujan → bawa payung ☔</span>
+      <span class="life"><b>Kalau</b> skor ≥ 100 → naik level 🎮</span>
+      <span class="life"><b>Kalau</b> saldo cukup → checkout 🛒</span>
+      <span class="life"><b>Kalau tidak</b> → rencana B 😎</span>
+    </div>
+
+    <div class="panel oplab rv">
+      <div class="oplab-head">
+        <div><h3 style="font-size:19px">Lab 6a — Operator Perbandingan ⚖️</h3><p style="font-size:13.5px;color:var(--mut)">Bahan bakar if adalah pertanyaan yang jawabannya <b>True/False</b>. Ubah angkanya, lihat hasilnya berubah!</p></div>
+        <div class="field" style="margin-left:auto"><label for="opA">NILAI KAMU</label><input id="opA" type="number" value="78"></div>
+        <div class="field"><label for="opB">KKM</label><input id="opB" type="number" value="75"></div>
+      </div>
+      <div class="op-grid" id="opGrid"></div>
+      <div class="note" style="margin-top:16px">⚠️ Bedakan: <span class="mono">=</span> artinya <b>mengisi kotak</b>, sedangkan <span class="mono">==</span> artinya <b>bertanya "sama nggak?"</b>. Kesalahan sejuta umat pemula — kamu sekarang bukan pemula itu lagi. 😏</div>
+    </div>
+
+    <div class="cols c2w">
+      <div class="panel rv">
+        <h3 style="font-size:19px;margin-bottom:14px">Lab 6b — Simulator Percabangan 🎚️</h3>
+        <div class="tabbar" role="tablist" aria-label="Jenis percabangan">
+          <button class="tab-btn on" data-tab="if" role="tab" aria-selected="true">if</button>
+          <button class="tab-btn" data-tab="else" role="tab" aria-selected="false">if + else</button>
+          <button class="tab-btn" data-tab="elif" role="tab" aria-selected="false">if + elif + else</button>
+        </div>
+        <p id="tabDesc" style="font-size:14px;color:var(--mut);margin-top:12px"></p>
+        <div class="slider-row">
+          <label for="nilaiSlider">Geser nilai ujian:</label>
+          <input type="range" id="nilaiSlider" min="0" max="100" value="78" step="1">
+          <output id="nilaiVal" for="nilaiSlider">78</output>
+        </div>
+        <div class="nilai-chips">
+          <button class="nilai-chip" data-v="95">95</button>
+          <button class="nilai-chip" data-v="82">82</button>
+          <button class="nilai-chip" data-v="75">75</button>
+          <button class="nilai-chip" data-v="72">72</button>
+          <button class="nilai-chip" data-v="60">60</button>
+        </div>
+
+        <div class="flow-wrap" id="flow-if">
+          <svg class="flow-svg" viewBox="0 0 460 470" role="img" aria-label="Flowchart if">
+            <defs><marker id="i-arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#7C8DB5"/></marker></defs>
+            <g class="edge" id="i-e0"><path d="M230,58 V80" marker-end="url(#i-arw)"/></g>
+            <g class="edge" id="i-e1"><path d="M230,124 V148" marker-end="url(#i-arw)"/></g>
+            <g class="edge" id="i-eY"><path d="M146,192 H96 V264" marker-end="url(#i-arw)"/><text class="lbl-ya" x="118" y="182">Ya</text></g>
+            <g class="edge" id="i-eN"><path d="M314,192 H384 V336 H230 V352" marker-end="url(#i-arw)"/><text class="lbl-no" x="342" y="182">Tidak</text></g>
+            <g class="edge" id="i-eL"><path d="M96,312 V336 H230 V352" marker-end="url(#i-arw)"/></g>
+            <g class="edge" id="i-eF"><path d="M230,396 V416" marker-end="url(#i-arw)"/></g>
+            <g class="nd nd-term" id="i-n0"><ellipse cx="230" cy="34" rx="54" ry="22"/><text x="230" y="35">Mulai</text></g>
+            <g class="nd nd-proc" id="i-n1"><rect x="150" y="82" width="160" height="42" rx="9"/><text x="230" y="104" id="i-val">nilai = 78</text></g>
+            <g class="nd nd-dec" id="i-d1"><polygon points="230,148 314,192 230,236 146,192"/><text x="230" y="193">nilai ≥ 75?</text></g>
+            <g class="nd nd-out" id="i-nL"><rect x="26" y="266" width="140" height="46" rx="9"/><text x="96" y="290">LULUS! 🎉</text></g>
+            <g class="nd nd-proc" id="i-nF"><rect x="140" y="354" width="180" height="42" rx="9"/><text x="230" y="376">Cetak penutup 🖨️</text></g>
+            <g class="nd nd-term" id="i-nE"><ellipse cx="230" cy="440" rx="56" ry="22"/><text x="230" y="441">Selesai</text></g>
+            <circle class="flow-dot" r="7"/>
+          </svg>
+        </div>
+        <div class="flow-wrap" id="flow-else" hidden>
+          <svg class="flow-svg" viewBox="0 0 460 470" role="img" aria-label="Flowchart if else">
+            <defs><marker id="e-arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#7C8DB5"/></marker></defs>
+            <g class="edge" id="e-e0"><path d="M230,58 V80" marker-end="url(#e-arw)"/></g>
+            <g class="edge" id="e-e1"><path d="M230,124 V148" marker-end="url(#e-arw)"/></g>
+            <g class="edge" id="e-eY"><path d="M146,192 H96 V264" marker-end="url(#e-arw)"/><text class="lbl-ya" x="118" y="182">Ya</text></g>
+            <g class="edge" id="e-eN"><path d="M314,192 H384 V264" marker-end="url(#e-arw)"/><text class="lbl-no" x="342" y="182">Tidak</text></g>
+            <g class="edge" id="e-eL"><path d="M96,312 V336 H230 V352" marker-end="url(#e-arw)"/></g>
+            <g class="edge" id="e-eR"><path d="M384,312 V336 H230 V352" marker-end="url(#e-arw)"/></g>
+            <g class="edge" id="e-eF"><path d="M230,396 V416" marker-end="url(#e-arw)"/></g>
+            <g class="nd nd-term" id="e-n0"><ellipse cx="230" cy="34" rx="54" ry="22"/><text x="230" y="35">Mulai</text></g>
+            <g class="nd nd-proc" id="e-n1"><rect x="150" y="82" width="160" height="42" rx="9"/><text x="230" y="104" id="e-val">nilai = 78</text></g>
+            <g class="nd nd-dec" id="e-d1"><polygon points="230,148 314,192 230,236 146,192"/><text x="230" y="193">nilai ≥ 75?</text></g>
+            <g class="nd nd-out" id="e-nL"><rect x="26" y="266" width="140" height="46" rx="9"/><text x="96" y="290">LULUS! 🎉</text></g>
+            <g class="nd nd-out" id="e-nR"><rect x="314" y="266" width="140" height="46" rx="9"/><text x="384" y="290">Belum lulus 💪</text></g>
+            <g class="nd nd-proc" id="e-nF"><rect x="140" y="354" width="180" height="42" rx="9"/><text x="230" y="376">Cetak penutup 🖨️</text></g>
+            <g class="nd nd-term" id="e-nE"><ellipse cx="230" cy="440" rx="56" ry="22"/><text x="230" y="441">Selesai</text></g>
+            <circle class="flow-dot" r="7"/>
+          </svg>
+        </div>
+        <div class="flow-wrap" id="flow-elif" hidden>
+          <svg class="flow-svg" viewBox="0 0 520 620" style="min-width:470px" role="img" aria-label="Flowchart if elif else">
+            <defs><marker id="m-arw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#7C8DB5"/></marker></defs>
+            <g class="edge" id="m-e0"><path d="M200,56 V78" marker-end="url(#m-arw)"/></g>
+            <g class="edge" id="m-e1"><path d="M200,122 V146" marker-end="url(#m-arw)"/></g>
+            <g class="edge" id="m-eY1"><path d="M284,190 H338" marker-end="url(#m-arw)"/><text class="lbl-ya" x="311" y="180">Ya</text></g>
+            <g class="edge" id="m-eN1"><path d="M200,234 V262" marker-end="url(#m-arw)"/><text class="lbl-no" x="228" y="252">Tidak</text></g>
+            <g class="edge" id="m-eY2"><path d="M284,306 H338" marker-end="url(#m-arw)"/><text class="lbl-ya" x="311" y="296">Ya</text></g>
+            <g class="edge" id="m-eN2"><path d="M200,350 V378" marker-end="url(#m-arw)"/><text class="lbl-no" x="228" y="368">Tidak</text></g>
+            <g class="edge" id="m-eY3"><path d="M284,422 H338" marker-end="url(#m-arw)"/><text class="lbl-ya" x="311" y="412">Ya</text></g>
+            <g class="edge" id="m-eN3"><path d="M200,466 V494" marker-end="url(#m-arw)"/><text class="lbl-no" x="228" y="484">Tidak</text></g>
+            <g class="edge" id="m-eA"><path d="M420,212 V540 H310 V560" marker-end="url(#m-arw)"/></g>
+            <g class="edge" id="m-eB"><path d="M420,328 V540 H310 V560" marker-end="url(#m-arw)"/></g>
+            <g class="edge" id="m-eC"><path d="M420,444 V540 H310 V560" marker-end="url(#m-arw)"/></g>
+            <g class="edge" id="m-eD"><path d="M200,540 H310 V560" marker-end="url(#m-arw)"/></g>
+            <g class="nd nd-term" id="m-n0"><ellipse cx="200" cy="34" rx="54" ry="22"/><text x="200" y="35">Mulai</text></g>
+            <g class="nd nd-proc" id="m-n1"><rect x="120" y="80" width="160" height="42" rx="9"/><text x="200" y="102" id="m-val">nilai = 78</text></g>
+            <g class="nd nd-dec" id="m-d1"><polygon points="200,146 284,190 200,234 116,190"/><text x="200" y="191">nilai ≥ 90?</text></g>
+            <g class="nd nd-out" id="m-oA"><rect x="340" y="168" width="164" height="44" rx="9"/><text x="422" y="191">A — jenius! 🤩</text></g>
+            <g class="nd nd-dec" id="m-d2"><polygon points="200,262 284,306 200,350 116,306"/><text x="200" y="307">nilai ≥ 80?</text></g>
+            <g class="nd nd-out" id="m-oB"><rect x="340" y="284" width="164" height="44" rx="9"/><text x="422" y="307">B — mantap! 😎</text></g>
+            <g class="nd nd-dec" id="m-d3"><polygon points="200,378 284,422 200,466 116,422"/><text x="200" y="423">nilai ≥ 70?</text></g>
+            <g class="nd nd-out" id="m-oC"><rect x="340" y="400" width="164" height="44" rx="9"/><text x="422" y="423">C — lumayan! 🙂</text></g>
+            <g class="nd nd-out" id="m-oD"><rect x="118" y="496" width="164" height="44" rx="9"/><text x="200" y="519">D — belajar lagi 📚</text></g>
+            <g class="nd nd-term" id="m-nE"><ellipse cx="310" cy="584" rx="58" ry="22"/><text x="310" y="585">Selesai</text></g>
+            <circle class="flow-dot" r="7"/>
+          </svg>
+        </div>
+        <div class="narr"><span class="ic">💬</span><span id="ifNarr">Geser slider nilai, lalu ikuti titik kuningnya menjelajahi diagram!</span></div>
+        <div class="if-controls"><button class="btn btn-sm" id="ifReplay">↻ Putar Ulang Perjalanan</button><span style="font:600 12px var(--mono);color:var(--dim)">≥ dibaca "lebih dari atau sama dengan" (di kode ditulis &gt;=)</span></div>
+      </div>
+
+      <div class="sticky-col rv" style="--d:.12s">
+        <div id="gradeBadge"><span id="gradeLetter">🎉</span><div><div id="gradeText">LULUS</div><div id="gradeSub">hasil program untuk nilai saat ini</div></div></div>
+        <div class="code-panel">
+          <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title">percabangan.py</span><button class="copy-btn" data-copy="ifCodeActive">salin</button></div>
+          <pre class="code" id="code-if"></pre>
+          <pre class="code" id="code-else" hidden></pre>
+          <pre class="code" id="code-elif" hidden></pre>
+        </div>
+        <div class="term" style="margin-top:16px">
+          <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">output</span></div>
+          <div class="term-body" id="ifOut" style="height:130px"></div>
+        </div>
+        <div class="indent-card">
+          <b>⚠️ Aturan 4 spasi (indentasi)</b>
+          <p style="font-size:13.5px;color:var(--mut);margin-top:4px">Baris di dalam if <b>wajib menjorok 4 spasi</b>. Itu cara Python tahu baris mana yang "milik" if. Tanpa indentasi → error!</p>
+          <pre><span class="tk-kw">if</span> nilai &gt;= <span class="tk-num">75</span>:
+    <span class="tk-bi">print</span>(<span class="tk-str">"LULUS!"</span>)   <span class="tk-cmt"># ✅ menjorok 4 spasi</span>
+<span class="tk-bi">print</span>(<span class="tk-str">"selesai"</span>)       <span class="tk-cmt"># di luar if, selalu jalan</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="playground" class="lvl">
+  <div class="wrap">
+    <div class="lvl-head rv">
+      <span class="tag">Level 07 • FINAL</span>
+      <h2>Playground: <span class="hl">Giliran Kamu Ngoding</span></h2>
+      <p class="lead">Editor mini + komputer simulasi yang menjalankan kodemu <b>baris demi baris</b>. Pilih contoh program, ubah sesukamu, tekan Jalankan — dan panel variabel memperlihatkan isi setiap kotak secara live.</p>
+    </div>
+    <div class="pg-controls rv">
+      <select id="presetSel" aria-label="Pilih contoh program">
+        <option value="sapa">👋 Program 1 — Sapaan Hangat</option>
+        <option value="nilai">🎓 Program 2 — Cek Nilai Ujian</option>
+        <option value="kasir">🛒 Program 3 — Kasir Diskon (tantangan!)</option>
+        <option value="game">🎮 Program 4 — Cek Umur Gamer</option>
+      </select>
+      <button class="btn btn-g" id="runBtn">▶ Jalankan</button>
+      <button class="btn" id="stepBtn">⏭ Langkah</button>
+      <button class="btn btn-ghost" id="resetBtn">↺ Ulang</button>
+      <select id="speedSel" aria-label="Kecepatan eksekusi">
+        <option value="700">🐢 Lambat</option>
+        <option value="380" selected>🚶 Normal</option>
+        <option value="120">🐇 Cepat</option>
+      </select>
+      <span class="chip" style="margin-left:auto"><span class="kbd">Ctrl</span>+<span class="kbd">Enter</span> = jalankan</span>
+    </div>
+    <div class="pg-grid">
+      <div class="rv">
+        <div class="editor-shell">
+          <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-title" id="editorTitle">sapaan.py — edit bebas!</span></div>
+          <div class="editor">
+            <div class="gutter"><div class="gutter-in" id="gutterIn">1</div></div>
+            <div class="code-area">
+              <div class="code-under"><div class="code-inner" id="codeInner"><div id="activeLine"></div><pre id="hlPre"></pre></div></div>
+              <textarea id="codeInput" wrap="off" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Editor kode Python"></textarea>
+            </div>
+          </div>
+          <div class="editor-foot"><span>🐍 Python mini-simulator</span><span>•</span><span>variabel, print, input, int/str/float/len, if/elif/else</span><span style="margin-left:auto">Tab = 4 spasi otomatis</span></div>
+        </div>
+        <div class="tips-row">
+          <span class="chip">💡 Baris menyala biru = sedang dijalankan</span>
+          <span class="chip">⌨️ Kalau program bertanya, jawab di terminal →</span>
+          <span class="chip">🧪 Ubah angka &amp; teksnya, lihat bedanya!</span>
+        </div>
+      </div>
+      <div class="pg-side rv" style="--d:.12s">
+        <div class="term">
+          <div class="term-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">terminal — output &amp; input</span></div>
+          <div class="term-body" id="pgTerm" style="height:236px"></div>
+        </div>
+        <div class="watch"><h4>📦 Isi Variabel (live)</h4><div id="varWatch"><span class="watch-empty">Belum ada variabel — jalankan programnya dulu.</span></div></div>
+        <div id="pgStatus"><span>🟢</span><span id="pgStatusTxt">Siap! Tekan ▶ Jalankan, atau ⏭ Langkah untuk menonton pelan-pelan.</span></div>
+      </div>
+    </div>
+    <div class="challenge rv">
+      <h3>🏆 Tantangan Final: Upgrade Kasirnya! <span id="challBadge">🏆 TANTANGAN LULUS</span></h3>
+      <p>Pilih <b>Program 3 — Kasir Diskon</b>. Sekarang diskon cuma 10% untuk belanja ≥ Rp100.000. Misimu: <b>tambahkan aturan baru</b> — kalau belanja <b>≥ Rp200.000</b>, diskonnya <b>20%</b>. Petunjuk: pakai <span class="mono">if … elif …</span>, cek kondisi dari yang paling besar. Sistem mengetes kodemu dengan belanja <b>Rp250.000</b> — hasilnya harus <b>Rp200.000</b>!</p>
+      <button class="btn btn-y" id="challBtn">🧪 Cek Tantangan</button>
+      <div id="challMsg" role="status"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <h2 style="font-size:clamp(1.6rem,3vw,2.3rem)" class="rv">Kamu sudah menempuh perjalanan ini 🎉</h2>
+    <div class="recap rv" style="--d:.08s">
+      <span class="rstep">🍜 Algoritma</span><span class="rarr">→</span>
+      <span class="rstep">🗺️ Flowchart</span><span class="rarr">→</span>
+      <span class="rstep">📦 Variabel</span><span class="rarr">→</span>
+      <span class="rstep">🏷️ Tipe Data</span><span class="rarr">→</span>
+      <span class="rstep">💬 Input/Output</span><span class="rarr">→</span>
+      <span class="rstep">🔀 if / elif / else</span><span class="rarr">→</span>
+      <span class="rstep" style="border-color:var(--yellow);color:var(--yellow)">🏆 Programmer pemula!</span>
+    </div>
+    <div class="next-grid">
+      <div class="next-card rv"><h4>⏭️ Selanjutnya: Perulangan</h4><p>Biar komputer mengulang langkah tanpa kamu tulis berkali-kali.</p><pre><span class="tk-kw">for</span> i <span class="tk-kw">in</span> <span class="tk-bi">range</span>(<span class="tk-num">3</span>):
+    <span class="tk-bi">print</span>(<span class="tk-str">"Halo!"</span>, i)</pre></div>
+      <div class="next-card rv" style="--d:.08s"><h4>🧩 Lalu: Fungsi</h4><p>Bungkus algoritma jadi "resep bernama" yang bisa dipanggil kapan saja.</p><pre><span class="tk-kw">def</span> <span class="tk-bi">sapa</span>(nama):
+    <span class="tk-bi">print</span>(<span class="tk-str">"Hai"</span>, nama)</pre></div>
+      <div class="next-card rv" style="--d:.16s"><h4>📚 Lalu: List</h4><p>Satu variabel, banyak isi — seperti playlist lagu atau inventory game.</p><pre>skor = [<span class="tk-num">90</span>, <span class="tk-num">85</span>, <span class="tk-num">77</span>]
+<span class="tk-bi">print</span>(skor[<span class="tk-num">0</span>])  <span class="tk-cmt"># 90</span></pre></div>
+    </div>
+    <div class="credit">
+      <span>🐍 <b>AlgoPython</b> — dibuat dengan ❤️ untuk calon programmer Indonesia. Semua simulator berjalan langsung di browsermu.</span>
+      <span class="mono" style="font-size:12px">print("Sampai jumpa di level berikutnya! 👋")</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toasts" aria-live="polite"></div>
+<noscript><div style="position:fixed;inset:0;background:#070B18;color:#EAF0FF;display:grid;place-items:center;z-index:999;padding:30px;text-align:center;font-family:sans-serif">Halaman ini butuh JavaScript untuk lab interaktifnya. Aktifkan JavaScript ya! 🐍</div></noscript>
+
+<script>
+"use strict";
+/* ================= UTIL ================= */
+var $ = function (s) { return document.querySelector(s); };
+var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function debounce(fn,ms){var t;return function(){var a=arguments,self=this;clearTimeout(t);t=setTimeout(function(){fn.apply(self,a);},ms);};}
+function safe(fn){try{fn();}catch(e){if(window.console)console.error(e);$$(".rv").forEach(function(el){el.classList.add("in");});}}
+var RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+var LS = {
+  get:function(k){try{return localStorage.getItem(k);}catch(e){return null;}},
+  set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+};
+function toast(msg, action){
+  var box=$("#toasts"); if(!box)return;
+  while(box.children.length>=3)box.firstChild.remove();
+  var el=document.createElement("div");el.className="toast";
+  var sp=document.createElement("span");sp.innerHTML=msg;el.appendChild(sp);
+  var killed=false;
+  function kill(){if(killed)return;killed=true;el.classList.add("bye");setTimeout(function(){el.remove();},320);}
+  if(action){var b=document.createElement("button");b.textContent=action.label;b.onclick=function(){action.fn();kill();};el.appendChild(b);}
+  box.appendChild(el);
+  setTimeout(kill, action?5200:2900);
+}
+
+/* ================= REVEAL + NAV (kritikal, paling awal) ================= */
+safe(function(){
+  var rvs=$$(".rv");
+  if(!("IntersectionObserver" in window)){rvs.forEach(function(el){el.classList.add("in");});}
+  else{
+    var rvObs=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add("in");rvObs.unobserve(en.target);}});},{threshold:.12});
+    rvs.forEach(function(el){rvObs.observe(el);});
+  }
+  var burger=$("#burger"),links=$("#navLinks");
+  burger.onclick=function(){var open=links.classList.toggle("open");burger.classList.toggle("open",open);burger.setAttribute("aria-expanded",String(open));};
+  links.addEventListener("click",function(e){if(e.target.tagName==="A"){links.classList.remove("open");burger.classList.remove("open");burger.setAttribute("aria-expanded","false");}});
+  addEventListener("resize",function(){if(innerWidth>1023){links.classList.remove("open");burger.classList.remove("open");}});
+  var bar=$("#progressBar"),syms=$$(".float-sym"),ticking=false;
+  function onScroll(){
+    if(ticking)return;ticking=true;
+    requestAnimationFrame(function(){
+      var sy=scrollY,max=document.documentElement.scrollHeight-innerHeight;
+      bar.style.width=(max>0?(sy/max)*100:0)+"%";
+      if(!RM&&sy<innerHeight*1.2)syms.forEach(function(el){el.style.transform="translateY("+(sy*parseFloat(el.dataset.depth||0))+"px)";});
+      ticking=false;
+    });
+  }
+  addEventListener("scroll",onScroll,{passive:true});onScroll();
+  if("IntersectionObserver" in window){
+    var navAs=$$("#navLinks a");
+    var secObs=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){navAs.forEach(function(a){a.classList.toggle("act",a.getAttribute("href")==="#"+en.target.id);});}});},{rootMargin:"-42% 0px -52% 0px"});
+    $$("main section[id]").forEach(function(s){if(s.id!=="hero")secObs.observe(s);});
+  }
+});
+
+/* ================= SUARA ================= */
+var S=(function(){
+  var ctx=null,master=null,muted=LS.get("algopy_mute")==="1";
+  function ensure(){
+    if(!ctx){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+      ctx=new AC();master=ctx.createGain();master.gain.value=.14;master.connect(ctx.destination);}
+    if(ctx.state==="suspended")ctx.resume();
+    return true;
+  }
+  function tone(f,dur,type,vol,delay,slide){
+    if(muted||!ensure())return;
+    type=type||"sine";vol=vol==null?1:vol;delay=delay||0;
+    var t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05);
+  }
+  return{
+    unlock:function(){if(!muted)ensure();},
+    click:function(){tone(660,.06,"triangle",.5);},
+    tick:function(){tone(880,.05,"sine",.35);},
+    pop:function(){tone(520,.1,"sine",.55,0,700);},
+    branch:function(){tone(392,.09,"triangle",.5);tone(523,.12,"triangle",.5,.09);},
+    success:function(){[523,659,784,1047].forEach(function(f,i){tone(f,.16,"triangle",.55,i*.09);});},
+    error:function(){tone(196,.14,"sawtooth",.35);tone(147,.18,"sawtooth",.35,.13);},
+    low:function(){tone(300,.08,"sine",.4);},
+    isMuted:function(){return muted;},
+    toggle:function(){muted=!muted;LS.set("algopy_mute",muted?"1":"0");if(!muted){ensure();this.click();}return muted;}
+  };
+})();
+document.addEventListener("pointerdown",function(){S.unlock();},{once:true});
+document.addEventListener("click",function(e){if(e.target.closest("button,a.btn,.nilai-chip,.tab-btn"))S.click();});
+safe(function(){
+  var soundBtn=$("#soundBtn");
+  function paint(){soundBtn.classList.toggle("off",S.isMuted());$("#soundLbl").textContent=S.isMuted()?"SUARA OFF":"SUARA ON";soundBtn.setAttribute("aria-pressed",String(!S.isMuted()));}
+  soundBtn.onclick=function(){S.toggle();paint();};paint();
+});
+
+/* ================= CONFETTI ================= */
+var confetti=(function(){
+  var cv=$("#confetti"),cx=cv.getContext("2d"),parts=[],raf=null;
+  var COLORS=["#FFD43B","#4B8BFF","#22D3EE","#4ADE80","#F472B6","#FB923C"];
+  function size(){var d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d;cx.setTransform(d,0,0,d,0,0);}
+  size();addEventListener("resize",size);
+  function loop(){
+    cx.clearRect(0,0,innerWidth,innerHeight);
+    parts=parts.filter(function(p){return p.life>0;});
+    parts.forEach(function(p){
+      p.vy+=.32;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life--;
+      cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.globalAlpha=clamp(p.life/28,0,1);cx.fillStyle=p.c;
+      if(p.round){cx.beginPath();cx.arc(0,0,p.s/2,0,7);cx.fill();}else cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.62);
+      cx.restore();
+    });
+    if(parts.length)raf=requestAnimationFrame(loop);else{raf=null;cx.clearRect(0,0,innerWidth,innerHeight);}
+  }
+  return function(el,nCount){
+    if(!el)return;var n=RM?30:(nCount||110);
+    var r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+    for(var i=0;i<n;i++)parts.push({x:x,y:y,vx:(Math.random()-.5)*13,vy:-Math.random()*12-3,vr:(Math.random()-.5)*.35,rot:Math.random()*6,s:Math.random()*8+5,c:COLORS[i%COLORS.length],life:80+Math.random()*35,round:Math.random()<.3});
+    if(!raf)raf=requestAnimationFrame(loop);
+  };
+})();
+
+/* ================= SYNTAX HIGHLIGHT ================= */
+var HL_RE=/(#.*$)|((?:[fF])?"(?:[^"\\]|\\.)*"|(?:[fF])?'(?:[^'\\]|\\.)*')|\b(True|False|None|and|or|not|if|elif|else|pass|def|while|for|in|return|import|from|as|break|continue)\b|\b(print|input|int|float|str|len|abs|round|bool|type|range)\b(?=\s*\()|(\b\d+(?:\.\d+)?\b)/gm;
+function highlightPython(src){
+  var out="",last=0,m;HL_RE.lastIndex=0;
+  while((m=HL_RE.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    var cls=m[1]?"tk-cmt":m[2]?"tk-str":m[3]?"tk-kw":m[4]?"tk-bi":"tk-num";
+    out+='<span class="'+cls+'">'+esc(m[0])+"</span>";last=m.index+m[0].length;
+  }
+  return out+esc(src.slice(last));
+}
+function renderCodeLines(pre,lines){if(!pre)return;pre.innerHTML=lines.map(function(l){return '<span class="cl">'+(highlightPython(l)||"&#8203;")+"</span>";}).join("");}
+function setCodeLine(pre,idx,cls){
+  if(!pre)return;cls=cls||"hl";
+  pre.querySelectorAll(".cl").forEach(function(el){el.classList.remove("hl","err");});
+  if(idx==null||idx<0)return;
+  var el=pre.querySelectorAll(".cl")[idx];if(el)el.classList.add(cls);
+}
+var ifTab="if";
+safe(function(){
+  $$(".copy-btn").forEach(function(b){
+    b.addEventListener("click",function(){
+      var id=b.dataset.copy==="ifCodeActive"?("code-"+ifTab):b.dataset.copy;
+      var pre=document.getElementById(id);if(!pre)return;
+      var cls=pre.querySelectorAll(".cl");
+      var text=cls.length?Array.prototype.map.call(cls,function(el){return el.textContent;}).join("\n"):pre.textContent;
+      function ok(){toast("📋 Kode disalin!");}
+      function fallback(){
+        var t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();
+        try{document.execCommand("copy");ok();}catch(e){toast("😅 Salin manual ya (clipboard diblokir browser)");}
+        t.remove();
+      }
+      if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(ok,fallback);else fallback();
+    });
+  });
+});
+
+/* ================= MESIN PYTHON MINI ================= */
+function PyError(msg,line){this.message=msg;this.line=line==null?null:line;this.name="PyError";}
+PyError.prototype=Object.create(Error.prototype);
+var KEYWORDS={};["if","elif","else","and","or","not","True","False","None","pass","def","while","for","in","return","import","from","as","break","continue"].forEach(function(k){KEYWORDS[k]=true;});
+function isKey(k){return KEYWORDS[k]===true;}
+function pyStr(v){
+  if(v===null||v===undefined)return"None";
+  if(typeof v==="boolean")return v?"True":"False";
+  if(typeof v==="number")return Number.isInteger(v)?String(v):String(parseFloat(v.toFixed(10)));
+  return String(v);
+}
+function pyRepr(v){return typeof v==="string"?'"'+v.replace(/"/g,'\\"')+'"':pyStr(v);}
+function pyType(v){
+  if(v===null)return"NoneType";
+  if(typeof v==="string")return"str";
+  if(typeof v==="boolean")return"bool";
+  return Number.isInteger(v)?"int":"float";
+}
+function truthy(v){if(typeof v==="boolean")return v;if(typeof v==="number")return v!==0;if(typeof v==="string")return v.length>0;return!!v;}
+function numOk(v){return typeof v==="number"||typeof v==="boolean";}
+function n(v){return typeof v==="boolean"?(v?1:0):v;}
+
+function tokenize(src){
+  var toks=[],i=0;
+  var OPS=["==","!=","<=",">=","//","**","+","-","*","/","%","<",">","(",")",","];
+  while(i<src.length){
+    var c=src[i];
+    if(c===" "||c==="\t"){i++;continue;}
+    var m=/^(?:\d+\.\d+|\d+)/.exec(src.slice(i));
+    if(m){toks.push({t:"num",v:parseFloat(m[0])});i+=m[0].length;continue;}
+    if(c==='"'||c==="'"||((c==="f"||c==="F")&&(src[i+1]==='"'||src[i+1]==="'"))){
+      var f=(c==="f"||c==="F"),q=f?src[i+1]:c,j=i+(f?2:1),buf="";
+      while(j<src.length&&src[j]!==q){
+        if(src[j]==="\\"&&j+1<src.length){var e=src[j+1];buf+=e==="n"?"\n":e==="t"?"\t":e;j+=2;}
+        else buf+=src[j++];
+      }
+      if(j>=src.length)throw new PyError("Teksnya belum ditutup tanda kutip "+q);
+      toks.push({t:"str",v:buf,f:f});i=j+1;continue;
+    }
+    m=/^[A-Za-z_]\w*/.exec(src.slice(i));
+    if(m){toks.push({t:"id",v:m[0]});i+=m[0].length;continue;}
+    var op=null;
+    for(var k=0;k<OPS.length;k++){if(src.indexOf(OPS[k],i)===i){op=OPS[k];break;}}
+    if(op){toks.push({t:"op",v:op});i+=op.length;continue;}
+    throw new PyError('Karakter "'+c+'" tidak dikenal di simulator ini.');
+  }
+  return toks;
+}
+function Parser(toks){this.t=toks;this.i=0;}
+Parser.prototype.peek=function(o){return this.t[this.i+(o||0)];};
+Parser.prototype.eat=function(v){var p=this.peek();if(p&&p.t==="op"&&p.v===v){this.i++;return true;}return false;};
+Parser.prototype.eatKw=function(v){var p=this.peek();if(p&&p.t==="id"&&p.v===v){this.i++;return true;}return false;};
+Parser.prototype.expect=function(v){if(!this.eat(v))throw new PyError('Kurang tanda "'+v+'" di sini.');};
+Parser.prototype.expr=function(){return this.or();};
+Parser.prototype.or=function(){var a=this.and();while(this.eatKw("or"))a={k:"or",a:a,b:this.and()};return a;};
+Parser.prototype.and=function(){var a=this.not();while(this.eatKw("and"))a={k:"and",a:a,b:this.not()};return a;};
+Parser.prototype.not=function(){if(this.eatKw("not"))return{k:"not",a:this.not()};return this.cmp();};
+Parser.prototype.cmp=function(){var a=this.add();for(;;){var p=this.peek();if(p&&p.t==="op"&&["==","!=","<","<=",">",">="].indexOf(p.v)>=0){this.i++;a={k:"bin",op:p.v,a:a,b:this.add()};}else return a;}};
+Parser.prototype.add=function(){var a=this.mul();for(;;){var p=this.peek();if(p&&p.t==="op"&&(p.v==="+"||p.v==="-")){this.i++;a={k:"bin",op:p.v,a:a,b:this.mul()};}else return a;}};
+Parser.prototype.mul=function(){var a=this.unary();for(;;){var p=this.peek();if(p&&p.t==="op"&&["*","/","//","%"].indexOf(p.v)>=0){this.i++;a={k:"bin",op:p.v,a:a,b:this.unary()};}else return a;}};
+Parser.prototype.unary=function(){if(this.eat("-"))return{k:"neg",a:this.unary()};if(this.eat("+"))return this.unary();return this.pow();};
+Parser.prototype.pow=function(){var a=this.atom();if(this.eat("**"))return{k:"bin",op:"**",a:a,b:this.unary()};return a;};
+Parser.prototype.atom=function(){
+  var p=this.peek();
+  if(!p)throw new PyError("Ekspresinya belum lengkap.");
+  if(p.t==="num"){this.i++;return{k:"lit",v:p.v};}
+  if(p.t==="str"){this.i++;return{k:"lit",v:p.v};}
+  if(this.eat("(")){var e=this.expr();this.expect(")");return e;}
+  if(p.t==="id"){
+    this.i++;
+    if(p.v==="True")return{k:"lit",v:true};
+    if(p.v==="False")return{k:"lit",v:false};
+    if(p.v==="None")return{k:"lit",v:null};
+    if(this.eat("(")){
+      var args=[];
+      if(!this.eat(")")){args.push(this.expr());while(this.eat(","))args.push(this.expr());this.expect(")");}
+      return{k:"call",name:p.v,args:args};
+    }
+    if(isKey(p.v))throw new PyError('"'+p.v+'" adalah kata kunci Python, bukan variabel.');
+    return{k:"var",name:p.v};
+  }
+  throw new PyError('Aku belum paham bagian "'+p.v+'" ini.');
+};
+function parseExprSrc(src){var p=new Parser(tokenize(src));var e=p.expr();if(p.peek())throw new PyError("Ada bagian ekstra yang tidak kupahami di baris ini.");return e;}
+
+function binop(op,l,r){
+  if(op==="=="){if(numOk(l)&&numOk(r))return n(l)===n(r);if(typeof l!==typeof r)return false;return l===r;}
+  if(op==="!="){return!binop("==",l,r);}
+  if(op==="+"){
+    if(typeof l==="string"||typeof r==="string"){
+      if(typeof l==="string"&&typeof r==="string")return l+r;
+      throw new PyError("Teks dan angka tidak bisa dijumlah langsung. Ubah angka jadi teks dengan str(), atau pisahkan dengan koma di print().");
+    }
+    if(numOk(l)&&numOk(r))return n(l)+n(r);
+  }
+  if(op==="*"){
+    if(typeof l==="string"&&numOk(r))return l.repeat(Math.max(0,Math.trunc(n(r))));
+    if(typeof r==="string"&&numOk(l))return r.repeat(Math.max(0,Math.trunc(n(l))));
+  }
+  if(["<","<=",">",">="].indexOf(op)>=0){
+    if(typeof l==="string"&&typeof r==="string")return op==="<"?l<r:op==="<="?l<=r:op===">"?l>r:l>=r;
+    if(numOk(l)&&numOk(r)){var x=n(l),y=n(r);return op==="<"?x<y:op==="<="?x<=y:op===">"?x>y:x>=y;}
+    throw new PyError("Bandingkan tipe yang sama ya — teks dengan teks, angka dengan angka.");
+  }
+  if(!numOk(l)||!numOk(r))throw new PyError('Operator "'+op+'" butuh angka. Teks perlu diubah dulu dengan int() atau float().');
+  var a=n(l),b=n(r);
+  if(op==="-")return a-b;
+  if(op==="*")return a*b;
+  if(op==="/"){if(b===0)throw new PyError("Tidak bisa membagi dengan nol 😅");return a/b;}
+  if(op==="//"){if(b===0)throw new PyError("Tidak bisa membagi dengan nol 😅");return Math.floor(a/b);}
+  if(op==="%"){if(b===0)throw new PyError("Tidak bisa modulo dengan nol 😅");return((a%b)+b)%b;}
+  if(op==="**")return Math.pow(a,b);
+  throw new PyError('Operator "'+op+'" belum didukung.');
+}
+function evalNode(nd,ctx){
+  switch(nd.k){
+    case"lit":return nd.v;
+    case"var":
+      if(!ctx.vars.has(nd.name))throw new PyError('Variabel "'+nd.name+'" belum ada. Buat dulu dengan '+nd.name+" = ... di baris atasnya.");
+      return ctx.vars.get(nd.name);
+    case"neg":{var v0=evalNode(nd.a,ctx);if(!numOk(v0))throw new PyError("Tanda minus hanya untuk angka.");return-n(v0);}
+    case"not":return!truthy(evalNode(nd.a,ctx));
+    case"and":{var la=evalNode(nd.a,ctx);return truthy(la)?evalNode(nd.b,ctx):la;}
+    case"or":{var lo=evalNode(nd.a,ctx);return truthy(lo)?lo:evalNode(nd.b,ctx);}
+    case"bin":return binop(nd.op,evalNode(nd.a,ctx),evalNode(nd.b,ctx));
+    case"call":{
+      var name=nd.name;
+      if(name==="input"){
+        var prompt=nd.args.length?pyStr(evalNode(nd.args[0],ctx)):"";
+        if(ctx.inputIdx<ctx.inputs.length)return ctx.inputs[ctx.inputIdx++];
+        throw{needInput:true,prompt:prompt};
+      }
+      var args=nd.args.map(function(a){return evalNode(a,ctx);});
+      if(name==="print"){ctx.print(args.map(pyStr).join(" "));return null;}
+      if(name==="int"){
+        var vi=args[0];
+        if(numOk(vi))return Math.trunc(n(vi));
+        if(typeof vi==="string"&&/^[+-]?\d+$/.test(vi.trim()))return parseInt(vi.trim(),10);
+        throw new PyError("int() bingung mengubah "+pyRepr(vi)+" jadi angka bulat. Pastikan isinya angka ya!");
+      }
+      if(name==="float"){
+        var vf=args[0];
+        if(numOk(vf))return n(vf);
+        if(typeof vf==="string"&&/^[+-]?(\d+\.\d*|\.\d+|\d+)$/.test(vf.trim()))return parseFloat(vf.trim());
+        throw new PyError("float() bingung mengubah "+pyRepr(vf)+" jadi angka desimal.");
+      }
+      if(name==="str")return pyStr(args[0]);
+      if(name==="bool")return truthy(args[0]);
+      if(name==="len"){var vl=args[0];if(typeof vl==="string")return vl.length;throw new PyError("len() di simulator ini untuk menghitung panjang teks.");}
+      if(name==="abs"){var va=args[0];if(!numOk(va))throw new PyError("abs() butuh angka.");return Math.abs(n(va));}
+      if(name==="round"){var vr=args[0];if(!numOk(vr))throw new PyError("round() butuh angka.");var d=args[1]?n(args[1]):0;var p=Math.pow(10,d);return Math.round(n(vr)*p)/p;}
+      throw new PyError('Fungsi "'+name+'" belum dikenal. Tersedia: print, input, int, float, str, bool, len, abs, round.');
+    }
+  }
+  throw new PyError("Ekspresi tidak dikenal.");
+}
+function stripComment(raw){
+  var q=null;
+  for(var i=0;i<raw.length;i++){
+    var c=raw[i];
+    if(q){if(c==="\\")i++;else if(c===q)q=null;}
+    else if(c==='"'||c==="'")q=c;
+    else if(c==="#")return raw.slice(0,i);
+  }
+  return raw;
+}
+function compile(src){
+  var lines=src.replace(/\t/g,"    ").split("\n").map(function(raw,i){
+    var nc=stripComment(raw),text=nc.trim(),indent=/^ */.exec(nc)[0].length;
+    return{no:i,indent:indent,text:text};
+  }).filter(function(l){return l.text.length;});
+  var instrs=[],pos=0;
+  var UNSUPPORTED=/^(for|while|def|import|from|class|return|break|continue|try|with|lambda)\b/;
+  function wrapParse(s,no){try{return parseExprSrc(s);}catch(e){if(e instanceof PyError&&e.line==null)e.line=no;throw e;}}
+  function simple(L){
+    if(UNSUPPORTED.test(L.text))throw new PyError("Simulator ini fokus sampai materi if dulu ya. Perulangan & fungsi ada di kelas lanjutan! 😉",L.no);
+    if(L.text==="pass"){instrs.push({op:"pass",line:L.no});return;}
+    if(/^(if|elif)\b/.test(L.text))throw new PyError("Format if: tulis kondisi lalu titik dua di akhir baris, isinya di baris baru menjorok 4 spasi.",L.no);
+    if(/^else\b/.test(L.text))throw new PyError('Format else cukup "else:" lalu isinya di baris baru menjorok 4 spasi.',L.no);
+    if(L.text.indexOf(";")>=0)throw new PyError("Satu baris satu perintah ya — titik koma belum didukung.",L.no);
+    var am=/^([A-Za-z_]\w*)\s*(\+=|-=|\*=|\/\/=|\/=|=(?!=))\s*(.+)$/.exec(L.text);
+    if(am){
+      if(isKey(am[1]))throw new PyError('"'+am[1]+'" kata kunci Python — tidak boleh jadi nama variabel.',L.no);
+      instrs.push({op:"assign",name:am[1],aug:am[2]==="="?null:am[2].slice(0,-1),expr:wrapParse(am[3],L.no),line:L.no,src:L.text});
+      return;
+    }
+    instrs.push({op:"expr",expr:wrapParse(L.text,L.no),line:L.no,src:L.text});
+  }
+  function header(L){
+    var m=/^if\s+(.+):$/.exec(L.text);
+    if(m)return{kind:"if",expr:wrapParse(m[1],L.no),src:m[1]};
+    m=/^elif\s+(.+):$/.exec(L.text);
+    if(m)return{kind:"elif",expr:wrapParse(m[1],L.no),src:m[1]};
+    if(/^else:$/.test(L.text))return{kind:"else"};
+    return null;
+  }
+  function body(headIndent,headNo){
+    var next=lines[pos];
+    if(!next||next.indent<=headIndent)throw new PyError("Setelah baris ber-titik dua ( : ) harus ada isi yang menjorok 4 spasi.",headNo);
+    block(next.indent);
+  }
+  function chain(L){
+    var h=header(L),headIndent=L.indent,endJumps=[],lastCond=null,sawElse=false;
+    pos++;
+    var ci=instrs.length;instrs.push({op:"cond",expr:h.expr,src:h.src,line:L.no,jump:null});lastCond=ci;
+    body(headIndent,L.no);
+    while(pos<lines.length){
+      var N=lines[pos];
+      if(N.indent!==headIndent)break;
+      var h2=header(N);
+      if(!h2||h2.kind==="if")break;
+      if(sawElse)throw new PyError("else harus jadi cabang terakhir — tidak boleh ada elif/else setelahnya.",N.no);
+      instrs[lastCond].jump=instrs.length;
+      endJumps.push(instrs.length);instrs.push({op:"jump",jump:null,line:-1});
+      pos++;
+      if(h2.kind==="elif"){ci=instrs.length;instrs.push({op:"cond",expr:h2.expr,src:h2.src,line:N.no,jump:null});lastCond=ci;body(headIndent,N.no);}
+      else{sawElse=true;body(headIndent,N.no);lastCond=null;}
+    }
+    var end=instrs.length;
+    if(lastCond!=null)instrs[lastCond].jump=end;
+    endJumps.forEach(function(j){instrs[j].jump=end;});
+  }
+  function block(indent){
+    while(pos<lines.length){
+      var L=lines[pos];
+      if(L.indent<indent)return;
+      if(L.indent>indent)throw new PyError("Indentasi tidak konsisten — sejajarkan dengan baris di atasnya (kelipatan 4 spasi).",L.no);
+      var h=header(L);
+      if(h){
+        if(h.kind!=="if")throw new PyError("elif/else harus menempel ke if di atasnya dengan indentasi yang sama.",L.no);
+        chain(L);
+      }else{simple(L);pos++;}
+    }
+  }
+  if(lines.length){
+    if(lines[0].indent>0)throw new PyError("Baris pertama jangan menjorok — mulai dari pinggir kiri ya.",lines[0].no);
+    block(0);
+  }
+  return instrs;
+}
+function Session(src,hooks){
+  this.hooks=hooks||{};this.vars=new Map();this.pc=0;this.inputs=[];this.status="ready";this.started=false;this.steps=0;this.lastCond=null;this.compileError=null;
+  try{this.prog=compile(src);}
+  catch(e){this.status="error";this.compileError={msg:e.message,line:e.line};if(this.hooks.onError)this.hooks.onError(e.message,e.line);}
+}
+Session.prototype.snapshot=function(){return Array.from(this.vars,function(kv){return{name:kv[0],repr:pyRepr(kv[1]),type:pyType(kv[1])};});};
+Session.prototype.step=function(){
+  if(this.status!=="ready")return;
+  this.started=true;
+  if(++this.steps>2000){this.status="error";if(this.hooks.onError)this.hooks.onError("Program berhenti paksa: terlalu banyak langkah.",null);return;}
+  var ins=this.prog[this.pc];
+  while(ins&&ins.op==="jump"){this.pc=ins.jump;ins=this.prog[this.pc];}
+  if(!ins){this.status="done";if(this.hooks.onDone)this.hooks.onDone();return;}
+  if(this.hooks.onStep)this.hooks.onStep(ins);
+  var self=this;
+  var ctx={vars:this.vars,inputs:this.inputs,inputIdx:0,print:function(t){if(self.hooks.onPrint)self.hooks.onPrint(t);}};
+  try{
+    if(ins.op==="cond"){
+      var v=evalNode(ins.expr,ctx),t=truthy(v);
+      this.pc=t?this.pc+1:ins.jump;this.lastCond={src:ins.src,val:pyStr(v),t:t};
+    }else if(ins.op==="assign"){
+      var val=evalNode(ins.expr,ctx);
+      if(ins.aug){
+        if(!this.vars.has(ins.name))throw new PyError('Variabel "'+ins.name+'" belum ada untuk operasi '+ins.aug+"=");
+        val=binop(ins.aug,this.vars.get(ins.name),val);
+      }
+      this.vars.set(ins.name,val);this.pc++;
+    }else if(ins.op==="expr"){evalNode(ins.expr,ctx);this.pc++;}
+    else this.pc++;
+    this.inputs=[];
+    if(this.hooks.onAfter)this.hooks.onAfter(ins,this.snapshot());
+  }catch(e){
+    if(e&&e.needInput){this.status="waiting";if(this.hooks.onInput)this.hooks.onInput(e.prompt);return;}
+    var msg=(e instanceof PyError)?e.message:"Terjadi kesalahan tak terduga di baris ini.";
+    var line=(e instanceof PyError&&e.line!=null)?e.line:ins.line;
+    this.status="error";if(this.hooks.onError)this.hooks.onError(msg,line);
+  }
+};
+Session.prototype.provideInput=function(text){this.inputs.push(String(text));this.status="ready";this.step();};
+function runHeadless(src,inputQueue){
+  var prints=[],error=null;
+  var ses=new Session(src,{
+    onPrint:function(t){prints.push(t);},
+    onInput:function(){ses.provideInput(inputQueue.length?inputQueue.shift():"");},
+    onError:function(m,l){error={m:m,l:l};}
+  });
+  var guard=0;
+  while(ses.status==="ready"&&guard++<500)ses.step();
+  return{prints:prints,error:error,done:ses.status==="done"};
+}
+
+/* ================= TERMINAL UI ================= */
+function Term(body){this.body=body;}
+Term.prototype.clear=function(msg){this.body.innerHTML="";if(msg)this.sys(msg);};
+Term.prototype.add=function(cls,html){var d=document.createElement("div");d.className=cls;d.innerHTML=html;this.body.appendChild(d);this.body.scrollTop=this.body.scrollHeight;return d;};
+Term.prototype.print=function(t){this.add("t-print",esc(t));S.pop();};
+Term.prototype.sys=function(t){this.add("t-sys",esc(t));};
+Term.prototype.err=function(t){this.add("t-err","⚠ "+esc(t));};
+Term.prototype.ok=function(t){this.add("t-ok",esc(t));};
+Term.prototype.ask=function(prompt,onSubmit){
+  var row=this.add("t-row",'<span class="t-prompt">'+esc(prompt)+"</span>");
+  var inp=document.createElement("input");inp.className="t-field";inp.setAttribute("aria-label","Jawaban untuk program");inp.autocomplete="off";inp.spellcheck=false;
+  row.appendChild(inp);this.body.scrollTop=this.body.scrollHeight;
+  setTimeout(function(){inp.focus();},60);
+  inp.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){
+      e.preventDefault();var v=inp.value;
+      var echo=document.createElement("span");echo.className="t-echo";echo.textContent=v;
+      inp.replaceWith(echo);S.tick();onSubmit(v);
+    }
+  });
+};
+
+/* ================= HERO TYPING ================= */
+safe(function(){
+  var pre=$("#heroCode"),out=$("#heroOut");
+  var PROG='# algoritma pertamaku 🍜\nlapar = True\nif lapar:\n    print("Rebus air dulu!")\n    print("Mie siap dimakan 😋")';
+  var OUTS=["Rebus air dulu!","Mie siap dimakan 😋"];
+  if(RM){pre.innerHTML=highlightPython(PROG);out.innerHTML=OUTS.map(function(o){return "<div>» "+esc(o)+"</div>";}).join("");return;}
+  var i=0,phase="type";
+  function tick(){
+    if(document.hidden){setTimeout(tick,600);return;}
+    if(phase==="type"){
+      i++;pre.innerHTML=highlightPython(PROG.slice(0,i))+'<span class="hero-caret"></span>';
+      if(i>=PROG.length){phase="out";setTimeout(tick,650);}else setTimeout(tick,26+Math.random()*30);
+    }else if(phase==="out"){
+      var k=out.children.length;
+      if(k<OUTS.length){var d=document.createElement("div");d.textContent="» "+OUTS[k];out.appendChild(d);setTimeout(tick,520);}
+      else{phase="hold";setTimeout(tick,3400);}
+    }else{out.innerHTML="";i=0;phase="type";pre.innerHTML='<span class="hero-caret"></span>';setTimeout(tick,500);}
+  }
+  tick();
+  var tiltWrap=$("#heroTilt"),card=tiltWrap.firstElementChild;
+  if(!("ontouchstart" in window)){
+    tiltWrap.addEventListener("pointermove",function(e){
+      var r=tiltWrap.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      card.style.transform="rotateX("+(-y*6).toFixed(2)+"deg) rotateY("+(x*8).toFixed(2)+"deg)";
+    });
+    tiltWrap.addEventListener("pointerleave",function(){card.style.transform="";});
+  }
+});
+
+/* ================= LEVEL 1 : MISI MIE ================= */
+safe(function(){
+  var STEPS=["Rebus air sampai mendidih 🔥","Masukkan mie ke air mendidih 🍜","Tuang bumbu ke mangkuk 🧂","Tiriskan mie, tuang ke mangkuk 🥣","Aduk sampai bumbu merata 🥢","Mie siap disantap! 😋"];
+  var ul=$("#mieList"),msg=$("#mieMsg"),attemptsEl=$("#mieAttempts"),bridge=$("#mieBridge");
+  var order=[],attempts=0,solved=false;
+  function shuffled(){var a;do{a=[0,1,2,3,4,5].sort(function(){return Math.random()-.5;});}while(a.every(function(v,i){return v===i;}));return a;}
+  function render(){
+    ul.innerHTML=order.map(function(id,pos){
+      return '<li class="step" draggable="true" data-id="'+id+'"><span class="grip">⠿</span><span class="num">'+(pos+1)+'</span><span class="txt">'+STEPS[id]+'</span><span class="mv"><button class="up" aria-label="Naikkan langkah">▲</button><button class="down" aria-label="Turunkan langkah">▼</button></span></li>';
+    }).join("");
+  }
+  function clearMarks(){ul.querySelectorAll(".step").forEach(function(el){el.classList.remove("good","bad");});msg.className="";msg.textContent="";}
+  function syncFromDOM(){order=Array.prototype.map.call(ul.children,function(li){return+li.dataset.id;});ul.querySelectorAll(".num").forEach(function(el,i){el.textContent=i+1;});}
+  function move(id,dir){
+    var i=order.indexOf(id),j=i+dir;
+    if(j<0||j>=order.length)return;
+    var tmp=order[i];order[i]=order[j];order[j]=tmp;
+    clearMarks();render();S.tick();
+    var btn=ul.querySelector('[data-id="'+id+'"] .'+(dir<0?"up":"down"));if(btn)btn.focus();
+  }
+  ul.addEventListener("click",function(e){
+    var li=e.target.closest(".step");if(!li)return;
+    if(e.target.classList.contains("up"))move(+li.dataset.id,-1);
+    if(e.target.classList.contains("down"))move(+li.dataset.id,1);
+  });
+  ul.addEventListener("dragstart",function(e){
+    var li=e.target.closest(".step");if(!li)return;
+    li.classList.add("dragging");e.dataTransfer.effectAllowed="move";
+    try{e.dataTransfer.setData("text/plain",li.dataset.id);}catch(_){}
+  });
+  ul.addEventListener("dragover",function(e){
+    e.preventDefault();var dragging=ul.querySelector(".dragging");if(!dragging)return;
+    var li=e.target.closest(".step");if(!li||li===dragging)return;
+    var r=li.getBoundingClientRect();
+    li.parentNode.insertBefore(dragging,(e.clientY-r.top)<r.height/2?li:li.nextSibling);
+  });
+  ul.addEventListener("dragend",function(){
+    var d=ul.querySelector(".dragging");if(d)d.classList.remove("dragging");
+    syncFromDOM();clearMarks();S.tick();
+  });
+  $("#mieCheck").onclick=function(){
+    syncFromDOM();attempts++;attemptsEl.textContent="Percobaan: "+attempts;clearMarks();
+    var wrong=-1;for(var i=0;i<order.length;i++){if(order[i]!==i){wrong=i;break;}}
+    if(wrong===-1){
+      ul.querySelectorAll(".step").forEach(function(el){el.classList.add("good");});
+      msg.className="ok";msg.textContent="🎉 Mantap! Itu algoritma yang benar: jelas, urut, dan ada hasilnya.";
+      bridge.classList.add("show");solved=true;S.success();confetti(ul,120);
+    }else{
+      ul.children[wrong].classList.add("bad");
+      msg.className="no";msg.textContent="Hmm, langkah di posisi "+(wrong+1)+" belum tepat. Bayangkan kamu benar-benar memasak 🍳";
+      S.error();
+    }
+  };
+  $("#mieShuffle").onclick=function(){order=shuffled();solved=false;bridge.classList.remove("show");clearMarks();render();msg.className="";msg.textContent="Kartu diacak ulang — susun lagi! 💪";};
+  $("#miePeek").onclick=function(){
+    order=[0,1,2,3,4,5];clearMarks();render();
+    ul.querySelectorAll(".step").forEach(function(el){el.classList.add("good");});
+    msg.className="ok";msg.textContent="👀 Ini urutan yang benar. Pelajari, lalu acak & coba sendiri biar nempel!";
+    setTimeout(function(){if(!solved)ul.querySelectorAll(".step").forEach(function(el){el.classList.remove("good");});},2200);
+  };
+  renderCodeLines($("#mieCode"),["# Algoritma mie instan, versi Python!",'print("1. Rebus air sampai mendidih")','print("2. Masukkan mie ke air mendidih")','print("3. Tuang bumbu ke mangkuk")','print("4. Tiriskan mie ke mangkuk")','print("5. Aduk sampai rata")','print("6. Mie siap disantap! 🍜")']);
+  order=shuffled();render();
+});
+
+/* ================= ANIMATOR FLOWCHART ================= */
+function makeFlow(svg){
+  var dot=svg.querySelector(".flow-dot"),token=0;
+  function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+  function clear(){svg.querySelectorAll(".lit").forEach(function(el){el.classList.remove("lit");});dot.style.opacity=0;}
+  function moveDot(path,dur,my){
+    return new Promise(function(res){
+      var L=path.getTotalLength();dot.style.opacity=1;var t0=performance.now();
+      function f(t){
+        if(my!==token){res();return;}
+        var k=clamp((t-t0)/dur,0,1),p=path.getPointAtLength(L*ease(k));
+        dot.setAttribute("cx",p.x);dot.setAttribute("cy",p.y);
+        if(k<1)requestAnimationFrame(f);else res();
+      }
+      requestAnimationFrame(f);
+    });
+  }
+  return{
+    play:function(route,onStep,ms){
+      var my=++token;clear();ms=RM?120:(ms||520);
+      var idx=0;
+      function next(){
+        if(my!==token)return Promise.resolve(false);
+        if(idx>=route.length){dot.style.opacity=0;return Promise.resolve(true);}
+        var st=route[idx++];
+        var prep=Promise.resolve();
+        if(st.e){
+          var g=svg.querySelector("#"+st.e);
+          if(g){g.classList.add("lit");prep=moveDot(g.querySelector("path"),ms,my);}
+        }
+        return prep.then(function(){
+          if(my!==token)return false;
+          var nd=svg.querySelector("#"+st.n);
+          if(nd){nd.classList.add("lit");if(st.branch)S.branch();else S.tick();}
+          if(onStep)onStep(st);
+          return wait(st.e?ms*.42:ms*.6).then(next);
+        });
+      }
+      return next();
+    },
+    cancel:function(){token++;clear();}
+  };
+}
+
+/* ================= LEVEL 2 : PAYUNG ================= */
+safe(function(){
+  var flow=makeFlow($("#weatherSvg")),code=$("#wxCode"),narr=$("#wxNarr");
+  var out=new Term($("#wxOut")),rain=true,started=false;
+  function codeLines(){return["hujan = "+(rain?"True":"False"),"if hujan:",'    print("Bawa payung ☔")',"else:",'    print("Pakai topi 🧢")','print("Berangkat sekolah! 🎒")'];}
+  function route(){
+    var start=[
+      {n:"w-n0",line:0,note:"Mulai! Setiap algoritma punya titik start."},
+      {e:"w-e0",n:"w-n1",note:"Langkah 1: lihat kondisi langit hari ini."},
+      {e:"w-e1",n:"w-d1",line:1,branch:true,note:"Keputusan: hujan = "+(rain?"True":"False")+" → "+(rain?"Ya! Kondisi if terpenuhi ✅":"Tidak! Kondisi if gagal ❌")}];
+    var mid=rain?[
+      {e:"w-eY",n:"w-nY",line:2,out:"Bawa payung ☔",note:'Cabang Ya: print("Bawa payung ☔") dijalankan.'},
+      {e:"w-eY2",n:"w-n2",line:5,out:"Berangkat sekolah! 🎒",note:"Cabang else DILEWATI. Lanjut ke langkah bersama."}]:[
+      {e:"w-eN",n:"w-nN",line:3,note:"False → lompat ke else: (baris 4)."},
+      {n:"w-nN",line:4,out:"Pakai topi 🧢",note:'Isi else dijalankan: print("Pakai topi 🧢")'},
+      {e:"w-eN2",n:"w-n2",line:5,out:"Berangkat sekolah! 🎒",note:"Cabang if tadi dilewati. Sekarang lanjut bersama."}];
+    return start.concat(mid,[{e:"w-e2",n:"w-n3",note:"Selesai! Algoritma yang baik selalu punya akhir. 🏁"}]);
+  }
+  function run(){
+    renderCodeLines(code,codeLines());out.clear();
+    narr.textContent="Berjalan… ikuti titik kuningnya! ✨";
+    flow.play(route(),function(st){
+      if(st.line!=null)setCodeLine(code,st.line);
+      if(st.note)narr.textContent=st.note;
+      if(st.out)out.print(st.out);
+    },560).then(function(ok){if(ok){narr.textContent+=" ✅ Coba ganti cuacanya!";S.success();}});
+  }
+  var bR=$("#wxRain"),bS=$("#wxSun");
+  function setWx(v){rain=v;bR.classList.toggle("on",v);bS.classList.toggle("on",!v);run();}
+  bR.onclick=function(){setWx(true);};bS.onclick=function(){setWx(false);};
+  $("#wxRun").onclick=run;
+  renderCodeLines(code,codeLines());
+  if("IntersectionObserver" in window){
+    var ob=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting&&!started){started=true;setTimeout(run,450);ob.disconnect();}});},{threshold:.35});
+    ob.observe($("#weatherSvg"));
+  }
+});
+
+/* ================= DETEKSI TIPE ================= */
+function detectValue(raw){
+  var s=raw.trim();
+  if((s.charAt(0)==='"'&&s.slice(-1)==='"'&&s.length>=2)||(s.charAt(0)==="'"&&s.slice(-1)==="'"&&s.length>=2))return{type:"str",val:s.slice(1,-1),quoted:true};
+  if(s==="True")return{type:"bool",val:true};
+  if(s==="False")return{type:"bool",val:false};
+  if(/^[+-]?\d+$/.test(s))return{type:"int",val:parseInt(s,10)};
+  if(/^[+-]?(\d+\.\d*|\.\d+)$/.test(s))return{type:"float",val:parseFloat(s)};
+  return{type:"str",val:s,auto:true};
+}
+var TYPE_INFO={
+  str:{icon:"💬",indo:"Teks (string)",why:"Teks selalu dibungkus tanda kutip. Bisa nama, chat, apa saja."},
+  int:{icon:"🔢",indo:"Bilangan bulat (integer)",why:"Angka tanpa titik desimal — siap dipakai berhitung."},
+  float:{icon:"📏",indo:"Bilangan desimal (float)",why:"Ada titik desimalnya — cocok untuk tinggi, rating, harga."},
+  bool:{icon:"✅",indo:"Benar/Salah (boolean)",why:"Hanya True atau False (huruf besar!). Bahan utama if."}
+};
+
+/* ================= LEVEL 3 : RAK VARIABEL ================= */
+safe(function(){
+  var boxes=[{name:"nama",val:"Rara",type:"str"},{name:"umur",val:15,type:"int"},{name:"tinggi",val:160.5,type:"float"},{name:"suka_seblak",val:true,type:"bool"}];
+  var shelf=$("#varShelf"),code=$("#varCode"),count=$("#varCount"),nameIn=$("#varName"),valIn=$("#varValue"),hint=$("#varTypeHint"),MAX=8;
+  function repr(b){return b.type==="str"?'"'+b.val+'"':pyStr(b.val);}
+  function renderCode(){
+    var lines=boxes.map(function(b){var asg=b.name+" = "+repr(b);return asg+" ".repeat(Math.max(2,24-asg.length))+"# "+b.type;});
+    lines.push("","# "+boxes.length+" kotak variabel tersimpan 📦");
+    renderCodeLines(code,lines);
+  }
+  function render(flashName){
+    count.textContent=boxes.length+"/"+MAX+" kotak terisi";
+    if(!boxes.length){shelf.innerHTML='<div class="vempty">Raknya kosong 😢 — buat kotak pertamamu di bawah!</div>';renderCode();return;}
+    shelf.innerHTML=boxes.map(function(b,i){
+      return '<div class="vbox'+(b.name===flashName?" flash":"")+'" data-i="'+i+'"><span class="vtag">'+esc(b.name)+'</span><div class="vval tv-'+b.type+'">'+esc(repr(b))+'</div><div class="vmeta"><span class="vtype t-'+b.type+'">'+b.type+'</span><span class="vacts"><button class="edit" title="Ganti isi kotak" aria-label="Edit '+esc(b.name)+'">✏️</button><button class="del" title="Hapus kotak" aria-label="Hapus '+esc(b.name)+'">🗑️</button></span></div></div>';
+    }).join("");
+    renderCode();
+  }
+  function saveValue(i,raw){
+    if(!raw.trim()){toast("😅 Isi kotaknya masih kosong!");return false;}
+    var d=detectValue(raw),old=boxes[i],typeChanged=old.type!==d.type;
+    boxes[i]={name:old.name,val:d.val,type:d.type};render(old.name);S.pop();
+    toast(typeChanged?"🪄 Nilai ditimpa & Python otomatis ganti tipe: "+old.type+" → "+d.type:"🔁 Nilai lama ditimpa! Itulah cara kerja variabel.");
+    return true;
+  }
+  shelf.addEventListener("click",function(e){
+    var box=e.target.closest(".vbox");if(!box)return;
+    var i=+box.dataset.i,b=boxes[i];
+    if(e.target.closest(".del")){
+      var removed=boxes.splice(i,1)[0];render();S.low();
+      toast("🗑️ Kotak \""+esc(removed.name)+"\" dihapus.",{label:"Undo",fn:function(){boxes.splice(Math.min(i,boxes.length),0,removed);render(removed.name);S.pop();}});
+      return;
+    }
+    if(e.target.closest(".edit")){
+      var valEl=box.querySelector(".vval"),wrap=document.createElement("div");wrap.className="vedit";
+      var inp=document.createElement("input");inp.value=b.type==="str"?b.val:pyStr(b.val);inp.setAttribute("aria-label","Nilai baru untuk "+b.name);
+      var ok=document.createElement("button");ok.textContent="✔";ok.title="Simpan";
+      wrap.append(inp,ok);valEl.replaceWith(wrap);inp.focus();inp.select();
+      function commit(){saveValue(i,inp.value);}
+      ok.onclick=commit;
+      inp.addEventListener("keydown",function(ev){if(ev.key==="Enter")commit();if(ev.key==="Escape")render();});
+    }
+  });
+  function updateHint(){
+    var s=valIn.value.trim();
+    if(!s){hint.textContent="Ketik nilai → Python langsung menebak tipenya di sini.";return;}
+    var d=detectValue(s);
+    hint.innerHTML='Terdeteksi: <b class="tv-'+d.type+'">'+d.type+"</b> "+TYPE_INFO[d.type].icon+(d.auto?' <span style="color:var(--dim)">(teks biasa otomatis jadi string)</span>':"");
+  }
+  valIn.addEventListener("input",updateHint);
+  function addBox(){
+    var name=nameIn.value.trim(),raw=valIn.value;
+    if(!/^[A-Za-z_]\w*$/.test(name)||isKey(name)){
+      nameIn.classList.add("shake");setTimeout(function(){nameIn.classList.remove("shake");},450);S.error();
+      toast("😅 Nama kotak: mulai huruf/underscore, tanpa spasi, bukan kata kunci. Contoh: skor_game");return;
+    }
+    if(!raw.trim()){valIn.classList.add("shake");setTimeout(function(){valIn.classList.remove("shake");},450);S.error();toast("😅 Isi kotaknya masih kosong!");return;}
+    var d=detectValue(raw),existing=-1;
+    for(var i=0;i<boxes.length;i++){if(boxes[i].name===name){existing=i;break;}}
+    if(existing>=0){
+      boxes[existing]={name:name,val:d.val,type:d.type};render(name);S.branch();
+      toast('🔁 Kotak "'+esc(name)+'" sudah ada → isinya DITIMPA. Persis seperti Python!');
+      nameIn.value="";valIn.value="";updateHint();return;
+    }
+    if(boxes.length>=MAX){toast("📦 Rak penuh (maks 8)! Hapus satu dulu ya.");S.error();return;}
+    boxes.push({name:name,val:d.val,type:d.type});render(name);S.pop();
+    nameIn.value="";valIn.value="";updateHint();nameIn.focus();
+  }
+  $("#varAdd").onclick=addBox;
+  [nameIn,valIn].forEach(function(inp){inp.addEventListener("keydown",function(e){if(e.key==="Enter")addBox();});});
+  render();
+});
+
+/* ================= LEVEL 4 : DETEKTIF TIPE ================= */
+safe(function(){
+  var inp=$("#detInput"),verdict=$("#detVerdict"),icon=$("#detIcon"),type=$("#detType"),why=$("#detWhy"),dcode=$("#detCode");
+  inp.addEventListener("input",function(){
+    var s=inp.value.trim();
+    if(!s){verdict.classList.remove("live");verdict.style.borderColor="";icon.textContent="🔎";type.textContent="menunggu petunjuk…";type.style.color="var(--dim)";why.textContent="Ketik sesuatu di sebelah kiri untuk mulai penyelidikan.";dcode.textContent="";return;}
+    var d=detectValue(s),info=TYPE_INFO[d.type];
+    var color={str:"#F472B6",int:"#FB923C",float:"#22D3EE",bool:"#4ADE80"}[d.type];
+    verdict.classList.add("live");verdict.style.borderColor=color;
+    icon.textContent=info.icon;type.textContent=d.type;type.style.color=color;
+    why.textContent=info.indo+" — "+info.why+(d.auto?" (tanpa kutip pun, teks tetap dianggap string)":"");
+    var stored=d.type==="str"?'"'+d.val+'"':pyStr(d.val);
+    dcode.textContent="type("+stored+")  →  <class '"+d.type+"'>";
+    S.tick();
+  });
+});
+
+/* ================= LEVEL 5 : TERMINAL NGOBROL ================= */
+safe(function(){
+  var SRC='nama = input("Siapa namamu? ")\numur = input("Umurmu berapa? ")\nprint("Halo,", nama + "!")\nprint("Tahun depan umurmu", int(umur) + 1)';
+  renderCodeLines($("#ioCode"),SRC.split("\n"));
+  var term=new Term($("#ioTerm")),code=$("#ioCode"),runBtn=$("#ioRun");
+  var ses=null,tok=0,timer=null,running=false;
+  function stop(){tok++;clearTimeout(timer);running=false;}
+  function refresh(){
+    runBtn.disabled=running||(ses&&ses.status==="waiting");
+    runBtn.textContent=ses&&ses.status==="done"?"🔁 Ngobrol Lagi":running?"⏳ Berjalan…":"▶ Jalankan Program";
+  }
+  function pump(){
+    var my=tok;
+    if(!ses||ses.status!=="ready"){refresh();return;}
+    ses.step();
+    if(my!==tok)return;
+    if(ses.status==="ready")timer=setTimeout(pump,430);else refresh();
+  }
+  function reset(){
+    stop();setCodeLine(code,null);
+    term.clear("Tekan ▶ Jalankan Program untuk mulai ngobrol!");
+    ses=new Session(SRC,{
+      onStep:function(ins){setCodeLine(code,ins.line);},
+      onPrint:function(t){term.print(t);},
+      onInput:function(p){term.ask(p,function(v){ses.provideInput(v);if(running)pump();});refresh();},
+      onError:function(m,l){term.err(m+(l!=null?" (baris "+(l+1)+")":""));setCodeLine(code,l,"err");S.error();running=false;refresh();},
+      onDone:function(){term.ok("— program selesai ✅");setCodeLine(code,null);S.success();running=false;refresh();}
+    });
+    refresh();
+  }
+  runBtn.onclick=function(){if(ses&&ses.status==="done")reset();running=true;tok++;refresh();pump();};
+  $("#ioReset").onclick=reset;
+  reset();
+});
+
+/* ================= LEVEL 6a : OPERATOR ================= */
+safe(function(){
+  var DISP=["==","!=","&gt;","&lt;","&gt;=","&lt;="];
+  var RAW=[["==","sama dengan"],["!=","tidak sama"],[">","lebih dari"],["<","kurang dari"],[">=","lebih / sama"],["<=","kurang / sama"]];
+  var grid=$("#opGrid"),a=$("#opA"),b=$("#opB");
+  grid.innerHTML=RAW.map(function(o,i){return '<div class="op"><div class="op-sym">'+DISP[i]+'</div><div class="op-indo">'+o[1]+'</div><div class="op-expr" id="opx'+i+'"></div><span class="op-res" id="opr'+i+'"></span></div>';}).join("");
+  function upd(){
+    var x=parseFloat(a.value)||0,y=parseFloat(b.value)||0;
+    RAW.forEach(function(o,i){
+      var r=binop(o[0],x,y);
+      document.getElementById("opx"+i).textContent=x+" "+o[0]+" "+y;
+      var el=document.getElementById("opr"+i);
+      el.textContent=r?"True ✔":"False ✘";el.className="op-res "+(r?"t":"f");
+    });
+  }
+  a.addEventListener("input",upd);b.addEventListener("input",upd);upd();
+});
+
+/* ================= LEVEL 6b : SIMULATOR IF ================= */
+safe(function(){
+  var slider=$("#nilaiSlider"),valOut=$("#nilaiVal"),narr=$("#ifNarr"),out=new Term($("#ifOut"));
+  var flows={if:makeFlow($("#flow-if svg")),else:makeFlow($("#flow-else svg")),elif:makeFlow($("#flow-elif svg"))};
+  var codes={if:$("#code-if"),else:$("#code-else"),elif:$("#code-elif")};
+  var wraps={if:$("#flow-if"),else:$("#flow-else"),elif:$("#flow-elif")};
+  var descs={
+    if:"if saja: satu pertanyaan. Kalau True, isinya jalan. Kalau False? Dilewati begitu saja — hidup terus lanjut.",
+    else:"if + else: dua jalan, pasti pilih salah satu. True → isi if. False → isi else. Nggak ada jalan ketiga.",
+    elif:"if + elif + else: banyak pertanyaan berantai. Dicek dari atas; begitu ada yang True, sisanya DILEWATI semua."};
+  var badge=$("#gradeBadge"),letter=$("#gradeLetter"),gtext=$("#gradeText"),gsub=$("#gradeSub");
+  function lines(tab,v){
+    if(tab==="if")return["nilai = "+v,"if nilai >= 75:",'    print("LULUS! 🎉")','print("Program selesai.")'];
+    if(tab==="else")return["nilai = "+v,"if nilai >= 75:",'    print("LULUS! 🎉")',"else:",'    print("Belum lulus 💪")','print("Program selesai.")'];
+    return["nilai = "+v,"if nilai >= 90:",'    print("A — keren banget! 🤩")',"elif nilai >= 80:",'    print("B — mantap! 😎")',"elif nilai >= 70:",'    print("C — lumayan! 🙂")',"else:",'    print("D — ayo belajar lagi 📚")','print("Selesai. Jangan nyerah!")'];
+  }
+  function route(tab,v){
+    if(tab==="if"){
+      var pass=v>=75;
+      var r=[{n:"i-n0",line:0,note:"Mulai! Kotak variabel nilai diisi "+v+"."},
+        {e:"i-e0",n:"i-n1",line:0,note:"nilai = "+v+" → masuk ke kotak variabel."},
+        {e:"i-e1",n:"i-d1",line:1,branch:true,note:"Cek kondisi: "+v+" >= 75 → "+(pass?"True ✅":"False ❌")}];
+      if(pass){r.push({e:"i-eY",n:"i-nL",line:2,out:"LULUS! 🎉",note:"True! Isi if dijalankan (baris 3)."},{e:"i-eL",n:"i-nF",line:3,out:"Program selesai.",note:"Keluar dari if, lanjut ke baris berikutnya."});}
+      else r.push({e:"i-eN",n:"i-nF",line:3,out:"Program selesai.",note:"False! Isi if DILEWATI — lompat lurus ke baris 4."});
+      r.push({e:"i-eF",n:"i-nE",note:"Selesai ✅ Baris di luar if SELALU dijalankan, apa pun hasilnya."});
+      return r;
+    }
+    if(tab==="else"){
+      var pass2=v>=75;
+      var r2=[{n:"e-n0",line:0,note:"Mulai! nilai = "+v+"."},
+        {e:"e-e0",n:"e-n1",line:0,note:"Simpan "+v+" ke variabel nilai."},
+        {e:"e-e1",n:"e-d1",line:1,branch:true,note:"Cek kondisi: "+v+" >= 75 → "+(pass2?"True ✅":"False ❌")}];
+      if(pass2){r2.push({e:"e-eY",n:"e-nL",line:2,out:"LULUS! 🎉",note:"True → isi if jalan. Isi else pasti dilewati."},{e:"e-eL",n:"e-nF",line:5,out:"Program selesai.",note:"Dua cabang bertemu lagi di sini."});}
+      else{r2.push({e:"e-eN",n:"e-nR",line:3,note:"False → lompat ke else: (baris 4)."},{n:"e-nR",line:4,out:"Belum lulus 💪",note:"Isi else dijalankan (baris 5). Selalu ada rencana B!"},{e:"e-eR",n:"e-nF",line:5,out:"Program selesai.",note:"Dua cabang bertemu lagi di sini."});}
+      r2.push({e:"e-eF",n:"e-nE",note:"Selesai ✅ if-else = tepat SATU cabang yang jalan."});
+      return r2;
+    }
+    var r3=[{n:"m-n0",line:0,note:"Mulai! nilai = "+v+"."},
+      {e:"m-e0",n:"m-n1",line:0,note:"Simpan "+v+" ke variabel nilai."},
+      {e:"m-e1",n:"m-d1",line:1,branch:true,note:"Cek 1: "+v+" >= 90 → "+(v>=90?"True ✅":"False ❌")}];
+    function fin(edge){return{e:edge,n:"m-nE",line:9,out:"Selesai. Jangan nyerah!",note:"Cabang lain dilewati semua. Baris penutup tetap jalan ✅"};}
+    if(v>=90){r3.push({e:"m-eY1",n:"m-oA",line:2,out:"A — keren banget! 🤩",note:"True! Langsung dapat A — elif di bawah nggak dicek lagi."},fin("m-eA"));}
+    else{
+      r3.push({e:"m-eN1",n:"m-d2",line:3,branch:true,note:"False → turun ke elif. Cek 2: "+v+" >= 80 → "+(v>=80?"True ✅":"False ❌")});
+      if(v>=80){r3.push({e:"m-eY2",n:"m-oB",line:4,out:"B — mantap! 😎",note:"True di elif pertama → B! Sisanya dilewati."},fin("m-eB"));}
+      else{
+        r3.push({e:"m-eN2",n:"m-d3",line:5,branch:true,note:"False lagi → Cek 3: "+v+" >= 70 → "+(v>=70?"True ✅":"False ❌")});
+        if(v>=70){r3.push({e:"m-eY3",n:"m-oC",line:6,out:"C — lumayan! 🙂",note:"True di elif kedua → C!"},fin("m-eC"));}
+        else{r3.push({e:"m-eN3",n:"m-oD",line:7,note:"Semua kondisi False → masuk else (baris 8)."},{n:"m-oD",line:8,out:"D — ayo belajar lagi 📚",note:"else = jaring pengaman terakhir, pasti jalan kalau semua gagal."},fin("m-eD"));}
+      }
+    }
+    return r3;
+  }
+  function paintBadge(v){
+    var L,T,C,SUB;
+    if(ifTab==="elif"){
+      if(v>=90){L="A";T="keren banget! 🤩";C="#4ADE80";}else if(v>=80){L="B";T="mantap! 😎";C="#22D3EE";}
+      else if(v>=70){L="C";T="lumayan! 🙂";C="#FFD43B";}else{L="D";T="ayo belajar lagi 📚";C="#FB923C";}
+      SUB="predikat dari rantai if-elif-else";
+    }else{
+      var p=v>=75;L=p?"🎉":"💪";T=p?"LULUS":"BELUM LULUS";C=p?"#4ADE80":"#FB923C";
+      SUB="kondisi nilai >= 75 → "+(p?"True":"False");
+    }
+    letter.textContent=L;letter.style.color=C;gtext.textContent=T;gtext.style.color=C;gsub.textContent=SUB;badge.style.borderColor=C;
+  }
+  function run(){
+    var v=+slider.value,tab=ifTab;
+    Object.keys(flows).forEach(function(k){flows[k].cancel();});
+    renderCodeLines(codes[tab],lines(tab,v));
+    out.clear();narr.textContent="Berjalan… ikuti titik kuningnya! ✨";
+    flows[tab].play(route(tab,v),function(st){
+      if(st.line!=null)setCodeLine(codes[tab],st.line);
+      if(st.note)narr.textContent=st.note;
+      if(st.out)out.print(st.out);
+    },480).then(function(ok){if(ok)S.success();});
+  }
+  var runDeb=debounce(run,150);
+  function syncNilai(){
+    var v=+slider.value;valOut.textContent=v;
+    ["i-val","e-val","m-val"].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent="nilai = "+v;});
+    paintBadge(v);
+  }
+  slider.addEventListener("input",function(){syncNilai();runDeb();});
+  $$(".nilai-chip").forEach(function(ch){ch.onclick=function(){slider.value=ch.dataset.v;syncNilai();run();};});
+  $$(".tab-btn").forEach(function(btn){
+    btn.onclick=function(){
+      ifTab=btn.dataset.tab;
+      $$(".tab-btn").forEach(function(b){var on=b===btn;b.classList.toggle("on",on);b.setAttribute("aria-selected",String(on));});
+      Object.keys(wraps).forEach(function(k){wraps[k].hidden=k!==ifTab;codes[k].hidden=k!==ifTab;});
+      $("#tabDesc").textContent=descs[ifTab];
+      paintBadge(+slider.value);run();
+    };
+  });
+  $("#ifReplay").onclick=run;
+  $("#tabDesc").textContent=descs.if;
+  syncNilai();renderCodeLines(codes.if,lines("if",78));
+  if("IntersectionObserver" in window){
+    var started=false;
+    var ob=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting&&!started){started=true;setTimeout(run,450);ob.disconnect();}});},{threshold:.3});
+    ob.observe($("#flow-if"));
+  }
+});
+
+/* ================= LEVEL 7 : PLAYGROUND ================= */
+safe(function(){
+  var PRESETS={
+    sapa:{file:"sapaan.py",code:'# Program 1: komputer menyapamu\nnama = input("Siapa namamu? ")\nprint("Halo,", nama + "! 👋")\npanjang = len(nama)\nprint("Namamu punya", panjang, "huruf.")\nif panjang > 8:\n    print("Wah, namamu panjang & keren!")\nelse:\n    print("Namamu singkat, gampang diingat 😄")'},
+    nilai:{file:"cek_nilai.py",code:'# Program 2: nilai jadi rapor mini\nnilai = int(input("Masukkan nilai (0-100): "))\nif nilai >= 90:\n    print("Predikat A — jenius! 🤩")\nelif nilai >= 80:\n    print("Predikat B — mantap! 😎")\nelif nilai >= 70:\n    print("Predikat C — lumayan, gas lagi! 🙂")\nelse:\n    print("Predikat D — jangan nyerah 📚")\nprint("Terima kasih sudah jujur 😇")'},
+    kasir:{file:"kasir.py",code:'# Program 3: kasir minimarket\n# TANTANGAN: belanja >= 200000 harus diskon 20%!\ntotal = int(input("Total belanja (Rp): "))\ndiskon = 0\nif total >= 100000:\n    diskon = 10\nbayar = total - total * diskon // 100\nprint("Diskon:", diskon, "%")\nprint("Total bayar: Rp", bayar)'},
+    game:{file:"cek_umur.py",code:'# Program 4: boleh main game rating 13+?\numur = int(input("Umurmu berapa? "))\nizin = input("Sudah izin orang tua? (ya/tidak): ")\nif umur >= 13 and izin == "ya":\n    print("Silakan main! Selamat bersenang-senang 🎮")\nelse:\n    print("Belum boleh ya. Baca buku dulu 📖")'}
+  };
+  var ta=$("#codeInput"),hl=$("#hlPre"),inner=$("#codeInner"),gutter=$("#gutterIn"),bar=$("#activeLine");
+  var term=new Term($("#pgTerm")),watch=$("#varWatch"),statusBox=$("#pgStatus"),statusTxt=$("#pgStatusTxt");
+  var runBtn=$("#runBtn"),stepBtn=$("#stepBtn"),resetBtn=$("#resetBtn"),presetSel=$("#presetSel"),speedSel=$("#speedSel");
+  var ses=null,tok=0,timer=null,running=false,prevWatch=[],LH=24,PAD=16;
+  function syncScroll(){inner.style.transform="translate("+(-ta.scrollLeft)+"px,"+(-ta.scrollTop)+"px)";gutter.style.transform="translateY("+(-ta.scrollTop)+"px)";}
+  function updateOverlay(){
+    hl.innerHTML=highlightPython(ta.value)+"\n";
+    var nn=ta.value.split("\n").length,arr=[];for(var i=1;i<=nn;i++)arr.push(i);
+    gutter.innerHTML=arr.join("<br>");syncScroll();
+  }
+  ta.addEventListener("scroll",syncScroll);
+  ta.addEventListener("keydown",function(e){
+    if(e.key==="Tab"){e.preventDefault();ta.setRangeText("    ",ta.selectionStart,ta.selectionEnd,"end");ta.dispatchEvent(new Event("input"));}
+    else if(e.key==="Enter"&&!e.ctrlKey&&!e.metaKey){
+      e.preventDefault();
+      var pos=ta.selectionStart,before=ta.value.slice(0,pos),lineStart=before.lastIndexOf("\n")+1,line=before.slice(lineStart);
+      var ind=/^ */.exec(line)[0].length;
+      if(line.trimEnd().endsWith(":"))ind+=4;
+      ta.setRangeText("\n"+" ".repeat(ind),pos,ta.selectionEnd,"end");
+      ta.dispatchEvent(new Event("input"));
+    }else if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();runBtn.click();}
+  });
+  ta.addEventListener("input",function(){
+    updateOverlay();
+    if(ses&&(ses.started||ses.status==="done"||ses.status==="error")){reset(true);setStatus("✏️","Kode berubah — siap dijalankan ulang.");}
+  });
+  function showLine(line,err){
+    if(line==null||line<0){bar.style.display="none";return;}
+    bar.style.display="block";bar.classList.toggle("err",!!err);
+    bar.style.top=(PAD+line*LH)+"px";
+    var target=clamp(line*LH-(ta.clientHeight-80)/2,0,Math.max(0,ta.scrollHeight-ta.clientHeight));
+    ta.scrollTop=target;syncScroll();
+  }
+  function setStatus(ic,txt,cls){statusBox.className=cls||"";statusTxt.textContent=txt;statusBox.firstElementChild.textContent=ic;}
+  function renderWatch(snap){
+    if(!snap.length){watch.innerHTML='<span class="watch-empty">Belum ada variabel — jalankan programnya dulu.</span>';prevWatch=[];return;}
+    watch.innerHTML=snap.map(function(v){
+      var prev=null;for(var i=0;i<prevWatch.length;i++){if(prevWatch[i].name===v.name){prev=prevWatch[i];break;}}
+      var changed=prev&&prev.repr!==v.repr;
+      return '<span class="vw'+(changed?" flash":"")+'"><span class="n">'+esc(v.name)+'</span> = <span class="tv-'+v.type+'">'+esc(v.repr)+"</span></span>";
+    }).join("");
+    prevWatch=snap;
+  }
+  function refresh(){
+    var st=ses?ses.status:"ready";
+    runBtn.disabled=running||st==="waiting";
+    stepBtn.disabled=running||st==="waiting"||st==="done"||st==="error";
+    runBtn.textContent=running?"⏳ Berjalan…":st==="done"?"↻ Jalankan Ulang":st==="error"?"↻ Reset & Jalankan":"▶ Jalankan";
+  }
+  function stop(){tok++;clearTimeout(timer);running=false;}
+  function reset(soft){
+    stop();showLine(null);renderWatch([]);
+    term.clear(soft?null:"Terminal siap. Tekan ▶ Jalankan!");
+    ses=new Session(ta.value,{
+      onStep:function(ins){
+        showLine(ins.line);var l=ins.line+1;
+        if(ins.op==="cond")setStatus("🔀","Baris "+l+": cek kondisi → "+ins.src);
+        else if(ins.op==="assign")setStatus("📦","Baris "+l+": "+(ins.src.length>52?ins.src.slice(0,52)+"…":ins.src));
+        else setStatus("▶","Baris "+l+": jalankan perintah…");
+      },
+      onAfter:function(ins,snap){
+        renderWatch(snap);
+        if(ins.op==="cond"&&ses.lastCond)setStatus(ses.lastCond.t?"✅":"⛔","Kondisi "+ins.src+" → "+ses.lastCond.val+". "+(ses.lastCond.t?"Masuk ke cabang ini!":"Lewati, cari jalan lain."));
+      },
+      onPrint:function(t){term.print(t);},
+      onInput:function(p){setStatus("⌨️","Program bertanya — ketik jawabanmu di terminal, lalu Enter.");term.ask(p,function(v){ses.provideInput(v);if(running)pump();});refresh();},
+      onError:function(m,l){term.err(m+(l!=null?" (baris "+(l+1)+")":""));showLine(l,true);setStatus("🚨",m+(l!=null?" — lihat baris "+(l+1)+".":""),"err");S.error();running=false;refresh();},
+      onDone:function(){term.ok("— program selesai ✅");showLine(null);setStatus("🏁","Selesai! Ubah kodenya dan jalankan lagi — eksperimen itu cara belajar terbaik.","ok");S.success();running=false;refresh();}
+    });
+    if(ses.compileError)setStatus("🚨",ses.compileError.msg+(ses.compileError.line!=null?" — baris "+(ses.compileError.line+1)+".":""),"err");
+    else if(!soft)setStatus("🟢","Siap! Tekan ▶ Jalankan, atau ⏭ Langkah untuk menonton pelan-pelan.");
+    refresh();
+  }
+  function pump(){
+    var my=tok;
+    if(!ses||ses.status!=="ready"){refresh();return;}
+    ses.step();
+    if(my!==tok)return;
+    if(ses.status==="ready")timer=setTimeout(pump,+speedSel.value);else refresh();
+  }
+  runBtn.onclick=function(){if(ses&&(ses.status==="done"||ses.status==="error"))reset();running=true;tok++;refresh();pump();};
+  stepBtn.onclick=function(){if(ses&&ses.status==="ready"){ses.step();refresh();}};
+  resetBtn.onclick=function(){reset();};
+  presetSel.onchange=function(){var p=PRESETS[presetSel.value];ta.value=p.code;$("#editorTitle").textContent=p.file+" — edit bebas!";updateOverlay();reset();toast("📄 Contoh program dimuat: "+p.file);};
+  var challMsg=$("#challMsg"),challBadge=$("#challBadge");
+  if(LS.get("algopy_chall")==="1")challBadge.classList.add("show");
+  $("#challBtn").onclick=function(){
+    var res=runHeadless(ta.value,["250000"]);
+    if(res.error){challMsg.className="no";challMsg.textContent="🚧 Programmu error saat dites: "+res.error.m+(res.error.l!=null?" (baris "+(res.error.l+1)+")":"")+" — perbaiki dulu ya!";S.error();return;}
+    var hit=res.prints.some(function(p){return p.replace(/[.,\s]/g,"").indexOf("200000")>=0;});
+    if(hit&&res.done){
+      challMsg.className="ok";challMsg.textContent="🏆 LULUS! Belanja Rp250.000 → bayar Rp200.000. Kasirmu resmi naik pangkat jadi kasir senior. Selamat, programmer!";
+      challBadge.classList.add("show");LS.set("algopy_chall","1");S.success();confetti($("#challBtn"),150);
+    }else{
+      challMsg.className="no";challMsg.textContent="❌ Belum tepat. Dengan belanja Rp250.000, harusnya bayar Rp200.000. Outputmu: "+(res.prints.join(" | ")||"(kosong)")+". Petunjuk: cek kondisi >= 200000 DULU sebelum >= 100000!";
+      S.error();
+    }
+  };
+  ta.value=PRESETS.sapa.code;updateOverlay();reset();
+});
+</script>
+</body>
+</html>
