@@ -1599,7 +1599,7 @@ print("Bayar:", bayar)</textarea>
 "use strict";
 /* ============ UTIL ============ */
 function $(s){return document.querySelector(s)}
-function $(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function debounce(fn,ms){var t;return function(){var a=arguments,s=this;clearTimeout(t);t=setTimeout(function(){fn.apply(s,a)},ms)}}
@@ -1617,10 +1617,10 @@ function toast(msg,action){
   if(action){var b=document.createElement("button");b.textContent=action.label;b.onclick=function(){action.fn();clearTimeout(timer);kill()};el.appendChild(b)}
   box.appendChild(el);timer=setTimeout(kill,action?5200:2800);
 }
-window.addEventListener("error",function(){$(".rv-init").forEach(function(e){e.classList.add("in")})});
+window.addEventListener("error",function(){$$(".rv-init").forEach(function(e){e.classList.add("in")})});
 
 safe("reveal",function(){
-  var els=$(".rv");
+  var els=$$(".rv");
   if(!("IntersectionObserver" in window)||calm()){els.forEach(function(e){e.classList.add("in")});return}
   var fired=false;els.forEach(function(e){e.classList.add("rv-init")});
   var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){fired=true;x.target.classList.add("in");io.unobserve(x.target)}})},{threshold:.05,rootMargin:"0px 0px -20px 0px"});
@@ -1709,7 +1709,7 @@ var confetti=(function(){
 
 var markDone=(function(){
   var done={};try{done=JSON.parse(LS.get("algopy1_done")||"{}")||{}}catch(e){done={}}
-  function paint(){$(".path-stop").forEach(function(a){a.classList.toggle("done",!!done[a.getAttribute("data-key")])})}
+  function paint(){$$(".path-stop").forEach(function(a){a.classList.toggle("done",!!done[a.getAttribute("data-key")])})}
   paint();
   return function(k){if(done[k])return;done[k]=1;LS.set("algopy1_done",JSON.stringify(done));paint()};
 })();
@@ -1815,7 +1815,7 @@ function copyText(text,ok){
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,fb);else fb();
 }
 safe("copy",function(){
-  $(".copy-btn").forEach(function(b){
+  $$(".copy-btn").forEach(function(b){
     b.addEventListener("click",function(){
       var pre=b.getAttribute("data-copy-active")
         ?document.querySelector("#code-if:not([hidden]),#code-else:not([hidden]),#code-elif:not([hidden])")
@@ -2703,7 +2703,7 @@ safe("nav",function(){
   document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
   addEventListener("resize",function(){if(innerWidth>1200)closeSheet()});
 
-  var pbar=$("#progressBar"),syms=$(".float-sym"),tick=false,chip=$("#lvlChip");
+  var pbar=$("#progressBar"),syms=$$(".float-sym"),tick=false,chip=$("#lvlChip");
   var LBL={algoritma:"01 · Algoritma",flowchart:"02 · Flowchart",variabel:"03 · Variabel",tipedata:"04 · Tipe Data",
     io:"05 · Input/Output",operator:"06 · Operator",percabangan:"07 · If",playground:"08 · Playground",tantangan:"🏆 Tantangan"};
   function sc(){
@@ -2717,7 +2717,7 @@ safe("nav",function(){
   }
   addEventListener("scroll",sc,{passive:true});sc();
   if("IntersectionObserver" in window){
-    var as=$("#navLinks a"),st=$(".path-stops .path-stop"),tabs=$(".mbar-nav a"),sh=$("#sheetLinks a");
+    var as=$$("#navLinks a"),st=$$(".path-stops .path-stop"),tabs=$$(".mbar-nav a"),sh=$$("#sheetLinks a");
     var io=new IntersectionObserver(function(en){en.forEach(function(x){
       if(x.isIntersecting){
         var id="#"+x.target.id;
@@ -2733,7 +2733,7 @@ safe("nav",function(){
         }
       }
     })},{rootMargin:"-45% 0px -50% 0px"});
-    $("main section[id]").forEach(function(s){if(s.id!=="hero")io.observe(s)});
+    $$("main section[id]").forEach(function(s){if(s.id!=="hero")io.observe(s)});
     var codeIO=new IntersectionObserver(function(en){
       var any=false;
       en.forEach(function(x){if(x.isIntersecting)any=true});
@@ -2747,7 +2747,7 @@ safe("nav",function(){
     codeIO.observe(document.getElementById("tantangan"));
   }
   wireSteppers(document);
-  $(".flow-tools .ft").forEach(function(btn){
+  $$(".flow-tools .ft").forEach(function(btn){
     btn.onclick=function(){
       var ids=(btn.getAttribute("data-targets")||"").split(",");
       var on=false;
@@ -2789,7 +2789,7 @@ safe("settings",function(){
   calmSw.checked=LS.get("algopy1_calm")==="1";
   calmSw.addEventListener("change",function(){
     root.classList.toggle("calm",calmSw.checked);LS.set("algopy1_calm",calmSw.checked?"1":"0");
-    if(calmSw.checked)$(".rv-init").forEach(function(e){e.classList.add("in")});
+    if(calmSw.checked)$$(".rv-init").forEach(function(e){e.classList.add("in")});
     toast(calmSw.checked?"🍃 Animasi dikurangi — lebih hemat baterai.":"✨ Animasi penuh lagi.");
   });
 });
@@ -2912,7 +2912,7 @@ safe("misi-mie",function(){
     }).join("");
     wireDrag();
   }
-  function clearMarks(){$("#mieList .step").forEach(function(e){e.classList.remove("good","bad")});msg.className="";msg.textContent=""}
+  function clearMarks(){$$("#mieList .step").forEach(function(e){e.classList.remove("good","bad")});msg.className="";msg.textContent=""}
   function sync(){
     order=Array.prototype.map.call(ul.children,function(li){return parseInt(li.getAttribute("data-id"),10)});
     Array.prototype.forEach.call(ul.querySelectorAll(".num"),function(e,i){e.textContent=i+1});
@@ -2931,7 +2931,7 @@ safe("misi-mie",function(){
     if(e.target.classList.contains("down"))move(id,1);
   });
   function wireDrag(){
-    $("#mieList .grip").forEach(function(g){
+    $$("#mieList .grip").forEach(function(g){
       g.addEventListener("pointerdown",function(e){
         var li=g.closest(".step");if(!li)return;
         e.preventDefault();
@@ -2967,7 +2967,7 @@ safe("misi-mie",function(){
     var wrong=-1;
     for(var i=0;i<order.length;i++){if(order[i]!==i){wrong=i;break}}
     if(wrong===-1){
-      $("#mieList .step").forEach(function(e){e.classList.add("good")});
+      $$("#mieList .step").forEach(function(e){e.classList.add("good")});
       msg.className="ok";msg.textContent="🎉 Mantap! Algoritma yang benar: jelas, urut, dan ada hasilnya.";
       bridge.classList.add("show");solved=true;S.success();confetti(ul,110);markDone("algo");
     }else{
@@ -2979,9 +2979,9 @@ safe("misi-mie",function(){
   $("#mieShuffle").onclick=function(){order=shuffled();solved=false;bridge.classList.remove("show");render();clearMarks();msg.textContent="Kartu diacak ulang — susun lagi! 💪"};
   $("#miePeek").onclick=function(){
     order=[0,1,2,3,4,5];render();clearMarks();
-    $("#mieList .step").forEach(function(e){e.classList.add("good")});
+    $$("#mieList .step").forEach(function(e){e.classList.add("good")});
     msg.className="ok";msg.textContent="👀 Ini urutan yang benar. Pelajari, lalu acak & coba sendiri!";
-    setTimeout(function(){if(!solved)$("#mieList .step").forEach(function(e){e.classList.remove("good")})},2400);
+    setTimeout(function(){if(!solved)$$("#mieList .step").forEach(function(e){e.classList.remove("good")})},2400);
   };
   codeLines($("#mieCode"),["# Algoritma mie instan, versi Python!",
     'print("1. Rebus air sampai mendidih")','print("2. Masukkan mie ke air mendidih")',
@@ -3406,8 +3406,8 @@ safe("lab-logika",function(){
     why.textContent=e.why+(skipped?" (B tidak sempat dicek — short-circuit!)":"");
     codeLines(code,src.split("\n"));
     var key=a+"|"+b;
-    $("#ttAnd tbody tr,#ttOr tbody tr").forEach(function(t){t.classList.toggle("on",t.getAttribute("data-k")===key)});
-    $("#ttNot tbody tr").forEach(function(t){t.classList.toggle("on",t.getAttribute("data-k")===String(a))});
+    $$("#ttAnd tbody tr,#ttOr tbody tr").forEach(function(t){t.classList.toggle("on",t.getAttribute("data-k")===key)});
+    $$("#ttNot tbody tr").forEach(function(t){t.classList.toggle("on",t.getAttribute("data-k")===String(a))});
     markDone("op");
   }
   [A,B,expr,shortSw].forEach(function(e){e.addEventListener("change",render)});
@@ -3468,7 +3468,7 @@ safe("lab-precedence",function(){
   ];
   var cur=PRE[0],timer=null,tok=0;
   chips.innerHTML=PRE.map(function(p,i){return '<button class="pchip'+(i===0?" on":"")+'" data-i="'+i+'">'+esc(p.e)+"</button>"}).join("");
-  function highlight(k){$("#ladder .rung").forEach(function(r){r.classList.toggle("hit",r.getAttribute("data-k")===k)})}
+  function highlight(k){$$("#ladder .rung").forEach(function(r){r.classList.toggle("hit",r.getAttribute("data-k")===k)})}
   function showUpTo(n){
     steps.innerHTML=cur.steps.slice(0,n).map(function(s,i){
       return '<div class="rrow'+(i===cur.steps.length-1?" last":"")+'"><span class="st">langkah '+(i+1)+
@@ -3487,7 +3487,7 @@ safe("lab-precedence",function(){
   }
   chips.addEventListener("click",function(e){
     var b=e.target.closest(".pchip");if(!b)return;
-    $(".pchip").forEach(function(x){x.classList.remove("on")});b.classList.add("on");
+    $$(".pchip").forEach(function(x){x.classList.remove("on")});b.classList.add("on");
     cur=PRE[parseInt(b.getAttribute("data-i"),10)];play();
   });
   $("#prPlay").onclick=play;
@@ -3601,11 +3601,11 @@ safe("lab-if",function(){
     paintBadge(v);
   }
   slider.addEventListener("input",function(){syncNilai();rd()});
-  $(".nilai-chip").forEach(function(c){c.onclick=function(){slider.value=c.getAttribute("data-v");syncNilai();run()}});
-  $(".tab-btn").forEach(function(btn){
+  $$(".nilai-chip").forEach(function(c){c.onclick=function(){slider.value=c.getAttribute("data-v");syncNilai();run()}});
+  $$(".tab-btn").forEach(function(btn){
     btn.onclick=function(){
       tab=btn.getAttribute("data-tab");
-      $(".tab-btn").forEach(function(b){var on=(b===btn);b.classList.toggle("on",on);b.setAttribute("aria-selected",String(on))});
+      $$(".tab-btn").forEach(function(b){var on=(b===btn);b.classList.toggle("on",on);b.setAttribute("aria-selected",String(on))});
       Object.keys(wraps).forEach(function(k){wraps[k].hidden=(k!==tab);codes[k].hidden=(k!==tab)});
       $("#tabDesc").textContent=descs[tab];
       paintBadge(parseInt(slider.value,10));run();
