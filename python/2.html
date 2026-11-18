@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full antialiased selection:bg-emerald-500 selection:text-white">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Login — Nilain</title>
+  <script>
+    /*__GAS_APP_CONFIG__*/
+    window.addEventListener('error', function(e) {
+      if (!e.error && (!e.message || e.message === 'Script error.' || e.message.indexOf('ResizeObserver') !== -1)) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    }, true);
+  </script>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue 3 Global Build (jsDelivr utama + fallback unpkg) -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js" crossorigin="anonymous"></script>
+  <script>
+    if (typeof Vue === 'undefined') {
+      document.write('<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" crossorigin="anonymous"><\/script>');
+    }
+  </script>
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            emerald: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+              400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+              800: '#1e40af', 900: '#1e3a8a', 950: '#172554'
+            },
+            teal: {
+              50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+              400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+              800: '#075985', 900: '#0c4a6e', 950: '#082f49'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    [v-cloak] { display: none !important; }
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bg-grid-pattern {
+      background-image: radial-gradient(rgba(37, 99, 235, 0.14) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-full flex items-center justify-center p-3 sm:p-6 bg-grid-pattern">
+
+<div id="loginApp" v-cloak class="w-full max-w-5xl">
+
+  <!-- ==================== OVERLAY AUTO-LOGIN SAAT HALAMAN DI-REFRESH ==================== -->
+  <div
+    v-if="restoringSession && savedSessionUser"
+    class="max-w-md mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/70 text-center space-y-5"
+  >
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/25">
+      <i class="fa-solid fa-user-check text-2xl text-white"></i>
+    </div>
+
+    <div class="space-y-1">
+      <span class="px-3 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold uppercase tracking-wider">
+        Sesi Aktif Ditemukan
+      </span>
+      <h2 class="text-xl font-extrabold text-slate-800 pt-1">
+        Selamat Datang Kembali, {{ savedSessionUser.fullName }}!
+      </h2>
+      <p class="text-xs text-slate-500">
+        Masuk otomatis sebagai <strong class="text-emerald-600 uppercase">{{ savedSessionUser.role }}</strong> ({{ savedSessionUser.username }})...
+      </p>
+    </div>
+
+    <!-- Progress Bar Auto Redirect -->
+    <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+      <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300" :style="{ width: restoreProgress + '%' }"></div>
+    </div>
+
+    <div v-if="alertMsg" class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
+      <i class="fa-solid fa-circle-check mr-1"></i>{{ alertMsg }}
+    </div>
+
+    <div class="flex items-center gap-2 pt-1">
+      <button
+        type="button"
+        @click="cancelAutoLogin"
+        class="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition"
+      >
+        <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar / Ganti Akun
+      </button>
+      <a
+        v-if="redirectUrl"
+        :href="redirectUrl"
+        target="_top"
+        class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md shadow-emerald-600/20 transition inline-flex items-center justify-center gap-1"
+      >
+        <span>Buka Dashboard</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </a>
+      <button
+        v-else
+        type="button"
+        @click="proceedWithSavedSession"
+        class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md shadow-emerald-600/20 transition"
+      >
+        <span>Buka Dashboard</span>
+        <i class="fa-solid fa-arrow-right ml-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN LOGIN CARD (SPLIT DESKTOP & MOBILE CARD) ==================== -->
+  <div
+    v-else
+    class="bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12"
+  >
+    <!-- KOLOM KIRI: BRANDING & ILUSTRASI FITUR (TAMPIL DI DESKTOP & HEADER RINGKAS DI HP) -->
+    <div class="lg:col-span-5 bg-gradient-to-br from-emerald-600 via-emerald-600 to-teal-700 p-5 sm:p-8 text-white flex flex-col justify-between relative overflow-hidden">
+      <!-- Ornamen Lingkaran Halus -->
+      <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/10 pointer-events-none"></div>
+      <div class="absolute -bottom-20 -left-16 w-56 h-56 rounded-full bg-black/15 pointer-events-none"></div>
+
+      <!-- Top Brand & Live Clock -->
+      <div class="relative z-10 space-y-4">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-white text-emerald-700 flex items-center justify-center shadow-lg shrink-0">
+              <i class="fa-solid fa-graduation-cap text-xl"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h1 class="font-extrabold text-lg tracking-tight text-white">Nila<span class="text-emerald-200">in</span></h1>
+                <span class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-black/25 text-emerald-200 border border-white/15">v4 GAS</span>
+              </div>
+              <p class="text-[11px] text-emerald-100/90">Sistem Informasi Nilai, Presensi &amp; Jadwal</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Message -->
+        <div class="hidden sm:block pt-2 space-y-2">
+          <h2 class="text-xl sm:text-2xl font-extrabold leading-snug tracking-tight">
+            Satu Aplikasi Terpadu untuk Admin, Guru &amp; Siswa.
+          </h2>
+          <p class="text-xs text-emerald-50/90 leading-relaxed">
+            Kelola buku nilai matriks (skala 1–100 &amp; A+ s/d D), presensi harian per jam pelajaran, serta jadwal mengajar secara *real-time*.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature Highlights Cards (Hidden on very small screens to keep login form above the fold) -->
+      <div class="hidden lg:block relative z-10 my-6 space-y-2.5">
+        <div class="p-3 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-extrabold text-xs">Portal Admin Sekolah</div>
+            <div class="text-[11px] text-emerald-100/85 truncate">Master kelas, plotting guru, &amp; pantau presensi per JP</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-extrabold text-xs">Buku Nilai &amp; Presensi Guru</div>
+            <div class="text-[11px] text-emerald-100/85 truncate">Input cepat 1-Tap, KKM &amp; bobot kategori mandiri</div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-sm shrink-0">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="font-extrabold text-xs">Portal Akademik Siswa</div>
+            <div class="text-[11px] text-emerald-100/85 truncate">Cek jadwal pelajaran, rekap kehadiran &amp; rincian nilai</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Live Date & Time Info -->
+      <div class="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between text-[11px] text-emerald-100">
+        <span class="flex items-center gap-1.5 font-semibold">
+          <i class="fa-regular fa-calendar"></i>
+          <span>{{ currentDateText }}</span>
+        </span>
+        <span class="font-mono font-extrabold bg-black/20 px-2 py-0.5 rounded-lg">
+          {{ currentTimeText }} WIB
+        </span>
+      </div>
+    </div>
+
+    <!-- KOLOM KANAN: FORM LOGIN INTERAKTIF -->
+    <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center bg-white">
+      <div class="space-y-5 max-w-md w-full mx-auto">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-800">Masuk ke Akun Anda</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Masukkan Username, NIP Guru, atau NIS Siswa Anda</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold flex items-center gap-1.5 shrink-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Auto-Login Aktif</span>
+          </span>
+        </div>
+
+        <!-- Form Input Login -->
+        <form @submit.prevent="submitLogin()" class="space-y-4">
+          <!-- Input Username / NIP / NIS -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+              Username / NIP / NIS
+            </label>
+            <div class="relative">
+              <i class="fa-regular fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input
+                v-model="form.username"
+                type="text"
+                required
+                autocomplete="username"
+                placeholder="Masukkan username, NIP guru, atau NIS siswa..."
+                class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50 focus:bg-white border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm font-semibold text-slate-800 placeholder-slate-400 outline-none transition"
+              />
+              <button
+                v-if="form.username"
+                type="button"
+                @click="form.username = ''"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
+              >
+                <i class="fa-solid fa-circle-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Input Password + Show/Hide Toggle -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-bold text-slate-700">Password</label>
+              <span class="text-[11px] text-slate-400">Lupa password? Hubungi Admin Sekolah</span>
+            </div>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                autocomplete="current-password"
+                placeholder="Masukkan password..."
+                class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 focus:bg-white border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm font-semibold text-slate-800 placeholder-slate-400 outline-none transition"
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs px-1"
+                :title="showPassword ? 'Sembunyikan Password' : 'Lihat Password'"
+              >
+                <i class="fa-regular" :class="showPassword ? 'fa-eye-slash text-emerald-600' : 'fa-eye'"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember Session Checkbox -->
+          <div class="flex items-center justify-between gap-2 pt-0.5">
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none">
+              <input
+                v-model="form.rememberMe"
+                type="checkbox"
+                class="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+              />
+              <span>Tetap masuk saat halaman di-refresh</span>
+            </label>
+          </div>
+
+          <!-- Error / Info Alert Box -->
+          <div
+            v-if="alertMsg"
+            class="p-3 rounded-xl border text-xs font-bold flex items-center gap-2"
+            :class="alertType === 'error'
+              ? 'bg-rose-50 border-rose-200 text-rose-700'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-700'"
+          >
+            <i class="fa-solid" :class="alertType === 'error' ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-600'"></i>
+            <span>{{ alertMsg }}</span>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            :disabled="isLoading"
+            class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition active:scale-[0.99]"
+          >
+            <i v-if="isLoading" class="fa-solid fa-circle-notch fa-spin"></i>
+            <i v-else class="fa-solid fa-right-to-bracket"></i>
+            <span>{{ isLoading ? 'Memverifikasi Akun...' : 'Masuk ke Aplikasi' }}</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const { createApp } = Vue;
+const SESSION_KEY = 'additio_user';
+const WEBAPP_URL_KEY = 'additio_webapp_url';
+
+createApp({
+  data() {
+    return {
+      showPassword: false,
+      isLoading: false,
+      alertMsg: '',
+      alertType: 'error',
+
+      webAppUrl: '',
+      redirectUrl: '',
+
+      restoringSession: false,
+      savedSessionUser: null,
+      restoreProgress: 20,
+      restoreTimer: null,
+
+      nowDate: new Date(),
+
+      form: {
+        username: '',
+        password: '',
+        rememberMe: true
+      }
+    };
+  },
+
+  computed: {
+    currentDateText() {
+      return this.nowDate.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    },
+
+    currentTimeText() {
+      return `${String(this.nowDate.getHours()).padStart(2, '0')}:${String(this.nowDate.getMinutes()).padStart(2, '0')}`;
+    }
+  },
+
+  created() {
+    this.initWebAppUrl();
+    this.checkExistingSessionOnLoad();
+  },
+
+  methods: {
+    // Ambil dan simpan URL Web App aktif dari Google Apps Script
+    initWebAppUrl() {
+      if (typeof window.__GAS_WEBAPP_URL__ === 'string' && window.__GAS_WEBAPP_URL__) {
+        this.webAppUrl = window.__GAS_WEBAPP_URL__;
+        try { localStorage.setItem(WEBAPP_URL_KEY, this.webAppUrl); } catch (e) {}
+      } else {
+        try {
+          const cached = localStorage.getItem(WEBAPP_URL_KEY);
+          if (cached) this.webAppUrl = cached;
+        } catch (e) {}
+      }
+
+      if (!this.webAppUrl && typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(url => {
+            if (url && typeof url === 'string') {
+              this.webAppUrl = url;
+              try { localStorage.setItem(WEBAPP_URL_KEY, url); } catch (e) {}
+              if (this.restoringSession && this.savedSessionUser) {
+                this.redirectUrl = this.buildPageUrl(url, this.savedSessionUser.role);
+              }
+            }
+          })
+          .getWebAppUrl();
+      }
+    },
+
+    normalizeRole(role) {
+      const r = String(role || '').trim().toLowerCase();
+      if (r === 'admin' || r === 'administrator') return 'admin';
+      if (r === 'guru' || r === 'teacher') return 'guru';
+      return 'siswa';
+    },
+
+    buildPageUrl(baseUrl, role) {
+      if (!baseUrl) return '';
+      const targetPage = this.normalizeRole(role);
+      const sep = baseUrl.indexOf('?') === -1 ? '?' : '&';
+      return baseUrl + sep + 'page=' + encodeURIComponent(targetPage);
+    },
+
+    // Cek apakah pengguna sudah login sebelumnya; jika halaman di-refresh, otomatis masuk kembali!
+    checkExistingSessionOnLoad() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.success && parsed.role && parsed.username) {
+          this.savedSessionUser = parsed;
+          this.restoringSession = true;
+          this.restoreProgress = 45;
+          if (this.webAppUrl) {
+            this.redirectUrl = this.buildPageUrl(this.webAppUrl, parsed.role);
+          }
+
+          this.restoreTimer = setTimeout(() => {
+            this.restoreProgress = 100;
+            this.proceedWithSavedSession();
+          }, 450);
+        }
+      } catch (e) {
+        console.warn('Gagal memeriksa sesi tersimpan:', e);
+      }
+    },
+
+    cancelAutoLogin() {
+      if (this.restoreTimer) clearTimeout(this.restoreTimer);
+      this.restoringSession = false;
+      this.savedSessionUser = null;
+      this.redirectUrl = '';
+      this.alertMsg = '';
+      try {
+        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
+      } catch (e) {}
+    },
+
+    proceedWithSavedSession() {
+      if (this.restoreTimer) clearTimeout(this.restoreTimer);
+      if (!this.savedSessionUser) return;
+      this.redirectToRoleDashboard(this.savedSessionUser.role, this.webAppUrl);
+    },
+
+    saveUserSession(userObj) {
+      try {
+        const serialized = JSON.stringify(userObj);
+        if (this.form.rememberMe) {
+          localStorage.setItem(SESSION_KEY, serialized);
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+        sessionStorage.setItem(SESSION_KEY, serialized);
+      } catch (e) {
+        console.warn('Gagal menyimpan sesi login:', e);
+      }
+    },
+
+    redirectToRoleDashboard(role, explicitBaseUrl = '') {
+      const targetPage = this.normalizeRole(role);
+      const baseUrl = explicitBaseUrl || this.webAppUrl || '';
+
+      const performTopNav = (url) => {
+        const finalUrl = this.buildPageUrl(url, targetPage);
+        this.redirectUrl = finalUrl;
+        this.restoringSession = true;
+        this.restoreProgress = 100;
+        this.alertType = 'success';
+        this.alertMsg = `Mengarahkan ke halaman ${targetPage.toUpperCase()}... Jika tidak otomatis berpindah, klik tombol "Buka Dashboard".`;
+
+        // Gunakan tautan <a target="_top"> yang paling kompatibel dengan sandbox Google Apps Script
+        try {
+          const a = document.createElement('a');
+          a.href = finalUrl;
+          a.target = '_top';
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (e) {
+          try {
+            window.open(finalUrl, '_top');
+          } catch (err) {}
+        }
+      };
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        if (baseUrl) {
+          performTopNav(baseUrl);
+        } else {
+          google.script.run
+            .withSuccessHandler(url => {
+              if (url && typeof url === 'string') {
+                this.webAppUrl = url;
+                try { localStorage.setItem(WEBAPP_URL_KEY, url); } catch (e) {}
+                performTopNav(url);
+              } else {
+                this.alertType = 'error';
+                this.alertMsg = 'URL Web App tidak ditemukan. Pastikan script sudah di-deploy sebagai Web App.';
+              }
+            })
+            .withFailureHandler(err => {
+              this.alertType = 'error';
+              this.alertMsg = 'Gagal mengambil URL halaman: ' + (err.message || err);
+            })
+            .getWebAppUrl();
+        }
+      } else {
+        this.restoreProgress = 100;
+        this.restoringSession = true;
+        this.alertType = 'success';
+        this.alertMsg = `Sesi ${targetPage.toUpperCase()} aktif & tersimpan otomatis saat halaman di-refresh.`;
+      }
+    },
+
+    submitLogin() {
+      const u = (this.form.username || '').trim();
+      const p = (this.form.password || '').trim();
+      if (!u || !p) {
+        this.alertType = 'error';
+        this.alertMsg = 'Username dan password wajib diisi.';
+        return;
+      }
+
+      this.isLoading = true;
+      this.alertMsg = '';
+
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(res => {
+            this.isLoading = false;
+            if (res && res.success) {
+              this.savedSessionUser = res;
+              if (res.webAppUrl) {
+                this.webAppUrl = res.webAppUrl;
+                try { localStorage.setItem(WEBAPP_URL_KEY, res.webAppUrl); } catch (e) {}
+              }
+              this.alertType = 'success';
+              this.alertMsg = `Selamat datang, ${res.fullName}! Membuka dashboard ${res.role.toUpperCase()}...`;
+              this.saveUserSession(res);
+              this.redirectToRoleDashboard(res.role, res.webAppUrl || this.webAppUrl);
+            } else {
+              this.alertType = 'error';
+              this.alertMsg = (res && res.message) ? res.message : 'Username atau password tidak sesuai.';
+            }
+          })
+          .withFailureHandler(err => {
+            this.isLoading = false;
+            this.alertType = 'error';
+            this.alertMsg = 'Gagal terhubung ke server: ' + (err.message || err);
+          })
+          .authenticateUser(u, p);
+      } else {
+        setTimeout(() => {
+          this.isLoading = false;
+          const inferredRole = u.toLowerCase().includes('admin')
+            ? 'admin'
+            : /^\d+$/.test(u) || u.toLowerCase().includes('siswa')
+              ? 'siswa'
+              : 'guru';
+
+          const sessionData = {
+            success: true,
+            userId: inferredRole === 'admin' ? 'usr_admin' : inferredRole === 'guru' ? 't-1' : 's1',
+            username: u,
+            role: inferredRole,
+            fullName: inferredRole === 'admin' ? 'Administrator Sekolah' : inferredRole === 'guru' ? 'Budi Santoso, S.Pd.' : 'Aditya Pratama',
+            nisNip: inferredRole === 'siswa' ? u : '19880412201501'
+          };
+
+          this.savedSessionUser = sessionData;
+          this.saveUserSession(sessionData);
+          this.redirectToRoleDashboard(sessionData.role);
+        }, 200);
+      }
+    }
+  }
+}).mount('#loginApp');
+</script>
+</body>
+</html>
