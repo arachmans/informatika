@@ -1049,7 +1049,7 @@ else:
    0. UTIL
    ========================================================== */
 function $(s){return document.querySelector(s)}
-function $(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function debounce(fn,ms){var t;return function(){var a=arguments,self=this;clearTimeout(t);t=setTimeout(function(){fn.apply(self,a)},ms)}}
@@ -1066,11 +1066,11 @@ function toast(msg,action){
   if(action){var b=document.createElement("button");b.textContent=action.label;b.onclick=function(){action.fn();clearTimeout(timer);kill()};el.appendChild(b)}
   box.appendChild(el);timer=setTimeout(kill,action?5200:2900);
 }
-window.addEventListener("error",function(){$(".rv-init").forEach(function(e){e.classList.add("in")})});
+window.addEventListener("error",function(){$$(".rv-init").forEach(function(e){e.classList.add("in")})});
 
 /* 1. REVEAL */
 safe("reveal",function(){
-  var els=$(".rv");
+  var els=$$(".rv");
   if(!("IntersectionObserver" in window)||RM){els.forEach(function(e){e.classList.add("in")});return}
   var fired=false;els.forEach(function(e){e.classList.add("rv-init")});
   var io=new IntersectionObserver(function(en){en.forEach(function(x){if(x.isIntersecting){fired=true;x.target.classList.add("in");io.unobserve(x.target)}})},{threshold:.06,rootMargin:"0px 0px -24px 0px"});
@@ -1160,7 +1160,7 @@ var markDone=(function(){
   var done={};
   try{done=JSON.parse(LS.get("algopy2_done")||"{}")||{}}catch(e){done={}}
   function paint(){
-    $(".path-stop").forEach(function(a){a.classList.toggle("done",!!done[a.getAttribute("data-key")])});
+    $$(".path-stop").forEach(function(a){a.classList.toggle("done",!!done[a.getAttribute("data-key")])});
   }
   paint();
   return function(k){if(done[k])return;done[k]=1;LS.set("algopy2_done",JSON.stringify(done));paint()};
@@ -1185,7 +1185,7 @@ function setLine(pre,i,cls){
   if(i==null||i<0)return;if(a[i])a[i].classList.add(cls||"hl");
 }
 safe("copy",function(){
-  $(".copy-btn").forEach(function(b){
+  $$(".copy-btn").forEach(function(b){
     b.addEventListener("click",function(){
       var pre=document.getElementById(b.getAttribute("data-copy"));if(!pre)return;
       var cl=pre.querySelectorAll(".cl");
@@ -2135,7 +2135,7 @@ safe("nav",function(){
   b.onclick=function(){var o=l.classList.toggle("open");b.classList.toggle("open",o);b.setAttribute("aria-expanded",String(o))};
   l.addEventListener("click",function(e){if(e.target.tagName==="A"){l.classList.remove("open");b.classList.remove("open");b.setAttribute("aria-expanded","false")}});
   addEventListener("resize",function(){if(innerWidth>1080){l.classList.remove("open");b.classList.remove("open")}});
-  var bar=$("#progressBar"),syms=$(".float-sym"),tick=false;
+  var bar=$("#progressBar"),syms=$$(".float-sym"),tick=false;
   function sc(){
     if(tick)return;tick=true;
     requestAnimationFrame(function(){
@@ -2147,13 +2147,13 @@ safe("nav",function(){
   }
   addEventListener("scroll",sc,{passive:true});sc();
   if("IntersectionObserver" in window){
-    var as=$("#navLinks a"),st=$(".path-stop");
+    var as=$$("#navLinks a"),st=$$(".path-stop");
     var io=new IntersectionObserver(function(en){en.forEach(function(x){
       if(x.isIntersecting){var id="#"+x.target.id;
         as.forEach(function(a){a.classList.toggle("act",a.getAttribute("href")===id)});
         st.forEach(function(a){a.classList.toggle("act",a.getAttribute("href")===id)});}
     })},{rootMargin:"-42% 0px -52% 0px"});
-    $("main section[id]").forEach(function(s){if(s.id!=="hero")io.observe(s)});
+    $$("main section[id]").forEach(function(s){if(s.id!=="hero")io.observe(s)});
   }
   wireSteppers(document);
 });
