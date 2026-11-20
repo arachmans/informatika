@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Python List — Materi, Simulator & Referensi Interaktif</title>
+
+    <!-- Google Fonts: Inter (Sans-serif) & JetBrains Mono (Monospace untuk kode) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Konfigurasi Tema Python & Animasi Kustom di Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+                    },
+                    colors: {
+                        pyblue: {
+                            DEFAULT: '#3776AB',
+                            dark: '#2B5B84',
+                            light: '#EBF4FB',
+                        },
+                        pyyellow: {
+                            DEFAULT: '#FFD43B',
+                            dark: '#E5B822',
+                            light: '#FFF9E0',
+                        }
+                    },
+                    keyframes: {
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.8) translateY(-10px)' },
+                            '70%': { transform: 'scale(1.05) translateY(0)' },
+                            '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+                        },
+                        pulseRing: {
+                            '0%': { boxShadow: '0 0 0 0 rgba(255, 212, 59, 0.7)' },
+                            '70%': { boxShadow: '0 0 0 10px rgba(255, 212, 59, 0)' },
+                            '100%': { boxShadow: '0 0 0 0 rgba(255, 212, 59, 0)' },
+                        }
+                    },
+                    animation: {
+                        'pop-in': 'popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-ring': 'pulseRing 1.4s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-pyyellow selection:text-slate-900">
+
+    <!-- Toast Notification Container (Pengganti alert()) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- ========================================================= -->
+    <!-- 1. HEADER & NAVIGASI                                      -->
+    <!-- ========================================================= -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Brand -->
+                <a href="#beranda" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pyblue to-pyblue-dark flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                        <!-- Inline SVG Python-inspired Brackets -->
+                        <svg class="w-6 h-6 text-pyyellow" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H5v16h3M16 4h3v16h-3M10 12h4"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-lg tracking-tight text-slate-900 block leading-none">
+                            Python<span class="text-pyblue">List</span>
+                        </span>
+                        <span class="text-xs font-medium text-slate-500">Panduan & Simulator Interaktif</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center gap-1">
+                    <a href="#materi" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-pyblue hover:bg-pyblue-light/60 transition-colors">Materi Dasar</a>
+                    <a href="#simulator" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-pyblue hover:bg-pyblue-light/60 transition-colors">Simulator List</a>
+                    <a href="#referensi" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-pyblue hover:bg-pyblue-light/60 transition-colors">Referensi Method</a>
+                    <a href="#kuis" class="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:text-pyblue hover:bg-pyblue-light/60 transition-colors">Mini Kuis</a>
+                </nav>
+
+                <!-- CTA & Mobile Toggle -->
+                <div class="flex items-center gap-2">
+                    <a href="#simulator" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-pyblue text-white text-sm font-semibold hover:bg-pyblue-dark transition-colors shadow-sm">
+                        <span>Coba Playground</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                    </a>
+                    <button id="mobile-menu-btn" type="button" aria-label="Buka menu navigasi" class="md:hidden p-2.5 rounded-xl text-slate-600 hover:bg-slate-100 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Navigation -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1 shadow-lg">
+            <a href="#materi" class="mobile-nav-link block px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-pyblue-light hover:text-pyblue">Materi Dasar</a>
+            <a href="#simulator" class="mobile-nav-link block px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-pyblue-light hover:text-pyblue">Simulator List</a>
+            <a href="#referensi" class="mobile-nav-link block px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-pyblue-light hover:text-pyblue">Referensi Method</a>
+            <a href="#kuis" class="mobile-nav-link block px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-pyblue-light hover:text-pyblue">Mini Kuis</a>
+        </div>
+    </header>
+
+    <!-- ========================================================= -->
+    <!-- HERO SECTION                                              -->
+    <!-- ========================================================= -->
+    <section id="beranda" class="relative overflow-hidden bg-gradient-to-b from-pyblue-light/70 via-white to-slate-50 pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-10 items-center">
+                <!-- Teks Hero -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-pyblue/20 shadow-sm text-xs font-bold text-pyblue uppercase tracking-wider">
+                        <span class="w-2 h-2 rounded-full bg-pyyellow animate-pulse"></span>
+                        Struktur Data Fundamental Python
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                        Kuasai <span class="text-pyblue">List di Python</span> dengan Visualisasi Interaktif
+                    </h1>
+                    <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
+                        Pelajari cara menyimpan, mengakses, memotong (<em>slicing</em>), dan memanipulasi kumpulan data menggunakan <strong>List</strong>. Eksperimen langsung dengan method seperti <code class="font-mono text-sm bg-slate-200/80 text-pyblue-dark px-1.5 py-0.5 rounded-md">append()</code>, <code class="font-mono text-sm bg-slate-200/80 text-pyblue-dark px-1.5 py-0.5 rounded-md">pop()</code>, dan <code class="font-mono text-sm bg-slate-200/80 text-pyblue-dark px-1.5 py-0.5 rounded-md">sort()</code> secara visual!
+                    </p>
+                    <div class="flex flex-wrap gap-3 pt-2">
+                        <a href="#simulator" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-pyblue text-white font-bold text-sm sm:text-base hover:bg-pyblue-dark transition-all shadow-md hover:shadow-lg">
+                            <svg class="w-5 h-5 text-pyyellow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Mulai Simulator List
+                        </a>
+                        <a href="#materi" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-slate-700 border border-slate-300 font-bold text-sm sm:text-base hover:bg-slate-100 transition-colors shadow-sm">
+                            Baca Materi Dasar
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Ilustrasi Editor Kode Hero -->
+                <div class="lg:col-span-5">
+                    <div class="bg-slate-900 rounded-2xl shadow-2xl border border-slate-700/80 overflow-hidden">
+                        <div class="flex items-center justify-between px-4 py-3 bg-slate-800/90 border-b border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            </div>
+                            <span class="font-mono text-xs text-slate-400">contoh_list.py</span>
+                        </div>
+                        <div class="p-5 font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto text-slate-200">
+<pre><code><span class="text-slate-500"># Membuat list buah-buahan</span>
+<span class="text-sky-300">buah</span> = [<span class="text-amber-300">"Apel"</span>, <span class="text-amber-300">"Jeruk"</span>, <span class="text-amber-300">"Mangga"</span>]
+
+<span class="text-slate-500"># Menambah elemen baru di akhir</span>
+<span class="text-sky-300">buah</span>.<span class="text-emerald-400">append</span>(<span class="text-amber-300">"Pisang"</span>)
+
+<span class="text-slate-500"># Mengakses indeks &amp; slicing</span>
+<span class="text-purple-400">print</span>(<span class="text-sky-300">buah</span>[<span class="text-orange-300">0</span>])      <span class="text-slate-500"># Output: Apel</span>
+<span class="text-purple-400">print</span>(<span class="text-sky-300">buah</span>[-<span class="text-orange-300">1</span>])     <span class="text-slate-500"># Output: Pisang</span>
+<span class="text-purple-400">print</span>(<span class="text-sky-300">buah</span>[<span class="text-orange-300">1</span>:<span class="text-orange-300">3</span>])    <span class="text-slate-500"># Output: ['Jeruk', 'Mangga']</span></code></pre>
+                        </div>
+                        <!-- Mini Visual Bar di bawah Editor -->
+                        <div class="px-5 py-3 bg-slate-800/60 border-t border-slate-700/80 flex items-center justify-between text-xs font-mono">
+                            <span class="text-emerald-400 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                len(buah) == 4
+                            </span>
+                            <span class="text-pyyellow">class 'list'</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">
+
+        <!-- ========================================================= -->
+        <!-- 2. BAGIAN MATERI DASAR PYTHON LIST                        -->
+        <!-- ========================================================= -->
+        <section id="materi" class="scroll-mt-24 space-y-10">
+            <div class="max-w-3xl">
+                <span class="text-xs font-bold uppercase tracking-wider text-pyblue">Bagian 01 • Konsep Dasar</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Apa itu List di Python?</h2>
+                <p class="text-slate-600 mt-3 leading-relaxed">
+                    <strong>List</strong> adalah struktur data bawaan di Python yang digunakan untuk menyimpan sekumpulan item dalam satu variabel. List ditulis menggunakan tanda kurung siku <code class="font-mono text-sm bg-slate-200 px-1.5 py-0.5 rounded-md text-pyblue-dark">[ ]</code> dan setiap elemennya dipisahkan oleh tanda koma.
+                </p>
+            </div>
+
+            <!-- 4 Karakteristik Utama List -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-pyblue/40 transition-colors">
+                    <div class="w-11 h-11 rounded-xl bg-pyblue-light text-pyblue flex items-center justify-center font-bold mb-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Terurut (Ordered)</h3>
+                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                        Setiap elemen memiliki posisi indeks tetap mulai dari <code class="font-mono text-xs bg-slate-100 px-1 rounded">0</code>. Urutan tidak berubah kecuali diubah secara eksplisit.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-pyblue/40 transition-colors">
+                    <div class="w-11 h-11 rounded-xl bg-pyyellow-light text-amber-600 flex items-center justify-center font-bold mb-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Dapat Diubah (Mutable)</h3>
+                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                        Isi list bisa ditambah, diubah nilainya, maupun dihapus kapan saja setelah list tersebut dibuat.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-pyblue/40 transition-colors">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold mb-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Tipe Data Campuran</h3>
+                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                        Satu list dapat menampung <code class="font-mono text-xs bg-slate-100 px-1 rounded">str</code>, <code class="font-mono text-xs bg-slate-100 px-1 rounded">int</code>, <code class="font-mono text-xs bg-slate-100 px-1 rounded">float</code>, <code class="font-mono text-xs bg-slate-100 px-1 rounded">bool</code>, bahkan list lain di dalamnya.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-pyblue/40 transition-colors">
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold mb-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base">Mendukung Duplikat</h3>
+                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                        List memperbolehkan adanya elemen dengan nilai yang sama persis karena setiap elemen dibedakan berdasarkan indeksnya.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Grid Materi Detail: Membuat List, Indexing, Slicing, & List Comprehension -->
+            <div class="grid lg:grid-cols-2 gap-6">
+
+                <!-- Kartu 1: Membuat List & Mengubah Elemen -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-6 pb-4">
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="font-bold text-lg text-slate-900">1. Membuat &amp; Mengubah List</h3>
+                            <span class="px-2.5 py-1 rounded-lg bg-pyblue-light text-pyblue text-xs font-bold">Dasar</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">
+                            List dapat dibuat kosong, berisi nilai seragam, ataupun campuran. Karena bersifat <em>mutable</em>, elemen bisa diganti langsung menggunakan indeksnya.
+                        </p>
+                    </div>
+                    <div class="mt-auto bg-slate-900 p-5 font-mono text-xs sm:text-sm text-slate-200 relative group">
+                        <button type="button" onclick="copyCodeBlock(this)" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-sans font-medium transition-colors">Salin</button>
+<pre class="overflow-x-auto pr-12"><code><span class="text-slate-500"># List kosong &amp; list campuran</span>
+kosong = []
+campuran = [<span class="text-amber-300">"Python"</span>, <span class="text-orange-300">3.12</span>, <span class="text-purple-400">True</span>, <span class="text-orange-300">2026</span>]
+
+<span class="text-slate-500"># Mengubah elemen pada indeks ke-1</span>
+campuran[<span class="text-orange-300">1</span>] = <span class="text-orange-300">3.13</span>
+<span class="text-purple-400">print</span>(campuran)
+<span class="text-emerald-400"># Output: ['Python', 3.13, True, 2026]</span></code></pre>
+                    </div>
+                </div>
+
+                <!-- Kartu 2: Indexing Positif & Negatif -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-6 pb-4">
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="font-bold text-lg text-slate-900">2. Indexing Positif &amp; Negatif</h3>
+                            <span class="px-2.5 py-1 rounded-lg bg-pyyellow-light text-amber-700 text-xs font-bold">Akses Elemen</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">
+                            <strong>Indeks positif</strong> dimulai dari <code class="font-mono text-xs bg-slate-100 px-1 rounded">0</code> (kiri ke kanan). <strong>Indeks negatif</strong> dimulai dari <code class="font-mono text-xs bg-slate-100 px-1 rounded">-1</code> (elemen terakhir, kanan ke kiri).
+                        </p>
+                        <!-- Mini Diagram Indeks -->
+                        <div class="mt-4 grid grid-cols-4 gap-2 text-center font-mono text-xs">
+                            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2">
+                                <div class="text-pyblue font-bold">0</div>
+                                <div class="my-1 py-1 rounded-lg bg-white border border-slate-200 font-semibold text-slate-800">"A"</div>
+                                <div class="text-rose-500 font-bold">-4</div>
+                            </div>
+                            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2">
+                                <div class="text-pyblue font-bold">1</div>
+                                <div class="my-1 py-1 rounded-lg bg-white border border-slate-200 font-semibold text-slate-800">"B"</div>
+                                <div class="text-rose-500 font-bold">-3</div>
+                            </div>
+                            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2">
+                                <div class="text-pyblue font-bold">2</div>
+                                <div class="my-1 py-1 rounded-lg bg-white border border-slate-200 font-semibold text-slate-800">"C"</div>
+                                <div class="text-rose-500 font-bold">-2</div>
+                            </div>
+                            <div class="rounded-xl bg-slate-50 border border-slate-200 p-2">
+                                <div class="text-pyblue font-bold">3</div>
+                                <div class="my-1 py-1 rounded-lg bg-white border border-slate-200 font-semibold text-slate-800">"D"</div>
+                                <div class="text-rose-500 font-bold">-1</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto bg-slate-900 p-5 font-mono text-xs sm:text-sm text-slate-200 relative">
+                        <button type="button" onclick="copyCodeBlock(this)" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-sans font-medium transition-colors">Salin</button>
+<pre class="overflow-x-auto pr-12"><code>huruf = [<span class="text-amber-300">"A"</span>, <span class="text-amber-300">"B"</span>, <span class="text-amber-300">"C"</span>, <span class="text-amber-300">"D"</span>]
+<span class="text-purple-400">print</span>(huruf[<span class="text-orange-300">0</span>])   <span class="text-emerald-400"># Output: A</span>
+<span class="text-purple-400">print</span>(huruf[-<span class="text-orange-300">1</span>])  <span class="text-emerald-400"># Output: D</span></code></pre>
+                    </div>
+                </div>
+
+                <!-- Kartu 3: Slicing -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-6 pb-4">
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="font-bold text-lg text-slate-900">3. Slicing (<code class="font-mono text-base text-pyblue">list[start:stop:step]</code>)</h3>
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold">Irisan</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">
+                            Slicing mengambil sebagian elemen dan menghasilkan <strong>list baru</strong>. Indeks <code class="font-mono text-xs bg-slate-100 px-1 rounded">start</code> bersifat inklusif (ikut), sedangkan <code class="font-mono text-xs bg-slate-100 px-1 rounded">stop</code> bersifat eksklusif (berhenti sebelum indeks tersebut).
+                        </p>
+                    </div>
+                    <div class="mt-auto bg-slate-900 p-5 font-mono text-xs sm:text-sm text-slate-200 relative">
+                        <button type="button" onclick="copyCodeBlock(this)" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-sans font-medium transition-colors">Salin</button>
+<pre class="overflow-x-auto pr-12"><code>angka = [<span class="text-orange-300">10</span>, <span class="text-orange-300">20</span>, <span class="text-orange-300">30</span>, <span class="text-orange-300">40</span>, <span class="text-orange-300">50</span>]
+
+<span class="text-purple-400">print</span>(angka[<span class="text-orange-300">1</span>:<span class="text-orange-300">4</span>])    <span class="text-emerald-400"># [20, 30, 40]</span>
+<span class="text-purple-400">print</span>(angka[:<span class="text-orange-300">3</span>])     <span class="text-emerald-400"># [10, 20, 30]</span>
+<span class="text-purple-400">print</span>(angka[::<span class="text-orange-300">2</span>])    <span class="text-emerald-400"># [10, 30, 50] (lompat 2)</span>
+<span class="text-purple-400">print</span>(angka[::-<span class="text-orange-300">1</span>])   <span class="text-emerald-400"># [50, 40, 30, 20, 10] (dibalik)</span></code></pre>
+                    </div>
+                </div>
+
+                <!-- Kartu 4: List Comprehension -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-6 pb-4">
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="font-bold text-lg text-slate-900">4. List Comprehension</h3>
+                            <span class="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-bold">Pythonic</span>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-2">
+                            Cara ringkas dan elegan di Python untuk membuat list baru berdasarkan perulangan (<em>loop</em>) dan kondisi tertentu hanya dalam satu baris kode.
+                        </p>
+                    </div>
+                    <div class="mt-auto bg-slate-900 p-5 font-mono text-xs sm:text-sm text-slate-200 relative">
+                        <button type="button" onclick="copyCodeBlock(this)" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-sans font-medium transition-colors">Salin</button>
+<pre class="overflow-x-auto pr-12"><code><span class="text-slate-500"># Membuat list kuadrat bilangan 1 sampai 5</span>
+kuadrat = [x**<span class="text-orange-300">2</span> <span class="text-purple-400">for</span> x <span class="text-purple-400">in</span> <span class="text-sky-300">range</span>(<span class="text-orange-300">1</span>, <span class="text-orange-300">6</span>)]
+<span class="text-emerald-400"># Output: [1, 4, 9, 16, 25]</span>
+
+<span class="text-slate-500"># Dengan filter kondisi (hanya bilangan genap)</span>
+genap = [x <span class="text-purple-400">for</span> x <span class="text-purple-400">in</span> <span class="text-sky-300">range</span>(<span class="text-orange-300">10</span>) <span class="text-purple-400">if</span> x % <span class="text-orange-300">2</span> == <span class="text-orange-300">0</span>]
+<span class="text-emerald-400"># Output: [0, 2, 4, 6, 8]</span></code></pre>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 3. SIMULATOR & VISUALISASI LIST INTERAKTIF (PLAYGROUND)   -->
+        <!-- ========================================================= -->
+        <section id="simulator" class="scroll-mt-24 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-pyblue">Bagian 02 • Playground Interaktif</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Simulator &amp; Visualisasi Python List</h2>
+                    <p class="text-slate-600 mt-2 max-w-2xl">
+                        Uji coba berbagai method dan slicing secara langsung. Perhatikan perubahan posisi elemen, indeks positif/negatif, serta kode Python yang tereksekusi!
+                    </p>
+                </div>
+
+                <!-- Pilihan Preset Data -->
+                <div class="flex flex-wrap items-center gap-2 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm self-start md:self-auto">
+                    <span class="text-xs font-semibold text-slate-500 px-2">Preset:</span>
+                    <button type="button" onclick="loadPreset('buah')" id="preset-buah" class="preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-pyblue text-white transition-colors">Buah</button>
+                    <button type="button" onclick="loadPreset('angka')" id="preset-angka" class="preset-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Angka</button>
+                    <button type="button" onclick="loadPreset('campuran')" id="preset-campuran" class="preset-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Campuran</button>
+                </div>
+            </div>
+
+            <!-- Area Visualisasi Utama -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+                <!-- Bar Informasi Variabel List -->
+                <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span class="font-mono text-sm font-bold text-pyblue bg-pyblue-light px-3 py-1 rounded-lg border border-pyblue/20">
+                            <span id="var-name-display">buah</span>
+                        </span>
+                        <span class="font-mono text-xs sm:text-sm text-slate-600 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                            len(<span class="var-name-inline">buah</span>) = <strong id="list-len-display" class="text-slate-900">5</strong>
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs font-medium">
+                        <span class="flex items-center gap-1.5 text-pyblue font-semibold">
+                            <span class="w-2.5 h-2.5 rounded-full bg-pyblue"></span> Indeks Positif
+                        </span>
+                        <span class="flex items-center gap-1.5 text-rose-500 font-semibold">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Indeks Negatif
+                        </span>
+                        <span class="flex items-center gap-1.5 text-amber-600 font-semibold">
+                            <span class="w-2.5 h-2.5 rounded-full bg-pyyellow border border-amber-400"></span> Disorot
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Panggung Kotak-Kotak Elemen List -->
+                <div class="p-6 sm:p-8 bg-gradient-to-b from-white to-slate-50/70">
+                    <div id="visual-list-container" class="flex flex-wrap items-center justify-center sm:justify-start gap-4 min-h-[152px]">
+                        <!-- Elemen dirender oleh JavaScript -->
+                    </div>
+
+                    <!-- Representasi Sintaks List Saat Ini -->
+                    <div class="mt-6 pt-4 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-mono text-xs sm:text-sm">
+                        <div class="text-slate-600 overflow-x-auto whitespace-nowrap pb-1 sm:pb-0">
+                            <span class="text-slate-400">Representasi:</span>
+                            <span id="raw-list-repr" class="text-slate-900 font-semibold ml-1"></span>
+                        </div>
+                        <span id="highlight-info-badge" class="hidden text-xs font-sans font-semibold px-3 py-1 rounded-full bg-pyyellow-light text-amber-800 border border-pyyellow self-start sm:self-auto"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid Kontrol Interaktif & Konsol Kode Python -->
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+
+                <!-- Panel Kontrol (Kiri: 7 kolom) -->
+                <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <!-- Tab Switcher: Method vs Slicing -->
+                    <div class="flex border-b border-slate-200 bg-slate-50/70 p-1.5 gap-1.5">
+                        <button type="button" id="tab-btn-methods" onclick="switchPlaygroundTab('methods')" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold bg-pyblue text-white shadow-sm transition-all">
+                            Operasi Method &amp; Fungsi
+                        </button>
+                        <button type="button" id="tab-btn-slicing" onclick="switchPlaygroundTab('slicing')" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200/60 transition-all">
+                            Simulator Slicing [start:stop:step]
+                        </button>
+                    </div>
+
+                    <!-- TAB 1: KONTROL METHOD LIST -->
+                    <div id="panel-methods" class="p-5 sm:p-6 space-y-5">
+                        <!-- Input Nilai & Indeks Bersama -->
+                        <div class="grid sm:grid-cols-12 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div class="sm:col-span-5">
+                                <label for="input-val" class="block text-xs font-bold text-slate-700 mb-1">Nilai Elemen (value)</label>
+                                <input id="input-val" type="text" placeholder="Contoh: Melon atau 99" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-pyblue focus:border-pyblue">
+                            </div>
+                            <div class="sm:col-span-4">
+                                <label for="input-type" class="block text-xs font-bold text-slate-700 mb-1">Tipe Nilai</label>
+                                <select id="input-type" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pyblue">
+                                    <option value="auto">Otomatis (Teks/Angka)</option>
+                                    <option value="str">String (Teks)</option>
+                                    <option value="num">Number (Angka)</option>
+                                    <option value="bool">Boolean (True/False)</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label for="input-idx" class="block text-xs font-bold text-slate-700 mb-1">Indeks (opsional)</label>
+                                <input id="input-idx" type="number" placeholder="0, 1, -1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-pyblue focus:border-pyblue">
+                            </div>
+                        </div>
+
+                        <!-- Grup Tombol: Menambah & Menghapus -->
+                        <div class="space-y-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Menambah &amp; Menghapus Elemen</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                <button type="button" onclick="execAppend()" class="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    append(val)
+                                </button>
+                                <button type="button" onclick="execInsert()" class="px-3 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    insert(i, val)
+                                </button>
+                                <button type="button" onclick="execPop()" class="px-3 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    pop(i)
+                                </button>
+                                <button type="button" onclick="execRemove()" class="px-3 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    remove(val)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grup Tombol: Mengurutkan & Pencarian -->
+                        <div class="space-y-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Urutan &amp; Pencarian</p>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                <button type="button" onclick="execSort(false)" class="px-3 py-2.5 rounded-xl bg-pyblue hover:bg-pyblue-dark text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    sort() ↑
+                                </button>
+                                <button type="button" onclick="execSort(true)" class="px-3 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    sort(reverse=True) ↓
+                                </button>
+                                <button type="button" onclick="execReverse()" class="px-3 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    reverse()
+                                </button>
+                                <button type="button" onclick="execCount()" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    count(val)
+                                </button>
+                                <button type="button" onclick="execIndex()" class="px-3 py-2.5 rounded-xl bg-pyyellow hover:bg-pyyellow-dark text-slate-900 font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    index(val)
+                                </button>
+                                <button type="button" onclick="execLen()" class="px-3 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-mono text-xs font-bold shadow-sm transition-all active:scale-95">
+                                    len(list)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grup Tombol: Reset & Clear -->
+                        <div class="pt-3 border-t border-slate-200 flex flex-wrap gap-2.5">
+                            <button type="button" onclick="execClear()" class="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-mono text-xs font-bold transition-colors">
+                                clear() — Kosongkan List
+                            </button>
+                            <button type="button" onclick="resetCurrentPreset()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors">
+                                ↺ Reset ke Data Awal
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: SIMULATOR SLICING INTERAKTIF -->
+                    <div id="panel-slicing" class="hidden p-5 sm:p-6 space-y-5">
+                        <p class="text-sm text-slate-600">
+                            Atur nilai <code class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded font-semibold">start</code>, <code class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded font-semibold">stop</code>, dan <code class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded font-semibold">step</code> (kosongkan jika ingin nilai bawaan). Elemen yang terpilih akan otomatis disorot pada visualisasi di atas!
+                        </p>
+
+                        <!-- Input Kontrol Slicing -->
+                        <div class="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <div>
+                                <label for="slice-start" class="block text-xs font-bold text-slate-700 mb-1">start</label>
+                                <input id="slice-start" type="number" oninput="updateSlicePreview()" placeholder="awal" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-pyblue">
+                            </div>
+                            <div>
+                                <label for="slice-stop" class="block text-xs font-bold text-slate-700 mb-1">stop</label>
+                                <input id="slice-stop" type="number" oninput="updateSlicePreview()" placeholder="akhir" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-pyblue">
+                            </div>
+                            <div>
+                                <label for="slice-step" class="block text-xs font-bold text-slate-700 mb-1">step</label>
+                                <input id="slice-step" type="number" oninput="updateSlicePreview()" placeholder="1" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-pyblue">
+                            </div>
+                        </div>
+
+                        <!-- Preset Cepat Slicing -->
+                        <div class="space-y-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Contoh Cepat Slicing</span>
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" onclick="applySlicePreset(1, 4, '')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pyblue-light hover:text-pyblue font-mono text-xs font-semibold transition-colors">[1:4]</button>
+                                <button type="button" onclick="applySlicePreset('', 3, '')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pyblue-light hover:text-pyblue font-mono text-xs font-semibold transition-colors">[:3]</button>
+                                <button type="button" onclick="applySlicePreset(2, '', '')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pyblue-light hover:text-pyblue font-mono text-xs font-semibold transition-colors">[2:]</button>
+                                <button type="button" onclick="applySlicePreset('', '', 2)" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pyblue-light hover:text-pyblue font-mono text-xs font-semibold transition-colors">[::2]</button>
+                                <button type="button" onclick="applySlicePreset('', '', -1)" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pyblue-light hover:text-pyblue font-mono text-xs font-semibold transition-colors">[::-1] (Balik)</button>
+                                <button type="button" onclick="applySlicePreset(-3, '', '')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pyblue-light hover:text-pyblue font-mono text-xs font-semibold transition-colors">[-3:]</button>
+                            </div>
+                        </div>
+
+                        <!-- Hasil Slicing Live -->
+                        <div class="bg-slate-900 rounded-xl p-4 font-mono text-xs sm:text-sm space-y-2 border border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-400 text-xs">Sintaks Python:</span>
+                                <button type="button" onclick="logCurrentSlice()" class="px-2.5 py-1 rounded-lg bg-pyblue hover:bg-pyblue-dark text-white font-sans text-xs font-semibold transition-colors">Catat ke Konsol</button>
+                            </div>
+                            <div id="slice-syntax-display" class="text-pyyellow font-bold text-base">buah[1:4]</div>
+                            <div class="pt-2 border-t border-slate-700/80">
+                                <span class="text-slate-400 text-xs block mb-1">Hasil List Baru:</span>
+                                <div id="slice-result-display" class="text-emerald-400 font-semibold break-all">[]</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Kode Python & Output (Kanan: 5 kolom) -->
+                <div class="lg:col-span-5 bg-slate-900 rounded-2xl border border-slate-700 shadow-lg overflow-hidden flex flex-col h-full min-h-[380px]">
+                    <div class="px-4 py-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            <h3 class="font-mono text-xs sm:text-sm font-bold text-slate-200">Kode Python &amp; Output</h3>
+                        </div>
+                        <button type="button" onclick="clearConsole()" class="text-xs font-medium text-slate-400 hover:text-white px-2 py-1 rounded-lg hover:bg-slate-700 transition-colors">
+                            Bersihkan Log
+                        </button>
+                    </div>
+
+                    <!-- Area Riwayat Perintah -->
+                    <div id="python-console" class="p-4 font-mono text-xs sm:text-sm space-y-2.5 overflow-y-auto max-h-[360px] flex-1 text-slate-200">
+                        <!-- Diisi secara dinamis oleh JS -->
+                    </div>
+
+                    <!-- Footer Ringkasan Cepat Fungsi Bawaan -->
+                    <div class="px-4 py-3 bg-slate-800/80 border-t border-slate-700 flex items-center justify-between text-xs font-mono text-slate-300">
+                        <span><span class="text-purple-400">len</span>(<span class="var-name-inline text-sky-300">buah</span>) &rarr; <strong id="console-len" class="text-pyyellow">5</strong></span>
+                        <span id="console-minmax" class="text-slate-400 truncate ml-2"></span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 4. REFERENSI LENGKAP METHOD & FUNGSI BAWAAN LIST          -->
+        <!-- ========================================================= -->
+        <section id="referensi" class="scroll-mt-24 space-y-6">
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-pyblue">Bagian 03 • Dokumentasi Ringkas</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Referensi Method &amp; Fungsi Bawaan List</h2>
+                    <p class="text-slate-600 mt-2 max-w-2xl">
+                        Daftar lengkap method yang menempel pada objek list (<code class="font-mono text-xs bg-slate-200 px-1.5 py-0.5 rounded">list.method()</code>) serta fungsi bawaan Python (<code class="font-mono text-xs bg-slate-200 px-1.5 py-0.5 rounded">fungsi(list)</code>).
+                    </p>
+                </div>
+
+                <!-- Pencarian Referensi -->
+                <div class="relative w-full lg:w-72">
+                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input id="ref-search" type="text" oninput="renderReferenceCards()" placeholder="Cari method (misal: pop, sort)..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-pyblue">
+                </div>
+            </div>
+
+            <!-- Filter Kategori -->
+            <div class="flex flex-wrap gap-2" id="ref-filter-container">
+                <button type="button" onclick="setRefFilter('semua')" data-cat="semua" class="ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-pyblue text-white shadow-sm transition-colors">Semua (17)</button>
+                <button type="button" onclick="setRefFilter('menambah')" data-cat="menambah" class="ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">Menambah</button>
+                <button type="button" onclick="setRefFilter('menghapus')" data-cat="menghapus" class="ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">Menghapus</button>
+                <button type="button" onclick="setRefFilter('mengurutkan')" data-cat="mengurutkan" class="ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">Mengurutkan</button>
+                <button type="button" onclick="setRefFilter('informasi')" data-cat="informasi" class="ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">Informasi &amp; Salin</button>
+                <button type="button" onclick="setRefFilter('bawaan')" data-cat="bawaan" class="ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">Fungsi Bawaan</button>
+            </div>
+
+            <!-- Grid Kartu Referensi -->
+            <div id="ref-cards-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dirender oleh JavaScript -->
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 5. MINI KUIS INTERAKTIF                                   -->
+        <!-- ========================================================= -->
+        <section id="kuis" class="scroll-mt-24">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
+                <!-- Header Kuis -->
+                <div class="bg-gradient-to-r from-pyblue to-pyblue-dark px-6 py-6 sm:px-8 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-pyyellow">Bagian 04 • Uji Pemahaman</span>
+                        <h2 class="text-2xl font-extrabold mt-1">Mini Kuis Python List</h2>
+                        <p class="text-sm text-sky-100 mt-1">Jawab 5 soal singkat tentang indexing, slicing, dan method list untuk menguji pemahamanmu.</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-2xl border border-white/20 self-start sm:self-auto">
+                        <div class="text-right">
+                            <span class="block text-xs text-sky-200">Skor Saat Ini</span>
+                            <span id="quiz-score-badge" class="font-mono font-bold text-lg text-pyyellow">0 / 5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 h-2">
+                    <div id="quiz-progress-bar" class="bg-pyyellow h-2 transition-all duration-300" style="width: 20%"></div>
+                </div>
+
+                <!-- Body Kuis -->
+                <div id="quiz-body" class="p-6 sm:p-8">
+                    <!-- Dirender dinamis oleh JavaScript -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- FOOTER                                                    -->
+    <!-- ========================================================= -->
+    <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+            <div class="flex items-center gap-2.5">
+                <span class="w-7 h-7 rounded-lg bg-pyblue text-pyyellow font-mono font-bold flex items-center justify-center text-xs">[]</span>
+                <span class="text-slate-200 font-bold">PythonList Interaktif</span>
+                <span class="hidden sm:inline text-slate-600">|</span>
+                <span class="text-xs text-slate-400">Media Pembelajaran Pemrograman Python</span>
+            </div>
+            <div class="flex items-center gap-5 text-xs font-medium">
+                <a href="#materi" class="hover:text-white transition-colors">Materi</a>
+                <a href="#simulator" class="hover:text-white transition-colors">Simulator</a>
+                <a href="#referensi" class="hover:text-white transition-colors">Referensi</a>
+                <a href="#kuis" class="hover:text-white transition-colors">Kuis</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================================================= -->
+    <!-- LOGIKA JAVASCRIPT INTERAKTIF                              -->
+    <!-- ========================================================= -->
+    <script>
+        /* =========================================================
+           1. UTILITAS UMUM: TOAST, FORMAT PYTHON, & SALIN KODE
+           ========================================================= */
+
+        /**
+         * Menampilkan notifikasi toast di pojok kanan bawah (pengganti alert()).
+         * @param {string} message - Pesan notifikasi.
+         * @param {'info'|'success'|'warning'|'error'} type - Jenis gaya notifikasi.
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+
+            const styles = {
+                info: 'bg-slate-900 text-white border-slate-700',
+                success: 'bg-emerald-700 text-white border-emerald-600',
+                warning: 'bg-amber-500 text-slate-900 border-amber-400',
+                error: 'bg-rose-600 text-white border-rose-500'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-lg text-sm font-medium flex items-center justify-between gap-3 animate-pop-in ${styles[type] || styles.info}`;
+            toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 260);
+            }, 3000);
+        }
+
+        /**
+         * Melakukan escape karakter HTML agar aman dirender.
+         */
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        /**
+         * Memformat nilai JavaScript menjadi representasi literal Python (misal: 'Apel', True, 42).
+         */
+        function toPythonRepr(val) {
+            if (typeof val === 'string') return `'${val.replace(/'/g, "\\'")}'`;
+            if (typeof val === 'boolean') return val ? 'True' : 'False';
+            if (val === null || val === undefined) return 'None';
+            return String(val);
+        }
+
+        /**
+         * Memformat array menjadi sintaks list Python.
+         */
+        function listToPythonRepr(arr) {
+            return '[' + arr.map(toPythonRepr).join(', ') + ']';
+        }
+
+        /**
+         * Mengembalikan nama tipe data Python untuk sebuah nilai.
+         */
+        function getPythonType(val) {
+            if (typeof val === 'string') return 'str';
+            if (typeof val === 'boolean') return 'bool';
+            if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'float';
+            return 'obj';
+        }
+
+        /**
+         * Menyalin teks blok kode menggunakan document.execCommand('copy').
+         */
+        function copyCodeBlock(btn) {
+            try {
+                const pre = btn.parentElement.querySelector('pre');
+                const text = pre ? pre.innerText : '';
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                const oldLabel = btn.textContent;
+                btn.textContent = 'Tersalin!';
+                showToast('Kode berhasil disalin ke clipboard.', 'success');
+                setTimeout(() => { btn.textContent = oldLabel; }, 1500);
+            } catch (err) {
+                showToast('Gagal menyalin kode.', 'error');
+            }
+        }
+
+        /* =========================================================
+           2. MENU MOBILE
+           ========================================================= */
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        /* =========================================================
+           3. STATE & LOGIKA SIMULATOR PYTHON LIST
+           ========================================================= */
+        const PRESETS = {
+            buah: {
+                name: 'buah',
+                data: ['Apel', 'Jeruk', 'Mangga', 'Pisang', 'Anggur']
+            },
+            angka: {
+                name: 'angka',
+                data: [42, 10, 85, 23, 10, 5]
+            },
+            campuran: {
+                name: 'data',
+                data: ['Python', 3.12, true, 2026, 'List']
+            }
+        };
+
+        let activePresetKey = 'buah';
+        let currentVarName = PRESETS.buah.name;
+        let currentList = [...PRESETS.buah.data];
+        let highlightedIndices = []; // Indeks yang disorot (dari count/index/slicing)
+        let sliceOrderMap = {};      // Memetakan indeks asli -> urutan ke-berapa dalam hasil slice
+        let newlyAddedIndex = -1;    // Indeks yang baru ditambahkan agar mendapat animasi pop-in
+        let activeTab = 'methods';   // 'methods' atau 'slicing'
+
+        /**
+         * Memuat preset data tertentu ke simulator.
+         */
+        function loadPreset(key) {
+            if (!PRESETS[key]) return;
+            activePresetKey = key;
+            currentVarName = PRESETS[key].name;
+            currentList = [...PRESETS[key].data];
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            newlyAddedIndex = -1;
+
+            // Perbarui gaya tombol preset
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.className = 'preset-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors';
+            });
+            const activeBtn = document.getElementById(`preset-${key}`);
+            if (activeBtn) {
+                activeBtn.className = 'preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-pyblue text-white transition-colors';
+            }
+
+            // Perbarui nama variabel di UI
+            document.getElementById('var-name-display').textContent = currentVarName;
+            document.querySelectorAll('.var-name-inline').forEach(el => {
+                el.textContent = currentVarName;
+            });
+
+            appendConsole(`${currentVarName} = ${listToPythonRepr(currentList)}`, null, 'info');
+            if (activeTab === 'slicing') {
+                updateSlicePreview();
+            } else {
+                renderVisualList();
+            }
+        }
+
+        /**
+         * Mengembalikan list saat ini ke data awal preset aktif.
+         */
+        function resetCurrentPreset() {
+            loadPreset(activePresetKey);
+            showToast(`List '${currentVarName}' dikembalikan ke data awal.`, 'info');
+        }
+
+        /**
+         * Merender kotak-kotak elemen list beserta indeks positif dan negatif.
+         */
+        function renderVisualList(infoBadgeText = '') {
+            const container = document.getElementById('visual-list-container');
+            const lenDisplay = document.getElementById('list-len-display');
+            const consoleLen = document.getElementById('console-len');
+            const rawRepr = document.getElementById('raw-list-repr');
+            const badge = document.getElementById('highlight-info-badge');
+            const minMaxEl = document.getElementById('console-minmax');
+
+            const n = currentList.length;
+            lenDisplay.textContent = n;
+            consoleLen.textContent = n;
+            rawRepr.textContent = `${currentVarName} = ${listToPythonRepr(currentList)}`;
+
+            // Info min/max/sum jika semua elemen berupa angka
+            if (n > 0 && currentList.every(v => typeof v === 'number')) {
+                const minVal = Math.min(...currentList);
+                const maxVal = Math.max(...currentList);
+                const sumVal = currentList.reduce((a, b) => a + b, 0);
+                minMaxEl.textContent = `min: ${minVal} | max: ${maxVal} | sum: ${Number.isInteger(sumVal) ? sumVal : sumVal.toFixed(2)}`;
+            } else {
+                minMaxEl.textContent = n === 0 ? 'List kosong' : 'Tipe: ' + [...new Set(currentList.map(getPythonType))].join(', ');
+            }
+
+            if (infoBadgeText) {
+                badge.textContent = infoBadgeText;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if (n === 0) {
+                container.innerHTML = `
+                    <div class="w-full py-10 text-center border-2 border-dashed border-slate-300 rounded-2xl bg-white/60">
+                        <p class="font-mono text-lg font-bold text-slate-400">[]</p>
+                        <p class="text-sm text-slate-500 mt-1">List masih kosong. Gunakan <strong>append()</strong> atau <strong>Reset</strong> untuk mengisi data.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = currentList.map((item, idx) => {
+                const negIdx = idx - n;
+                const pyType = getPythonType(item);
+                const isHighlighted = highlightedIndices.includes(idx);
+                const isNew = idx === newlyAddedIndex;
+                const sliceOrder = sliceOrderMap[idx];
+
+                // Warna nilai sesuai tipe data Python
+                let valColor = 'text-slate-900';
+                if (pyType === 'str') valColor = 'text-emerald-700';
+                else if (pyType === 'int' || pyType === 'float') valColor = 'text-pyblue-dark';
+                else if (pyType === 'bool') valColor = 'text-purple-700';
+
+                const cardStyle = isHighlighted
+                    ? 'bg-pyyellow-light border-pyyellow ring-2 ring-pyyellow/80 shadow-md -translate-y-1'
+                    : 'bg-white border-slate-200 hover:border-pyblue/50 shadow-sm';
+
+                const animClass = isNew ? 'animate-pop-in' : '';
+
+                return `
+                    <div class="flex flex-col items-center gap-1.5 transition-all duration-300 ${animClass}">
+                        <!-- Indeks Positif -->
+                        <span class="px-2 py-0.5 rounded-md text-xs font-mono font-bold ${isHighlighted ? 'bg-pyblue text-white' : 'bg-pyblue-light text-pyblue'}">
+                            ${idx}
+                        </span>
+
+                        <!-- Kotak Nilai Elemen -->
+                        <div class="relative min-w-[88px] sm:min-w-[98px] px-3.5 py-3.5 rounded-2xl border-2 text-center transition-all duration-300 ${cardStyle}">
+                            ${sliceOrder !== undefined ? `<span class="absolute -top-2.5 -right-2 w-5 h-5 rounded-full bg-slate-900 text-pyyellow text-[10px] font-mono font-bold flex items-center justify-center shadow">#${sliceOrder + 1}</span>` : ''}
+                            <div class="font-mono font-bold text-sm sm:text-base ${valColor} break-all">
+                                ${escapeHtml(toPythonRepr(item))}
+                            </div>
+                            <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 mt-1">
+                                ${pyType}
+                            </div>
+                        </div>
+
+                        <!-- Indeks Negatif -->
+                        <span class="px-2 py-0.5 rounded-md text-xs font-mono font-bold ${isHighlighted ? 'bg-rose-500 text-white' : 'bg-rose-50 text-rose-500'}">
+                            ${negIdx}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            // Reset flag animasi baru agar tidak berulang
+            newlyAddedIndex = -1;
+        }
+
+        /**
+         * Menambahkan entri ke panel konsol "Kode Python & Output".
+         */
+        function appendConsole(command, output = null, status = 'normal') {
+            const consoleEl = document.getElementById('python-console');
+            const entry = document.createElement('div');
+            entry.className = 'border-b border-slate-800/80 pb-2 last:border-b-0';
+
+            let outputHtml = '';
+            if (output !== null && output !== undefined) {
+                const colorClass = status === 'error'
+                    ? 'text-rose-400'
+                    : status === 'highlight'
+                        ? 'text-pyyellow'
+                        : 'text-emerald-400';
+                outputHtml = `<div class="${colorClass} pl-4 mt-0.5 break-all">${escapeHtml(output)}</div>`;
+            }
+
+            entry.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <span class="text-pyblue font-bold select-none">&gt;&gt;&gt;</span>
+                    <span class="text-slate-100 break-all">${escapeHtml(command)}</span>
+                </div>
+                ${outputHtml}
+            `;
+
+            consoleEl.appendChild(entry);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function clearConsole() {
+            const consoleEl = document.getElementById('python-console');
+            consoleEl.innerHTML = '';
+            appendConsole(`# Konsol dibersihkan. State saat ini:`, `${currentVarName} = ${listToPythonRepr(currentList)}`);
+        }
+
+        /**
+         * Membaca dan mengonversi nilai input pengguna sesuai tipe yang dipilih.
+         */
+        function parseInputValue() {
+            const raw = document.getElementById('input-val').value.trim();
+            const mode = document.getElementById('input-type').value;
+
+            if (raw === '') return { valid: false, value: null };
+
+            if (mode === 'str') return { valid: true, value: raw };
+            if (mode === 'num') {
+                const num = Number(raw);
+                if (Number.isNaN(num)) {
+                    showToast('Input bukan angka yang valid.', 'error');
+                    return { valid: false, value: null };
+                }
+                return { valid: true, value: num };
+            }
+            if (mode === 'bool') {
+                if (raw.toLowerCase() === 'true') return { valid: true, value: true };
+                if (raw.toLowerCase() === 'false') return { valid: true, value: false };
+                showToast('Untuk Boolean, ketik True atau False.', 'error');
+                return { valid: false, value: null };
+            }
+
+            // Mode otomatis
+            if (raw === 'True') return { valid: true, value: true };
+            if (raw === 'False') return { valid: true, value: false };
+            if (!Number.isNaN(Number(raw)) && raw !== '') return { valid: true, value: Number(raw) };
+            return { valid: true, value: raw };
+        }
+
+        /* --- Implementasi Operasi Method List --- */
+
+        function execAppend() {
+            const parsed = parseInputValue();
+            if (!parsed.valid) {
+                showToast('Masukkan nilai elemen terlebih dahulu untuk append().', 'warning');
+                return;
+            }
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            currentList.push(parsed.value);
+            newlyAddedIndex = currentList.length - 1;
+            highlightedIndices = [newlyAddedIndex];
+
+            appendConsole(`${currentVarName}.append(${toPythonRepr(parsed.value)})`, `# List kini memiliki ${currentList.length} elemen`);
+            renderVisualList(`Elemen ${toPythonRepr(parsed.value)} ditambahkan di akhir`);
+            document.getElementById('input-val').value = '';
+        }
+
+        function execInsert() {
+            const parsed = parseInputValue();
+            if (!parsed.valid) {
+                showToast('Masukkan nilai elemen untuk insert(indeks, nilai).', 'warning');
+                return;
+            }
+            const idxRaw = document.getElementById('input-idx').value;
+            const rawIdx = idxRaw === '' ? 0 : parseInt(idxRaw, 10);
+
+            // Normalisasi indeks sesuai perilaku list.insert() di Python
+            let targetIdx = rawIdx;
+            if (targetIdx < 0) targetIdx = Math.max(0, currentList.length + targetIdx);
+            if (targetIdx > currentList.length) targetIdx = currentList.length;
+
+            currentList.splice(targetIdx, 0, parsed.value);
+            newlyAddedIndex = targetIdx;
+            highlightedIndices = [targetIdx];
+            sliceOrderMap = {};
+
+            appendConsole(`${currentVarName}.insert(${rawIdx}, ${toPythonRepr(parsed.value)})`, `# Disisipkan di indeks ${targetIdx}`);
+            renderVisualList(`Disisipkan di indeks ${targetIdx}`);
+            document.getElementById('input-val').value = '';
+        }
+
+        function execPop() {
+            if (currentList.length === 0) {
+                appendConsole(`${currentVarName}.pop()`, `IndexError: pop from empty list`, 'error');
+                showToast('IndexError: Tidak bisa pop() dari list kosong!', 'error');
+                return;
+            }
+            const idxRaw = document.getElementById('input-idx').value;
+            let removed;
+            let cmd;
+
+            if (idxRaw === '') {
+                removed = currentList.pop();
+                cmd = `${currentVarName}.pop()`;
+            } else {
+                const rawIdx = parseInt(idxRaw, 10);
+                const normIdx = rawIdx < 0 ? currentList.length + rawIdx : rawIdx;
+                if (normIdx < 0 || normIdx >= currentList.length) {
+                    appendConsole(`${currentVarName}.pop(${rawIdx})`, `IndexError: pop index out of range`, 'error');
+                    showToast(`IndexError: Indeks ${rawIdx} di luar jangkauan!`, 'error');
+                    return;
+                }
+                removed = currentList.splice(normIdx, 1)[0];
+                cmd = `${currentVarName}.pop(${rawIdx})`;
+            }
+
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            appendConsole(cmd, `${toPythonRepr(removed)}  # Elemen yang dihapus & dikembalikan`, 'highlight');
+            renderVisualList(`pop() mengembalikan ${toPythonRepr(removed)}`);
+        }
+
+        function execRemove() {
+            const parsed = parseInputValue();
+            if (!parsed.valid) {
+                showToast('Masukkan nilai yang ingin dihapus untuk remove().', 'warning');
+                return;
+            }
+            const foundIdx = currentList.findIndex(item => item === parsed.value);
+            if (foundIdx === -1) {
+                appendConsole(`${currentVarName}.remove(${toPythonRepr(parsed.value)})`, `ValueError: list.remove(x): x not in list`, 'error');
+                showToast(`ValueError: ${toPythonRepr(parsed.value)} tidak ditemukan di list.`, 'error');
+                return;
+            }
+            currentList.splice(foundIdx, 1);
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            appendConsole(`${currentVarName}.remove(${toPythonRepr(parsed.value)})`, `# Kemunculan pertama di indeks ${foundIdx} dihapus`);
+            renderVisualList(`Nilai ${toPythonRepr(parsed.value)} dihapus`);
+        }
+
+        function execSort(isDescending) {
+            if (currentList.length <= 1) {
+                appendConsole(`${currentVarName}.sort(${isDescending ? 'reverse=True' : ''})`, listToPythonRepr(currentList));
+                return;
+            }
+
+            // Cek keseragaman tipe seperti Python 3 (str tidak bisa dibanding dengan int/float)
+            const hasString = currentList.some(v => typeof v === 'string');
+            const hasNonString = currentList.some(v => typeof v !== 'string');
+            if (hasString && hasNonString) {
+                const cmd = `${currentVarName}.sort(${isDescending ? 'reverse=True' : ''})`;
+                appendConsole(cmd, `TypeError: '<' not supported between instances of 'str' and 'int'/'float'`, 'error');
+                showToast('TypeError: Python tidak bisa mengurutkan campuran teks & angka!', 'error');
+                return;
+            }
+
+            currentList.sort((a, b) => {
+                if (typeof a === 'string') {
+                    return isDescending ? b.localeCompare(a) : a.localeCompare(b);
+                }
+                return isDescending ? Number(b) - Number(a) : Number(a) - Number(b);
+            });
+
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            const cmd = isDescending ? `${currentVarName}.sort(reverse=True)` : `${currentVarName}.sort()`;
+            appendConsole(cmd, listToPythonRepr(currentList));
+            renderVisualList(isDescending ? 'Diurutkan menurun (Z-A / Besar-Kecil)' : 'Diurutkan menaik (A-Z / Kecil-Besar)');
+        }
+
+        function execReverse() {
+            currentList.reverse();
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            appendConsole(`${currentVarName}.reverse()`, listToPythonRepr(currentList));
+            renderVisualList('Urutan elemen dibalik secara langsung');
+        }
+
+        function execCount() {
+            const parsed = parseInputValue();
+            if (!parsed.valid) {
+                showToast('Masukkan nilai yang ingin dihitung untuk count().', 'warning');
+                return;
+            }
+            const matches = [];
+            currentList.forEach((item, idx) => {
+                if (item === parsed.value) matches.push(idx);
+            });
+            highlightedIndices = matches;
+            sliceOrderMap = {};
+            appendConsole(`${currentVarName}.count(${toPythonRepr(parsed.value)})`, `${matches.length}`, 'highlight');
+            renderVisualList(`Ditemukan ${matches.length} kali`);
+        }
+
+        function execIndex() {
+            const parsed = parseInputValue();
+            if (!parsed.valid) {
+                showToast('Masukkan nilai yang ingin dicari indeksnya untuk index().', 'warning');
+                return;
+            }
+            const foundIdx = currentList.findIndex(item => item === parsed.value);
+            if (foundIdx === -1) {
+                highlightedIndices = [];
+                sliceOrderMap = {};
+                appendConsole(`${currentVarName}.index(${toPythonRepr(parsed.value)})`, `ValueError: ${toPythonRepr(parsed.value)} is not in list`, 'error');
+                showToast(`ValueError: ${toPythonRepr(parsed.value)} tidak ada di dalam list.`, 'error');
+                renderVisualList();
+                return;
+            }
+            highlightedIndices = [foundIdx];
+            sliceOrderMap = {};
+            appendConsole(`${currentVarName}.index(${toPythonRepr(parsed.value)})`, `${foundIdx}`, 'highlight');
+            renderVisualList(`Pertama kali ditemukan di indeks ${foundIdx}`);
+        }
+
+        function execLen() {
+            appendConsole(`len(${currentVarName})`, `${currentList.length}`, 'highlight');
+            showToast(`Panjang list '${currentVarName}' adalah ${currentList.length}.`, 'info');
+        }
+
+        function execClear() {
+            currentList = [];
+            highlightedIndices = [];
+            sliceOrderMap = {};
+            appendConsole(`${currentVarName}.clear()`, `[]  # Semua elemen dihapus`);
+            renderVisualList('List dikosongkan');
+        }
+
+        /* =========================================================
+           4. SIMULATOR SLICING INTERAKTIF (SESUAI ATURAN CPYTHON)
+           ========================================================= */
+
+        function switchPlaygroundTab(tab) {
+            activeTab = tab;
+            const btnMethods = document.getElementById('tab-btn-methods');
+            const btnSlicing = document.getElementById('tab-btn-slicing');
+            const panelMethods = document.getElementById('panel-methods');
+            const panelSlicing = document.getElementById('panel-slicing');
+
+            if (tab === 'methods') {
+                btnMethods.className = 'flex-1 py-2.5 px-4 rounded-xl text-sm font-bold bg-pyblue text-white shadow-sm transition-all';
+                btnSlicing.className = 'flex-1 py-2.5 px-4 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200/60 transition-all';
+                panelMethods.classList.remove('hidden');
+                panelSlicing.classList.add('hidden');
+                highlightedIndices = [];
+                sliceOrderMap = {};
+                renderVisualList();
+            } else {
+                btnSlicing.className = 'flex-1 py-2.5 px-4 rounded-xl text-sm font-bold bg-pyblue text-white shadow-sm transition-all';
+                btnMethods.className = 'flex-1 py-2.5 px-4 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200/60 transition-all';
+                panelSlicing.classList.remove('hidden');
+                panelMethods.classList.add('hidden');
+                updateSlicePreview();
+            }
+        }
+
+        /**
+         * Menghitung hasil slicing persis seperti Python: arr[start:stop:step]
+         * Mengembalikan daftar indeks asli yang terpilih dan array nilainya.
+         */
+        function computePythonSlice(arr, startStr, stopStr, stepStr) {
+            const len = arr.length;
+            const step = stepStr === '' ? 1 : parseInt(stepStr, 10);
+
+            if (step === 0 || Number.isNaN(step)) {
+                return { error: 'ValueError: slice step cannot be zero', indices: [], result: [] };
+            }
+
+            let start, stop;
+            if (step > 0) {
+                start = startStr === '' ? 0 : parseInt(startStr, 10);
+                stop = stopStr === '' ? len : parseInt(stopStr, 10);
+
+                if (start < 0) start = Math.max(0, len + start);
+                else if (start > len) start = len;
+
+                if (stop < 0) stop = Math.max(0, len + stop);
+                else if (stop > len) stop = len;
+
+                const indices = [];
+                for (let i = start; i < stop; i += step) {
+                    indices.push(i);
+                }
+                return { error: null, indices, result: indices.map(i => arr[i]) };
+            } else {
+                start = startStr === '' ? len - 1 : parseInt(startStr, 10);
+                stop = stopStr === '' ? -1 : parseInt(stopStr, 10);
+
+                if (start < 0) start = len + start;
+                if (start >= len) start = len - 1;
+
+                if (stopStr !== '') {
+                    if (stop < 0) stop = len + stop;
+                    if (stop < -1) stop = -1;
+                }
+
+                const indices = [];
+                for (let i = start; i > stop; i += step) {
+                    if (i >= 0 && i < len) indices.push(i);
+                }
+                return { error: null, indices, result: indices.map(i => arr[i]) };
+            }
+        }
+
+        function getSliceSyntaxString(startStr, stopStr, stepStr) {
+            if (stepStr === '') {
+                return `${currentVarName}[${startStr}:${stopStr}]`;
+            }
+            return `${currentVarName}[${startStr}:${stopStr}:${stepStr}]`;
+        }
+
+        function applySlicePreset(s, e, st) {
+            document.getElementById('slice-start').value = s;
+            document.getElementById('slice-stop').value = e;
+            document.getElementById('slice-step').value = st;
+            updateSlicePreview();
+        }
+
+        function updateSlicePreview() {
+            const startStr = document.getElementById('slice-start').value.trim();
+            const stopStr = document.getElementById('slice-stop').value.trim();
+            const stepStr = document.getElementById('slice-step').value.trim();
+
+            const syntaxEl = document.getElementById('slice-syntax-display');
+            const resultEl = document.getElementById('slice-result-display');
+
+            const syntax = getSliceSyntaxString(startStr, stopStr, stepStr);
+            syntaxEl.textContent = syntax;
+
+            const sliceData = computePythonSlice(currentList, startStr, stopStr, stepStr);
+            if (sliceData.error) {
+                resultEl.textContent = sliceData.error;
+                resultEl.className = 'text-rose-400 font-semibold break-all';
+                highlightedIndices = [];
+                sliceOrderMap = {};
+                renderVisualList('Step tidak boleh 0');
+                return;
+            }
+
+            resultEl.textContent = listToPythonRepr(sliceData.result);
+            resultEl.className = 'text-emerald-400 font-semibold break-all';
+
+            highlightedIndices = sliceData.indices;
+            sliceOrderMap = {};
+            sliceData.indices.forEach((origIdx, order) => {
+                sliceOrderMap[origIdx] = order;
+            });
+
+            renderVisualList(`Slicing memilih ${sliceData.result.length} elemen`);
+        }
+
+        function logCurrentSlice() {
+            const startStr = document.getElementById('slice-start').value.trim();
+            const stopStr = document.getElementById('slice-stop').value.trim();
+            const stepStr = document.getElementById('slice-step').value.trim();
+            const syntax = getSliceSyntaxString(startStr, stopStr, stepStr);
+            const sliceData = computePythonSlice(currentList, startStr, stopStr, stepStr);
+
+            if (sliceData.error) {
+                appendConsole(syntax, sliceData.error, 'error');
+            } else {
+                appendConsole(syntax, listToPythonRepr(sliceData.result), 'highlight');
+                showToast('Hasil slicing dicatat ke konsol.', 'success');
+            }
+        }
+
+        /* =========================================================
+           5. DATA & RENDER REFERENSI METHOD & FUNGSI BAWAAN
+           ========================================================= */
+        const REFERENCE_ITEMS = [
+            // Method Menambah
+            {
+                name: 'append()',
+                syntax: 'list.append(x)',
+                category: 'menambah',
+                catLabel: 'Menambah',
+                desc: 'Menambahkan satu elemen baru x ke posisi paling akhir dari list.',
+                code: "a = [1, 2]\na.append(3)\n# Output: [1, 2, 3]"
+            },
+            {
+                name: 'extend()',
+                syntax: 'list.extend(iterable)',
+                category: 'menambah',
+                catLabel: 'Menambah',
+                desc: 'Menambahkan semua elemen dari list/iterable lain ke akhir list saat ini.',
+                code: "a = [1, 2]\na.extend([3, 4])\n# Output: [1, 2, 3, 4]"
+            },
+            {
+                name: 'insert()',
+                syntax: 'list.insert(i, x)',
+                category: 'menambah',
+                catLabel: 'Menambah',
+                desc: 'Menyisipkan elemen x pada posisi indeks i tanpa menghapus elemen lama.',
+                code: "a = ['A', 'C']\na.insert(1, 'B')\n# Output: ['A', 'B', 'C']"
+            },
+            // Method Menghapus
+            {
+                name: 'remove()',
+                syntax: 'list.remove(x)',
+                category: 'menghapus',
+                catLabel: 'Menghapus',
+                desc: 'Menghapus kemunculan pertama dari elemen bernilai x. Error jika tidak ditemukan.',
+                code: "a = [10, 20, 10]\na.remove(10)\n# Output: [20, 10]"
+            },
+            {
+                name: 'pop()',
+                syntax: 'list.pop([i])',
+                category: 'menghapus',
+                catLabel: 'Menghapus',
+                desc: 'Menghapus sekaligus mengembalikan elemen pada indeks i (bawaan: elemen terakhir).',
+                code: "a = ['X', 'Y', 'Z']\nhapus = a.pop(1)\n# hapus = 'Y', a = ['X', 'Z']"
+            },
+            {
+                name: 'clear()',
+                syntax: 'list.clear()',
+                category: 'menghapus',
+                catLabel: 'Menghapus',
+                desc: 'Menghapus seluruh elemen di dalam list sehingga menjadi list kosong [].',
+                code: "a = [1, 2, 3]\na.clear()\n# Output: []"
+            },
+            // Method Mengurutkan
+            {
+                name: 'sort()',
+                syntax: 'list.sort(reverse=False)',
+                category: 'mengurutkan',
+                catLabel: 'Mengurutkan',
+                desc: 'Mengurutkan elemen list secara langsung (in-place). Gunakan reverse=True untuk urutan menurun.',
+                code: "a = [3, 1, 2]\na.sort()\n# Output: [1, 2, 3]"
+            },
+            {
+                name: 'reverse()',
+                syntax: 'list.reverse()',
+                category: 'mengurutkan',
+                catLabel: 'Mengurutkan',
+                desc: 'Membalik urutan seluruh elemen di dalam list secara langsung (tanpa mengurutkan nilai).',
+                code: "a = ['satu', 'dua', 'tiga']\na.reverse()\n# Output: ['tiga', 'dua', 'satu']"
+            },
+            // Method Informasi & Salin
+            {
+                name: 'index()',
+                syntax: 'list.index(x)',
+                category: 'informasi',
+                catLabel: 'Informasi & Salin',
+                desc: 'Mengembalikan nomor indeks dari kemunculan pertama elemen bernilai x.',
+                code: "a = ['Apel', 'Jeruk', 'Mangga']\nprint(a.index('Jeruk'))\n# Output: 1"
+            },
+            {
+                name: 'count()',
+                syntax: 'list.count(x)',
+                category: 'informasi',
+                catLabel: 'Informasi & Salin',
+                desc: 'Menghitung berapa kali elemen bernilai x muncul di dalam list.',
+                code: "a = [5, 2, 5, 8, 5]\nprint(a.count(5))\n# Output: 3"
+            },
+            {
+                name: 'copy()',
+                syntax: 'list.copy()',
+                category: 'informasi',
+                catLabel: 'Informasi & Salin',
+                desc: 'Membuat salinan dangkal (shallow copy) list baru agar perubahan tidak memengaruhi list asli.',
+                code: "a = [1, 2]\nb = a.copy()\nb.append(3)\n# a = [1, 2], b = [1, 2, 3]"
+            },
+            // Fungsi Bawaan Python (Built-in Functions)
+            {
+                name: 'len()',
+                syntax: 'len(list)',
+                category: 'bawaan',
+                catLabel: 'Fungsi Bawaan',
+                desc: 'Mengembalikan jumlah total elemen yang ada di dalam list.',
+                code: "buah = ['Apel', 'Jeruk', 'Mangga']\nprint(len(buah))\n# Output: 3"
+            },
+            {
+                name: 'min()',
+                syntax: 'min(list)',
+                category: 'bawaan',
+                catLabel: 'Fungsi Bawaan',
+                desc: 'Mengembalikan elemen dengan nilai terkecil di dalam list (harus bertipe sebanding).',
+                code: "nilai = [75, 90, 60, 85]\nprint(min(nilai))\n# Output: 60"
+            },
+            {
+                name: 'max()',
+                syntax: 'max(list)',
+                category: 'bawaan',
+                catLabel: 'Fungsi Bawaan',
+                desc: 'Mengembalikan elemen dengan nilai terbesar di dalam list.',
+                code: "nilai = [75, 90, 60, 85]\nprint(max(nilai))\n# Output: 90"
+            },
+            {
+                name: 'sum()',
+                syntax: 'sum(list)',
+                category: 'bawaan',
+                catLabel: 'Fungsi Bawaan',
+                desc: 'Menjumlahkan seluruh elemen numerik (int/float) yang ada di dalam list.',
+                code: "harga = [10000, 15000, 5000]\nprint(sum(harga))\n# Output: 30000"
+            },
+            {
+                name: 'sorted()',
+                syntax: 'sorted(list, reverse=False)',
+                category: 'bawaan',
+                catLabel: 'Fungsi Bawaan',
+                desc: 'Mengembalikan list baru yang sudah terurut tanpa mengubah list aslinya.',
+                code: "a = [3, 1, 2]\nb = sorted(a)\n# a = [3, 1, 2], b = [1, 2, 3]"
+            },
+            {
+                name: 'list()',
+                syntax: 'list(iterable)',
+                category: 'bawaan',
+                catLabel: 'Fungsi Bawaan',
+                desc: 'Mengonversi tipe data iterable lain (seperti string, tuple, atau range) menjadi list.',
+                code: "print(list('ABC'))\n# Output: ['A', 'B', 'C']\nprint(list(range(3)))\n# Output: [0, 1, 2]"
+            }
+        ];
+
+        let activeRefFilter = 'semua';
+
+        function setRefFilter(category) {
+            activeRefFilter = category;
+            document.querySelectorAll('.ref-filter-btn').forEach(btn => {
+                if (btn.dataset.cat === category) {
+                    btn.className = 'ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-pyblue text-white shadow-sm transition-colors';
+                } else {
+                    btn.className = 'ref-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors';
+                }
+            });
+            renderReferenceCards();
+        }
+
+        function renderReferenceCards() {
+            const grid = document.getElementById('ref-cards-grid');
+            const query = document.getElementById('ref-search').value.trim().toLowerCase();
+
+            const filtered = REFERENCE_ITEMS.filter(item => {
+                const matchCat = activeRefFilter === 'semua' || item.category === activeRefFilter;
+                const matchQuery = !query ||
+                    item.name.toLowerCase().includes(query) ||
+                    item.desc.toLowerCase().includes(query) ||
+                    item.syntax.toLowerCase().includes(query);
+                return matchCat && matchQuery;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200">
+                        <p class="text-slate-500 font-medium">Tidak ada method atau fungsi yang cocok dengan pencarian "<strong>${escapeHtml(query)}</strong>".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const catBadgeColors = {
+                menambah: 'bg-emerald-50 text-emerald-700',
+                menghapus: 'bg-rose-50 text-rose-700',
+                mengurutkan: 'bg-pyblue-light text-pyblue',
+                informasi: 'bg-pyyellow-light text-amber-800',
+                bawaan: 'bg-purple-50 text-purple-700'
+            };
+
+            grid.innerHTML = filtered.map(item => `
+                <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-pyblue/40 transition-all overflow-hidden flex flex-col">
+                    <div class="p-5 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                            <h3 class="font-mono font-bold text-base text-slate-900">${escapeHtml(item.name)}</h3>
+                            <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${catBadgeColors[item.category]}">${escapeHtml(item.catLabel)}</span>
+                        </div>
+                        <div class="mt-2 inline-block font-mono text-xs bg-slate-100 text-pyblue-dark px-2.5 py-1 rounded-lg border border-slate-200/80">
+                            ${escapeHtml(item.syntax)}
+                        </div>
+                        <p class="text-sm text-slate-600 mt-3 leading-relaxed">
+                            ${escapeHtml(item.desc)}
+                        </p>
+                    </div>
+                    <div class="bg-slate-900 p-4 font-mono text-xs text-slate-200 border-t border-slate-800 overflow-x-auto">
+                        <pre><code>${escapeHtml(item.code)}</code></pre>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        /* =========================================================
+           6. MINI KUIS INTERAKTIF (5 SOAL)
+           ========================================================= */
+        const QUIZ_QUESTIONS = [
+            {
+                question: 'Diketahui list warna = ["Merah", "Hijau", "Biru", "Kuning"]. Apakah output dari print(warna[-2])?',
+                options: ['"Hijau"', '"Biru"', '"Kuning"', 'IndexError'],
+                correct: 1,
+                explanation: 'Indeks negatif dimulai dari kanan: -1 adalah "Kuning", maka -2 adalah "Biru".'
+            },
+            {
+                question: 'Diketahui angka = [10, 20, 30, 40, 50]. Apakah hasil dari slicing angka[1:4]?',
+                options: ['[10, 20, 30, 40]', '[20, 30, 40]', '[20, 30, 40, 50]', '[10, 20, 30]'],
+                correct: 1,
+                explanation: 'Slicing [1:4] mengambil mulai indeks 1 (20) dan berhenti sebelum indeks 4 (50), sehingga hasilnya [20, 30, 40].'
+            },
+            {
+                question: 'Method manakah yang digunakan untuk menghapus sekaligus mengembalikan elemen terakhir dari sebuah list?',
+                options: ['list.remove()', 'list.delete()', 'list.pop()', 'list.clear()'],
+                correct: 2,
+                explanation: 'Method pop() tanpa argumen akan menghapus elemen terakhir dari list dan mengembalikan nilai tersebut.'
+            },
+            {
+                question: 'Apa perbedaan utama antara list.sort() dan sorted(list) di Python?',
+                options: [
+                    'sort() hanya untuk angka, sorted() untuk teks',
+                    'sort() mengubah list asli secara langsung, sedangkan sorted() menghasilkan list baru',
+                    'sorted() mengurutkan menurun, sort() mengurutkan menaik',
+                    'Tidak ada perbedaan sama sekali'
+                ],
+                correct: 1,
+                explanation: 'list.sort() bekerja secara in-place (mengubah list asli dan mengembalikan None), sedangkan sorted(list) mengembalikan list baru tanpa mengubah list aslinya.'
+            },
+            {
+                question: 'Apakah hasil dari ekspresi slicing huruf[::-1] jika huruf = ["P", "Y", "T"]?',
+                options: ['["P", "Y"]', '["T"]', '["T", "Y", "P"]', 'Error'],
+                correct: 2,
+                explanation: 'Step bernilai -1 pada [::-1] menelusuri seluruh elemen dari belakang ke depan, sehingga menghasilkan salinan list yang dibalik: ["T", "Y", "P"].'
+            }
+        ];
+
+        let quizIndex = 0;
+        let quizScore = 0;
+        let quizAnswered = false;
+
+        function renderQuiz() {
+            const body = document.getElementById('quiz-body');
+            const progressBar = document.getElementById('quiz-progress-bar');
+            const scoreBadge = document.getElementById('quiz-score-badge');
+
+            scoreBadge.textContent = `${quizScore} / ${QUIZ_QUESTIONS.length}`;
+
+            // Tampilan Hasil Akhir Kuis
+            if (quizIndex >= QUIZ_QUESTIONS.length) {
+                progressBar.style.width = '100%';
+                const pct = Math.round((quizScore / QUIZ_QUESTIONS.length) * 100);
+                let predicate = 'Terus Berlatih!';
+                if (pct === 100) predicate = 'Sempurna! Kamu Master Python List!';
+                else if (pct >= 80) predicate = 'Hebat! Pemahamanmu Sangat Baik!';
+                else if (pct >= 60) predicate = 'Bagus! Tinggal Sedikit Lagi!';
+
+                body.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="w-20 h-20 mx-auto rounded-full bg-pyyellow-light border-4 border-pyyellow flex items-center justify-center font-mono text-2xl font-extrabold text-slate-900">
+                            ${pct}%
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-slate-900">${predicate}</h3>
+                        <p class="text-slate-600">Kamu menjawab benar <strong>${quizScore}</strong> dari <strong>${QUIZ_QUESTIONS.length}</strong> soal.</p>
+                        <div class="pt-3 flex justify-center gap-3">
+                            <button type="button" onclick="restartQuiz()" class="px-6 py-3 rounded-xl bg-pyblue hover:bg-pyblue-dark text-white font-bold text-sm shadow-sm transition-colors">
+                                ↺ Ulangi Kuis
+                            </button>
+                            <a href="#simulator" class="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors">
+                                Kembali ke Simulator
+                            </a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const q = QUIZ_QUESTIONS[quizIndex];
+            progressBar.style.width = `${((quizIndex + 1) / QUIZ_QUESTIONS.length) * 100}%`;
+
+            body.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
+                        <span>Soal ${quizIndex + 1} dari ${QUIZ_QUESTIONS.length}</span>
+                        <span>Pilihan Ganda</span>
+                    </div>
+
+                    <h3 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+                        ${escapeHtml(q.question)}
+                    </h3>
+
+                    <div id="quiz-options" class="grid sm:grid-cols-2 gap-3">
+                        ${q.options.map((opt, idx) => `
+                            <button type="button" onclick="selectQuizOption(${idx})" id="quiz-opt-${idx}" class="text-left p-4 rounded-2xl border-2 border-slate-200 hover:border-pyblue hover:bg-pyblue-light/40 transition-all font-medium text-sm sm:text-base text-slate-800 flex items-center gap-3">
+                                <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                                    ${String.fromCharCode(65 + idx)}
+                                </span>
+                                <span class="font-mono text-xs sm:text-sm">${escapeHtml(opt)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div id="quiz-feedback" class="hidden p-4 rounded-2xl border text-sm leading-relaxed"></div>
+
+                    <div class="flex justify-end">
+                        <button type="button" id="quiz-next-btn" onclick="nextQuizQuestion()" class="hidden px-6 py-3 rounded-xl bg-pyblue hover:bg-pyblue-dark text-white font-bold text-sm shadow-sm transition-colors">
+                            ${quizIndex === QUIZ_QUESTIONS.length - 1 ? 'Lihat Skor Akhir →' : 'Soal Berikutnya →'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectQuizOption(selectedIdx) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+
+            const q = QUIZ_QUESTIONS[quizIndex];
+            const isCorrect = selectedIdx === q.correct;
+            if (isCorrect) quizScore++;
+
+            document.getElementById('quiz-score-badge').textContent = `${quizScore} / ${QUIZ_QUESTIONS.length}`;
+
+            // Tandai tombol pilihan
+            q.options.forEach((_, idx) => {
+                const btn = document.getElementById(`quiz-opt-${idx}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:border-pyblue', 'hover:bg-pyblue-light/40');
+
+                if (idx === q.correct) {
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                } else if (idx === selectedIdx && !isCorrect) {
+                    btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                } else {
+                    btn.classList.add('opacity-60');
+                }
+            });
+
+            // Tampilkan umpan balik penjelasan
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+            if (isCorrect) {
+                feedback.className = 'p-4 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm leading-relaxed animate-pop-in';
+                feedback.innerHTML = `<strong class="block mb-1">✓ Jawaban Benar!</strong>${escapeHtml(q.explanation)}`;
+            } else {
+                feedback.className = 'p-4 rounded-2xl border border-rose-200 bg-rose-50 text-rose-900 text-sm leading-relaxed animate-pop-in';
+                feedback.innerHTML = `<strong class="block mb-1">✕ Kurang Tepat.</strong>${escapeHtml(q.explanation)}`;
+            }
+
+            document.getElementById('quiz-next-btn').classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            quizIndex++;
+            quizAnswered = false;
+            renderQuiz();
+        }
+
+        function restartQuiz() {
+            quizIndex = 0;
+            quizScore = 0;
+            quizAnswered = false;
+            renderQuiz();
+        }
+
+        /* =========================================================
+           7. INISIALISASI HALAMAN SAAT DIMUAT
+           ========================================================= */
+        window.addEventListener('DOMContentLoaded', () => {
+            // Muat preset awal simulator
+            loadPreset('buah');
+            // Set nilai awal contoh slicing (1:4)
+            document.getElementById('slice-start').value = '1';
+            document.getElementById('slice-stop').value = '4';
+            // Render referensi & kuis
+            renderReferenceCards();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>
